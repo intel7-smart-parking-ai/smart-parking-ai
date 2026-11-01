@@ -1,0 +1,7 @@
+:root { font-family: system-ui, 'Malgun Gothic', sans-serif; color: #e8efff; background: #101b2c; }
+body { margin: 0; }
+main { max-width: 780px; padding: 7vh 24px; margin: auto; }
+h1 { font-size: clamp(1.6rem, 5vw, 2.5rem); }
+.eyebrow { color: #72c6ed; font-size: .75rem; letter-spacing: .12em; }
+section { display: flex; justify-content: space-between; gap: 1rem; padding: 20px; border: 1px solid #34516b; border-radius: 12px; margin: 24px 0; }
+small { color: #a2b6cb; }
