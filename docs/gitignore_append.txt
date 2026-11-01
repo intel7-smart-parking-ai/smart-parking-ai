@@ -1,0 +1,21 @@
+# Smart Parking extra rules — append to root .gitignore
+.env
+.env.*
+!.env.example
+.venv/
+node_modules/
+frontend/dist/
+*.db
+*.sqlite
+*.sqlite3
+configs/parking_a.json
+configs/parking_b.json
+datasets/
+recordings/
+models/weights/
+*.pt
+*.pth
+*.onnx
+*.bag
+__pycache__/
+.pytest_cache/

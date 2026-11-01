@@ -1,0 +1,9 @@
+{
+  "lot_id": "B",
+  "name": "실물 주차장 B",
+  "type": "real",
+  "camera_id": "camera_b",
+  "camera_source": null,
+  "mount_position": "undecided",
+  "spaces": []
+}
