@@ -1,0 +1,44 @@
+AI 스마트 주차장 - 카메라 자동 캡처 도구
+
+1. 설치:
+   python -m pip install opencv-python numpy
+   # Intel RealSense D435를 SDK 방식으로 사용한다면 추가:
+   python -m pip install pyrealsense2
+
+2. 프로젝트의 루트 폴더에서 파일 실행 (또는 파일이 있는 위치에서 실행):
+   python capture_dataset.py --source A:webcam:0 --mode vehicle --interval 2
+
+3. 두 카메라 동시 수집 (D435 + 일반 USB 카메라 예시):
+   python capture_dataset.py --source A:realsense --source B:webcam:1 --mode vehicle --interval 2
+
+4. 작은 숫자/LED는 작은 변화가 필터에 걸릴 수 있으므로 중복검사 해제:
+   python capture_dataset.py --source A:realsense --mode ocr --min-change 0 --interval 2
+   python capture_dataset.py --source A:realsense --mode led_on --min-change 0 --interval 2
+   python capture_dataset.py --source A:realsense --mode led_off --min-change 0 --interval 2
+
+5. 해상도 높이기 (장치의 RGB 센서가 지원해야 함):
+   python capture_dataset.py --source A:realsense --mode ocr --width 1280 --height 720
+
+6. 카메라 번호가 잘못되면 webcam:0을 webcam:1, webcam:2 등으로 바꾸세요.
+   D435를 RealSense SDK로 열었다면 같은 RGB 스트림을 webcam 인덱스로도 중복 실행하지 마세요.
+
+7. 조작 키:
+   s = 수동 촬영 (자동 검사 무시)
+   p = 자동 촬영 잠시 중지/재개
+   q / Esc = 종료
+
+8. 출력 구조:
+   datasets/raw/vehicle/A/세션시각/사진.jpg
+   datasets/raw/vehicle/B/세션시각/사진.jpg
+   datasets/raw/ocr/A/세션시각/사진.jpg
+   datasets/raw/led_on/A/세션시각/사진.jpg
+   datasets/raw/led_off/A/세션시각/사진.jpg
+   datasets/raw/vehicle/capture_세션시각.csv
+
+주의:
+ - 자동 캡처는 원본 RGB 이미지만 수집합니다. AI 라벨(객체 위치 박스, 차량 번호)은 별도 작업이 필요합니다.
+ - 'ocr' 폴더에 저장되는 것은 전체 프레임입니다. 번호 부분을 crop하고 01~24 정답 라벨을 붙여야 합니다.
+ - 비슷한 장면이 반복되는 경우 자동차/스티커/LED/조명/촬영 방향을 바꿔주세요.
+ - validation/test로 분리할 때 같은 촬영 세션의 거의 동일한 프레임을 양쪽에 섞지 마세요.
+ - 카메라를 동시에 여러 프로그램에서 열면 실패할 수 있습니다. 최종 시스템은 단일 캡처 허브 구조로 개발하세요.
+ - datasets/raw/는 대용량이므로 GitHub Git 저장소에 바로 추가하지 말고 별도 저장소/공유 드라이브를 이용하세요.
