@@ -1,0 +1,11 @@
+{
+  "scope": "local mock, LLM disabled",
+  "users": 30,
+  "user_requests": 2400,
+  "alert_changes": 40,
+  "assertions": "all passed",
+  "open_read_flights": 0,
+  "sessions": 30,
+  "reports": 29,
+  "admin_calls": 45
+}

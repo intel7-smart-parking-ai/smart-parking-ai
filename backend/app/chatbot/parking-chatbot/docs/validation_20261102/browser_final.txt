@@ -1,0 +1,7 @@
+PASS full lot offers alternatives only (no wait chip, no destination cancel)
+PASS panel fill makes destination full and alternative C can be chosen
+PASS panel restriction notifies with plain wording
+PASS selected vehicle entry ends destination monitoring
+PASS my_status chip hidden but sentence still shows journey
+PASS admin call merges, status question creates no call, admin page has no status buttons
+PASS no browser runtime errors in final cleanup scenarios

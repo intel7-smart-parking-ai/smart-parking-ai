@@ -1,0 +1,7 @@
+PASS four lots render 2 by 2 with virtual labels and no mobile overflow
+PASS zone counts and requested zone are visible
+PASS destination selection exposes lot zone and virtual kind in pinned context
+PASS alarm alternative notice keeps evacuation banner and D selection works
+PASS unchanged destination problem does not duplicate notification
+PASS parked vehicle ends destination monitoring
+PASS no browser runtime errors in new flows

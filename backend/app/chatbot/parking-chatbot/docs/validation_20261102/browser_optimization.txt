@@ -1,0 +1,4 @@
+PASS registered call status button returns card without browser/server error
+PASS completed call query renders feedback and reopens the same call
+PASS independent users keep their own vehicle cards during parallel reads
+PASS no browser runtime errors in optimization checks

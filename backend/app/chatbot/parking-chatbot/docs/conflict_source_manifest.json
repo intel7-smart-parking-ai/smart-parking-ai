@@ -1,0 +1,23 @@
+{
+  "baseline_library_version": 11,
+  "changed": [
+    "README.md",
+    "docs/validation_questions.txt",
+    "docs/navigation_validation_results.json",
+    "docs/validation_optimization_soak.txt",
+    "docs/validation_benchmark.txt",
+    "docs/navigation_layout_matrix.json",
+    "docs/validation_python.txt",
+    "docs/stability_benchmark.json",
+    "chatbot/engine.py",
+    "chatbot/navigation.py"
+  ],
+  "added": [
+    "docs/conflict_audit_report.md",
+    "docs/conflict_optimization_benchmark.json",
+    "docs/conflict_after.txt",
+    "docs/conflict_before.txt",
+    "tests/test_navigation_conflicts.py"
+  ],
+  "deleted": []
+}

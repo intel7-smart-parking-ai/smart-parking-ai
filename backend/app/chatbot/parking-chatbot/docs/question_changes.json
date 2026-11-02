@@ -1,0 +1,149 @@
+[
+  {
+    "file": "tests/questions_extended.csv",
+    "line": 40,
+    "question": "대기하지 않을게요",
+    "old": "waitlist_cancel",
+    "new": "get_empty_spots"
+  },
+  {
+    "file": "tests/questions_extended.csv",
+    "line": 41,
+    "question": "대기 그만할게요",
+    "old": "waitlist_cancel",
+    "new": "get_empty_spots"
+  },
+  {
+    "file": "tests/questions_extended.csv",
+    "line": 42,
+    "question": "자리 알림 끄고 싶어요",
+    "old": "waitlist_cancel",
+    "new": "get_empty_spots"
+  },
+  {
+    "file": "tests/questions.csv",
+    "line": 32,
+    "question": "내 이용 현황 보여줘",
+    "old": "my_status",
+    "new": "find_my_car"
+  },
+  {
+    "file": "tests/questions.csv",
+    "line": 33,
+    "question": "7번 차 주차 상태",
+    "old": "my_status",
+    "new": "find_my_car"
+  },
+  {
+    "file": "tests/questions.csv",
+    "line": 34,
+    "question": "B 주차장 자리 나면 알려줘",
+    "old": "waitlist_join",
+    "new": "get_empty_spots"
+  },
+  {
+    "file": "tests/questions.csv",
+    "line": 35,
+    "question": "빈자리 생기면 알려줘",
+    "old": "waitlist_join",
+    "new": "get_empty_spots"
+  },
+  {
+    "file": "tests/questions.csv",
+    "line": 36,
+    "question": "대기 취소할게",
+    "old": "waitlist_cancel",
+    "new": "get_empty_spots"
+  },
+  {
+    "file": "tests/questions.csv",
+    "line": 37,
+    "question": "알림 꺼줘",
+    "old": "waitlist_cancel",
+    "new": "get_empty_spots"
+  },
+  {
+    "file": "tests/questions_realistic.csv",
+    "line": 50,
+    "question": "B 자리 나면 알려주세요",
+    "old": "waitlist_join",
+    "new": "get_empty_spots"
+  },
+  {
+    "file": "tests/questions_realistic.csv",
+    "line": 51,
+    "question": "비 주차장 대기 등록할게",
+    "old": "waitlist_join",
+    "new": "get_empty_spots"
+  },
+  {
+    "file": "tests/questions_realistic.csv",
+    "line": 52,
+    "question": "빈자리 생기면 알려줘",
+    "old": "waitlist_join",
+    "new": "get_empty_spots"
+  },
+  {
+    "file": "tests/questions_realistic.csv",
+    "line": 53,
+    "question": "대기 신청할래요",
+    "old": "waitlist_join",
+    "new": "get_empty_spots"
+  },
+  {
+    "file": "tests/questions_realistic.csv",
+    "line": 54,
+    "question": "대기 취소해 주세요",
+    "old": "waitlist_cancel",
+    "new": "get_empty_spots"
+  },
+  {
+    "file": "tests/questions_realistic.csv",
+    "line": 55,
+    "question": "자리 알림 꺼주세요",
+    "old": "waitlist_cancel",
+    "new": "get_empty_spots"
+  },
+  {
+    "file": "tests/questions_realistic.csv",
+    "line": 56,
+    "question": "대기 안 할래요",
+    "old": "waitlist_cancel",
+    "new": "get_empty_spots"
+  },
+  {
+    "file": "tests/questions_realistic.csv",
+    "line": 57,
+    "question": "내 대기 순번 알려줘",
+    "old": "waitlist_status",
+    "new": "get_empty_spots"
+  },
+  {
+    "file": "tests/questions_realistic.csv",
+    "line": 58,
+    "question": "몇 번째예요?",
+    "old": "waitlist_status",
+    "new": "get_empty_spots"
+  },
+  {
+    "file": "tests/questions_realistic.csv",
+    "line": 59,
+    "question": "대기 현황",
+    "old": "waitlist_status",
+    "new": "get_empty_spots"
+  },
+  {
+    "file": "tests/questions_holdout.csv",
+    "line": 15,
+    "question": "B 주차장에 자리 생기면 알려주세요",
+    "old": "waitlist_join",
+    "new": "get_empty_spots"
+  },
+  {
+    "file": "tests/questions_holdout.csv",
+    "line": 16,
+    "question": "대기 취소 부탁해요",
+    "old": "waitlist_cancel",
+    "new": "get_empty_spots"
+  }
+]

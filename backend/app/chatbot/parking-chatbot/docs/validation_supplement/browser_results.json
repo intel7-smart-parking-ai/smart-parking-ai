@@ -1,0 +1,37 @@
+[
+  {
+    "suite": "browser_checks",
+    "passed": 15,
+    "exit_code": 0
+  },
+  {
+    "suite": "browser_stability",
+    "passed": 11,
+    "exit_code": 0
+  },
+  {
+    "suite": "browser_optimization",
+    "passed": 3,
+    "exit_code": 0
+  },
+  {
+    "suite": "browser_navigation",
+    "passed": 7,
+    "exit_code": 0
+  },
+  {
+    "suite": "browser_final",
+    "passed": 7,
+    "exit_code": 0
+  },
+  {
+    "suite": "browser_audit_fixes",
+    "passed": 6,
+    "exit_code": 0
+  },
+  {
+    "suite": "browser_supplement",
+    "passed": 6,
+    "exit_code": 0
+  }
+]

@@ -1,0 +1,6 @@
+PASS delayed refresh preserves selected vehicle
+PASS selection made during refresh is preserved
+PASS exit removes only selected car and requires new selection
+PASS old response cannot restore removed car or overwrite newer list
+PASS empty selected entry changes no data while anonymous entry still works
+PASS no browser runtime errors in audit regression scenarios

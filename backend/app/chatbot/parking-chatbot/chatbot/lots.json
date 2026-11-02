@@ -1,0 +1,251 @@
+{
+  "schema_note": "PROVISIONAL(API v1 확정 필요)",
+  "vehicle_min": 1,
+  "vehicle_max": 24,
+  "zones": [
+    {
+      "key": "normal",
+      "name": "일반",
+      "aliases": [
+        "일반"
+      ],
+      "remaining": true
+    },
+    {
+      "key": "ev",
+      "name": "충전",
+      "aliases": [
+        "충전",
+        "전기차",
+        "EV"
+      ],
+      "slots_per_lot": 1,
+      "home": true
+    },
+    {
+      "key": "disabled",
+      "name": "장애인",
+      "aliases": [
+        "장애인"
+      ],
+      "slots_per_lot": 1,
+      "home": true
+    }
+  ],
+  "lots": [
+    {
+      "lot_id": "A",
+      "name": "A 주차장",
+      "kind": "real",
+      "capacity": 8,
+      "aliases": [
+        "에이"
+      ],
+      "exit": "A 주차장 동쪽 출구",
+      "mock_cars": [
+        [
+          "01",
+          1,
+          95
+        ],
+        [
+          "02",
+          2,
+          40
+        ],
+        [
+          "03",
+          3,
+          12
+        ],
+        [
+          "05",
+          5,
+          150
+        ],
+        [
+          "06",
+          6,
+          33
+        ],
+        [
+          "07",
+          7,
+          58
+        ],
+        [
+          "08",
+          8,
+          20
+        ]
+      ],
+      "zone_layout": {
+        "ev": [
+          7
+        ],
+        "disabled": [
+          8
+        ]
+      },
+      "exits": [
+        "A 주차장 동쪽 출구"
+      ],
+      "facility": {
+        "underground": null,
+        "height_limit_m": null,
+        "sprinkler": null
+      }
+    },
+    {
+      "lot_id": "B",
+      "name": "B 주차장",
+      "kind": "real",
+      "capacity": 8,
+      "aliases": [
+        "비"
+      ],
+      "exit": "B 주차장 정문 출구",
+      "mock_full": true,
+      "mock_cars": [
+        [
+          "09",
+          1,
+          70
+        ],
+        [
+          "10",
+          2,
+          25
+        ],
+        [
+          "11",
+          3,
+          110
+        ],
+        [
+          "12",
+          4,
+          15
+        ],
+        [
+          "13",
+          5,
+          45
+        ],
+        [
+          "14",
+          6,
+          80
+        ],
+        [
+          "15",
+          7,
+          5
+        ],
+        [
+          "16",
+          8,
+          63
+        ]
+      ],
+      "zone_layout": {
+        "ev": [
+          7
+        ],
+        "disabled": [
+          8
+        ]
+      },
+      "exits": [
+        "B 주차장 정문 출구"
+      ],
+      "facility": {
+        "underground": null,
+        "height_limit_m": null,
+        "sprinkler": null
+      }
+    },
+    {
+      "lot_id": "C",
+      "name": "C 주차장",
+      "kind": "virtual",
+      "capacity": 8,
+      "aliases": [
+        "씨",
+        "시"
+      ],
+      "exit": "C 주차장 북쪽 출구",
+      "mock_cars": [
+        [
+          "17",
+          1,
+          28
+        ],
+        [
+          "18",
+          3,
+          140
+        ]
+      ],
+      "zone_layout": {
+        "ev": [
+          7
+        ],
+        "disabled": [
+          8
+        ]
+      },
+      "exits": [
+        "C 주차장 북쪽 출구"
+      ],
+      "facility": {
+        "underground": null,
+        "height_limit_m": null,
+        "sprinkler": null
+      }
+    },
+    {
+      "lot_id": "D",
+      "name": "D 주차장",
+      "kind": "virtual",
+      "capacity": 8,
+      "aliases": [
+        "디"
+      ],
+      "exit": "D 주차장 출구",
+      "mock_cars": [
+        [
+          "19",
+          2,
+          48
+        ],
+        [
+          "20",
+          5,
+          18
+        ]
+      ],
+      "zone_layout": {
+        "ev": [
+          7
+        ],
+        "disabled": [
+          8
+        ]
+      },
+      "exits": [
+        "D 주차장 출구"
+      ],
+      "facility": {
+        "underground": null,
+        "height_limit_m": null,
+        "sprinkler": null
+      }
+    }
+  ],
+  "ev_vehicles": [
+    "03",
+    "11",
+    "18"
+  ]
+}

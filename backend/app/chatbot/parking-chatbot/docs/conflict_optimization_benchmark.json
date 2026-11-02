@@ -1,0 +1,30 @@
+{
+  "scope": "controlled local mock, single process, LLM disabled",
+  "results": {
+    "near_vehicle": {
+      "requests": 8,
+      "backend_reads": 8,
+      "elapsed_ms": 128.73,
+      "injected_delay_ms": 15
+    },
+    "waiter_poll": {
+      "sessions": 200,
+      "waiters": 100,
+      "polls": 12,
+      "status_calls": 12,
+      "elapsed_ms": 4.8
+    },
+    "concurrent_location": {
+      "clients": 12,
+      "backend_reads": 1,
+      "max_latency_ms": 45.46,
+      "injected_delay_ms": 40
+    },
+    "concurrent_occupancy": {
+      "clients": 12,
+      "backend_reads": 1,
+      "max_latency_ms": 46.16,
+      "injected_delay_ms": 40
+    }
+  }
+}

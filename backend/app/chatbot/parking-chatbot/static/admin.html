@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>관리자 화면 · 상황 보고서</title>
+<style>
+/* 임시 관리자 화면 (EPIC 08 관제 화면에 넘길 기능 미리보기). 디자인 값은 :root 에 모음 */
+:root{--bg:#F3F5F8;--surface:#fff;--ink:#111827;--ink-2:#4B5563;--line:#D9DEE6;--brand:#1F4FD1;
+  --ok:#137A3A;--ok-bg:#E6F4EA;--warn:#9A5B00;--warn-bg:#FFF4D6;--bad:#B42318;--bad-bg:#FDE8E7;--info-bg:#E8EEFC}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;font-size:15px}
+header{background:#111827;color:#fff;padding:14px 20px;display:flex;align-items:center;gap:12px}
+header h1{font-size:1.05rem;margin:0}
+header small{color:#9CA3AF}
+.live{margin-left:auto;font-size:.8rem;color:#9CA3AF}
+.wrap{display:grid;grid-template-columns:260px 1fr;gap:16px;padding:16px 20px;max-width:1280px;margin:0 auto}
+@media (max-width:800px){.wrap{grid-template-columns:1fr;padding:12px}}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px}
+.box h2{font-size:.85rem;color:var(--ink-2);margin:0 0 10px}
+.inc{padding:10px;border-radius:10px;border:1px solid var(--line);margin-bottom:8px;cursor:pointer}
+.inc.on{border-color:var(--brand);background:var(--info-bg)}
+.inc b{display:block}
+.badge{display:inline-block;padding:3px 8px;border-radius:999px;font-size:.75rem;font-weight:800}
+.b-live{background:var(--bad);color:#fff}.b-wait{background:var(--warn-bg);color:var(--warn)}.b-done{background:var(--ok-bg);color:var(--ok)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:1000px){.grid{grid-template-columns:1fr}}
+.title{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.title h2{margin:0;font-size:1.1rem;color:var(--ink)}
+.cars{display:flex;flex-wrap:wrap;gap:6px}
+.car{padding:6px 10px;border-radius:8px;background:#EEF0F3;font-size:.85rem}
+.car.near{background:var(--bad-bg);color:var(--bad);font-weight:800}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}
+.kpi{background:#F7F8FA;border-radius:10px;padding:8px;text-align:center}
+.kpi b{display:block;font-size:1.4rem}
+.kpi span{font-size:.72rem;color:var(--ink-2)}
+label.chk{display:flex;gap:10px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:10px;margin-bottom:6px;cursor:pointer}
+label.chk input{width:20px;height:20px}
+label.chk small{margin-left:auto;color:var(--ok);font-weight:700}
+textarea{width:100%;min-height:70px;border:1px solid var(--line);border-radius:10px;padding:10px;font:inherit}
+button{height:40px;border-radius:10px;border:1px solid var(--line);background:#fff;font:inherit;font-weight:700;padding:0 14px;cursor:pointer}
+button.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+button:disabled{opacity:.45;cursor:not-allowed}
+pre{white-space:pre-wrap;background:#F7F8FA;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:.85rem;line-height:1.55;margin:0;max-height:520px;overflow:auto;font-family:inherit}
+.row{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.msg{font-size:.85rem;color:var(--bad)}
+.empty{color:var(--ink-2);font-size:.9rem;padding:20px 0;text-align:center}
+.call{border-bottom:1px dashed var(--line);padding:8px 0;font-size:.88rem}
+</style>
+</head>
+<body>
+<header><h1>관리자 화면</h1><small>EPIC 06 테스트 모델 · 상황 보고서 자동 작성</small><span class="live" id="live">-</span></header>
+<div class="row" style="max-width:1240px;margin:8px auto;padding:0 20px"><input id="adminKey" type="password" placeholder="관리자 접근 키" autocomplete="off"><button id="connect">연결</button></div>
+<div class="wrap">
+  <aside>
+    <div class="box"><h2>상황 보고서</h2><div id="list"><div class="empty">아직 경보가 없어요.<br>이용자 화면의 테스트 도구에서<br>경보를 띄워 보세요.</div></div></div>
+    <div class="box" style="margin-top:16px"><h2>이용자 관리자 호출</h2><div id="calls"><div class="empty">없음</div></div></div>
+  </aside>
+  <main id="detail"><div class="box empty">왼쪽에서 보고서를 선택하세요.</div></main>
+</div>
+<script>
+const API = "/api/v1/chat";
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const hhmm = (iso) => iso ? new Date(iso).toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Seoul"}) : "-";
+const drafts = new Map();
+let adminKey = "";
+try{adminKey=sessionStorage.getItem("adminKey")||"";}catch(e){}
+$("#adminKey").value=adminKey;
+$("#connect").addEventListener("click",()=>{
+  adminKey=$("#adminKey").value;
+  try{sessionStorage.setItem("adminKey",adminKey);}catch(e){}
+  load();
+});
+function draftKey(id){return `notes:${runtimeId}:${id}`;}
+function getDraft(id){
+  if(!drafts.has(id)){
+    try{const saved=sessionStorage.getItem(draftKey(id));if(saved) drafts.set(id,JSON.parse(saved));}catch(e){}
+  }
+  return drafts.get(id);
+}
+function persistDraft(id, draft){
+  if(draft) drafts.set(id,draft);else drafts.delete(id);
+  try{if(draft)sessionStorage.setItem(draftKey(id),JSON.stringify(draft));else sessionStorage.removeItem(draftKey(id));}catch(e){}
+}
+async function fetchAdmin(url,options={}){
+  const controller=new AbortController(), timer=setTimeout(()=>controller.abort(),8000);
+  try{
+    const r=await fetch(url,{...options,headers:{...(options.headers||{}),...(adminKey?{Authorization:`Bearer ${adminKey}`}:{})},signal:controller.signal});
+    const d=await r.json();if(!r.ok)throw new Error(d.error||d.detail||"요청 실패");return d;
+  }finally{clearTimeout(timer);}
+}
+let items = [], selected = null, notesDirty = false, loading = false, saving = false, runtimeId = null;
+
+const badge = (st) => st === "진행 중" ? `<span class="badge b-live">진행 중</span>` : st === "확정" ? `<span class="badge b-done">확정</span>` : `<span class="badge b-wait">${esc(st)}</span>`;
+
+async function load(rebase=false){
+  if(loading) return;
+  loading = true;
+  try{
+    const [inc, calls] = await Promise.all([fetchAdmin(`${API}/incidents`), fetchAdmin(`${API}/admin/calls`)]);
+
+    if(runtimeId && runtimeId !== inc.runtime_id){ selected=null; notesDirty=false; drafts.clear(); items=[]; }
+    runtimeId = inc.runtime_id;
+    items = inc.items.map(x=>{const old=items.find(y=>y.id===x.id);return old&&old.revision>x.revision?old:x;});
+    if(rebase && selected && getDraft(selected)) persistDraft(selected,{...getDraft(selected),revision:items.find(x=>x.id===selected)?.revision});
+    if(!items.some(x=>x.id===selected)){ selected = items[0]?.id ?? null; notesDirty = false; }
+    renderList(); if(!saving) renderDetail(); renderCalls(calls.items);
+    $("#live").textContent = "자동 갱신 " + hhmm(new Date().toISOString());
+  }catch(e){ $("#live").textContent = "연결 확인 필요 · " + e.message; }finally{ loading = false; }
+}
+
+function renderList(){
+  if(!items.length){ $("#list").innerHTML = '<div class="empty">아직 경보가 없어요.</div>'; return; }
+  $("#list").innerHTML = items.map(x => `<div class="inc ${x.id===selected?"on":""}" data-id="${x.id}">
+    <b>#${x.id} ${esc(x.lot_id)} 주차장 ${esc(x.spot_no)}번 칸</b>${badge(x.status)} <small>${hhmm(x.opened_at)}</small></div>`).join("");
+}
+$("#list").addEventListener("click", (e) => { const el = e.target.closest("[data-id]"); if(el && !saving){ selected = +el.dataset.id; notesDirty = !!getDraft(selected); renderList(); renderDetail(true); } });
+
+function renderCalls(calls){
+  $("#calls").innerHTML = calls.length ? calls.slice().reverse().map(c => `<div class="call"><b>#${c.id} · ${esc(c.status)}</b> ${hhmm(c.at)}<br>${esc(c.summary)}
+</div>`).join("") : `<div class="empty">없음</div>`;
+}
+
+
+function renderBriefing(x){
+  return x.briefing ? `<h2>소방 전달용 현장 정보</h2><pre id="briefingText">${esc(x.briefing.text)}</pre><button id="copyBriefing">신고 정보 복사</button><span id="briefingCopyState" role="status"></span>` : '';
+}
+
+function renderDetail(force){
+  const x = items.find(i => i.id === selected);
+  if(!x){ $("#detail").innerHTML = '<div class="box empty">왼쪽에서 보고서를 선택하세요.</div>'; return; }
+  const locked = x.status === "확정";
+  const notesBox = $("#notes"), draft=getDraft(x.id);
+  notesDirty=!!draft;
+  // 입력 중인 textarea는 다시 만들지 않는다. 한글 조합·커서 위치와 초안을 보존한다.
+  if(!force && notesBox?.dataset.report===String(x.id) && (draft || document.activeElement===notesBox)){
+    $("#report").textContent=x.report;
+    $("#briefing").innerHTML=renderBriefing(x);
+    const counters=document.querySelectorAll("#detail .kpi b");
+    ["Lv"+x.max_level,Math.round(x.max_confidence*100)+"%",x.notified_count,x.admin_calls.length].forEach((v,i)=>{if(counters[i])counters[i].textContent=v;});
+    const status=document.querySelector("#detail .title .badge");if(status)status.outerHTML=badge(x.status);
+    const near=new Set(x.near_spots || x.affected.filter(c=>c.vehicle_no!=null&&x.near.includes(c.vehicle_no)).map(c=>c.spot_no));
+    document.querySelector("#detail .cars").innerHTML=x.affected.map(c=>`<span class="car ${near.has(c.spot_no)?"near":""}">${c.vehicle_no==null?"번호 미인식":esc(c.vehicle_no)+"번"} · ${esc(c.spot_no)}칸</span>`).join("")||(x.affected_known===false?"차량 목록 조회 실패 · 미확인":"없음");
+    notesBox.disabled=locked;
+    $("#saveNotes").disabled=locked;$("#confirm").disabled=locked||!x.closed_at;
+    $("#draftState").textContent=draft ? "미저장 초안" + (draft.revision!==x.revision ? " · 서버 변경 확인 필요" : "") : "";
+    return;
+  }
+  const keepNotes = draft?.text ?? null;
+  const near = new Set(x.near_spots || x.affected.filter(c=>c.vehicle_no!=null&&x.near.includes(c.vehicle_no)).map(c=>c.spot_no));
+  $("#detail").innerHTML = `
+  <div class="grid">
+    <div class="box">
+      <div class="title"><h2>#${x.id} 모의 화재(LED) · ${esc(x.lot_id)} 주차장 ${esc(x.spot_no)}번 칸</h2>${badge(x.status)}</div>
+      <div class="kpis">
+        <div class="kpi"><b>Lv${x.max_level}</b><span>최고 단계</span></div>
+        <div class="kpi"><b>${Math.round(x.max_confidence*100)}%</b><span>최대 신뢰도</span></div>
+        <div class="kpi"><b>${x.notified_count}</b><span>알림 수신 확인</span></div>
+        <div class="kpi"><b>${x.admin_calls.length}</b><span>관리자 호출</span></div>
+      </div>
+      <div id="briefing">${renderBriefing(x)}</div>
+      <h2>영향 차량 (빨간색: 근접 차량, 먼저 안내)</h2>
+      <div class="cars">${x.affected.map(c => `<span class="car ${near.has(c.spot_no)?"near":""}">${c.vehicle_no==null?"번호 미인식":esc(c.vehicle_no)+"번"} · ${esc(c.spot_no)}칸</span>`).join("") || (x.affected_known === false ? "차량 목록 조회 실패 · 미확인" : "없음")}</div>
+      <h2 style="margin-top:16px">대응 체크리스트 (누르면 시각이 보고서에 기록)</h2>
+      ${x.checklist.map((c,i) => `<label class="chk"><input type="checkbox" data-i="${i}" ${c.done_at?"checked":""} ${locked?"disabled":""}>${esc(c.item)}${c.done_at?`<small>${hhmm(c.done_at)}</small>`:""}</label>`).join("")}
+      <h2 style="margin-top:16px">관리자 메모 (조치 내용)</h2>
+      <textarea maxlength="1000" id="notes" data-report="${x.id}" ${locked?"disabled":""} placeholder="예: 현장 확인 결과 시연용 LED, 이상 없음">${esc(keepNotes ?? x.notes)}</textarea>
+      <div class="row">
+        <button id="reloadReport">최신 보고서 확인</button>
+        <button id="saveNotes" ${locked?"disabled":""}>메모 저장</button>
+        <button class="primary" id="confirm" ${locked || !x.closed_at ? "disabled":""}>보고서 확정</button>
+        <span id="draftState">${draft ? "미저장 초안" : ""}</span><span class="msg" id="msg">${!x.closed_at ? "경보가 해제되면 확정할 수 있어요." : ""}</span>
+      </div>
+    </div>
+    <div class="box">
+      <div class="title"><h2>보고서 초안 (자동 작성)</h2><button id="copy" style="margin-left:auto">복사</button></div>
+      <pre id="report">${esc(x.report)}</pre>
+    </div>
+  </div>`;
+  const n = $("#notes"); n.addEventListener("input", () => {
+    const prior=getDraft(x.id);
+    persistDraft(x.id,{text:n.value,revision:prior?.revision ?? x.revision});notesDirty=true;
+    $("#draftState").textContent="미저장 초안";
+  });
+
+}
+
+function mutationBody(extra){
+  const report=items.find(x=>x.id===selected);
+  return {runtime_id:runtimeId, expected_revision:report.revision, ...extra};
+}
+async function mutate(action, extra){
+  if(saving) return null;
+  saving=true;
+  const id=selected, body=mutationBody(extra), draft=getDraft(id);
+  if(action!=="check" && draft) body.expected_revision=draft.revision;
+  const field=$("#notes");
+  if(field) field.disabled=true;
+  try{
+    const result=await post(`${API}/incidents/${id}/${action}`,body);
+    if(result.error){ if(selected===id) $("#msg").textContent=result.error; return result; }
+    const index=items.findIndex(x=>x.id===id); if(index>=0 && items[index].revision<=result.revision) items[index]=result;
+    if(selected===id){
+      if(action!=="check"){notesDirty=false;persistDraft(id,null);}
+      else if(draft && draft.revision===body.expected_revision)persistDraft(id,{...draft,revision:result.revision});
+      renderList();renderDetail(true);
+    }
+    return result;
+  }finally{
+    saving=false;
+    const report=items.find(x=>x.id===selected), current=$("#notes");
+    if(current) current.disabled=report?.status === "확정";
+  }
+}
+$("#detail").addEventListener("change", async (e) => {
+  const cb=e.target.closest("input[type=checkbox][data-i]");
+  if(!cb) return;
+  const r=await mutate("check",{index:+cb.dataset.i, checked:cb.checked});
+  if(!r || r.error) cb.checked=!cb.checked;
+});
+$("#detail").addEventListener("click", async (e) => {
+  if(e.target.id === "saveNotes") await mutate("notes",{text:$("#notes").value});
+  if(e.target.id === "confirm") await mutate("confirm",{notes:$("#notes").value}); // 메모 저장과 확정을 한 번에 처리
+  if(e.target.id === "reloadReport") await load(true); // 최신 내용 확인 후에도 초안은 유지
+  if(e.target.id === "copyBriefing"){
+    try{await navigator.clipboard.writeText($("#briefingText").textContent);$("#briefingCopyState").textContent="복사됨";}catch(err){$("#briefingCopyState").textContent="복사 실패 · 내용을 선택해 복사해 주세요";}
+    return;
+  }
+  if(e.target.id === "copy"){
+    try{ await navigator.clipboard.writeText($("#report").textContent); e.target.textContent="복사됨"; }catch(err){ e.target.textContent="복사 실패"; }
+  }
+});
+async function post(url, body){
+  try{
+    return await fetchAdmin(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+  }catch(e){ return {error:e.message || "서버 연결에 실패했어요. 입력한 메모는 유지됩니다."}; }
+}
+
+load();
+setInterval(load, 2000);
+</script>
+</body>
+</html>

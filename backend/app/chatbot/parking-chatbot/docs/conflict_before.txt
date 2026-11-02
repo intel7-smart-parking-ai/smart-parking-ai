@@ -1,0 +1,43 @@
+test_latest_problem_replaces_unacknowledged_previous_problem (test_navigation_conflicts.NavigationConflictTests.test_latest_problem_replaces_unacknowledged_previous_problem) ... FAIL
+test_missing_zone_does_not_hide_stale_state (test_navigation_conflicts.NavigationConflictTests.test_missing_zone_does_not_hide_stale_state) ... FAIL
+test_recovery_removes_unacknowledged_obsolete_destination_notice (test_navigation_conflicts.NavigationConflictTests.test_recovery_removes_unacknowledged_obsolete_destination_notice) ... FAIL
+test_rejected_switch_preserves_pending_destination_notice (test_navigation_conflicts.NavigationConflictTests.test_rejected_switch_preserves_pending_destination_notice) ... FAIL
+test_same_session_simultaneous_duplicate_selection (test_navigation_conflicts.NavigationConflictTests.test_same_session_simultaneous_duplicate_selection) ... ok
+test_simultaneous_poll_and_selection_do_not_deadlock (test_navigation_conflicts.NavigationConflictTests.test_simultaneous_poll_and_selection_do_not_deadlock) ... ok
+
+======================================================================
+FAIL: test_latest_problem_replaces_unacknowledged_previous_problem (test_navigation_conflicts.NavigationConflictTests.test_latest_problem_replaces_unacknowledged_previous_problem)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/dffe3ddb837b/parking_expansion/parking-chatbot/tests/test_navigation_conflicts.py", line 50, in test_latest_problem_replaces_unacknowledged_previous_problem
+    self.assertEqual(len(notices), 1)
+AssertionError: 2 != 1
+
+======================================================================
+FAIL: test_missing_zone_does_not_hide_stale_state (test_navigation_conflicts.NavigationConflictTests.test_missing_zone_does_not_hide_stale_state)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/dffe3ddb837b/parking_expansion/parking-chatbot/tests/test_navigation_conflicts.py", line 57, in test_missing_zone_does_not_hide_stale_state
+    self.assertIn('현재 상태 확인 불가', text)
+AssertionError: '현재 상태 확인 불가' not found in '구역별 정보는 아직 제공되지 않아요.\nD 주차장 전체 빈자리는 6자리예요.'
+
+======================================================================
+FAIL: test_recovery_removes_unacknowledged_obsolete_destination_notice (test_navigation_conflicts.NavigationConflictTests.test_recovery_removes_unacknowledged_obsolete_destination_notice)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/dffe3ddb837b/parking_expansion/parking-chatbot/tests/test_navigation_conflicts.py", line 43, in test_recovery_removes_unacknowledged_obsolete_destination_notice
+    self.assertFalse(any(m.get('meta', {}).get('notification') == 'destination' for m in result['messages']))
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_rejected_switch_preserves_pending_destination_notice (test_navigation_conflicts.NavigationConflictTests.test_rejected_switch_preserves_pending_destination_notice)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/dffe3ddb837b/parking_expansion/parking-chatbot/tests/test_navigation_conflicts.py", line 37, in test_rejected_switch_preserves_pending_destination_notice
+    self.assertTrue(any(m.get('meta', {}).get('notification') == 'destination' for m in retry['messages']))
+AssertionError: False is not true
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.600s
+
+FAILED (failures=4)

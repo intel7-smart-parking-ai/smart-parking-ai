@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>주차장 안내봇 · 테스트 모델</title>
+<style>
+/* ===== 임시 디자인 토큰: 최종 디자인 확정 시 이 블록만 바꾸면 됨 ===== */
+:root{
+  --bg:#EEF1F5; --surface:#FFFFFF; --ink:#111827; --ink-2:#4B5563; --line:#D9DEE6;
+  --brand:#1F4FD1; --brand-ink:#FFFFFF; --bot:#FFFFFF; --user:#1F4FD1; --user-ink:#FFFFFF;
+  --ok:#137A3A; --ok-bg:#E6F4EA; --warn:#9A5B00; --warn-bg:#FFF4D6;
+  --bad:#B42318; --bad-bg:#FDE8E7; --info-bg:#E8EEFC;
+  --radius:16px; --tap:48px; --fs:16px;
+}
+:root.big{ --fs:19px; }
+*{box-sizing:border-box}
+html{font-size:var(--fs)}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased}
+.app{max-width:440px;margin:0 auto;height:100dvh;display:flex;flex-direction:column;background:var(--bg);position:relative}
+header{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--surface);border-bottom:1px solid var(--line)}
+.logo{width:36px;height:36px;border-radius:10px;background:var(--brand);color:#fff;display:grid;place-items:center;font-weight:800}
+header h1{font-size:1.05rem;margin:0}
+header small{color:var(--ink-2);font-size:.78rem}
+header .sp{flex:1}
+.icon-btn{white-space:nowrap;min-width:var(--tap);height:40px;border:1px solid var(--line);background:var(--surface);border-radius:10px;font:inherit;font-size:.85rem;font-weight:700;color:var(--ink);cursor:pointer;padding:0 10px}
+.icon-btn[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+.banner{display:none;padding:12px 16px;font-weight:800;font-size:.95rem;align-items:center;gap:8px}
+.banner.l1{display:flex;background:var(--warn-bg);color:var(--warn);border-bottom:2px solid #E7B640}
+.banner.l2{display:flex;background:var(--bad);color:#fff;animation:pulse 1.6s infinite}
+@keyframes pulse{50%{background:#8E1B12}}
+
+#log{flex:1;overflow-y:auto;padding:16px 12px 8px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
+.row{display:flex;flex-direction:column;max-width:88%}
+.row.bot{align-self:flex-start}
+.row.user{align-self:flex-end;align-items:flex-end}
+.bubble{padding:11px 14px;border-radius:var(--radius);line-height:1.5;white-space:pre-line;font-size:1rem}
+.bot .bubble{background:var(--bot);border:1px solid var(--line);border-top-left-radius:6px}
+.user .bubble{background:var(--user);color:var(--user-ink);border-top-right-radius:6px}
+.meta{font-size:.72rem;color:var(--ink-2);margin:4px 6px 0}
+.typing .bubble{color:var(--ink-2)}
+.typing .dots span{display:inline-block;width:6px;height:6px;margin-left:3px;border-radius:50%;background:var(--ink-2);animation:b 1s infinite}
+.typing .dots span:nth-child(2){animation-delay:.15s}.typing .dots span:nth-child(3){animation-delay:.3s}
+@keyframes b{50%{transform:translateY(-4px);opacity:.4}}
+
+/* 카드 */
+.card{margin-top:8px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px;min-width:260px}
+.card h3{margin:0 0 10px;font-size:.85rem;color:var(--ink-2);font-weight:700}
+.lots{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px}
+.lots.four{grid-template-columns:repeat(2,minmax(0,1fr))}
+.zone-counts{font-size:.72rem;margin-top:5px;line-height:1.45}
+.lot button{font:inherit;font-size:.75rem;border:1px solid #ccd3dd;background:#fff;border-radius:8px;padding:5px;margin-top:5px}
+.lot{border-radius:12px;padding:10px 6px;text-align:center;border:2px solid transparent}
+.lot.focus{border-color:var(--ink)}
+.lot{min-width:0;overflow-wrap:anywhere}
+.lot .name{font-size:.8rem;font-weight:700}
+.lot .num{font-size:2rem;font-weight:800;line-height:1.1;margin:2px 0}
+.lot .st{font-size:.75rem;font-weight:700}
+.s-ok{background:var(--ok-bg);color:var(--ok)} .s-warn{background:var(--warn-bg);color:var(--warn)} .s-bad{background:var(--bad-bg);color:var(--bad)}
+.big-line{font-size:1.5rem;font-weight:800;margin:2px 0 8px}
+.kv{display:flex;justify-content:space-between;font-size:.9rem;padding:6px 0;border-top:1px dashed var(--line)}
+.kv span:first-child{color:var(--ink-2)}
+.spots{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;margin:6px 0 10px}
+.spot{height:30px;border-radius:6px;background:#E5E7EB;display:grid;place-items:center;font-size:.7rem;color:var(--ink-2)}
+.spot.me{background:var(--brand);color:#fff;font-weight:800}
+.badge{display:inline-block;padding:3px 8px;border-radius:999px;font-size:.75rem;font-weight:800}
+.card.alert{background:var(--bad-bg);border-color:#F3B5AF}
+.card.alert .big-line{color:var(--bad)}
+.summary{background:var(--info-bg);border-radius:10px;padding:10px;font-size:.85rem;line-height:1.5}
+
+.track{display:flex;margin:4px 0 12px}
+.step{flex:1;text-align:center;position:relative;font-size:.72rem;color:var(--ink-2)}
+.step::before{content:"";position:absolute;top:11px;left:-50%;width:100%;height:3px;background:var(--line);z-index:0}
+.step:first-child::before{display:none}
+.step .dot{position:relative;z-index:1;width:24px;height:24px;border-radius:50%;margin:0 auto 4px;display:grid;place-items:center;font-size:.7rem;font-weight:800;background:#fff;border:2px solid var(--line);color:var(--ink-2)}
+.step.done .dot{background:var(--ok);border-color:var(--ok);color:#fff}
+.step.done::before,.step.current::before{background:var(--ok)}
+.step.current .dot{background:var(--brand);border-color:var(--brand);color:#fff;box-shadow:0 0 0 4px var(--info-bg)}
+.step b{display:block;color:var(--ink);font-size:.75rem}
+.step.todo b{color:var(--ink-2);font-weight:600}
+.wait-pos{font-size:2.4rem;font-weight:800;color:var(--brand);line-height:1}
+/* 칩 / 입력 */
+.dock{background:var(--surface);border-top:1px solid var(--line)}
+#chips{display:flex;gap:8px;overflow-x:auto;padding:10px 12px 4px;scrollbar-width:none}
+#chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;min-height:40px;padding:0 14px;border-radius:999px;border:1.5px solid var(--brand);background:#fff;color:var(--brand);font:inherit;font-size:.9rem;font-weight:700;cursor:pointer;white-space:nowrap}
+.chip.first{background:var(--brand);color:#fff}
+.alert-mode .chip.first{background:var(--bad);border-color:var(--bad)}
+.inwrap{position:relative;padding:8px 12px 10px;display:flex;gap:8px}
+#q{flex:1;height:var(--tap);border:1.5px solid var(--line);border-radius:12px;padding:0 14px;font:inherit;font-size:1rem;background:#F9FAFB}
+#q:focus{outline:none;border-color:var(--brand);background:#fff}
+#send{width:var(--tap);height:var(--tap);border:0;border-radius:12px;background:var(--brand);color:#fff;font-size:1.2rem;cursor:pointer}
+#sugg{position:absolute;left:12px;right:68px;bottom:62px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.12);display:none;overflow:hidden}
+#sugg button{display:block;width:100%;text-align:left;padding:12px 14px;border:0;background:#fff;font:inherit;font-size:.95rem;cursor:pointer;border-bottom:1px solid #F0F2F5}
+#sugg button:hover,#sugg button.on{background:var(--info-bg)}
+#sugg b{color:var(--brand)}
+nav{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+nav button{height:56px;border:0;background:#fff;font:inherit;font-size:.8rem;font-weight:700;color:var(--ink-2);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+nav button i{font-style:normal;font-size:1.2rem}
+
+/* 테스트 패널 */
+#panel{position:absolute;inset:auto 0 0 0;background:#111827;color:#E5E7EB;border-radius:16px 16px 0 0;padding:14px 16px 20px;transform:translateY(105%);transition:transform .25s;z-index:5;max-height:75%;overflow:auto;font-size:.85rem}
+#panel.open{transform:none}
+#panel h4{margin:10px 0 6px;font-size:.8rem;color:#9CA3AF}
+#panel .r{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+#panel button,#panel select{height:36px;border-radius:8px;border:1px solid #374151;background:#1F2937;color:#fff;font:inherit;font-size:.82rem;padding:0 10px;cursor:pointer}
+#panel pre{white-space:pre-wrap;background:#0B1220;padding:8px;border-radius:8px;margin:0;font-size:.75rem;max-height:160px;overflow:auto}
+.vehicle-context{padding:8px 14px;background:var(--surface,#fff);border-bottom:1px solid var(--line,#ddd);font-size:.85rem;flex-shrink:0}
+.vehicle-context button{font:inherit;padding:5px 8px;margin:3px;border:1px solid #ccd3dd;border-radius:8px;background:#fff;color:#1645ad}
+.event-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header>
+    <div class="logo">P</div>
+    <div><h1>주차장 안내봇</h1><small>EPIC 06 테스트 모델</small></div>
+    <div class="sp"></div>
+    <button class="icon-btn" id="bigBtn" aria-pressed="false" title="글자 크게">가+</button>
+    <button class="icon-btn" id="panelBtn" title="시연·테스트 도구">테스트</button>
+  </header>
+  <div id="connection" role="status" style="padding:4px 16px;font-size:.75rem;color:#4B5563">연결 확인 중</div>
+  <div class="banner" id="banner" role="alert"></div>
+  <section id="destinationContext" class="vehicle-context" aria-label="목적지" hidden></section>
+  <section id="vehicleContext" class="vehicle-context" aria-label="내 차량"></section>
+  <main id="log" aria-live="polite"></main>
+  <div class="dock">
+    <div id="chips"></div>
+    <div class="inwrap">
+      <div id="sugg" role="listbox"></div>
+      <input id="q" placeholder="예: 빈자리 있어?" autocomplete="off" maxlength="200">
+      <button id="send" aria-label="보내기">➤</button>
+    </div>
+    <nav>
+      <button data-chip="empty_all"><i>🅿️</i>빈자리</button>
+      <button data-chip="find_car"><i>🚗</i>내 차</button>
+      <button data-chip="fee"><i>💳</i>요금</button>
+      <button data-chip="help"><i>💬</i>도움</button>
+    </nav>
+  </div>
+
+  <section id="panel" aria-label="테스트 도구">
+    <div class="r" style="justify-content:space-between"><b>시연·테스트 도구</b><button id="closePanel">닫기</button></div>
+    <h4>모의 화재 경보 (LED 수동 이벤트 대체)</h4>
+    <div class="r">
+      <select id="aLot"></select>
+      <select id="aSpot"></select>
+      <button data-alert="1">Lv1 확인 중</button>
+      <button data-alert="2">Lv2 경보</button>
+      <button data-alert="0">해제</button>
+    </div>
+    <h4>주차장 상태 (목적지 대안 안내·운영 제한 시연)</h4>
+    <div class="r">
+      <select id="dLot"></select>
+      <button id="enterOne">입차 1대</button>
+      <button id="fillLot">만차로 만들기</button>
+      <button id="clearDemo">시연 점유 비우기</button>
+    </div>
+    <div class="r" style="margin-top:6px">
+      <input id="restrictReason" placeholder="제한 사유 (예: 점검 중)" maxlength="30" style="height:36px;border-radius:8px;border:1px solid #374151;background:#1F2937;color:#fff;padding:0 8px;flex:1;min-width:120px">
+      <button id="restrictOn">운영 제한 켜기</button>
+      <button id="restrictOff">끄기</button>
+    </div>
+    <div class="r" style="margin-top:6px"><input id="uncertainSpot" type="number" min="1" placeholder="칸 번호" style="width:80px"><button id="unrecognizedEnter">번호 미인식 입차</button><button id="uncertainOn">확인 중</button><button id="uncertainOff">확인 완료</button></div>
+    <div class="r" style="margin-top:6px"><input id="enterVehicle" placeholder="차량 번호 (예: 04)" maxlength="2" inputmode="numeric" style="height:36px;width:160px;border-radius:8px;border:1px solid #374151;background:#1F2937;color:#fff;padding:0 8px"><button id="enterVehicleBtn">선택 차량 입차</button></div>
+    <pre id="demoState" style="margin-top:6px">-</pre>
+    <h4>차량 출차 (빈자리 대기 알림 시연)</h4>
+    <div class="r"><select id="exitCar"></select><button id="exitBtn">출차시키기</button></div>
+    <h4>관리자 화면 (상황 보고서 · 호출 목록 · 통계)</h4>
+    <div class="r"><button onclick="window.open('admin.html','_blank')">관리자 화면 열기</button></div>
+    <h4>대화 통계</h4>
+    <pre id="stats">-</pre>
+    <div class="r" style="margin-top:10px"><button id="refresh">새로고침</button><button id="reset">전체 초기화</button></div>
+  </section>
+</div>
+
+<script>
+const API = "/api/v1/chat";
+const $ = (s) => document.querySelector(s);
+const log = $("#log");
+let alertVersion = 0, busy = false, cursor = 0, runtimeId = null, lastFailed = null, pollTask = null;
+const seenEvents = new Set();
+let stateVersion=-1, lastSuccessful=null, parkingCatalog={lots:[],zones:[]};
+function renderCatalog(c){
+  if(!c)return;
+  if(JSON.stringify(c)===JSON.stringify(parkingCatalog))return;
+  parkingCatalog=c;
+  const previous=$("#aLot").value;
+  $("#aLot").innerHTML=c.lots.map(x=>`<option value="${esc(x.lot_id)}">${esc(x.name)}${x.kind==='virtual'?' (가상)':''}</option>`).join("");
+  if(c.lots.some(x=>x.lot_id===previous))$("#aLot").value=previous;
+  const previousDemo=$("#dLot").value;
+  $("#dLot").innerHTML=$("#aLot").innerHTML;
+  if(c.lots.some(x=>x.lot_id===previousDemo))$("#dLot").value=previousDemo;
+  renderAlertSpots();
+}
+function renderAlertSpots(){
+  const lot=parkingCatalog.lots.find(x=>x.lot_id===$("#aLot").value),old=+$("#aSpot").value;
+  $("#aSpot").innerHTML=Array.from({length:lot?.capacity||0},(_,i)=>`<option value="${i+1}">${i+1}번 칸</option>`).join("");
+  if(old>0 && old<=lot?.capacity)$("#aSpot").value=String(old);
+}
+function renderDestination(d){
+ const el=$("#destinationContext");el.hidden=!d;
+ el.innerHTML=d?`<div>목적지 · ${esc((parkingCatalog.lots.find(x=>x.lot_id===d.lot_id)||{}).name||d.lot_id)}${d.zone?' · '+esc((parkingCatalog.zones.find(x=>x.key===d.zone)||{}).name||d.zone)+' 구역':''}${d.kind==='virtual'?' (가상)':''}</div><button data-chip="destination_cancel">목적지 취소</button>`:'';
+}
+function connection(ok){
+  if(ok)lastSuccessful=new Date();
+  $("#connection").textContent=ok ? "연결됨 · " + hhmm(lastSuccessful.toISOString()) + " 확인" : "연결 지연 · 표시 정보가 오래됐을 수 있어요" + (lastSuccessful ? " · 마지막 확인 " + hhmm(lastSuccessful.toISOString()) : "");
+  $("#connection").style.color=ok?"#4B5563":"#B42318";
+}
+function applyState(r){
+  if(!r.runtime_id || typeof r.state_version!=="number") return;
+  if(runtimeId!==r.runtime_id){stateVersion=-1;seenEvents.clear();cursor=0;lastFailed=null;}
+  if(r.state_version<stateVersion)return;
+  runtimeId=r.runtime_id;stateVersion=r.state_version;
+  renderCatalog(r.catalog);renderVehicle(r.vehicle_context);renderBanner(r.banner);
+  if(Object.hasOwn(r,"destination"))renderDestination(r.destination);
+  if(r.chips)renderChips(r.chips);
+}
+
+function sid(){
+  let id = null;
+  try { id = sessionStorage.getItem("sid"); } catch(e){}
+  if(!id){
+    id = (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2));
+    try { sessionStorage.setItem("sid", id); } catch(e){}
+  }
+  return id;
+}
+const SID = sid();
+
+const esc = (s) => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const hhmm = (iso) => { const d = new Date(iso); return d.toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Seoul"}); };
+const won = (n) => n.toLocaleString("ko-KR") + "원";
+
+function addUser(text){
+  const r = document.createElement("div"); r.className = "row user";
+  r.innerHTML = `<div class="bubble">${esc(text)}</div>`;
+  log.appendChild(r); log.scrollTop = log.scrollHeight;
+}
+function typing(on){
+  let t = $("#typing");
+  if(on && !t){
+    t = document.createElement("div"); t.id = "typing"; t.className = "row bot typing";
+    t.innerHTML = `<div class="bubble">입력 중<span class="dots"><span></span><span></span><span></span></span></div>`;
+    log.appendChild(t); log.scrollTop = log.scrollHeight;
+  } else if(!on && t) t.remove();
+}
+
+function lotStatus(n){
+  if(n === 0) return ["s-bad","✕ 만차"];
+  if(n <= 2) return ["s-warn","▲ 혼잡"];
+  return ["s-ok","● 여유"];
+}
+
+function tracker(steps){
+  if(!steps) return "";
+  return `<div class="track">${steps.map((st,i)=>`<div class="step ${esc(st.state)}"><div class="dot">${st.state==="done"?"✓":i+1}</div><b>${esc(st.label)}</b>${esc(st.detail)}</div>`).join("")}</div>`;
+}
+function renderCard(card){
+  if(!card) return "";
+  const d = card.data || {};
+  switch(card.type){
+    case "empty_spots": {
+      const cells = Object.entries(d.lots).map(([k,v]) => {
+        const n=Object.hasOwn(v,"display_empty")?v.display_empty:v.empty;
+        const [cls, st]=v.status_reason && v.status_reason!=="만차"?["s-bad",esc(v.status_reason)]:lotStatus(n??0);
+        const zones=Object.entries(v.zones||{}).map(([z,x])=>`${esc(d.zone_labels?.[z]||z)} ${esc(x.empty)}자리${x.uncertain?` · 확인 중 ${esc(x.uncertain)}`:""}`).join(' · ');
+        const go='go:'+k+(d.zone?':'+d.zone:'');
+        return `<div class="lot ${cls} ${d.focus===k?'focus':''}"><div class="name">${esc(v.name||k)}${v.kind==='virtual'?' · 가상':''}</div><div class="num">${n==null?'—':esc(n)}</div><div class="st">${n==null?'구역 정보 없음':st}${v.display_uncertain?` · ◐ 확인 중 ${esc(v.display_uncertain)}칸`:""}</div><div class="zone-counts">${zones}</div><button data-chip="${esc(go)}" ${v.status_reason?'disabled':''}>여기로 안내</button></div>`;
+      }).join('');
+      return `<div class="card"><h3>주차장별 빈자리${d.zone?' · '+esc(d.zone_labels?.[d.zone]||d.zone)+' 구역':''}</h3><div class="lots ${Object.keys(d.lots).length===4?'four':''}">${cells}</div></div>`;
+    }
+
+    case "unrecognized_candidates": return `<div class="card"><h3>번호 미인식 차량 · 위치 후보</h3>${d.cars.map(c=>`<p>${esc(c.lot_id)} 주차장 ${esc(c.spot_no)}번 칸 · ${hhmm(c.entered_at)} 입차</p>`).join('')}<p>${esc(d.notice)}</p></div>`;
+    case "car_location": {
+      const n = d.capacity || 1;
+      const spots = Array.from({length:n},(_,i)=>`<div class="spot ${i+1===d.spot_no?"me":""}">${i+1===d.spot_no?"내 차":i+1}</div>`).join("");
+      return `<div class="card"><h3>내 차 위치</h3><div class="big-line">${esc(d.lot_id)} 주차장 · ${esc(d.spot_no)}번 칸</div>
+        <div class="spots" style="grid-template-columns:repeat(auto-fit,minmax(28px,1fr))">${spots}</div>
+        <div class="kv"><span>차량 번호</span><span>${esc(d.vehicle_no)}</span></div>
+        <div class="kv"><span>들어온 시간</span><span>${hhmm(d.entered_at)}</span></div></div>`;
+    }
+    case "fee": {
+      const status = d.paid ? `<span class="badge s-ok">결제 완료</span>` : d.fee===0 ? `<span class="badge s-ok">무료 시간</span>` : `<span class="badge s-warn">결제 전</span>`;
+      return `<div class="card"><h3>${esc(d.vehicle_no)}번 차 요금 ${status}</h3>${tracker(d.journey)}<div class="big-line">${won(d.fee)}</div>
+        <div class="kv"><span>들어온 시간</span><span>${hhmm(d.entered_at)}</span></div>
+        <div class="kv"><span>이용 시간</span><span>${esc(d.minutes)}분</span></div>
+        <div class="kv"><span>30분 뒤 요금</span><span>${won(d.fee_after_30)}</span></div></div>`;
+    }
+    case "payment": {
+      const amt = d.amount != null ? won(d.amount) : "-";
+      return `<div class="card"><h3>모의 결제 영수증${d.verification_pending?" · 상태 재확인 필요":""}</h3>${tracker(d.journey)}<div class="big-line">${d.status==="already_paid"?"이미 결제됨":amt}</div>
+        <div class="kv"><span>차량 번호</span><span>${esc(d.vehicle_no)}</span></div>
+        <div class="kv"><span>결제 시각</span><span>${d.paid_at?hhmm(d.paid_at):"-"}</span></div>
+        <div class="kv"><span>출구</span><span>현장 개방 확인 필요</span></div></div>`;
+    }
+    case "exit_issue": {
+      const map = {no_record:["s-bad","입차 기록 없음"], unpaid:["s-warn","결제 전"], paid:["s-ok","결제 완료"], free:["s-ok","무료 시간"]};
+      const [cls, label] = map[d.cause] || ["s-warn","확인 필요"];
+      return `<div class="card"><h3>출차 진단 · ${esc(d.vehicle_no)}번 차</h3>${tracker(d.journey)}<span class="badge ${cls}">${label}</span></div>`;
+    }
+    case "alert": {
+      return `<div class="card alert"><h3>${d.level>=2?"경보":"확인 중"} · 모의 화재(LED)</h3>
+        <div class="big-line">${esc(d.lot_id)} 주차장 ${esc(d.spot_no)}번 칸 부근</div>
+        <div class="kv"><span>신뢰도</span><span>${Math.round((d.confidence||0)*100)}%</span></div>
+        <div class="kv"><span>감지 시각</span><span>${d.started_at?hhmm(d.started_at):"-"}</span></div></div>`;
+    }
+    case "journey": {
+      return `<div class="card"><h3>${esc(d.vehicle_no)}번 차 이용 현황</h3>${tracker(d.steps)}</div>`;
+    }
+
+    case "admin_call": {
+      return `<div class="card"><h3>문의 #${esc(d.id)} · ${esc(d.status)}</h3><div class="summary"><b>자동 작성된 상황 요약</b><br>${esc(d.summary)}</div></div>`;
+    }
+  }
+  return "";
+}
+
+function addBot(r){
+  const row = document.createElement("div"); row.className = "row bot";
+  const src = r.meta && r.meta.source ? ` · ${({chip:"버튼",rule:"규칙",llm:"LLM",none:"-"})[r.meta.source]||r.meta.source} ${esc(r.meta.latency_ms)}ms` : "";
+  row.innerHTML = `<div class="bubble">${esc(r.text)}</div>${renderCard(r.card)}${r.safety?`<div class="card"><h3>${esc(r.safety.title)}</h3><p>${esc(r.safety.guidance)}</p><p>${esc(r.safety.vehicle_help)}</p></div>`:""}
+    ${r.meta?.notification ? `<div class="event-actions">${(r.actions||r.chips||[]).map(c=>`<button class="chip" data-chip="${esc(c.id)}" data-token="${esc(c.confirmation_token||'')}">${esc(c.label)}</button>`).join("")}</div>` : ""}
+    <div class="meta">${hhmm(r.updated_at)} 기준${esc(src)}</div>`;
+  log.appendChild(row); log.scrollTop = log.scrollHeight;
+}
+
+function renderChips(chips){
+  $("#chips").innerHTML = chips.map((c,i) => `<button class="chip ${i===0?"first":""}" data-chip="${esc(c.id)}" data-token="${esc(c.confirmation_token || "")}">${esc(c.label)}</button>`).join("");
+  $("#chips").scrollLeft = 0;
+}
+function renderBanner(b){
+  const el = $("#banner");
+  el.className = "banner" + (b ? " l" + b.level : "");
+  el.textContent = b ? (b.level>=2 ? "🔥 " : "⚠️ ") + b.text : "";
+  $("#app").classList.toggle("alert-mode", !!(b && b.level>=2));
+}
+function renderVehicle(c){
+  if(!c) return;
+  const text = !c.vehicle_no ? "차량을 선택하면 위치·요금을 바로 확인할 수 있어요." :
+    `${c.vehicle_no}번 차 · ` + (c.state === "parked" || c.state === "stale" ? `${c.lot_id} 주차장 ${c.spot_no}번 칸${c.state === "stale" ? " (마지막 정보)" : ""}` : c.state === "not_found" ? "입차 기록 없음" : "위치 갱신 지연");
+  $("#vehicleContext").innerHTML = `<div>${esc(text)}</div>` + (c.vehicle_no ? '<button data-chip="find_car">위치 보기</button><button data-chip="fee">요금 보기</button><button data-chip="change_vehicle">차량 변경</button>' : '<button data-chip="change_vehicle">차량 선택</button>');
+}
+function apply(r){ addBot(r); applyState(r); }
+
+async function fetchJSON(url, options={}){
+  const controller = new AbortController();
+  let adminKey="";try{adminKey=sessionStorage.getItem("adminKey")||"";}catch(e){}
+  if(/\/(demo|stats)(?:\/|$)/.test(url)&&adminKey)options={...options,headers:{...(options.headers||{}),Authorization:`Bearer ${adminKey}`}};
+  const timer = setTimeout(()=>controller.abort(), 8000);
+  try{
+    const res = await fetch(url, {...options, signal:controller.signal});
+    const data = await res.json();
+    if(!res.ok){ const err = new Error(data.error || data.detail || "요청 실패"); err.status=res.status; throw err; }
+    return data;
+  }finally{ clearTimeout(timer); }
+}
+function requestId(){ return crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36)+Math.random().toString(36).slice(2); }
+async function send(payload, label, retryEnvelope=null){
+  if(busy) return;
+  busy = true;
+  if(pollTask) await pollTask; // 알림과 일반 응답이 서로 화면 상태를 덮어쓰지 않도록 직렬화
+  const envelope = retryEnvelope || {session_id:SID, runtime_id:runtimeId, request_id:requestId(), ...payload};
+  if(label) addUser(label);
+  typing(true);
+  try{
+    const r = await fetchJSON(API, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(envelope)});
+    connection(true);
+    typing(false); apply(r); lastFailed = null;
+    document.querySelectorAll("[data-retry]").forEach(b=>b.remove());
+  }catch(e){
+    connection(false);
+    typing(false);
+    addBot({text:e.status ? e.message : "응답을 받지 못했어요. 같은 요청을 다시 확인할 수 있어요.", updated_at:new Date().toISOString()});
+    if(!e.status || e.status >= 500){
+      lastFailed = envelope;
+      document.querySelectorAll("[data-retry]").forEach(b=>b.remove());
+      const button=document.createElement("button");button.className="chip";button.dataset.retry="1";
+      button.textContent="같은 요청 다시 확인";log.appendChild(button);
+    }
+  }finally{ busy = false; }
+}
+
+// 확인 버튼에는 그 질문의 토큰을 함께 보낸다.
+document.addEventListener("click", (e) => {
+  if(e.target.closest("[data-retry]") && lastFailed){ send({}, null, lastFailed); return; }
+  const b = e.target.closest("[data-chip]");
+  if(b){ send({chip_id:b.dataset.chip, ...(b.dataset.token ? {confirmation_token:b.dataset.token} : {})}, b.textContent.trim()); }
+});
+
+// 입력 + 자동완성
+const q = $("#q"), sugg = $("#sugg");
+let sIdx = -1, sTimer = null;
+function submit(){
+  if(busy) return;
+  const t = q.value.trim(); if(!t) return;
+  q.value = ""; hideSugg(); send({text:t}, t);
+}
+function hideSugg(){ sugg.style.display = "none"; sIdx = -1; }
+q.addEventListener("input", () => {
+  clearTimeout(sTimer);
+  const v = q.value.trim();
+  if(!v){ hideSugg(); return; }
+  sTimer = setTimeout(async () => {
+    try{
+      const r = await (await fetch(`${API}/suggest?q=${encodeURIComponent(v)}`)).json();
+      if(q.value.trim() !== v) return;
+      if(!r.items.length){ hideSugg(); return; }
+      sugg.innerHTML = r.items.map(t => {
+        const i = t.indexOf(v);
+        const label = i < 0 ? esc(t) : esc(t.slice(0,i)) + `<b>${esc(v)}</b>` + esc(t.slice(i+v.length));
+        return `<button data-s="${esc(t)}">${label}</button>`;
+      }).join("");
+      sugg.style.display = "block"; sIdx = -1;
+    }catch(e){ hideSugg(); }
+  }, 120);
+});
+sugg.addEventListener("click", (e) => { const b = e.target.closest("[data-s]"); if(b){ q.value = b.dataset.s; submit(); } });
+q.addEventListener("keydown", (e) => {
+  if(e.isComposing) return;
+  const items = [...sugg.querySelectorAll("button")];
+  if(e.key === "ArrowDown" || e.key === "ArrowUp"){
+    if(!items.length) return; e.preventDefault();
+    sIdx = (sIdx + (e.key==="ArrowDown"?1:-1) + items.length) % items.length;
+    items.forEach((b,i)=>b.classList.toggle("on", i===sIdx));
+  } else if(e.key === "Enter"){
+    e.preventDefault();
+    if(sIdx >= 0 && items[sIdx]) q.value = items[sIdx].dataset.s;
+    submit();
+  } else if(e.key === "Escape") hideSugg();
+});
+$("#send").addEventListener("click", submit);
+
+// 글자 크게
+$("#bigBtn").addEventListener("click", (e) => {
+  const on = document.documentElement.classList.toggle("big");
+  e.currentTarget.setAttribute("aria-pressed", on);
+  try{ localStorage.setItem("big", on ? "1" : ""); }catch(err){}
+});
+try{ if(localStorage.getItem("big")){ document.documentElement.classList.add("big"); $("#bigBtn").setAttribute("aria-pressed","true"); } }catch(e){}
+
+// 경보 확인 (2초마다). 서버가 먼저 말을 거는 부분
+function poll(){
+  if(pollTask || busy || !runtimeId) return pollTask;
+  pollTask = (async()=>{
+    try{
+      const r = await fetchJSON(`${API}/updates?session_id=${encodeURIComponent(SID)}&cursor=${cursor}&runtime_id=${encodeURIComponent(runtimeId)}`);
+      if(runtimeId !== r.runtime_id){
+        seenEvents.clear(); cursor=0; lastFailed=null;
+        renderChips([]);
+        addBot({text:"서버 연결이 새로 시작됐어요. 차량 확인이나 대기 등록을 다시 진행해 주세요.", updated_at:new Date().toISOString()});
+      }
+      connection(true);
+      for(const message of r.messages){
+        if(seenEvents.has(message.event_id)) continue;
+        addBot(message); if(r.runtime_id!==runtimeId || r.state_version>=stateVersion){if(message.chips)renderChips(message.chips);} seenEvents.add(message.event_id);
+      }
+      if(r.resync_required && !r.messages.length){
+        addBot({text:"일부 알림의 유효기간이 지났어요. 현재 상태를 다시 조회해 주세요.", updated_at:new Date().toISOString()});
+      }
+      applyState(r);
+      alertVersion = r.alert_version;
+      cursor = r.cursor; // 화면 반영이 끝난 뒤에만 다음 요청의 수신 확인 커서 갱신
+      while(seenEvents.size>200) seenEvents.delete(seenEvents.values().next().value);
+    }catch(e){connection(false);}finally{ pollTask=null; }
+  })();
+  return pollTask;
+}
+const pollTimer = setInterval(poll, 2000);
+
+// 테스트 패널
+const panel = $("#panel");
+$("#aLot").addEventListener("change",renderAlertSpots);
+$("#panelBtn").addEventListener("click", () => { panel.classList.toggle("open"); refreshPanel(); });
+$("#closePanel").addEventListener("click", () => panel.classList.remove("open"));
+panel.addEventListener("click", async (e) => {
+  const b = e.target.closest("[data-alert]");
+  if(!b) return;
+  await fetchJSON(`${API}/demo/alert`, {method:"POST", headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({level:+b.dataset.alert, lot_id:$("#aLot").value, spot_no:+$("#aSpot").value})});
+  poll();
+});
+let panelRefreshVersion = 0;
+$("#exitCar").addEventListener("change", () => { $("#exitBtn").disabled = !$("#exitCar").value; });
+async function refreshPanel(){
+  const version = ++panelRefreshVersion;
+  try{
+    const cars = await fetchJSON(`${API}/demo/cars`);
+    if(version !== panelRefreshVersion) return;
+    const select = $("#exitCar"), selected = select.value, hadOptions = select.options.length > 0;
+    select.innerHTML = cars.items.filter(c=>c.vehicle_no!=null).map(c=>`<option value="${esc(c.vehicle_no)}">${esc(c.vehicle_no)}번 (${esc(c.lot_id)}-${esc(c.spot_no)})</option>`).join("");
+    if(cars.items.some(c=>c.vehicle_no === selected)) select.value = selected;
+    else if(hadOptions || !cars.items.length){
+      const option = new Option("출차할 차량을 선택해 주세요", "", true, true);
+      option.disabled = true; select.prepend(option); select.value = "";
+    }
+    $("#exitBtn").disabled = !select.value;
+    const occ=Object.entries(cars.demo_occupied||{}).map(([k,v])=>`${k}: 시연용 점유 ${v.length}칸`);
+    const res=Object.entries(cars.restrictions||{}).map(([k,v])=>`${k}: 운영 제한${v.restriction_reason?" ("+v.restriction_reason+")":""}`);
+    $("#demoState").textContent = [...occ,...res].join("\n") || "시연 설정 없음";
+    const stats = await fetchJSON(`${API}/stats`);
+    if(version === panelRefreshVersion) $("#stats").textContent = JSON.stringify(stats, null, 1);
+  }catch(e){}
+}
+$("#refresh").addEventListener("click", refreshPanel);
+async function demoPost(path, body){
+  try{ const r = await fetchJSON(`${API}/demo/${path}`, {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(body)});
+       if(r && r.ok===false) $("#demoState").textContent = `실행 안 됨: ${r.reason||"확인 필요"}`; else await refreshPanel(); }
+  catch(e){ $("#demoState").textContent = "실행 실패: " + e.message; }
+  poll();
+}
+$("#unrecognizedEnter").addEventListener("click",()=>demoPost("unrecognized",{lot_id:$("#dLot").value}));
+$("#uncertainOn").addEventListener("click",()=>demoPost("uncertain",{lot_id:$("#dLot").value,spot_no:Number($("#uncertainSpot").value),uncertain:true}));
+$("#uncertainOff").addEventListener("click",()=>demoPost("uncertain",{lot_id:$("#dLot").value,spot_no:Number($("#uncertainSpot").value),uncertain:false}));
+$("#enterOne").addEventListener("click", () => demoPost("enter", {lot_id:$("#dLot").value}));
+$("#fillLot").addEventListener("click", () => demoPost("fill", {lot_id:$("#dLot").value}));
+$("#clearDemo").addEventListener("click", () => demoPost("clear", {lot_id:$("#dLot").value}));
+$("#restrictOn").addEventListener("click", () => demoPost("restriction", {lot_id:$("#dLot").value, restricted:true, reason:$("#restrictReason").value}));
+$("#restrictOff").addEventListener("click", () => demoPost("restriction", {lot_id:$("#dLot").value, restricted:false}));
+$("#enterVehicleBtn").addEventListener("click", () => {
+  const vehicle = $("#enterVehicle").value.trim();
+  if(!vehicle){ $("#demoState").textContent = "입차할 차량 번호를 입력해 주세요."; $("#enterVehicle").focus(); return; }
+  demoPost("enter", {lot_id:$("#dLot").value, vehicle_no:vehicle});
+});
+$("#exitBtn").addEventListener("click", () => {
+  const vehicle = $("#exitCar").value;
+  if(!vehicle) return;
+  demoPost("exit", {vehicle_no:vehicle});
+});
+$("#reset").addEventListener("click", async () => {
+  await fetchJSON(`${API}/demo/reset`, {method:"POST"});
+  try{ sessionStorage.removeItem("sid"); }catch(e){}
+  location.reload();
+});
+
+(async()=>{try{renderCatalog(await fetchJSON(`${API}/config`));}catch(e){} await send({event:"start"});})();
+</script>
+</body>
+</html>

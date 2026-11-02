@@ -1,0 +1,15 @@
+PASS mobile page loads without horizontal overflow
+PASS busy send preserves draft
+PASS IME Enter preserves composition
+PASS normal chat does not consume alert push
+PASS confirm saves unsaved notes
+PASS failed note save preserves text and shows error
+PASS reset clears old report UI
+PASS vehicle confirmation shows quote before payment
+PASS lost payment response retries same request and recovers receipt
+PASS lost alert response redelivers once in UI and cursor acknowledges
+PASS admin conflict preserves both server note and local draft
+PASS pinned vehicle and immediate call
+PASS manager receipt is read only and creates no extra call
+PASS reload context, exit refresh and vehicle change
+PASS no browser runtime errors

@@ -1,0 +1,21 @@
+question,intent,lot_id,vehicle_no,zone
+디 주차장 자리 있어?,get_empty_spots,D,,
+D 자리 있어?,get_empty_spots,D,,
+디 동은?,get_empty_spots,D,,
+이디야 근처,unknown,,,
+B로 갈게,set_destination,B,,
+D로 안내해줘,set_destination,D,,
+A 주차장으로 갈래,set_destination,A,,
+목적지 취소,cancel_destination,,,
+목적지 지워줘,cancel_destination,,,
+B로 안내하지 마,cancel_destination,B,,
+B 충전 구역 자리 있어?,get_empty_spots,B,,ev
+C EV 빈자리,get_empty_spots,C,,ev
+전기차 자리,get_empty_spots,,,ev
+A 일반 구역 자리,get_empty_spots,A,,normal
+D 장애인 구역 빈자리,get_empty_spots,D,,disabled
+그럼 C는?,get_empty_spots,C,,
+일반 구역은?,get_empty_spots,,,normal
+호출 하지 말아 주세요,cancel_action,,,
+경보 위치 안내,get_alerts,,,
+대피 안내,evacuation_guide,,,

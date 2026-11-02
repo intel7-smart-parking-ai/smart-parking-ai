@@ -1,0 +1,47 @@
+[
+  {
+    "name": "browser_checks",
+    "exit_code": 0,
+    "elapsed_sec": 4.71
+  },
+  {
+    "name": "browser_stability",
+    "exit_code": 0,
+    "elapsed_sec": 34.91
+  },
+  {
+    "name": "browser_optimization",
+    "exit_code": 0,
+    "elapsed_sec": 2.14
+  },
+  {
+    "name": "browser_navigation",
+    "exit_code": 0,
+    "elapsed_sec": 3.1
+  },
+  {
+    "name": "browser_final",
+    "exit_code": 0,
+    "elapsed_sec": 4.04
+  },
+  {
+    "name": "browser_audit_fixes",
+    "exit_code": 0,
+    "elapsed_sec": 2.27
+  },
+  {
+    "name": "questions",
+    "exit_code": 0,
+    "elapsed_sec": 0.15
+  },
+  {
+    "name": "optimization_benchmark",
+    "exit_code": 0,
+    "elapsed_sec": 0.49
+  },
+  {
+    "name": "soak",
+    "exit_code": 0,
+    "elapsed_sec": 7.75
+  }
+]
