@@ -2,13 +2,14 @@
 
 from datetime import datetime, timezone
 from fastapi import FastAPI
+from backend.app.api.billing_router import billing_router
 
 app = FastAPI(
     title="AI Smart Parking API",
     description="AI 스마트 주차장 통합관제 - 초기 골격 (구현 전)",
     version="0.1.0",
 )
-
+app.include_router(billing_router)
 @app.get('/api/v1/health', tags=['system'])
 def health_check():
     return {'status': 'ok', 'service': 'smart-parking-api',
