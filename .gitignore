@@ -239,3 +239,7 @@ models/weights/
 *.bag
 __pycache__/
 .pytest_cache/
+
+# Claude Code harness
+_workspace/
+.claude/settings.local.json
