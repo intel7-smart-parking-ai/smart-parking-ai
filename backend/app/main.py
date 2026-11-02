@@ -2,7 +2,10 @@
 
 from datetime import datetime, timezone
 from fastapi import FastAPI
-from backend.app.api.billing_router import billing_router
+try:
+    from backend.app.api.billing_router import billing_router
+except ModuleNotFoundError:
+    from app.api.billing_router import billing_router
 
 app = FastAPI(
     title="AI Smart Parking API",
