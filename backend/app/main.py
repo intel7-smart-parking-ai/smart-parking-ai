@@ -3,6 +3,8 @@
 from datetime import datetime, timezone
 from fastapi import FastAPI
 
+from backend.app.api.mock_queries import router as mock_queries_router
+
 app = FastAPI(
     title="AI Smart Parking API",
     description="AI 스마트 주차장 통합관제 - 초기 골격 (구현 전)",
@@ -13,3 +15,6 @@ app = FastAPI(
 def health_check():
     return {'status': 'ok', 'service': 'smart-parking-api',
             'timestamp': datetime.now(timezone.utc).isoformat()}
+
+
+app.include_router(mock_queries_router)
