@@ -1,0 +1,10 @@
+......./workspace/scratch/dffe3ddb837b/test-deps/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+  from starlette.testclient import TestClient as TestClient  # noqa
+........................................................주차장 명부를 백엔드 기준으로 갱신: ['A', 'E']
+.....주차장 명부를 백엔드 기준으로 갱신: ['P9']
+.주차장 명부를 백엔드 기준으로 갱신: ['P9']
+................................................................................................................................................................................
+----------------------------------------------------------------------
+Ran 245 tests in 13.847s
+
+OK

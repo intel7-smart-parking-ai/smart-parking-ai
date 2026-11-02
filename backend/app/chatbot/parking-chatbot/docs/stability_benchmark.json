@@ -1,0 +1,57 @@
+{
+  "environment": "local mock, single process",
+  "injected_delay_ms": 40,
+  "clients": 12,
+  "backend_alert_fetches": 1,
+  "max_wall_ms": 50.41,
+  "samples": [
+    {
+      "wall_ms": 43.29,
+      "reported_ms": 43.3
+    },
+    {
+      "wall_ms": 47.42,
+      "reported_ms": 47.4
+    },
+    {
+      "wall_ms": 44.94,
+      "reported_ms": 44.9
+    },
+    {
+      "wall_ms": 49.56,
+      "reported_ms": 49.6
+    },
+    {
+      "wall_ms": 45.14,
+      "reported_ms": 45.1
+    },
+    {
+      "wall_ms": 42.8,
+      "reported_ms": 42.8
+    },
+    {
+      "wall_ms": 50.41,
+      "reported_ms": 50.4
+    },
+    {
+      "wall_ms": 43.97,
+      "reported_ms": 44.0
+    },
+    {
+      "wall_ms": 46.34,
+      "reported_ms": 46.3
+    },
+    {
+      "wall_ms": 47.85,
+      "reported_ms": 47.8
+    },
+    {
+      "wall_ms": 48.77,
+      "reported_ms": 48.8
+    },
+    {
+      "wall_ms": 41.3,
+      "reported_ms": 41.3
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "occupancy": "/api/v1/parking/occupancy",
+  "location": "/api/v1/vehicles/{vehicle_no}/location",
+  "fee": "/api/v1/fees/{vehicle_no}",
+  "payment": "/api/v1/payments/mock",
+  "alerts": "/api/v1/alerts",
+  "parked": "/api/v1/vehicles/parked"
+}

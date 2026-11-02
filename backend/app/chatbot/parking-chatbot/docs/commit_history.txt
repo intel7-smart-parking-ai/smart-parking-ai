@@ -1,0 +1,8 @@
+39c79d4 chore: preserve uploaded chatbot baseline
+a4bc8dc refactor: remove retired features and preserve receipt lookups
+f87419a fix: prioritize people in all Lv2 guidance
+0091943 feat: add validated incident briefing for responders
+e3a5866 feat: separate uncertain spaces from confirmed availability
+65680dd feat: offer unrecognized vehicle locations with payment isolation
+06f22d3 fix: enforce request and configuration bounds and finalize edge cases
+29e567e docs: record implementation guidelines and verified supplement results

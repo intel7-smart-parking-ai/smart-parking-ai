@@ -1,0 +1,13 @@
+question,intent,lot_id,vehicle_no,zone
+디 구역에 빈 칸 남았나요,get_empty_spots,D,,
+D 주차장으로 갈래,set_destination,D,,
+그럼 디 주차장은?,get_empty_spots,D,,
+C 전기차 자리 좀 볼래,get_empty_spots,C,,ev
+A 장애인 구역은 비었나요,get_empty_spots,A,,disabled
+B 일반 자리 알려줘,get_empty_spots,B,,normal
+내 목적지 취소해줘,cancel_destination,,,
+B로 안내하지 마,cancel_destination,B,,
+이디야 근처 맛집,unknown,,,
+디 주차장으로 가겠어요,set_destination,D,,
+디 동 충전 자리,get_empty_spots,D,,ev
+씨 주차장 충전면 있어요,get_empty_spots,C,,ev

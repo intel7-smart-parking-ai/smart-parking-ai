@@ -1,0 +1,362 @@
+[
+  {
+    "file": "tests/test_regressions.py",
+    "test": "test_one_vacancy_does_not_notify_two_people",
+    "action": "removed_or_renamed"
+  },
+  {
+    "file": "tests/test_regressions.py",
+    "test": "test_parallel_waiters_receive_only_available_vacancies",
+    "action": "removed_or_renamed"
+  },
+  {
+    "file": "tests/test_regressions.py",
+    "test": "test_stale_vacancy_does_not_notify",
+    "action": "removed_or_renamed"
+  },
+  {
+    "file": "tests/test_fastapi.py",
+    "test": "test_call_status_route",
+    "action": "removed_or_renamed"
+  },
+  {
+    "file": "tests/test_fastapi.py",
+    "test": "test_removed_status_route_is_not_available",
+    "action": "added"
+  },
+  {
+    "file": "tests/test_final_cleanup.py",
+    "test": "test_all_full_offers_current_lookup_and_admin",
+    "action": "added"
+  },
+  {
+    "file": "tests/test_final_cleanup.py",
+    "test": "test_my_status_chip_never_shown_but_sentence_works",
+    "action": "removed_or_renamed"
+  },
+  {
+    "file": "tests/test_final_cleanup.py",
+    "test": "test_receipt_lookup_has_no_state_changes",
+    "action": "added"
+  },
+  {
+    "file": "tests/test_final_cleanup.py",
+    "test": "test_sentence_wait_request_still_registers",
+    "action": "removed_or_renamed"
+  },
+  {
+    "file": "tests/test_final_cleanup.py",
+    "test": "test_status_tracking_off_by_default",
+    "action": "removed_or_renamed"
+  },
+  {
+    "file": "tests/test_final_cleanup.py",
+    "test": "test_subscription_request_returns_honest_current_lookup",
+    "action": "added"
+  },
+  {
+    "file": "tests/test_final_cleanup.py",
+    "test": "test_usage_question_returns_location",
+    "action": "added"
+  },
+  {
+    "file": "tests/test_final_cleanup.py",
+    "test": "test_wait_any_only_when_everything_full",
+    "action": "removed_or_renamed"
+  },
+  {
+    "file": "tests/test_extended.py",
+    "test": "test_decline_wait_keeps_no_registration",
+    "action": "removed_or_renamed"
+  },
+  {
+    "file": "tests/test_extended.py",
+    "test": "test_subscription_decline_returns_current_lookup",
+    "action": "added"
+  },
+  {
+    "file": "tests/test_reliability.py",
+    "test": "test_cancel_removes_undelivered_wait_notification",
+    "action": "removed_or_renamed"
+  },
+  {
+    "file": "tests/test_reliability.py",
+    "test": "test_expired_offer_does_not_block_next_waiter",
+    "action": "removed_or_renamed"
+  },
+  {
+    "file": "tests/test_reliability.py",
+    "test": "test_lost_notification_response_can_be_retried_and_acknowledged",
+    "action": "changed"
+  },
+  {
+    "file": "tests/test_reliability.py",
+    "test": "test_wait_status_reports_queue",
+    "action": "removed_or_renamed"
+  },
+  {
+    "file": "tests/test_audit_fixes.py",
+    "test": "test_default_off_status_route_rejects_without_changing_call",
+    "action": "removed_or_renamed"
+  },
+  {
+    "file": "tests/test_audit_fixes.py",
+    "test": "test_removed_status_route_cannot_change_call",
+    "action": "added"
+  },
+  {
+    "file": "tests/test_realistic.py",
+    "test": "test_subscription_question_preserves_followup_lot_context",
+    "action": "added"
+  },
+  {
+    "file": "tests/test_realistic.py",
+    "test": "test_switch_lot_does_not_cancel_wait_registration",
+    "action": "removed_or_renamed"
+  },
+  {
+    "file": "tests/test_stability.py",
+    "test": "test_lv1_retains_confirmation_but_lv2_admin_notice_does_not_hide_evacuation",
+    "action": "changed"
+  },
+  {
+    "file": "tests/test_stability.py",
+    "test": "test_lv2_vacancy_is_deferred_until_clear",
+    "action": "removed_or_renamed"
+  },
+  {
+    "file": "tests/test_stability.py",
+    "test": "test_previously_queued_vacancy_is_withdrawn_during_alarm",
+    "action": "removed_or_renamed"
+  },
+  {
+    "file": "tests/test_optimization.py",
+    "test": "test_completed_call_query_can_reopen_same_call",
+    "action": "removed_or_renamed"
+  },
+  {
+    "file": "tests/test_optimization.py",
+    "test": "test_registered_call_status_card_and_actions_render",
+    "action": "removed_or_renamed"
+  },
+  {
+    "file": "tests/test_optimization.py",
+    "test": "test_registered_receipt_card_renders",
+    "action": "added"
+  },
+  {
+    "file": "tests/test_optimization.py",
+    "test": "test_waiter_poll_does_not_calculate_queue_position_for_all_sessions",
+    "action": "removed_or_renamed"
+  },
+  {
+    "file": "tests/test_supplement.py",
+    "test": "test_api_mode_cannot_execute_new_mock_mutations",
+    "action": "added"
+  },
+  {
+    "file": "tests/test_supplement.py",
+    "test": "test_audit_input_rejected_before_retention",
+    "action": "added"
+  },
+  {
+    "file": "tests/test_supplement.py",
+    "test": "test_audit_mixed_case_id_preserved",
+    "action": "added"
+  },
+  {
+    "file": "tests/test_supplement.py",
+    "test": "test_audit_negative_manager_synonym_never_calls_model",
+    "action": "added"
+  },
+  {
+    "file": "tests/test_supplement.py",
+    "test": "test_audit_nonfinite_config_fails_at_startup",
+    "action": "added"
+  },
+  {
+    "file": "tests/test_supplement.py",
+    "test": "test_audit_vehicle_change_preserves_number_and_requires_confirmation",
+    "action": "added"
+  },
+  {
+    "file": "tests/test_supplement.py",
+    "test": "test_both_servers_keep_new_demo_endpoints_privileged",
+    "action": "added"
+  },
+  {
+    "file": "tests/test_supplement.py",
+    "test": "test_both_servers_limit_input_and_new_demo_types",
+    "action": "added"
+  },
+  {
+    "file": "tests/test_supplement.py",
+    "test": "test_briefing_charge_zone_and_electric_adjacent",
+    "action": "added"
+  },
+  {
+    "file": "tests/test_supplement.py",
+    "test": "test_briefing_is_present_in_final_report_and_copy_text",
+    "action": "added"
+  },
+  {
+    "file": "tests/test_supplement.py",
+    "test": "test_briefing_unknown_is_not_zero",
+    "action": "added"
+  },
+  {
+    "file": "tests/test_supplement.py",
+    "test": "test_catalog_rejects_invalid_supplement_settings",
+    "action": "added"
+  },
+  {
+    "file": "tests/test_supplement.py",
+    "test": "test_every_lv2_response_carries_safety_and_safe_actions",
+    "action": "added"
+  },
+  {
+    "file": "tests/test_supplement.py",
+    "test": "test_lv2_same_other_and_unknown_vehicle",
+    "action": "added"
+  },
+  {
+    "file": "tests/test_supplement.py",
+    "test": "test_uncertain_cannot_overlap_vehicle_or_accept_invalid_type",
+    "action": "added"
+  },
+  {
+    "file": "tests/test_supplement.py",
+    "test": "test_uncertain_contract_optional_and_invalid",
+    "action": "added"
+  },
+  {
+    "file": "tests/test_supplement.py",
+    "test": "test_uncertain_is_excluded_from_empty_and_destination",
+    "action": "added"
+  },
+  {
+    "file": "tests/test_supplement.py",
+    "test": "test_unknown_nearby_vehicles_are_identified_by_spot",
+    "action": "added"
+  },
+  {
+    "file": "tests/test_supplement.py",
+    "test": "test_unrecognized_candidate_admin_summary_and_report_accept_null",
+    "action": "added"
+  },
+  {
+    "file": "tests/test_supplement.py",
+    "test": "test_unrecognized_candidate_cannot_pay_or_query_fees",
+    "action": "added"
+  },
+  {
+    "file": "tests/test_supplement.py",
+    "test": "test_unrecognized_candidate_is_not_shown_during_lv2",
+    "action": "added"
+  },
+  {
+    "file": "tests/test_supplement.py",
+    "test": "test_unrecognized_candidate_ownership_expiry_and_changed_location",
+    "action": "added"
+  },
+  {
+    "file": "tests/test_supplement.py",
+    "test": "test_unrecognized_four_candidates_asks_manager",
+    "action": "added"
+  },
+  {
+    "file": "tests/test_supplement.py",
+    "test": "test_unrecognized_latest_first_and_max_three",
+    "action": "added"
+  },
+  {
+    "file": "tests/test_supplement.py",
+    "test": "test_unrecognized_mock_filler_is_not_a_candidate",
+    "action": "added"
+  },
+  {
+    "file": "tests/test_supplement.py",
+    "test": "test_unrecognized_one_candidate_two_actions_and_no_auto_link",
+    "action": "added"
+  },
+  {
+    "file": "tests/test_supplement.py",
+    "test": "test_zone_layout_overrides_auto_assignment",
+    "action": "added"
+  },
+  {
+    "file": "tests/test_ux.py",
+    "test": "test_feedback_resolve_and_stale_button",
+    "action": "removed_or_renamed"
+  },
+  {
+    "file": "tests/test_ux.py",
+    "test": "test_old_manager_revision_and_runtime_rejected",
+    "action": "removed_or_renamed"
+  },
+  {
+    "file": "tests/test_ux.py",
+    "test": "test_other_session_cannot_use_feedback",
+    "action": "removed_or_renamed"
+  },
+  {
+    "file": "tests/test_ux.py",
+    "test": "test_status_redelivery_and_reopen",
+    "action": "removed_or_renamed"
+  },
+  {
+    "file": "tests/test_ux.py",
+    "test": "test_status_retry_emits_only_one_notification",
+    "action": "removed_or_renamed"
+  },
+  {
+    "file": "tests/test_runtime_resilience.py",
+    "test": "test_session_capacity_and_idle_cleanup_release_related_resources",
+    "action": "changed"
+  },
+  {
+    "file": "tests/test_navigation.py",
+    "test": "test_d_wait_alert_incident_and_admin_summary",
+    "action": "changed"
+  },
+  {
+    "file": "tests/test_navigation.py",
+    "test": "test_destination_ttl_and_cancel",
+    "action": "added"
+  },
+  {
+    "file": "tests/test_navigation.py",
+    "test": "test_no_available_candidates_offers_lookup_and_admin",
+    "action": "added"
+  },
+  {
+    "file": "tests/test_navigation.py",
+    "test": "test_no_available_candidates_offers_wait_only_without_reservation",
+    "action": "removed_or_renamed"
+  },
+  {
+    "file": "tests/test_navigation.py",
+    "test": "test_shared_total_and_zone_waiters_do_not_receive_same_spot_twice",
+    "action": "removed_or_renamed"
+  },
+  {
+    "file": "tests/test_navigation.py",
+    "test": "test_three_four_and_renamed_lots_via_settings_only",
+    "action": "changed"
+  },
+  {
+    "file": "tests/test_navigation.py",
+    "test": "test_ttl_and_cancel_preserve_waiting_queue",
+    "action": "removed_or_renamed"
+  },
+  {
+    "file": "tests/test_navigation.py",
+    "test": "test_warning_copy_is_contextual_and_cancel_copy_is_consistent",
+    "action": "changed"
+  },
+  {
+    "file": "tests/test_navigation.py",
+    "test": "test_zone_waiting_gets_only_requested_zone",
+    "action": "removed_or_renamed"
+  }
+]

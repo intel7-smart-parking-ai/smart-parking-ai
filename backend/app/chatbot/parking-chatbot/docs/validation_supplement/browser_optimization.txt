@@ -1,0 +1,3 @@
+PASS receipt lookup returns card without creating a new call
+PASS independent users keep their own vehicle cards during parallel reads
+PASS no browser runtime errors in optimization checks

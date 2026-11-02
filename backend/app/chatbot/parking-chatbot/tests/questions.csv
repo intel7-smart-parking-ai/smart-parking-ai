@@ -1,0 +1,37 @@
+question,intent,lot_id,vehicle_no
+빈자리 몇 개 있어?,get_empty_spots,,
+B 주차장 자리 있어?,get_empty_spots,B,
+a 주차장 비었어?,get_empty_spots,A,
+씨 주차장 주차 가능해?,get_empty_spots,C,
+지금 만차야?,get_empty_spots,,
+C 주차장은?,get_empty_spots,C,
+내 차 어디 있어?,find_my_car,,
+7번 차 어디 주차했지,find_my_car,,07
+제 차 위치 알려주세요,find_my_car,,
+칠번 차 위치,find_my_car,,07
+지금까지 요금 얼마야?,get_fee,,
+12번 차 주차비 얼마예요,get_fee,,12
+3번 차량 금액,get_fee,,03
+요금 기준 알려줘,fee_rule,,
+무료 시간은 몇 분이야?,fee_rule,,
+미리 결제할래,pay_fee,,
+07번 정산해줘,pay_fee,,07
+출차가 안 돼요,check_exit_issue,,
+차단기가 안 열려요,check_exit_issue,,
+나가려는데 출구에서 막혔어,check_exit_issue,,
+관리자 불러줘,call_admin,,
+직원 좀 연결해 주세요,call_admin,,
+경보 위치 어디야?,get_alerts,,
+불났어?,get_alerts,,
+내 차 근처야?,alert_near_my_car,,
+대피 어디로 해야 해?,evacuation_guide,,
+뭘 할 수 있어?,help,,
+안녕,help,,
+07,unknown,,07
+오늘 날씨 어때?,unknown,,
+내 이용 현황 보여줘,find_my_car,,
+7번 차 주차 상태,find_my_car,,07
+B 주차장 자리 나면 알려줘,get_empty_spots,B,
+빈자리 생기면 알려줘,get_empty_spots,,
+대기 취소할게,get_empty_spots,,
+알림 꺼줘,get_empty_spots,,

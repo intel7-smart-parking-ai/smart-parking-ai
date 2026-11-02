@@ -1,0 +1,6 @@
+PASS uncertain demo button and separate count render
+PASS unrecognized location candidate cannot enter payment confirmation
+PASS candidate context is attached to manager receipt
+PASS Lv2 guidance carries no reentry and no car retrieval actions
+PASS briefing card copies actual plain text to clipboard
+PASS no browser runtime errors in supplement scenarios

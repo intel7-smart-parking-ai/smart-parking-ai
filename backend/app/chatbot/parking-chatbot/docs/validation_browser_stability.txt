@@ -1,0 +1,12 @@
+PASS 30 seconds of draft typing keeps live calls/reports, original textarea and caret
+PASS per-report drafts survive report switching
+PASS same-tab reload restores unsaved report draft
+PASS automatic refresh does not silently rebase draft over another admin note
+PASS failed polling and recovery show connection status
+PASS old request retry cannot clear newest alert banner
+PASS lower state version cannot roll back UI
+PASS refresh cancels incomplete payment instead of showing unexplained confirm button
+PASS Lv2 removes payment confirmation and pins evacuation
+PASS alert lot vacancy is deferred and delivered after clear
+PASS observed transient alert is historical after clear
+PASS no browser runtime errors in stability scenarios

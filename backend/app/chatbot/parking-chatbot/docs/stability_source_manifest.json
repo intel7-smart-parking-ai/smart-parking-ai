@@ -1,0 +1,289 @@
+[
+  {
+    "path": "chatbot/__init__.py",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "previous_version": 8,
+    "previous_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "changed": false
+  },
+  {
+    "path": "chatbot/access.py",
+    "sha256": "73892f5a900e7cd8f01e08f48beb454635cffe15c40bd918a4d06f9edf064429",
+    "previous_version": 8,
+    "previous_sha256": "73892f5a900e7cd8f01e08f48beb454635cffe15c40bd918a4d06f9edf064429",
+    "changed": false
+  },
+  {
+    "path": "chatbot/adapters.py",
+    "sha256": "10825569b555c388fded1669fa177fc025ae1acc1a2e72c500af658121a4b61b",
+    "previous_version": 8,
+    "previous_sha256": "10825569b555c388fded1669fa177fc025ae1acc1a2e72c500af658121a4b61b",
+    "changed": false
+  },
+  {
+    "path": "chatbot/api_paths.json",
+    "sha256": "838150bc5e81b929d0c967caf8139e9350a455f50a1507559de85e1e8d5470d5",
+    "previous_version": 8,
+    "previous_sha256": "838150bc5e81b929d0c967caf8139e9350a455f50a1507559de85e1e8d5470d5",
+    "changed": false
+  },
+  {
+    "path": "chatbot/chips.json",
+    "sha256": "eaa5b623beaf9442acbe353f0b073803579163ec9a6ababe4f80a6dd3f01a953",
+    "previous_version": 8,
+    "previous_sha256": "eaa5b623beaf9442acbe353f0b073803579163ec9a6ababe4f80a6dd3f01a953",
+    "changed": false
+  },
+  {
+    "path": "chatbot/config.py",
+    "sha256": "f14941b707500d02002db4af6b6df17c40d8124144d5d8e8b3ee4e81cc9168a0",
+    "previous_version": 8,
+    "previous_sha256": "f14941b707500d02002db4af6b6df17c40d8124144d5d8e8b3ee4e81cc9168a0",
+    "changed": false
+  },
+  {
+    "path": "chatbot/contracts.py",
+    "sha256": "f583993b4aa4b7c08f84ec91310ce38a65c3181e55057c1d6e75e860733477f9",
+    "previous_version": 8,
+    "previous_sha256": "f583993b4aa4b7c08f84ec91310ce38a65c3181e55057c1d6e75e860733477f9",
+    "changed": false
+  },
+  {
+    "path": "chatbot/engine.py",
+    "sha256": "6e6025eb9c6eea867dc3cabe99b65041f5e91d1ef375f0a5b756de605a3e3c15",
+    "previous_version": 8,
+    "previous_sha256": "92372cb7ddac6de68a2cdf2bc67b61cafa3aae567d423fb1ea0594128fa1f916",
+    "changed": true
+  },
+  {
+    "path": "chatbot/http_api.py",
+    "sha256": "104ba092de17e4697efb0b91861f8651da76a65b5cba2cff1017cc0340543cc4",
+    "previous_version": 8,
+    "previous_sha256": "104ba092de17e4697efb0b91861f8651da76a65b5cba2cff1017cc0340543cc4",
+    "changed": false
+  },
+  {
+    "path": "chatbot/incidents.py",
+    "sha256": "37a7df3107a3f630cd31d781be72664c1e1d786512b49c42cab372954320716a",
+    "previous_version": 8,
+    "previous_sha256": "37a7df3107a3f630cd31d781be72664c1e1d786512b49c42cab372954320716a",
+    "changed": false
+  },
+  {
+    "path": "chatbot/llm.py",
+    "sha256": "2759c86b41edfd492720babd3f7a7b8da5cc168834fde1ca820a0bfc92b13eee",
+    "previous_version": 8,
+    "previous_sha256": "2759c86b41edfd492720babd3f7a7b8da5cc168834fde1ca820a0bfc92b13eee",
+    "changed": false
+  },
+  {
+    "path": "chatbot/notifications.py",
+    "sha256": "69745622aff9b0de0f57fefc8fe02994f2b88c7a3a64f67a1f0754c4a2db22b0",
+    "previous_version": 8,
+    "previous_sha256": "69745622aff9b0de0f57fefc8fe02994f2b88c7a3a64f67a1f0754c4a2db22b0",
+    "changed": false
+  },
+  {
+    "path": "chatbot/parser.py",
+    "sha256": "bedd2dbee75dbd74bb3dd647890c9df8ebb35c9817e60f7e342dbfce0b97068a",
+    "previous_version": 8,
+    "previous_sha256": "8fdf3928edbd0a5d7b0c77b006e85a1c7050f9ce7c0a6e11ab456304bc7f5fc9",
+    "changed": true
+  },
+  {
+    "path": "chatbot/state.py",
+    "sha256": "97a1ef13ab66c814463e4a0aab4ccc039a89388f6c14e253ea6d08d5231ebac6",
+    "previous_version": 8,
+    "previous_sha256": "97a1ef13ab66c814463e4a0aab4ccc039a89388f6c14e253ea6d08d5231ebac6",
+    "changed": false
+  },
+  {
+    "path": "chatbot/templates.py",
+    "sha256": "7e9d91326ba08d43100b5305b70a841e57726767199e6316c9ebed843c6e643d",
+    "previous_version": 8,
+    "previous_sha256": "320eee7576b21bada39ee4e2ce1b58b93895c78893ca78392aa852e3eaa07ae2",
+    "changed": true
+  },
+  {
+    "path": "chatbot/waitlist.py",
+    "sha256": "e63486aa54f8b8f21a5a54a2bd058eb216e4dc867c56d2c2898be566a8b6939a",
+    "previous_version": 8,
+    "previous_sha256": "e63486aa54f8b8f21a5a54a2bd058eb216e4dc867c56d2c2898be566a8b6939a",
+    "changed": false
+  },
+  {
+    "path": "server_dev.py",
+    "sha256": "136516ef571b39de14b6d2134a5e867bb5424f5866d09f34f0f8a3b339e443fc",
+    "previous_version": 8,
+    "previous_sha256": "136516ef571b39de14b6d2134a5e867bb5424f5866d09f34f0f8a3b339e443fc",
+    "changed": false
+  },
+  {
+    "path": "server_fastapi.py",
+    "sha256": "1ab7485a0605347c3c55599998089242d1e3fca746238e1d456ad6c20bdb097e",
+    "previous_version": 8,
+    "previous_sha256": "1ab7485a0605347c3c55599998089242d1e3fca746238e1d456ad6c20bdb097e",
+    "changed": false
+  },
+  {
+    "path": "static/admin.html",
+    "sha256": "808649cbb1764744dc5510f197205d96e50880be3aeb32f6d6214b7ad98573d5",
+    "previous_version": 8,
+    "previous_sha256": "808649cbb1764744dc5510f197205d96e50880be3aeb32f6d6214b7ad98573d5",
+    "changed": false
+  },
+  {
+    "path": "static/index.html",
+    "sha256": "e1fd1036bee51053de29597d352c598d2b0083171dec2872c2be0bb8a7325a0c",
+    "previous_version": 8,
+    "previous_sha256": "e1fd1036bee51053de29597d352c598d2b0083171dec2872c2be0bb8a7325a0c",
+    "changed": false
+  },
+  {
+    "path": "tests/browser_checks.cjs",
+    "sha256": "d4ac42a01bc642e3297fa2c7aee5aa455b2360babe47b2703cf4c4a859806376",
+    "previous_version": 8,
+    "previous_sha256": "d4ac42a01bc642e3297fa2c7aee5aa455b2360babe47b2703cf4c4a859806376",
+    "changed": false
+  },
+  {
+    "path": "tests/browser_stability.cjs",
+    "sha256": "6807d610537f99a4e251a9e4d6e22e85724d9366b678dabbccf0979dbf9e9d77",
+    "previous_version": 8,
+    "previous_sha256": "6807d610537f99a4e251a9e4d6e22e85724d9366b678dabbccf0979dbf9e9d77",
+    "changed": false
+  },
+  {
+    "path": "tests/check_backend.py",
+    "sha256": "3c7490c46cc6cb1786af714f42306eb9df4fb33c680e376aa6bf7f1731feb550",
+    "previous_version": 8,
+    "previous_sha256": "3c7490c46cc6cb1786af714f42306eb9df4fb33c680e376aa6bf7f1731feb550",
+    "changed": false
+  },
+  {
+    "path": "tests/extended_before.json",
+    "sha256": "4efe09ce1fed9957c784b9d73cd95c5f2333ee8faa5fe814d33650065ee06a7e",
+    "previous_version": 8,
+    "previous_sha256": "4efe09ce1fed9957c784b9d73cd95c5f2333ee8faa5fe814d33650065ee06a7e",
+    "changed": false
+  },
+  {
+    "path": "tests/questions.csv",
+    "sha256": "2b26a75aedd5850ae7d02396ec964d135b68d778bb94337e35b6193aaf5eb50d",
+    "previous_version": 8,
+    "previous_sha256": "2b26a75aedd5850ae7d02396ec964d135b68d778bb94337e35b6193aaf5eb50d",
+    "changed": false
+  },
+  {
+    "path": "tests/questions_extended.csv",
+    "sha256": "e029a435bf180d2db28bba0e0c2f883177f916f545914d0eb6b1b5baadf0dfae",
+    "previous_version": 8,
+    "previous_sha256": "e029a435bf180d2db28bba0e0c2f883177f916f545914d0eb6b1b5baadf0dfae",
+    "changed": false
+  },
+  {
+    "path": "tests/questions_holdout.csv",
+    "sha256": "7be2960a905b6933dafc70872430880fb093a090cfbb440da7fe98d346e5dce2",
+    "previous_version": 8,
+    "previous_sha256": "7be2960a905b6933dafc70872430880fb093a090cfbb440da7fe98d346e5dce2",
+    "changed": false
+  },
+  {
+    "path": "tests/questions_realistic.csv",
+    "sha256": "761513b39ead89c864ce4b4e7d46898994f060de87f1d1f9eec5edca91e17262",
+    "previous_version": 8,
+    "previous_sha256": "761513b39ead89c864ce4b4e7d46898994f060de87f1d1f9eec5edca91e17262",
+    "changed": false
+  },
+  {
+    "path": "tests/questions_stability.csv",
+    "sha256": "ab97f0d6c626ece32f9c4f15b80e386fe64404b38caed1c9c8c3593a279e4a5c",
+    "previous_version": 8,
+    "previous_sha256": "ccff99e56543c81a7e537b0e5db803e8417bacd674d47fd1551e211d0e5383dd",
+    "changed": true
+  },
+  {
+    "path": "tests/run_browser_checks.py",
+    "sha256": "ebb9b91b8dc5c3bca220f1001e1948c182c9c2869479d80830f807b45ff83404",
+    "previous_version": 8,
+    "previous_sha256": "ebb9b91b8dc5c3bca220f1001e1948c182c9c2869479d80830f807b45ff83404",
+    "changed": false
+  },
+  {
+    "path": "tests/run_eval.py",
+    "sha256": "6b38ba7d179414078132c8cd595c045318a146cf4a046527935cfaf7bf843cc8",
+    "previous_version": 8,
+    "previous_sha256": "6b38ba7d179414078132c8cd595c045318a146cf4a046527935cfaf7bf843cc8",
+    "changed": false
+  },
+  {
+    "path": "tests/run_stability_benchmark.py",
+    "sha256": "5b25adae7fa6e95cb40a88901de7cdb6e4f48f52f58a2bad7e0777bf7e4ca54b",
+    "previous_version": 8,
+    "previous_sha256": "5b25adae7fa6e95cb40a88901de7cdb6e4f48f52f58a2bad7e0777bf7e4ca54b",
+    "changed": false
+  },
+  {
+    "path": "tests/test_backend_wire.py",
+    "sha256": "73f509f9fe78f65f6ce988797f9bb384cf1e05950b2b4db1647a9d54bdb44302",
+    "previous_version": 8,
+    "previous_sha256": "73f509f9fe78f65f6ce988797f9bb384cf1e05950b2b4db1647a9d54bdb44302",
+    "changed": false
+  },
+  {
+    "path": "tests/test_claude_round2.py",
+    "sha256": "1db2d9a3d334bef25bdfd9184ce216ec173927f0c69aee0afcfccfc2466d749d",
+    "previous_version": 8,
+    "previous_sha256": null,
+    "changed": true
+  },
+  {
+    "path": "tests/test_extended.py",
+    "sha256": "339e6b948bad26ce05ddde832c39dc7a40757972cef2eccb660b67ca63074a3a",
+    "previous_version": 8,
+    "previous_sha256": "339e6b948bad26ce05ddde832c39dc7a40757972cef2eccb660b67ca63074a3a",
+    "changed": false
+  },
+  {
+    "path": "tests/test_fastapi.py",
+    "sha256": "7b161a8b847e348e5316ec1d03b050cf302cd43d279dfd08d8a7d97cb6eed8c1",
+    "previous_version": 8,
+    "previous_sha256": "7b161a8b847e348e5316ec1d03b050cf302cd43d279dfd08d8a7d97cb6eed8c1",
+    "changed": false
+  },
+  {
+    "path": "tests/test_realistic.py",
+    "sha256": "77320ea9508d64d556a7767cabfe14e45a04560d308faf01c79dd23ebbea1e8c",
+    "previous_version": 8,
+    "previous_sha256": "77320ea9508d64d556a7767cabfe14e45a04560d308faf01c79dd23ebbea1e8c",
+    "changed": false
+  },
+  {
+    "path": "tests/test_regressions.py",
+    "sha256": "a052d705650fb6fe014ff02cc2dc14b23fd18919b872c694a072f9fffa52e312",
+    "previous_version": 8,
+    "previous_sha256": "a052d705650fb6fe014ff02cc2dc14b23fd18919b872c694a072f9fffa52e312",
+    "changed": false
+  },
+  {
+    "path": "tests/test_reliability.py",
+    "sha256": "706c2465a5b759dd0deeff599839db0a08e66925d7cdd0e0d1cf5d3c050e8f21",
+    "previous_version": 8,
+    "previous_sha256": "706c2465a5b759dd0deeff599839db0a08e66925d7cdd0e0d1cf5d3c050e8f21",
+    "changed": false
+  },
+  {
+    "path": "tests/test_stability.py",
+    "sha256": "5a72afe8b96cf88b3e553ad717973aa7ffa684f13d7150011e57df763934bda9",
+    "previous_version": 8,
+    "previous_sha256": "5a72afe8b96cf88b3e553ad717973aa7ffa684f13d7150011e57df763934bda9",
+    "changed": false
+  },
+  {
+    "path": "tests/test_ux.py",
+    "sha256": "4cf6e444bc45ad7911036dc80508214526b8792e5d0787e615ef80907c36f35d",
+    "previous_version": 8,
+    "previous_sha256": "4cf6e444bc45ad7911036dc80508214526b8792e5d0787e615ef80907c36f35d",
+    "changed": false
+  }
+]

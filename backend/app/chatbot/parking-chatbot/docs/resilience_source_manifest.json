@@ -1,0 +1,22 @@
+{
+  "baseline_library_version": 12,
+  "changed": [
+    "README.md",
+    "server_dev.py",
+    "docs/validation_questions.txt",
+    "docs/navigation_validation_results.json",
+    "docs/validation_optimization_soak.txt",
+    "docs/validation_benchmark.txt",
+    "docs/navigation_layout_matrix.json",
+    "docs/validation_python.txt",
+    "docs/stability_benchmark.json",
+    "chatbot/engine.py"
+  ],
+  "added": [
+    "docs/resilience_before.txt",
+    "docs/runtime_resilience_report.md",
+    "docs/resilience_after.txt",
+    "tests/test_runtime_resilience.py"
+  ],
+  "deleted": []
+}

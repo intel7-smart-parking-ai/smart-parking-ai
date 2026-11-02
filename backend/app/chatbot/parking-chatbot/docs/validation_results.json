@@ -1,0 +1,54 @@
+{
+  "scope": "local mock, LLM disabled, single-process servers",
+  "results": [
+    {
+      "check": "python",
+      "command": "python -m unittest discover -s tests -v",
+      "exit_code": 0,
+      "duration_sec": 3.44,
+      "log": "validation_python.txt"
+    },
+    {
+      "check": "questions",
+      "command": "python tests/run_eval.py tests/questions.csv tests/questions_realistic.csv tests/questions_extended.csv tests/questions_holdout.csv tests/questions_stability.csv",
+      "exit_code": 0,
+      "duration_sec": 0.09,
+      "log": "validation_questions.txt"
+    },
+    {
+      "check": "browser_existing",
+      "command": "python tests/run_browser_checks.py",
+      "exit_code": 0,
+      "duration_sec": 3.39,
+      "log": "validation_browser_existing.txt"
+    },
+    {
+      "check": "browser_stability",
+      "command": "python tests/run_browser_checks.py browser_stability.cjs",
+      "exit_code": 0,
+      "duration_sec": 34.24,
+      "log": "validation_browser_stability.txt"
+    },
+    {
+      "check": "browser_optimization",
+      "command": "python tests/run_browser_checks.py browser_optimization.cjs",
+      "exit_code": 0,
+      "duration_sec": 1.81,
+      "log": "validation_browser_optimization.txt"
+    },
+    {
+      "check": "benchmark",
+      "command": "python tests/run_stability_benchmark.py",
+      "exit_code": 0,
+      "duration_sec": 0.18,
+      "log": "validation_benchmark.txt"
+    },
+    {
+      "check": "optimization_soak",
+      "command": "python tests/run_optimization_soak.py",
+      "exit_code": 0,
+      "duration_sec": 0.71,
+      "log": "validation_optimization_soak.txt"
+    }
+  ]
+}
