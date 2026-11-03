@@ -18,7 +18,9 @@
 
 ## 1. GET `/api/v1/sessions/{session_id}/fee` — 요금 조회
 
-주차장별(A·B 실물 12면, C·D 가상 10면) 요금 정책과 입출차 시간을 바탕으로 실시간 주차요금을 계산하여 반환합니다.
+주차장별(실물 가(A) 12면·나(B) 16면, 가상 다(C) 12면·라(D) 10면 — 이름은 임시) 요금 정책과 입출차 시간을 바탕으로 실시간 주차요금을 계산하여 반환합니다.
+
+조회할 때마다 **요금 견적(`quote_id`)** 을 발급한다. 결제는 이 견적 금액(요금 화면에 보인 금액) 그대로 처리된다. 견적 유효 시간은 환경변수 `FEE_QUOTE_TTL_SECONDS`(기본 300초).
 
 ### 요청 (Request)
 * **Path Parameter**: `session_id` (string, 필수) — 예: `ses_0001`
@@ -30,7 +32,7 @@
   "session_id": "ses_0001",
   "lot_id": "A",
   "space_id": "A-01",
-  "car_id": "01",
+  "car_id": "27",
   "entry_at": "2026-11-02T09:05:00+09:00",
   "exit_at": null,
   "target_at": "2026-11-02T10:00:00+09:00",
@@ -45,7 +47,9 @@
   "amount_krw": 2500,
   "is_daily_capped": false,
   "payment_status": "unpaid",
-  "rate_policy": {"base_minutes": 30, "base_fee": 1000, "unit_minutes": 10, "extra_fee": 500, "daily_cap": 10000}
+  "rate_policy": {"base_minutes": 30, "base_fee": 1000, "unit_minutes": 10, "extra_fee": 500, "daily_cap": 10000},
+  "quote_id": "quote_3f9a1c2b7d10",
+  "quote_expires_at": "2026-11-02T10:05:00+09:00"
 }
 ```
 
@@ -61,6 +65,7 @@
 ```json
 {
   "session_id": "ses_0001",
+  "quote_id": "quote_3f9a1c2b7d10",
   "idempotency_key": "idem_ses_0001_unique_12345",
   "payment_method": "MOCK_CARD"
 }
@@ -72,7 +77,7 @@
   "payment_id": "pay_0005",
   "session_id": "ses_0001",
   "lot_id": "A",
-  "car_id": "01",
+  "car_id": "27",
   "amount_krw": 2500,
   "payment_method": "MOCK_CARD",
   "status": "completed",
@@ -87,7 +92,9 @@
 * 동일한 `idempotency_key`로 같은 세션 재요청 시: **200 OK**와 함께 기존 결제 레코드 반환 (`"idempotent_replayed": true`)
 * 같은 `idempotency_key`를 **다른 세션**에 사용 시: **409** `IDEMPOTENCY_CONFLICT`
 * 이미 결제 완료된 세션에 다른 키로 요청 시: **409** `ALREADY_PAID` (`details`에 기존 `existing_payment_id`)
-* 없는 세션: **404** `SESSION_NOT_FOUND` (결제를 만들지 않음)
+* 없는 견적: **404** `QUOTE_NOT_FOUND` / 다른 세션의 견적: **409** `QUOTE_MISMATCH` / 만료된 견적: **409** `QUOTE_EXPIRED` → 요금을 다시 조회 (결제를 만들지 않음)
+* 결제 금액은 **견적 금액** (결제 시점에 다시 계산하지 않음). 같은 멱등키 재요청은 견적이 만료됐어도 기존 결제를 반환
+* `quote_id`가 없으면 **422**
 * `amount_krw` 등 정의되지 않은 필드를 보내면 **422** (요금은 서버만 계산)
 
 ### 에러 응답 형식 (모든 billing API 공통, 팀 계약 형식)
@@ -100,7 +107,7 @@
 
 ## 2-1. GET `/api/v1/mock-payments` — 결제 목록
 
-* **Query Parameter (모두 선택)**: `lot_id`, `status` (`completed` / `canceled`), `car_id` (예: `01`)
+* **Query Parameter (모두 선택)**: `lot_id`, `status` (`completed` / `canceled`), `car_id` (실물 스티커 두 자리, 예: `27`)
 * **응답**: `{"items": [결제 객체, ...], "next_cursor": null, "as_of": "<조회 시각>"}` — 최신순
 
 ## 2-2. GET `/api/v1/rate-policies` — 요금 정책
@@ -130,7 +137,7 @@
   "payment_id": "pay_0005",
   "session_id": "ses_0001",
   "lot_id": "A",
-  "car_id": "01",
+  "car_id": "27",
   "refunded_amount_krw": 2500,
   "status": "canceled",
   "canceled_at": "2026-11-02T10:10:00+09:00",
@@ -143,7 +150,7 @@
 
 ## 4. GET `/api/v1/reports/revenue` — 매출 조회
 
-결제 시점(`mock_payments.created_at`)을 기준으로 일별·월별 및 주차장별(A·B 12면, C·D 10면) 순매출을 집계합니다.
+결제 시점(`mock_payments.created_at`)을 기준으로 일별·월별 및 주차장별(가 12·나 16·다 12·라 10면) 순매출을 집계합니다.
 
 ### 요청 (Request)
 * **Query Parameter**: `month` (string, 선택) — `'ALL'` 또는 `'2026-11'` (기본값: `'ALL'`)
@@ -167,7 +174,7 @@
   "lots": [
     {
       "lot_id": "A",
-      "name": "실물 A 주차장 (12면)",
+      "name": "가",
       "type": "real",
       "total_spaces": 12,
       "gross_amount_krw": 5500,

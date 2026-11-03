@@ -31,7 +31,7 @@ def client(tmp_path, monkeypatch):
     init_schema(conn)
     conn.executemany(
         "INSERT INTO parking_lots (lot_id, name, type, total_spaces) VALUES (?, ?, ?, ?)",
-        [("A", "실물 A", "real", 16), ("B", "실물 B", "real", 12), ("C", "가상 C", "virtual", 10)],
+        [("A", "가", "real", 12), ("B", "나", "real", 16), ("C", "다", "virtual", 12)],
     )
     conn.execute(
         "INSERT INTO rate_policies VALUES ('A', ?, ?, ?, ?, ?)",
@@ -40,9 +40,9 @@ def client(tmp_path, monkeypatch):
     conn.executemany(
         "INSERT INTO parking_sessions (session_id, lot_id, space_id, car_id, entry_at, exit_at) VALUES (?, ?, ?, ?, ?, ?)",
         [
-            ("ses_paid", "A", "A-01", "01", "2026-11-02T09:05:00+09:00", "2026-11-02T10:00:00+09:00"),  # 55분 → 2,500
+            ("ses_paid", "A", "A-01", "27", "2026-11-02T09:05:00+09:00", "2026-11-02T10:00:00+09:00"),  # 55분 → 2,500
             ("ses_nocar", "A", "A-02", None, "2026-11-02T09:00:00+09:00", "2026-11-02T09:30:00+09:00"),  # 30분 → 1,000
-            ("ses_active", "A", "A-03", "09", "2026-11-02T09:00:00+09:00", None),
+            ("ses_active", "A", "A-03", "12", "2026-11-02T09:00:00+09:00", None),
         ],
     )
     conn.commit()
@@ -51,8 +51,19 @@ def client(tmp_path, monkeypatch):
         yield c
 
 
-def _pay(client, session_id="ses_paid", key="idem-1", **extra):
-    return client.post("/api/v1/mock-payments", json={"session_id": session_id, "idempotency_key": key, **extra})
+def _quote(client, session_id="ses_paid", **params):
+    """요금 화면 조회 = 견적 발급. 없는 세션이면 존재하지 않는 견적 ID를 돌려준다."""
+    r = client.get(f"/api/v1/sessions/{session_id}/fee", params=params)
+    return r.json()["quote_id"] if r.status_code == 200 else "quote_missing"
+
+
+def _pay(client, session_id="ses_paid", key="idem-1", quote_id=None, **extra):
+    """화면 흐름 그대로: 요금 조회(견적) → 결제."""
+    quote_id = quote_id or _quote(client, session_id)
+    return client.post(
+        "/api/v1/mock-payments",
+        json={"session_id": session_id, "quote_id": quote_id, "idempotency_key": key, **extra},
+    )
 
 
 # ---------- 요금 계산 (순수 함수) ----------
@@ -76,8 +87,10 @@ def test_fee_lookup(client):
     body = r.json()
     assert body["amount_krw"] == 2500
     assert body["duration_minutes"] == 55
-    assert body["car_id"] == "01"  # 선행 0 보존
+    assert body["car_id"] == "27"  # 두 자리 문자열 그대로
     assert body["payment_status"] == "unpaid"
+    assert body["quote_id"].startswith("quote_")
+    assert body["quote_expires_at"]
 
 
 def test_fee_unrecognized_car_is_null(client):
@@ -106,7 +119,7 @@ def test_payment_amount_is_server_calculated(client):
     body = r.json()
     assert body["amount_krw"] == 2500
     assert body["status"] == "completed"
-    assert body["car_id"] == "01"
+    assert body["car_id"] == "27"
 
 
 def test_payment_rejects_client_amount(client):
@@ -219,8 +232,8 @@ def test_list_mock_payments_with_filters(client):
     canceled = client.get("/api/v1/mock-payments", params={"status": "canceled"}).json()["items"]
     assert [p["payment_id"] for p in canceled] == [paid["payment_id"]]
 
-    by_car = client.get("/api/v1/mock-payments", params={"car_id": "01"}).json()["items"]
-    assert len(by_car) == 1 and by_car[0]["car_id"] == "01"
+    by_car = client.get("/api/v1/mock-payments", params={"car_id": "27"}).json()["items"]
+    assert len(by_car) == 1 and by_car[0]["car_id"] == "27"
 
     assert client.get("/api/v1/mock-payments", params={"status": "cancelled"}).status_code == 422
 
@@ -263,3 +276,54 @@ def test_concurrent_payments_only_one_succeeds(client):
         results = list(ex.map(lambda i: _pay(client, key=f"race-{i}").status_code, range(10)))
     assert results.count(200) == 1
     assert set(results) <= {200, 409}
+
+
+# ---------- 요금 견적 quote_id (DECISIONS D-09) ----------
+
+def test_payment_charges_quoted_amount_not_recalculated(client):
+    """요금 화면(견적)에 보인 금액으로 결제한다. 결제 시점에 다시 계산하면 일 최대 10,000원이 된다."""
+    quote_id = _quote(client, "ses_active", now="2026-11-02T09:41:00+09:00")  # 41분 → 2,000원
+    r = _pay(client, session_id="ses_active", key="idem-quote", quote_id=quote_id)
+    assert r.status_code == 200
+    assert r.json()["amount_krw"] == 2000
+
+
+def test_payment_requires_quote_id(client):
+    r = client.post("/api/v1/mock-payments", json={"session_id": "ses_paid", "idempotency_key": "idem-noquote"})
+    assert r.status_code == 422
+
+
+def test_payment_unknown_quote_404(client):
+    r = _pay(client, key="idem-unknown-quote", quote_id="quote_nope")
+    assert r.status_code == 404
+    assert r.json()["error"]["code"] == "QUOTE_NOT_FOUND"
+
+
+def test_payment_quote_of_other_session_409(client):
+    other = _quote(client, "ses_nocar")
+    r = _pay(client, key="idem-mismatch", quote_id=other)
+    assert r.status_code == 409
+    assert r.json()["error"]["code"] == "QUOTE_MISMATCH"
+    assert client.get("/api/v1/reports/revenue").json()["summary"]["completed_count"] == 0
+
+
+def test_payment_expired_quote_409(client, monkeypatch):
+    monkeypatch.setenv("FEE_QUOTE_TTL_SECONDS", "0")  # 발급 즉시 만료
+    r = _pay(client, key="idem-expired")
+    assert r.status_code == 409
+    assert r.json()["error"]["code"] == "QUOTE_EXPIRED"
+    assert client.get("/api/v1/reports/revenue").json()["summary"]["completed_count"] == 0
+
+
+def test_idempotent_replay_works_after_quote_expired(client, tmp_path):
+    """네트워크 재시도: 같은 멱등키면 견적이 만료됐어도 기존 결제를 그대로 돌려준다."""
+    quote_id = _quote(client)
+    first = _pay(client, key="idem-replay", quote_id=quote_id).json()
+    conn = sqlite3.connect(tmp_path / "test.db")
+    conn.execute("UPDATE fee_quotes SET expires_at = '2000-01-01T00:00:00+09:00' WHERE quote_id = ?", (quote_id,))
+    conn.commit()
+    conn.close()
+    again = _pay(client, key="idem-replay", quote_id=quote_id)
+    assert again.status_code == 200
+    assert again.json()["payment_id"] == first["payment_id"]
+    assert again.json()["idempotent_replayed"] is True
