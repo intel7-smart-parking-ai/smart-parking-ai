@@ -1,8 +1,9 @@
 import {useState} from 'react';
 import {Icon, ParkingMap as FallbackMap, statuses, types} from './components.jsx';
 import './styles/layout-maps.css';
+import MallParkingMap from './MallParkingMap.jsx';
 
-const names = {basic: '기본형', angled: '사선형', loop: '일방순환형', l_shape: 'L자복합형'};
+const names = {basic: '기본형', angled: '사선형', loop: '일방순환형', l_shape: 'L자복합형', mall: '신세계 백화점 B1 · 대형 주차장'};
 function Arrow({x, y, rotate = 0}) {
   return <g className="pdf-road-arrow" transform={`translate(${x} ${y}) rotate(${rotate})`} aria-hidden="true"><path d="M0 28V-23M-12-9 0-23 12-9"/></g>;
 }
@@ -27,7 +28,7 @@ function Bay({space, points, x, y, vertical, labelY, carY, carX, carRotation, st
     <title>{label}</title><polygon className="pdf-bay-shape" points={points}/>
     {stopPath && <path className="pdf-wheel-stop" d={stopPath} aria-hidden="true"/>}
     <text className="pdf-bay-label" x={x} y={labelY ?? y - (vertical ? 75 : 22)} textAnchor="middle">{space.bay_label}</text>
-    {space.car_id ? <MiniCar x={carX ?? x} y={carY ?? y + (vertical ? 2 : 11)} number={number} rotation={carRotation ?? (vertical ? 90 : 0)}/> : <text className="pdf-bay-status" x={x} y={carY ?? y + 12} textAnchor="middle">{statuses[space.status]}</text>}
+    {space.car_id ? <g transform={lot.layout_type === 'mall' ? `translate(${carX ?? x} ${carY ?? y}) scale(.68) translate(${- (carX ?? x)} ${- (carY ?? y)})` : undefined}><MiniCar x={carX ?? x} y={carY ?? y + (vertical ? 2 : 11)} number={number} rotation={carRotation ?? (vertical ? 90 : 0)}/></g> : <text className="pdf-bay-status" x={x} y={carY ?? y + 12} textAnchor="middle">{statuses[space.status]}</text>}
     {space.space_type === 'ev' && <text className="pdf-bay-special" x={x} y={y + (vertical ? 68 : 42)} textAnchor="middle">⚡ 전기차</text>}
     {space.space_type === 'accessible' && <text className="pdf-bay-special" x={x} y={y + (vertical ? 68 : 42)} textAnchor="middle">♿ 장애인</text>}
     {warned && <text className="pdf-warning" x={x + 30} y={y - 45}>!</text>}
@@ -47,7 +48,8 @@ export default function ParkingLayoutMap(props) {
     <div className="map-toolbar"><div className="filter-tabs">{[['all','전체 보기'],['empty','빈자리'],['ev','전기차'],['accessible','장애인']].map(([id,label]) => <button key={id} onClick={() => setFilter(id)} className={filter === id ? 'active' : ''} aria-pressed={filter === id}>{label}</button>)}</div></div>
     <div className="pdf-map-heading"><strong>{names[kind]} <span>{lot.spaces.length}면</span></strong><button className="pdf-zoom-button" aria-pressed={zoomed} onClick={() => setZoomed(value => !value)}>{zoomed ? '전체 도면 보기' : '주차칸 확대'}</button></div>
     <div className={`pdf-map-scroll ${zoomed ? 'is-zoomed' : 'fit-map'}`} tabIndex={0} aria-label="주차장 도면, 확대 상태에서는 좌우로 이동하세요">
-      <svg className="pdf-map-svg" viewBox={kind === 'angled' ? '0 0 1200 760' : kind === 'loop' ? '0 0 1000 880' : kind === 'l_shape' ? '0 0 900 1100' : '0 0 1000 1040'} role="group" aria-label={`${lot.name} ${lot.spaces.length}면 배치도`}>
+      <svg className="pdf-map-svg" viewBox={kind === 'mall' ? '0 0 1536 1024' : kind === 'angled' ? '0 0 1200 760' : kind === 'loop' ? '0 0 1000 880' : kind === 'l_shape' ? '0 0 900 1100' : '0 0 1000 1040'} role="group" aria-label={`${lot.name} ${lot.spaces.length}면 배치도`}>
+        {kind === 'mall' && <MallParkingMap lot={lot} bay={bay} Arrow={Arrow} Gate={Gate}/>}
         {kind === 'basic' && <>
           <rect className="pdf-road" x="20" y="20" width="960" height="1000" rx="8"/><path className="pdf-boundary" d="M440 995H40V40H960V995H600"/>
           <Zone x={220} y={90} zone="A"/><Zone x={780} y={90} zone="B"/>
@@ -83,6 +85,6 @@ export default function ParkingLayoutMap(props) {
       </svg>
     </div>
     <div className="map-legend">{Object.entries(statuses).map(([id,label]) => <span key={id}><i className={`legend-dot ${id}`}/>{label}</span>)}</div>
-    <p className="pdf-layout-note"><Icon name="info"/>첨부 도면 기준 · A/B는 이 주차장 내부 구역입니다.<br/>주차칸 선택으로 상세 조회 · 초록색 전기차 / 파란색 장애인</p>
+    <p className="pdf-layout-note"><Icon name="info"/>{kind === 'mall' ? '신세계 백화점 B1 가상 배치 · A–D는 신세계 백화점 주차장 내부 구역입니다. 차량번호는 주차칸 확대에서 확인하세요.' : '첨부 도면 기준 · A/B는 이 주차장 내부 구역입니다.'}<br/>주차칸 선택으로 상세 조회 · 초록색 전기차 / 파란색 장애인</p>
   </section>;
 }

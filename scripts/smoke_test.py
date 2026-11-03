@@ -39,7 +39,7 @@ _,test_fee=request('/sessions/'+sid+'/fee')
 expected=test_fee['amount_krw']
 token='integration-'+uuid.uuid4().hex
 payload={'session_id':sid,'idempotency_key':token,'payment_method':'MOCK_CARD'}
-status,_=request('/mock-payments','POST',{**payload,'quote_id':'unsupported','simulate_failure':True})
+status,_=request('/mock-payments','POST',{**payload,'simulate_failure':True})
 check(status==422,'Unsupported payment fields are rejected')
 with ThreadPoolExecutor(max_workers=3) as pool:
     responses=list(pool.map(lambda _:request('/mock-payments','POST',payload),range(3)))

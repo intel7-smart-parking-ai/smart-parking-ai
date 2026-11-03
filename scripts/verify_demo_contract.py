@@ -29,7 +29,7 @@ for value in ['10','99']:
 for path,method,expected in [('/sessions/absent/fee','GET','SESSION_NOT_FOUND'),('/parking-lots/absent/spaces','GET','PARKING_LOT_NOT_FOUND'),('/mock-payments/absent/cancel','POST','PAYMENT_NOT_FOUND'),('/alerts/absent/resolve','POST','ALERT_NOT_FOUND')]:
     code,data=call(path,method)
     assert code==404 and data['error']['code']==expected and isinstance(data['error']['details'],list),(path,code,data)
-code,data=call('/mock-payments','POST',{'session_id':'absent','idempotency_key':'contract-check','quote_id':'unsupported'})
+code,data=call('/mock-payments','POST',{'session_id':'absent','idempotency_key':'contract-check','simulate_failure':True})
 assert code==422 and data['error']['code']=='VALIDATION_ERROR'
 assert all(a['space_id'] is None for a in collection('/alerts') if a['type']=='mock_fire_led_observed')
 print('PASS: sticker 10/99 accepted, 7/07/00/09 rejected; physical fixtures valid; list/error envelopes and unknown alert locations correct')

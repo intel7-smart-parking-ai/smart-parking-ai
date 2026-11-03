@@ -36,3 +36,9 @@ INSERT INTO schema_migrations(version) VALUES (6) ON CONFLICT DO NOTHING;
 -- Unknown LED observation locations must not be assigned to an arbitrary bay.
 ALTER TABLE alerts ALTER COLUMN space_id DROP NOT NULL;
 UPDATE alerts SET space_id=NULL,type='mock_fire_led_observed' WHERE type='mock_fire_led';
+
+-- Demo-only movement state. Real lots have no simulator configuration.
+ALTER TABLE parking_sessions ADD COLUMN IF NOT EXISTS exit_at timestamptz;
+ALTER TABLE parking_sessions ADD COLUMN IF NOT EXISTS is_simulated boolean NOT NULL DEFAULT false;
+CREATE TABLE IF NOT EXISTS simulation_control(lot_id text PRIMARY KEY REFERENCES parking_lots,running boolean NOT NULL DEFAULT false,interval_seconds integer NOT NULL DEFAULT 8 CHECK(interval_seconds BETWEEN 3 AND 60),next_tick_at timestamptz NOT NULL DEFAULT now(),last_error text);
+CREATE TABLE IF NOT EXISTS simulation_events(event_id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,lot_id text NOT NULL REFERENCES parking_lots,action text NOT NULL CHECK(action IN ('entry','exit')),space_id text NOT NULL REFERENCES parking_spaces,car_id text NOT NULL,vehicle_number text,session_id text NOT NULL REFERENCES parking_sessions,occurred_at timestamptz NOT NULL);

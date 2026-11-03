@@ -1,7 +1,7 @@
 // Build-time selection; URL parameters cannot switch to another backend.
 export const dataSource = import.meta.env?.VITE_DATA_SOURCE || 'demo';
 if (!['demo', 'team'].includes(dataSource)) throw new Error('VITE_DATA_SOURCE는 demo 또는 team이어야 합니다.');
-export const pollInterval = dataSource === 'team' ? 2500 : 15000;
+export const pollInterval = dataSource === 'team' ? 2500 : 3000;
 const isAdmin = () => typeof window !== 'undefined' && window.location.pathname.startsWith('/admin/');
 export function listItems(result) {
   if (Array.isArray(result)) return result;

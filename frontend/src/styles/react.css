@@ -20,3 +20,22 @@ html[data-theme] .parking-space .car-plate{left:50%;top:50%;transform:translate(
 html[data-theme] .space-column.right .car-plate{transform:translate(-50%,-50%) rotate(180deg)}
 @media(max-width:600px){html[data-theme] .parking-space .car-wrap{height:42px}html[data-theme] .parking-space .car-plate{font-size:17px;min-width:30px;min-height:25px}}
 .MOCK_CARD .payment-brand{background:#e4e8f2;color:#43547d}.MOCK_EASY_PAY .payment-brand{background:#e4f2df;color:#365d2c}.MOCK_ACCOUNT .payment-brand{background:#f4ead8;color:#79602d}
+/* When the sidebar moves below the map, its cards fill the available row. */
+@media(max-width:1100px){
+ html[data-theme] .parking-workspace{grid-template-columns:minmax(0,1fr)}
+ html[data-theme] .parking-workspace .right-column{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch;gap:18px;width:100%;padding:0;border:0}
+ html[data-theme] .parking-workspace .right-column>section,html[data-theme] .parking-workspace .right-column>article{width:100%;min-width:0;box-sizing:border-box;padding:22px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+ html[data-theme='light'] .parking-workspace .right-column>section,html[data-theme='light'] .parking-workspace .right-column>article{background:#f8faf5;border-color:#dce3d4}
+ html[data-theme] .parking-workspace .right-column>article:last-child:nth-child(3){grid-column:1/-1}
+ html[data-theme] .parking-workspace .right-column .quick-find{display:flex;flex-direction:column;gap:12px}
+ html[data-theme] .parking-workspace .right-column .quick-fee-link{margin-top:auto}
+ html[data-theme] .parking-workspace .right-column .card-heading h3{font-size:14px}
+ html[data-theme] .parking-workspace .right-column .quick-find>p{font-size:12px;line-height:1.7}
+ html[data-theme] .parking-workspace .right-column .sample-hint{font-size:11px;line-height:1.6}
+ html[data-theme] .parking-workspace .right-column .button{font-size:12px}
+ html[data-theme] .parking-workspace .right-column .occupancy-ring{width:120px;height:120px;margin:22px auto}
+}
+@media(max-width:520px){
+ html[data-theme] .parking-workspace .right-column{grid-template-columns:minmax(0,1fr);gap:14px}
+ html[data-theme] .parking-workspace .right-column>section,html[data-theme] .parking-workspace .right-column>article{padding:20px}
+}

@@ -1,3 +1,5 @@
+import asyncio
+import logging
 from contextlib import asynccontextmanager
 from datetime import date, datetime
 from uuid import uuid4
@@ -9,6 +11,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel, Field, ConfigDict
 from .db import connect, initialize
+from . import simulation
 from .billing import quote, FIXED_TIME
 
 class APIError(Exception):
@@ -18,7 +21,17 @@ class APIError(Exception):
 @asynccontextmanager
 async def lifespan(app):
     initialize()
-    yield
+    async def loop():
+        while True:
+            try: await asyncio.to_thread(simulation.tick)
+            except Exception: logging.exception('Simulation tick failed')
+            await asyncio.sleep(1)
+    task=asyncio.create_task(loop())
+    try: yield
+    finally:
+        task.cancel()
+        try: await task
+        except asyncio.CancelledError: pass
 
 app = FastAPI(title='PARK:ON Docker Demo API', version='0.1.0', lifespan=lifespan, description='PostgreSQL-backed demo; billing provider is a server fixture, not the official module. No real PG/payment integration. Local demo role switching is not authentication.')
 
@@ -50,7 +63,7 @@ def lots():
         for lot in result:
             lot['spaces'] = conn.execute('SELECT s.*, v.vehicle_number, v.plate_number FROM parking_spaces s LEFT JOIN demo_vehicles v USING(car_id) WHERE s.lot_id=%s ORDER BY s.space_id',(lot['lot_id'],)).fetchall()
             lot['camera_status'] = 'not_connected' if lot['type']=='real' else 'simulated'
-            lot['updated_at'] = FIXED_TIME
+            lot['updated_at'] = datetime.now(simulation.KST).isoformat() if lot['type']=='virtual' else FIXED_TIME
         return collection(result)
 
 @app.get('/api/v1/parking-lots/{lot_id}/spaces')
@@ -67,13 +80,13 @@ def policies():
 @app.get('/api/v1/sessions')
 def sessions(lot_id: str | None = None):
     with connect() as conn:
-        return collection(conn.execute('SELECT s.*, p.bay_label AS space_label, v.plate_number FROM parking_sessions s JOIN parking_spaces p ON p.space_id=s.space_id LEFT JOIN demo_vehicles v ON v.car_id=s.car_id WHERE (%s::text IS NULL OR s.lot_id=%s) ORDER BY s.car_id',(lot_id,lot_id)).fetchall())
+        return collection(conn.execute('SELECT s.*, p.bay_label AS space_label, v.plate_number FROM parking_sessions s JOIN parking_spaces p ON p.space_id=s.space_id LEFT JOIN demo_vehicles v ON v.car_id=s.car_id WHERE s.exit_at IS NULL AND (%s::text IS NULL OR s.lot_id=%s) ORDER BY s.car_id',(lot_id,lot_id)).fetchall())
 
 @app.get('/api/v1/vehicles/{car_id}/location')
 def location(car_id: str):
     validate_sticker(car_id)
     with connect() as conn:
-        row = conn.execute("SELECT * FROM parking_sessions WHERE car_id=%s AND status='parked'",(car_id,)).fetchone()
+        row = conn.execute("SELECT * FROM parking_sessions WHERE car_id=%s AND status='parked' AND exit_at IS NULL",(car_id,)).fetchone()
         if not row: raise APIError('현재 주차 중인 차량을 찾지 못했습니다.','VEHICLE_NOT_FOUND',404)
         return row
 
@@ -113,7 +126,7 @@ def lookup_result(conn, rows, lookup_type):
 def search_vehicle(vehicle_number: str = Query(pattern=r'^[0-9]{4}$')):
     with connect() as conn:
         rows = conn.execute(
-            "SELECT s.*, v.vehicle_number, v.plate_number, p.bay_label AS space_label FROM parking_sessions s JOIN demo_vehicles v USING(car_id) JOIN parking_spaces p ON p.space_id=s.space_id WHERE v.vehicle_number=%s AND s.lot_id IN ('C','D') AND s.status='parked' ORDER BY s.entry_at DESC",
+            "SELECT s.*, v.vehicle_number, v.plate_number, p.bay_label AS space_label FROM parking_sessions s JOIN demo_vehicles v USING(car_id) JOIN parking_spaces p ON p.space_id=s.space_id WHERE v.vehicle_number=%s AND s.lot_id IN ('C','D') AND s.status='parked' AND s.exit_at IS NULL ORDER BY s.entry_at DESC",
             (vehicle_number,),
         ).fetchall()
         return lookup_result(conn, rows, 'plate')
@@ -130,7 +143,7 @@ def search_sticker(car_id: str):
     validate_sticker(car_id)
     with connect() as conn:
         rows = conn.execute(
-            "SELECT s.*, p.bay_label AS space_label FROM parking_sessions s JOIN parking_spaces p ON p.space_id=s.space_id WHERE s.car_id=%s AND s.lot_id IN ('A','B') AND s.status='parked' ORDER BY s.entry_at DESC",
+            "SELECT s.*, p.bay_label AS space_label FROM parking_sessions s JOIN parking_spaces p ON p.space_id=s.space_id WHERE s.car_id=%s AND s.lot_id IN ('A','B') AND s.status='parked' AND s.exit_at IS NULL ORDER BY s.entry_at DESC",
             (car_id,),
         ).fetchall()
         return lookup_result(conn, rows, 'sticker')
@@ -139,6 +152,7 @@ class PaymentRequest(BaseModel):
     session_id: str = Field(min_length=1)
     idempotency_key: str = Field(min_length=1,max_length=200)
     model_config = ConfigDict(extra='forbid')
+    quote_id: str | None = Field(default=None,min_length=1,max_length=200)
     payment_method: Literal['MOCK_CARD', 'MOCK_EASY_PAY', 'MOCK_ACCOUNT'] = 'MOCK_CARD'
 
 @app.post('/api/v1/mock-payments')
@@ -151,7 +165,10 @@ def pay(body: PaymentRequest):
             if old['payment_method']!=body.payment_method: raise APIError('이미 처리된 결제 수단과 다릅니다. 요금을 다시 조회해주세요.','IDEMPOTENCY_CONFLICT',409)
             return old
         conn.execute('SELECT pg_advisory_xact_lock(hashtextextended(%s,0))',('session:'+body.session_id,))
+        conn.execute('SELECT session_id FROM parking_sessions WHERE session_id=%s FOR UPDATE',(body.session_id,))
         session, result = get_quote(conn,body.session_id)
+        if body.quote_id is not None and body.quote_id != result['quote_id']: raise APIError('견적이 변경되었습니다. 요금을 다시 조회해주세요.','QUOTE_MISMATCH',409)
+        if session['exit_at'] is not None: raise APIError('이미 출차한 세션입니다.','SESSION_CLOSED',409)
         if conn.execute("SELECT 1 FROM mock_payments WHERE session_id=%s AND status='completed'",(body.session_id,)).fetchone(): raise APIError('이미 결제 완료된 차량입니다.','ALREADY_PAID',409)
         return conn.execute("INSERT INTO mock_payments(payment_id,session_id,lot_id,car_id,amount_krw,status,idempotency_key,created_at,payment_method) VALUES(%s,%s,%s,%s,%s,'completed',%s,%s,%s) RETURNING *",('pay-'+uuid4().hex[:12],body.session_id,session['lot_id'],session['car_id'],result['amount_krw'],body.idempotency_key,FIXED_TIME,body.payment_method)).fetchone()
 
@@ -227,3 +244,46 @@ def resolve(alert_id: str):
         if row['status']=='active': raise APIError('먼저 경보를 확인해주세요.','INVALID_STATE',409)
         if row['status']=='resolved': return row
         return conn.execute("UPDATE alerts SET status='resolved',resolved_at=%s WHERE alert_id=%s RETURNING *",(FIXED_TIME,alert_id)).fetchone()
+
+@app.exception_handler(simulation.SimulationError)
+async def simulation_error(request: Request,exc: simulation.SimulationError):
+    return JSONResponse(status_code=exc.status,content={'error':{'code':exc.code,'message':exc.message,'details':[]}})
+
+class SimulationEntry(BaseModel):
+    model_config=ConfigDict(extra='forbid')
+    vehicle_number: str | None=Field(default=None,pattern=r'^[0-9]{4}$')
+    space_id: str | None=None
+class SimulationExit(BaseModel):
+    model_config=ConfigDict(extra='forbid')
+    space_id: str | None=None
+class SimulationStart(BaseModel):
+    model_config=ConfigDict(extra='forbid')
+    interval_seconds: int=Field(default=8,ge=3,le=60)
+
+@app.get('/api/v1/simulation/{lot_id}')
+def simulation_status(lot_id: str):
+    with connect() as conn:
+        simulation.virtual_lot(conn,lot_id)
+        control=conn.execute('SELECT * FROM simulation_control WHERE lot_id=%s',(lot_id,)).fetchone()
+        events=conn.execute('SELECT e.*,p.bay_label FROM simulation_events e LEFT JOIN parking_spaces p ON p.space_id=e.space_id WHERE e.lot_id=%s ORDER BY event_id DESC LIMIT 12',(lot_id,)).fetchall()
+        return dict(**control,events=events,is_mock=True)
+
+@app.post('/api/v1/simulation/{lot_id}/entry')
+def simulation_entry(lot_id: str,body: SimulationEntry):
+    with connect() as conn:return simulation.enter(conn,lot_id,body.vehicle_number,body.space_id)
+
+@app.post('/api/v1/simulation/{lot_id}/exit')
+def simulation_exit(lot_id: str,body: SimulationExit):
+    with connect() as conn:return simulation.leave(conn,lot_id,body.space_id)
+
+@app.post('/api/v1/simulation/{lot_id}/start')
+def simulation_start(lot_id: str,body: SimulationStart):
+    with connect() as conn:
+        simulation.virtual_lot(conn,lot_id)
+        return conn.execute('UPDATE simulation_control SET running=true,interval_seconds=%s,next_tick_at=now(),last_error=NULL WHERE lot_id=%s RETURNING *',(body.interval_seconds,lot_id)).fetchone()
+
+@app.post('/api/v1/simulation/{lot_id}/stop')
+def simulation_stop(lot_id: str):
+    with connect() as conn:
+        simulation.virtual_lot(conn,lot_id)
+        return conn.execute('UPDATE simulation_control SET running=false,last_error=NULL WHERE lot_id=%s RETURNING *',(lot_id,)).fetchone()
