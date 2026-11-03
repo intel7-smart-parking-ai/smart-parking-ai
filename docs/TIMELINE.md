@@ -357,6 +357,17 @@
 - **재개 메모:** DB 직접 쓰기 대신 `POST /internal/vision-events` `source="simulation"`
 
 ---
+### 16:43 · ✅ 문서 main 병합 (PR #22, `chore/docs-lot-d-name-final` — D-16·D-17)
+
+### 16:44 · PR 설명 추천 + 앞으로 push 확인 시 PR 설명 함께 안내 — 김한별 요청
+
+### 16:46 · 병합 요청 3개 점검 — 김한별 요청
+- **#18** `KAN-17-sqlite-v1-verify` (박해준): 충돌 없음, 단독 126 passed → 병합 가능, 병합 후 #8 닫기
+- **#19** `KAN-17-vision-event-step2` (박해준, 104칸 fixture 반영 `ed36991`): 충돌 없음, 단독 183 passed → 병합 가능
+- **#21** `codex/frontend-parking-pm-review` (김채린): `frontend/`만, npm test 41 passed·build 성공, `quote_id`·피넛페이(모의)·`parked`/`bay_label` 제거 확인 → 병합 가능, 병합 후 #7 닫기. 참고: 기본 `demo` 모드인데 데모 서버 미포함 → main에선 `VITE_DATA_SOURCE=team`
+- **3개 동시:** 충돌 0, 백엔드 242 passed, 프론트 41 passed
+
+---
 ---
 
 ## 대기 중인 결정 (PM)
