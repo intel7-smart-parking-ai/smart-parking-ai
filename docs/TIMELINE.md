@@ -283,6 +283,108 @@
 - **결과:** 열린 PR은 #7·#8(Draft)뿐. 바로 병합 가능: `KAN-28-fee-quote`, `chore/progress-status` / 박해준 PR 생성 시: `sqlite-v1-verify`, `vision-event-step2`, 이후 d5·V3 / 대기: 김채린 `frontend/` 분리 PR, 4곳 요금표
 - **PROGRESS:** 전체 약 25% → 약 32%, #10 55%·#11 60%·#12 25%·#14 92%
 
+### 15:59 · ✅ main 병합 — PR #15 (KAN-28 `quote_id`, `5d46eaa`), PR #16 (진행 기록, `5b7cd88`)
+- **확인:** main pytest 59 passed
+
+### 16:00 · 병합 후 추가 할 일 — 김한별 요청
+- **PM 즉시:** 박해준 PR 2개(`sqlite-v1-verify`·`vision-event-step2`) 생성 요청·병합·PR #8 닫기 / 김채린 `frontend/` 분리 PR / 윤명수 요금표 승인
+- **오늘 담당:** 박해준 V3 테스트 `quote_id` 반영·목업 50칸·필드 공유, 서정범·우지원 진행 확인, 김채린 규격 잔여
+- **PM 결정:** 업무 재분배, 24대 배정표, 데모 서버(11/05), Jira Task
+
+### 16:05 · ✅ 라 주차장 64칸 도면·주차장 이름 결정 — 김한별
+- **결정:** 라(`D`) = 64칸 4구역(A~D 각 16칸, 전기차 D-01~08, 장애인 C-13~16), 합계 104칸 / 이름 A 개발원주차장·B 부산역주차장·C 북항주차장·D 김채린 지정 예정
+- **문서:** `chore/docs-lot-d-names` (`a821c27`) — API_CONTRACT 표·CLAUDE.md·DECISIONS(D-14·D-15)·api-contract 스킬
+- **반영 요청:** 김채린(라 이름·데모 64칸), 박해준(fixture 50→104칸·테스트), 서정범(`lots.json`), 시뮬레이터(가상 76칸), 윤명수(문서 이름)
+
+### 16:10 · 주차장 4곳 요금표 → 시드 패치 — 윤명수 요청
+- **요금표(윤명수):** 기본 30분·10분 단위 공통 / A 1,000·500·1만, B 2,000·700·2만, C 3,000·800·4만, D 4,000·1,000·5만 (기본·추가·일 최대)
+- **패치:** `kan28-rate-policies.patch` — `db.py` `seed_defaults`(빈 DB일 때만 주차장 4곳·요금표, 동시 첫 요청 OR IGNORE), 테스트 +8, `API_SPECIFICATION.md` 요금표
+- **검증:** 최신 main 적용 67 passed
+- **후속:** 윤명수 `feature/KAN-28-rate-policies` push·PR, PM 요금표 숫자 확인, 라 이름 확정 시 `db.py` 한 곳 수정
+
+### 16:12 · 오후 추가 결정 팀원별 정리 — 김한별 요청
+- **정리 대상:** `quote_id` 병합, 주차장 이름 3개, 라 64칸(전체 104칸·가상 76), 요금표(확인 대기), 요금 응답 필드 정정, 박해준 PR 순서
+- **핵심 할 일:** 박해준(fixture 104칸·V3 `quote_id`·PR 4개), 윤명수(요금표 PR), 서정범(`lots.json`·"라 주차장 C-13" 표기), 김채린(라 이름·데모 64칸·요금표 일치), 우지원(이름만 변경, 출력 형식 준비), PM(요금표 확인·PR 병합·재분배)
+
+### 16:12 · ✅ 라 주차장·이름 문서 main 병합 (PR #17, `chore/docs-lot-d-names`)
+
+### 16:13 · 윤명수 요금표 push 검증 — `feature/KAN-28-rate-policies` (`d4b756e`)
+- **검증:** 변경 3파일 패치와 동일, pytest 67 passed (PR #17 포함 main 기준) → **병합 가능**, PR 생성 안내·Jira 문구 전달
+
+### 16:15 · ✅ 라(D) 주차장 이름 = 신세계백화점주차장 — 김한별
+- **문서:** `chore/docs-lot-d-name-final` (`eca5969`) — API_CONTRACT·CLAUDE.md·DECISIONS D-16·스킬. 주차장 이름 4곳 확정
+- **윤명수 패치:** `kan28-lot-d-name.patch` — 요금표 브랜치의 임시 이름 3곳 교체, 67 passed
+- **참고 전달:** 실제 상표명이라 외부 공개 시 변형 이름 검토 가능 (PM 판단)
+- **김채린:** 라 이름 지정 불필요 안내, 데모 반영 요청
+
+### 16:16 · 공지 — 김한별: 작업 완료 시 각자 PR 생성·병합 요청 → PM 점검 후 병합
+
+### 16:17 · 윤명수 요금표 브랜치 이름 수정 push 검증 (`1c50bd4`) — 신세계백화점주차장 반영, 3파일, 67 passed → PR 생성·병합 요청 안내
+
+### 16:20 · 전체 점검 — 병합 대기·데이터 규약 — 김한별 요청
+- **병합 시험:** main + 대기 7개(#20, 문서 2, #18, #19, d5, V3) 충돌 0, 266 passed / 13 failed(V3 `quote_id` 누락)
+- **PR 상태:** #20 병합 가능 / #18·#19 Draft(Ready 전환 필요) → #8 닫기 / V3 수정 필요 / 서정범·우지원 오늘 push 없음
+- **규약 핵심 문제:** ① 입차·출차 세션 없음 → `session_id` 항상 null, billing은 별도 세션 테이블 ② `main.py`에 billing·챗봇·vision-event 미등록 ③ 칸 수·이름 불일치(목업 3곳×4칸·01~03 / fixture 50칸 / 데모 50칸 vs 104칸)
+- **기타:** D5 조회 `next_cursor` 없음, 프론트 `quote_id` 미반영, 챗봇 옛 경로, ROI→이벤트 변환 없음
+- **PM 결정 요청:** `main.py` 통합 일정, 세션 소유(박해준 생성·billing 읽기 권장), 내부 API 인증, 업무 재분배
+
+---
+### 16:25 · 서정범 할 일 최신판 — 서정범 요청
+- **결과:** 오전·오후 안내 통합본 — 정정 사항(car_id 두 자리·변환 금지, 요금 필드 `target_at`·`rate_policy`, 결제 `quote_id` 필수, 주차장 4곳 104칸), 경로·형식·`lots.json` 표·차량 번호·요금 흐름·답변 규칙·LED·api 모드 확인 5문항·제출·Jira
+- **참고 전달:** 팀 서버는 billing 미등록(404), 목업 차량 01~03, 가상 검색 미구현
+
+---
+### 16:22 · ✅ 요금표 main 병합 (PR #20, 윤명수)
+
+### 16:30 · 박해준 우선순위 — 박해준 요청
+- **오늘:** #18·#19 Ready 전환·병합(#8 닫기) → fixture 104칸 → 필드명 공지 → V3 `quote_id`
+- **11/04:** 조회 API 새 규격(목업 or D5, `next_cursor`·에러·`space_type`), `main.py` 통합 계획, 공용 모델 확장
+- **11/05~09:** 입차·출차 세션 생성·`GET /sessions`·billing 연결 (가장 큰 공백)
+- **참고:** 16:27 박해준 `d5-occupancy-prototype`에 104칸 정렬 커밋 push
+
+### 16:33 · 김채린 프론트 재검토 (`adebcf9`) — fkwmqpf 요청
+- **검증:** npm test 41 passed, build 성공, main 병합 충돌 없음·백엔드 67 passed
+- **반영됨:** `quote_id`(조건부 전송·2분 초기화), 라 64칸(전용 칸 정확), 요금표 = billing(#20)
+- **🔴 발견:** 주차장 이름 순서 오류 — 데모 A=부산역·B=북항·C=개발원 (결정: A 개발원·B 부산역·C 북항) → 요금·서버·챗봇과 다른 주차장을 가리킴
+- **남음:** 결제 표시명 네이버·카카오, `parked`/`exited`, `bay_label`, `frontend/` PR
+- **PM 판단 요청:** 데모 서버에 가상 시뮬레이션(수동·자동 입출차) 구현됨 → 팀 시뮬레이터로 삼을지, 외부 터널 실제 사용 여부
+
+---
+### 16:41 · ✅ D-17 김채린 데모 시뮬레이션 = 팀 데모 시뮬레이터 — 김한별
+- **결정:** 김채린 데모 서버의 수동·자동 입출차 시뮬레이션 채택, 추가 개발 가급적 중단, 인터페이스 확정 후 재개
+- **문서:** `chore/docs-lot-d-name-final` (`430ca25`) DECISIONS D-17
+- **영향:** 박해준·윤명수 시뮬레이터 담당 해제(박해준 세션 집중), 재분배 남은 것은 경보 API / 김채린은 결정 반영 수정(이름 순서·결제 표시명·세션 상태·`bay_label`·PR)만
+- **재개 메모:** DB 직접 쓰기 대신 `POST /internal/vision-events` `source="simulation"`
+
+---
+### 16:43 · ✅ 문서 main 병합 (PR #22, `chore/docs-lot-d-name-final` — D-16·D-17)
+
+### 16:44 · PR 설명 추천 + 앞으로 push 확인 시 PR 설명 함께 안내 — 김한별 요청
+
+### 16:46 · 병합 요청 3개 점검 — 김한별 요청
+- **#18** `KAN-17-sqlite-v1-verify` (박해준): 충돌 없음, 단독 126 passed → 병합 가능, 병합 후 #8 닫기
+- **#19** `KAN-17-vision-event-step2` (박해준, 104칸 fixture 반영 `ed36991`): 충돌 없음, 단독 183 passed → 병합 가능
+- **#21** `codex/frontend-parking-pm-review` (김채린): `frontend/`만, npm test 41 passed·build 성공, `quote_id`·피넛페이(모의)·`parked`/`bay_label` 제거 확인 → 병합 가능, 병합 후 #7 닫기. 참고: 기본 `demo` 모드인데 데모 서버 미포함 → main에선 `VITE_DATA_SOURCE=team`
+- **3개 동시:** 충돌 0, 백엔드 242 passed, 프론트 41 passed
+
+---
+### 16:48 · ✅ main 병합 — PR #18 (DB 기반+V1), PR #19 (vision-event 104칸), PR #21 (프론트 UI), PR #8 닫힘
+
+### 16:55 · 병합 후 전체 재점검 + PROGRESS 갱신 — 김한별 요청
+- **main 검증:** 백엔드 pytest **242 passed**, 프론트 npm test **41 passed**·build 성공
+- **남은 브랜치:** `d5-occupancy-prototype`(main 병합 시 통과, PR 대기), `session-id-verify`(13 실패 — `quote_id`), `codex/parkon-user-admin-revenue`(데모 서버·시뮬레이터, 이름 순서 수정 필요), PR #7(닫기 대상)
+- **`main.py`:** 아직 조회 목업만 등록 — billing·vision-event·점유·챗봇 미등록
+- **PROGRESS:** 전체 약 32% → **약 43%** (64항목 중 완료 24·진행 4), #10 65%·#11 70%·#14 95%·#15 70%·#17 김채린 60%, 지연 🔴 카메라·ROI / 🟠 입출차 세션·`main.py`·조회 목업·챗봇
+- **주의:** 프론트 기본 `demo` 모드는 데모 서버가 main에 없어 동작 안 함 → 팀 서버 연결은 `VITE_DATA_SOURCE=team`
+
+---
+### 17:00 · 박해준 다음 작업 정리 — 박해준 요청
+- **검증:** main + `d5-occupancy-prototype`(104칸) + `v3-quote-id-compat`(PR #23, Draft) → 충돌 0, 289 passed — 둘 다 병합 가능
+- **우선순위:** PR 정리(#23 Ready, d5 PR, 옛 V3 브랜치 삭제) → KAN-16 조회 104칸·두 자리 → `main.py` 등록 → 필드명 공지 → 입출차 세션
+- **`main.py` 범위:** billing 라우터 등록(KAN-16 "DB import 금지" 테스트 기준 조정 필요), 조회 3종을 점유 store 기반으로 단일화(같은 경로 중복 해소, 기존 응답 형식 유지 + `name`·`space_type`·`source`·`is_mock`), vision-event 수신(시연용 고정 키 제안), 챗봇은 정렬 후
+- **세션·billing:** 세션 생성 박해준 / billing 읽기 윤명수(권장). 빠른 길 = 같은 SQLite 파일·`parking_sessions` 테이블(+`status`)에 기록 → 11/04 테이블 확정, 11/05 생성·`GET /sessions`, 11/06 billing 확인, 11/09 통합 시험
+
+---
 ---
 
 ## 대기 중인 결정 (PM)
@@ -303,5 +405,5 @@
 | 업무 재분배 (시뮬레이터 → 윤명수, 경보 API → 서정범) | 14:07 | ⏳ PM 의견 수렴 중 |
 | 프론트 데모 서버 A(Docker)/B(SQLite)/C(없음), 외부 터널, PR 분리 — 화면만 먼저 병합 권장 | 14:25 | ⏳ 11/05까지 |
 | 스티커 색: 흰 바탕=일반, 초록=전기차, 파랑=장애인 | 15:05 | ✅ 15:12 |
-| 주차장 정식 이름 | 15:05 | ⏳ PM 추후 지정 |
+| 주차장 이름: 개발원·부산역·북항·신세계백화점 | 15:05 | ✅ 16:15 |
 | 신규 Jira Task 생성 | 10:42~ | ⏳ |
