@@ -252,6 +252,21 @@
 ### 15:25 · 윤명수 작업 환경 안내 — 윤명수 문의
 - **문제:** 저장소를 ZIP으로 받아 `.git`이 없음 → 커밋·push 불가
 - **안내:** `git clone` 후 `feature/KAN-28-fee-quote` 전환, Python 3.11 확인·설치(없으면 박해준 PC), venv·기존 테스트 통과 확인 → 할 일 문서 순서대로 작업 → 폴더 지정 add·push
+- **결과(15:28):** 윤명수 PC 환경 준비 완료 — 53 passed
+
+### 15:36 · 박해준 선행·협의 작업 우선순위 — 박해준 요청
+- **확인:** 박해준 보고(V1·V3, vision-event Step 4 점유 엔진 166 테스트)는 **아직 push 안 됨**(최신 12:38 DB 1단계) → push 요청, 오늘 결정 기준(`active/closed`, 도면 칸 번호, car_id 10~99, `vehicle_type`, `source`) 확인 요청
+- **🔴 오늘:** push·PR / 필드명·이벤트 형식 공지(우지원·김채린·서정범) / 조회 목업 갱신(김채린 팀 모드 검색 막힘) / ROI 매칭 형식(우지원)
+- **🟠 11/04:** DB 1단계 병합·`fee_quotes`·`get_session_summary`(윤명수) / `main.py`에 billing·chatbot 라우터 등록 / 세션 API·`location.session_id`
+- **🟡 11/05~:** 가상 4자리 검색, `/alerts`(재분배 대기), 시뮬레이터 입력, 위반 판정, Dockerfile 검토
+
+### 15:45 · 윤명수 `quote_id` 패치 작성 — 윤명수 요청 (Claude Code 미사용)
+- **패치:** `kan28-fee-quote.patch` (6파일 +155/−25) — 요금 조회 시 견적 저장·응답 `quote_id`/`quote_expires_at`, 결제는 견적 금액, `QUOTE_NOT_FOUND`/`QUOTE_MISMATCH`/`QUOTE_EXPIRED`, 멱등 재요청 우선, TTL `FEE_QUOTE_TTL_SECONDS`(300초), 세션 상태·car_id 설명, 테스트 데이터 `27`·`12`, `API_SPECIFICATION.md` 칸 수·견적
+- **검증:** pytest **59 passed**(53+6), 실서버 uvicorn 동시 견적+결제 20건 → 성공 1·`ALREADY_PAID` 19·DB 완료 1건·500 없음, 깨끗한 브랜치에 `git apply --check` 통과
+- **후속:** 윤명수 적용·검토·push → 병합 판단, 4곳 요금표
+
+### 15:46 · 요금 응답 필드 정정 — 서정범·김채린
+- **정정:** 오전 안내("`target_at`·`rate_policy` 없음, `calculated_at`·`applied_policy_id`가 맞음")는 반대였음. 실제 응답은 라우터 기준 `target_at`·`rate_policy` (`schemas.py`의 `FeeResponse`는 응답에 쓰이지 않는 설명용)
 
 ---
 
