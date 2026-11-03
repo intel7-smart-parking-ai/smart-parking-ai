@@ -128,3 +128,67 @@ SQLite 쓰기 직렬화나 `with_for_update()` 무시를 PostgreSQL 행 잠금�
 - 종료 시 maincb76493 문서 추가와 실제 시험 기준922809f의 차이도 기록했다. PR #8·기존 세션 준비 미추적2파일과 개인 main.py/PROGRESS/NEXT_STEPS 해시 보존을 확인했다. 개인 기록 파일을 수정하지 않았다.
 - 별도 읽기 전용 QA 검토에서 필수 수정 결함은 확인되지 않았고, 경로 경쟁·SQLite 길이/시간대·junction 검증 한계는 본 보고서에 명시했다.
 - 최종 변경 대상은 위6파일뿐이며 미Stage·미Commit·미Push 상태다. 환경·검증 DB·_workspace는 Git 제외이고 팀 main/PR 병합은 수행하지 않는다.
+
+## 10. V1 SQLite 동시성 검증 — 2026-11-03 후속 로컬 작업
+
+이 절만 후속으로 추가하며 위 Step 0~1·미실행 당시 기록은 보존한다. 기준 브랜치 HEAD는 6999b2348c257e90927c953970cea3f90e4cda9f, 별도 main worktree는 3a4d759276488fe20e95b8006a48fda1e71da302다. PR #8 head6fb1428 보존. 브랜치 병합·billing/main.py 변경·Commit/Push/새 PR 없음.
+
+### 실행 구분과 보호
+
+- **기존 KAN-28 실제 코드:** 별도 detached main worktree에서 원본 billing_router/get_db_conn/계산/결제/취소/매출을 사용했다. 테스트 전용 FastAPI 앱에 원래 라우터만 등록하고 TestClient로 호출했다. 운영 main 등록·TCP/uvicorn 공개는 하지 않았다.
+- **테스트 전용 실험:** 칸/입차 서비스가 없으므로 별도 임시 experiment 테이블의 resource PK 및 request_id UNIQUE와 명시 commit/rollback을 시험했다. 차량당 현재 실험행1개를 표현하며 active/closed 정책, 운영 Session/Vehicle/SpaceState 모델을 구현하지 않았다.
+- **미검증:** 실제 공통DB 통합, 관측 안정화→입출차→위치→결제 전체 흐름, 이동/미식별/지연, 운영 부하/다중 프로세스/실서버 네트워크는 별도 검증 필요. V2·V3 미실행.
+
+모든 V1 파일은 pytest tmp_path의 새 UUID SQLite 파일이다. 기존 DATABASE_URL 설정 가드를 변경하지 않고 v1_support가 같은 가드를 파일 경로에서 로드한다. O_EXCL 예약·소유 inode/device·단일 링크 재검사·mode=rw로 자신이 새로 만든 파일만 연결한다. main의 sqlite3.connect는 시험 프로세스에서만 이 연결기로 제한했다. 실사용 DATABASE_URL/.env·data/smart_parking.db·billing 기존 데이터는 읽거나 쓰지 않았다. 프로파일 PRAGMA는 임시 연결에만 적용했다.
+기존 main53개 시험의 test.db/t.db 요청도 승인 임시 범위인지 검사한 뒤 새 UUID 파일로 매핑했다. 테스트 원본·응답·비즈니스 로직은 변경하지 않았다.
+
+### A. 동시 결제 — 실제 billing 코드
+
+프로파일마다 서로 다른 멱등키20개를 장벽으로 동시에 출발시켰다. 네 조건 모두 **HTTP200 1건, HTTP409 ALREADY_PAID 19건**, 새 결제1행이었다. 성공 키 재요청은 같은 payment_id·idempotent_replayed=true, 취소200·재취소409, 순매출2500→0을 확인했다. 취소 후 완료결제0·전체결제행1을 확인했다. HTTP500·관측된 SQLite 잠금 오류0, 응용 자동재시도0이다. SQLite busy 핸들러 내부 대기/재시도 횟수는 계측하지 않았다.
+
+### B/C. 칸 배정·차량 입차 — 실험 구현
+
+각 조건에서 각각10개 쓰기를 동시에 출발시켜 **삽입1·충돌9·최종1행**, 성공 요청의 동일 키 재요청은 replayed였다. IntegrityError 뒤 rollback 및 현재 행 재검사를 사용했다. 실패 요청에 임의 자동 재시도는 하지 않았다.
+UNIQUE 없는 대조 테이블에서는 같은 resource에10개 모두 저장됐다. 따라서 SQLite 쓰기 직렬화/트랜잭션만으로 업무 중복이 방지되는 것은 아니다. 이 결과는 운영 칸 배정/입차 서비스 합격을 뜻하지 않는다.
+
+### D. 설정 및 평균/p95 (밀리초)
+
+각 셀은 평균 / p95다. 표본은 결제20개, 칸/입차 각각10개로 작으며 프로파일별1회 측정이다.
+
+| 프로파일 | 결제 평균/p95 | 칸 실험 평균/p95 | 입차 실험 평균/p95 |
+| --- | --- | --- | --- |
+| 기본 DELETE | 61.219 / 70.859 | 16.438 / 40.509 | 22.081 / 33.064 |
+| WAL | 36.586 / 57.902 | 21.705 / 50.234 | 31.584 / 73.011 |
+| DELETE+busy_timeout10000 | 81.027 / 130.317 | 12.768 / 22.450 | 28.594 / 50.923 |
+| WAL+busy_timeout10000 | 56.293 / 103.557 | 19.789 / 56.047 | 17.603 / 43.565 |
+
+주의: 설정 탐침 연결의 기본 timeout은5000ms지만 **원본 billing 요청 연결은 기존 코드가 timeout=10을 지정해 기본/WAL도10000ms**다. 그러므로 결제에서 timeout 증가 효과를 분리한 비교가 아니며, 명시10000 설정은 기존값을 재확인하는 조건이다. 칸/입차 실험은 실제 기본5000 대10000 비교다. WAL은 파일 단위, timeout은 매 연결에 설정했다. 이 표로 WAL이 항상 더 빠르다거나 timeout을 늘리면 문제가 해결된다고 결론내리지 않는다.
+
+p95는 정렬 후 ceil(0.95*N)번째 값(nearest-rank)이다. 결제는 장벽 해제 뒤 TestClient 호출부터 응답까지(ASGI 내부, 실제 TCP 아님), 칸/입차는 연결 생성·장벽 대기 뒤 SQL→commit/충돌 처리·close까지 측정한다. 시작 전 큐 대기/네트워크 지연은 제외한다. 제약 충돌은 의도된 정상 거절이고 database is locked 오류와 구분한다.
+
+### 60초 혼합 부하
+
+WAL+10000 조건만 실행했다. 합성 관측 INSERT10회/초(카메라2대×5에 대응하는 저장 부하)와 **기존 billing 결제2회/초**를60초 동안 예약했다. 사전 합성 세션120개는 시험용이며 실제 입차 서비스로 생성한 것이 아니다.
+결과: 60.011초, 합성관측600행·결제120행, 처리720건 모두 성공·500/잠금오류0. 전체720작업 평균17.540ms/p95 30.985ms. 이 값은 관측 SQL과 결제 HTTP 내부 호출이 섞인 작업시간이며 결제 전용 SLA가 아니다. 스레드20개, 실행자 큐 대기·스케줄 지연은 측정에서 제외했다.
+비전 추론·POST vision-events·점유 안정화·LLM·웹·실제 카메라/운영 네트워크 부하는 포함하지 않았다. 다른 설정의60초 시험·반복/장시간/다중프로세스 부하는 미실행이다.
+
+### 회귀·실행 이력
+
+| 대상 | 실제 결과 |
+| --- | --- |
+| stage1 HEAD6999b23의 기존73+신규 실험9 | **82 passed,1 warning,4.86초**, 실패/skip0 |
+| main HEAD3a4d759의 기존53개 | **53 passed,1 warning,2.76초**, 실패/skip0 |
+| main 원본 billing 신규 동시성4+60초부하1 | **5 passed,1 warning,61.41초**, 실패/skip0 |
+
+이 세 집합은 별도 프로세스/작업 공간이며 API 중복도 있다. 전체 통합140개 성공으로 합산하지 않는다. 기존 Starlette/httpx 사용 중단 예정 경고는 그대로다.
+최초 V1 실행은 stage81개·billing4개 통과였고, 이후 연결 문맥의 명시 close·UNIQUE 없는 대조 및60초 시험을 보완하여 위 최종 집합으로 검증했다. 저장한 main 회귀 실행기는 최초 직접 실행 시 cwd가 sys.path에 없어 수집1오류가 발생했다. 시험 실행기만 수정해 main cwd 검증/sys.path를 추가한 뒤53개 통과했다. billing 원본 문제나 DB 통합 실패로 분류하지 않는다.
+
+신규 파일은 tests/v1_support.py, tests/test_v1_sqlite.py, tests/v1_billing_probe.py, tests/v1_main_regression.py다. 결과 JSON은 Git 제외 로컬 실행 폴더에 저장했다. 원본 billing·main.py·기존73개시험·연결 가드는 수정하지 않았다.
+
+재현은 기존 Python3.11 환경에서 새 결과 폴더를 만들고 KAN17_V1_RESULTS를 지정한다. stage worktree에서 pytest tests/를 실행하고, 별도 main worktree에서 stage의 tests/v1_billing_probe.py를 외부 시험 경로로 지정한다. 두 프로세스 모두 -B -X utf8, -p no:cacheprovider 및 서로 다른 새 --basetemp를 사용한다.
+기존 main53개는 main cwd에서 KAN17_V1_REGRESSION_ROOT를 새 경로로 지정하고 stage의 tests/v1_main_regression.py를 실행한다. 기존 경로 재사용은 거절한다. 결과 폴더와 명령 대상 커밋을 기록해야 하며 일반 운영 DB에서 재현하지 않는다.
+
+### 후속 권고
+
+V1의 이번 제한된 합성 부하에서는 중복 방지와 응답이 유지됐다. SQLite와 PostgreSQL 잠금이 동등하다는 근거가 아니며 운영 승인은 보류한다. 실제 서비스의 트랜잭션 경계·복합 제약·키 정렬/재검사·busy 예외→HTTP 정책·재시도/재진입 멱등성·백프레셔를 소유자와 합의해야 한다.
+V2는 데이터 소유자 승인과 WAL 일관성을 포함한 안전 백업·이관 목적지/건수·금액/복구 검증 계획부터 진행한다. V3는 기존 ses_·장문ID·UUID 문자열 및 소비자 형식 의존을 별도로 검증한다. 이번에는 둘 다 실행하지 않았다.
