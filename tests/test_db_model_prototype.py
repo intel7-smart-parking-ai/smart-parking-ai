@@ -1,4 +1,4 @@
-"""DB 없는 모델 구조 시험. 기대값은 개인 0001의 두 표 정의를 기준으로 한다.
+"""DB 없는 모델 구조 시험. PR #8의 키/기본값과 1단계 호환 타입을 검증한다.
 
 SQLA metadata/mapper만 확인하며 실제 DB의 제약 강제·DDL 실행을 검증하지 않는다.
 """
@@ -7,8 +7,7 @@ import subprocess
 import sys
 
 import pytest
-from sqlalchemy import Boolean, CheckConstraint, DateTime, Integer, String, UniqueConstraint, inspect
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import Boolean, CheckConstraint, DateTime, Integer, JSON, String, UniqueConstraint, inspect
 from sqlalchemy.orm import configure_mappers
 
 from backend.app.database.base import Base
@@ -42,16 +41,16 @@ def test_primary_and_foreign_keys():
 
 @pytest.mark.parametrize("model,expected", [
     (ParkingLot, {
-        "ck_parking_lots_lot_id_nonempty": "btrim(lot_id) <> ''",
-        "ck_parking_lots_name_nonempty": "btrim(name) <> ''",
+        "ck_parking_lots_lot_id_nonempty": "trim(lot_id) <> ''",
+        "ck_parking_lots_name_nonempty": "trim(name) <> ''",
         "ck_parking_lots_type": "type IN ('real','virtual')",
     }),
     (ParkingSpace, {
-        "ck_parking_spaces_space_id_nonempty": "btrim(space_id) <> ''",
+        "ck_parking_spaces_space_id_nonempty": "trim(space_id) <> ''",
         "ck_parking_spaces_roi_version": "roi_version >= 0",
     }),
 ])
-def test_checks_match_initial_0001(model, expected):
+def test_checks_preserved_with_portable_trim(model, expected):
     assert {c.name: str(c.sqltext) for c in model.__table__.constraints
             if isinstance(c, CheckConstraint)} == expected
 
@@ -67,7 +66,7 @@ def test_checks_match_initial_0001(model, expected):
     (ParkingSpace, {
         "lot_id": (String, 16, False, None),
         "space_id": (String, 32, False, None),
-        "roi_polygon": (JSONB, None, True, None),
+        "roi_polygon": (JSON, None, True, None),
         "roi_version": (Integer, None, False, "0"),
         "enabled": (Boolean, None, False, "true"),
     }),

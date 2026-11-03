@@ -1,13 +1,14 @@
-"""KAN-17 검토용 두 모델. PostgreSQL과 팀 스키마의 최종 승인을 뜻하지 않는다.
+"""KAN-17 검토용 두 모델. SQLite 우선 검증이며 공통 DB 전환 승인이 아니다.
 
-개인 0d4ff4a의 컬럼·키·제약을 유지한다. 미이전 모델을 참조하는
+개인 0d4ff4a의 컬럼·키·제약을 유지하고 trim/JSON의 엔진 호환성만 조정한다.
+미이전 모델을 참조하는
 ParkingLot.cameras/sessions, ParkingSpace.state 관계만 보류한다.
 실제 면수·시드 데이터·엔진 생성·DB 접속·테이블 생성은 포함하지 않는다.
 """
 
 from datetime import datetime
 
-from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, Integer, String, func, text
+from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, Integer, JSON, String, func, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -19,7 +20,7 @@ def ref(target: str) -> ForeignKey:
 
 
 def nonempty(column):
-    return CheckConstraint(f"btrim({column}) <> ''", name=f"{column}_nonempty")
+    return CheckConstraint(f"trim({column}) <> ''", name=f"{column}_nonempty")
 
 
 class CreatedAt:
@@ -46,6 +47,8 @@ class ParkingSpace(Base):
     )
     lot_id: Mapped[str] = mapped_column(String(16), ref("parking_lots.lot_id"), primary_key=True)
     space_id: Mapped[str] = mapped_column(String(32), primary_key=True)
-    roi_polygon: Mapped[dict | list | None] = mapped_column(JSONB(none_as_null=True))
+    roi_polygon: Mapped[dict | list | None] = mapped_column(
+        JSON(none_as_null=True).with_variant(JSONB(none_as_null=True), "postgresql")
+    )
     roi_version: Mapped[int] = mapped_column(Integer, server_default="0")
     enabled: Mapped[bool] = mapped_column(Boolean, server_default=text("true"))
