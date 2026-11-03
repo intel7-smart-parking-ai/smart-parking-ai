@@ -13,7 +13,7 @@ BASE = os.environ.get('PARKON_TEST_URL','http://127.0.0.1:8002')
 def request(path,method='GET',body=None):
     req=Request(BASE+'/api/v1'+path,method=method,data=json.dumps(body).encode() if body is not None else None,headers={'Content-Type':'application/json'})
     try:
-        with urlopen(req,timeout=15) as response: return response.status,json.load(response)
+        with urlopen(req,timeout=15) as response: return response.status,(lambda result:result['items'] if isinstance(result,dict) and 'items' in result else result)(json.load(response))
     except HTTPError as error: return error.code,json.load(error)
 
 def check(condition,message):
@@ -24,9 +24,11 @@ status,health=request('/health')
 check(status==200 and health['database']=='postgresql','Nginx → FastAPI → PostgreSQL health')
 _,lots=request('/parking-lots')
 check([(l['lot_id'],len(l['spaces'])) for l in lots]==[('A',12),('B',16),('C',12),('D',10)],'50 spaces and stable lot identifiers')
-for car,amount in [('07',5000),('12',6000),('15',2600),('19',3200)]:
-    _,fee=request('/sessions/s-'+car+'/fee')
-    check(fee['amount_krw']==amount and fee['authority']=='server_fixture','Server fixture quote for car '+car)
+_,active_sessions=request('/sessions')
+for lot,amount in [('A',5000),('B',6000),('C',2600),('D',3200)]:
+    session=next(s for s in active_sessions if s['lot_id']==lot)
+    _,fee=request('/sessions/'+session['session_id']+'/fee')
+    check(fee['amount_krw']==amount and fee['authority']=='server_fixture','Server fixture quote for lot '+lot)
 _,before=request('/reports/revenue?month=2026-11')
 _,existing=request('/mock-payments')
 completed={p['session_id'] for p in existing if p['status']=='completed'}
@@ -58,6 +60,7 @@ check(report['summary']['net_revenue_krw']==before['summary']['net_revenue_krw']
 _,empty=request('/reports/revenue?month=2026-12')
 check(empty['summary']['net_revenue_krw']==0,'Empty reporting period returns zero')
 _,alert=request('/demo/alerts','POST',{'lot_id':'D'})
+check(alert['space_id'] is None and alert['type']=='mock_fire_led_observed','Unknown alert location remains null')
 check(request('/alerts/'+alert['alert_id']+'/resolve','POST')[0]==409,'Alert cannot resolve before acknowledgement')
 request('/alerts/'+alert['alert_id']+'/acknowledge','POST')
 _,resolved=request('/alerts/'+alert['alert_id']+'/resolve','POST')

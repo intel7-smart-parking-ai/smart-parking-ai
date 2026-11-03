@@ -40,7 +40,7 @@ export async function api(path, options) {
 }
 export async function loadLots(source = dataSource) {
   const result = await request('/parking-lots', {}, source);
-  if (source === 'demo') return result;
+  if (source === 'demo') return listItems(result);
   return Promise.all(listItems(result).map(async lot => {
     const response = await request(`/parking-lots/${encodeURIComponent(lot.lot_id)}/spaces`, {}, source);
     const spaces = listItems(response), split = Math.ceil(spaces.length / 2);
@@ -50,13 +50,14 @@ export async function loadLots(source = dataSource) {
 export async function lookupVehicle(value, kind = 'sticker', source = dataSource) {
   const input = value.trim();
   if (kind === 'plate') {
-    if (source !== 'demo') throw new Error('팀 서버에서는 스티커 번호 01~24로 조회해주세요.');
+    if (source !== 'demo') throw new Error('팀 서버에서는 스티커 번호 10~99로 조회해주세요.');
     if (!/^\d{4}$/.test(input)) throw new Error('차량번호 뒤 4자리를 정확히 입력해주세요.');
     const result=await request('/vehicle-search?vehicle_number='+input,{},source);
     return {...result,fee:result.fee?feeView(result.fee):null};
   }
-  const number=input.padStart(2,'0');
-  if (!/^(0[1-9]|1[0-9]|2[0-4])$/.test(number)) throw new Error('스티커 번호 01~24를 입력해주세요.');
+  if (/^\d$/.test(input)) throw new Error('스티커 번호는 두 자리로 입력해주세요. (10~99)');
+  const number=input;
+  if (!/^[1-9][0-9]$/.test(number)) throw new Error('스티커 번호 10~99를 입력해주세요. 00~09는 사용하지 않습니다.');
   const result=await request('/vehicles/'+number+'/location',{},source);
   if (!result.session_id) return {...result,lookup_type:'sticker',fee:null,fee_notice:'요금 정보 없음 · 주차 세션이 아직 없습니다.'};
   try {

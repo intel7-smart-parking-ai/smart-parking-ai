@@ -4,6 +4,9 @@ from uuid import uuid4
 from typing import Literal
 from fastapi import FastAPI, Request, Query
 from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel, Field, ConfigDict
 from .db import connect, initialize
 from .billing import quote, FIXED_TIME
@@ -21,7 +24,19 @@ app = FastAPI(title='PARK:ON Docker Demo API', version='0.1.0', lifespan=lifespa
 
 @app.exception_handler(APIError)
 async def api_error(request: Request, exc: APIError):
-    return JSONResponse(status_code=exc.status, content={'code':exc.code,'message':exc.message})
+    return JSONResponse(status_code=exc.status, content={'error':{'code':exc.code,'message':exc.message,'details':[]}})
+
+def collection(items):
+    return {'items':items,'next_cursor':None,'as_of':FIXED_TIME}
+
+@app.exception_handler(RequestValidationError)
+async def validation_error(request: Request, exc: RequestValidationError):
+    details=[{'loc':list(e['loc']),'type':e['type'],'message':e['msg']} for e in exc.errors()]
+    return JSONResponse(status_code=422,content={'error':{'code':'VALIDATION_ERROR','message':'입력 형식을 확인해주세요.','details':details}})
+
+@app.exception_handler(StarletteHTTPException)
+async def http_error(request: Request, exc: StarletteHTTPException):
+    return JSONResponse(status_code=exc.status_code,content={'error':{'code':'ENDPOINT_NOT_FOUND' if exc.status_code==404 else 'HTTP_ERROR','message':str(exc.detail),'details':[]}})
 
 @app.get('/api/v1/health')
 def health():
@@ -36,26 +51,27 @@ def lots():
             lot['spaces'] = conn.execute('SELECT s.*, v.vehicle_number, v.plate_number FROM parking_spaces s LEFT JOIN demo_vehicles v USING(car_id) WHERE s.lot_id=%s ORDER BY s.space_id',(lot['lot_id'],)).fetchall()
             lot['camera_status'] = 'not_connected' if lot['type']=='real' else 'simulated'
             lot['updated_at'] = FIXED_TIME
-        return result
+        return collection(result)
 
 @app.get('/api/v1/parking-lots/{lot_id}/spaces')
 def spaces(lot_id: str):
     with connect() as conn:
-        if not conn.execute('SELECT 1 FROM parking_lots WHERE lot_id=%s',(lot_id,)).fetchone(): raise APIError('주차장을 찾을 수 없습니다.','NOT_FOUND',404)
-        return conn.execute('SELECT * FROM parking_spaces WHERE lot_id=%s ORDER BY space_id',(lot_id,)).fetchall()
+        if not conn.execute('SELECT 1 FROM parking_lots WHERE lot_id=%s',(lot_id,)).fetchone(): raise APIError('주차장을 찾을 수 없습니다.','PARKING_LOT_NOT_FOUND',404)
+        return collection(conn.execute('SELECT * FROM parking_spaces WHERE lot_id=%s ORDER BY space_id',(lot_id,)).fetchall())
 
 @app.get('/api/v1/rate-policies')
 def policies():
     with connect() as conn:
-        return [{'lot_id':r['lot_id'], **r['policy'], 'authority':'server_fixture'} for r in conn.execute('SELECT * FROM rate_policies ORDER BY lot_id').fetchall()]
+        return collection([{'lot_id':r['lot_id'], **r['policy'], 'authority':'server_fixture'} for r in conn.execute('SELECT * FROM rate_policies ORDER BY lot_id').fetchall()])
 
 @app.get('/api/v1/sessions')
 def sessions(lot_id: str | None = None):
     with connect() as conn:
-        return conn.execute('SELECT s.*, p.bay_label AS space_label, v.plate_number FROM parking_sessions s JOIN parking_spaces p ON p.space_id=s.space_id LEFT JOIN demo_vehicles v ON v.car_id=s.car_id WHERE (%s::text IS NULL OR s.lot_id=%s) ORDER BY s.car_id',(lot_id,lot_id)).fetchall()
+        return collection(conn.execute('SELECT s.*, p.bay_label AS space_label, v.plate_number FROM parking_sessions s JOIN parking_spaces p ON p.space_id=s.space_id LEFT JOIN demo_vehicles v ON v.car_id=s.car_id WHERE (%s::text IS NULL OR s.lot_id=%s) ORDER BY s.car_id',(lot_id,lot_id)).fetchall())
 
 @app.get('/api/v1/vehicles/{car_id}/location')
 def location(car_id: str):
+    validate_sticker(car_id)
     with connect() as conn:
         row = conn.execute("SELECT * FROM parking_sessions WHERE car_id=%s AND status='parked'",(car_id,)).fetchone()
         if not row: raise APIError('현재 주차 중인 차량을 찾지 못했습니다.','VEHICLE_NOT_FOUND',404)
@@ -63,7 +79,7 @@ def location(car_id: str):
 
 def get_quote(conn, session_id):
     session = conn.execute('SELECT * FROM parking_sessions WHERE session_id=%s',(session_id,)).fetchone()
-    if not session: raise APIError('주차 세션을 찾을 수 없습니다.','NOT_FOUND',404)
+    if not session: raise APIError('주차 세션을 찾을 수 없습니다.','SESSION_NOT_FOUND',404)
     policy = conn.execute('SELECT policy FROM rate_policies WHERE lot_id=%s',(session['lot_id'],)).fetchone()['policy']
     return session, quote(session, policy)
 
@@ -102,11 +118,16 @@ def search_vehicle(vehicle_number: str = Query(pattern=r'^[0-9]{4}$')):
         ).fetchall()
         return lookup_result(conn, rows, 'plate')
 
+def validate_sticker(car_id):
+    import re
+    if re.fullmatch(r'[0-9]',car_id):
+        raise APIError('스티커 번호는 두 자리로 입력해주세요. (10~99)','INVALID_CAR_ID',422)
+    if not re.fullmatch(r'[1-9][0-9]',car_id):
+        raise APIError('스티커 번호 10~99를 확인해주세요. 00~09는 사용하지 않습니다.','INVALID_CAR_ID',422)
+
 @app.get('/api/v1/sticker-search')
-def search_sticker(car_id: str = Query(pattern=r'^[0-9]{1,2}$')):
-    car_id=car_id.zfill(2)
-    if not 1 <= int(car_id) <= 24:
-        raise APIError('스티커 번호 01~24를 확인해주세요.', 'VEHICLE_NOT_FOUND', 404)
+def search_sticker(car_id: str):
+    validate_sticker(car_id)
     with connect() as conn:
         rows = conn.execute(
             "SELECT s.*, p.bay_label AS space_label FROM parking_sessions s JOIN parking_spaces p ON p.space_id=s.space_id WHERE s.car_id=%s AND s.lot_id IN ('A','B') AND s.status='parked' ORDER BY s.entry_at DESC",
@@ -137,13 +158,13 @@ def pay(body: PaymentRequest):
 @app.get('/api/v1/mock-payments')
 def payments(lot_id: str | None=None, status: str | None=None):
     with connect() as conn:
-        return conn.execute('SELECT * FROM mock_payments WHERE (%s::text IS NULL OR lot_id=%s) AND (%s::text IS NULL OR status=%s) ORDER BY created_at DESC,payment_id',(lot_id,lot_id,status,status)).fetchall()
+        return collection(conn.execute('SELECT * FROM mock_payments WHERE (%s::text IS NULL OR lot_id=%s) AND (%s::text IS NULL OR status=%s) ORDER BY created_at DESC,payment_id',(lot_id,lot_id,status,status)).fetchall())
 
 @app.post('/api/v1/mock-payments/{payment_id}/cancel')
 def cancel(payment_id: str):
     with connect() as conn:
         row=conn.execute('SELECT * FROM mock_payments WHERE payment_id=%s FOR UPDATE',(payment_id,)).fetchone()
-        if not row: raise APIError('결제를 찾을 수 없습니다.','NOT_FOUND',404)
+        if not row: raise APIError('결제를 찾을 수 없습니다.','PAYMENT_NOT_FOUND',404)
         if row['status']=='canceled': return row
         return conn.execute("UPDATE mock_payments SET status='canceled',canceled_at=%s WHERE payment_id=%s RETURNING *",(FIXED_TIME,payment_id)).fetchone()
 
@@ -179,7 +200,7 @@ def revenue(month: str | None=None, date: str | None=None, lot_id: str | None=No
 @app.get('/api/v1/alerts')
 def alerts(lot_id: str | None=None,status: str | None=None):
     with connect() as conn:
-        return conn.execute('SELECT a.*, p.bay_label AS space_label FROM alerts a JOIN parking_spaces p ON p.space_id=a.space_id WHERE (%s::text IS NULL OR a.lot_id=%s) AND (%s::text IS NULL OR a.status=%s) ORDER BY a.detected_at DESC,a.alert_id',(lot_id,lot_id,status,status)).fetchall()
+        return collection(conn.execute('SELECT a.*, p.bay_label AS space_label FROM alerts a LEFT JOIN parking_spaces p ON p.space_id=a.space_id WHERE (%s::text IS NULL OR a.lot_id=%s) AND (%s::text IS NULL OR a.status=%s) ORDER BY a.detected_at DESC,a.alert_id',(lot_id,lot_id,status,status)).fetchall())
 
 class AlertRequest(BaseModel):
     lot_id: str
@@ -187,14 +208,14 @@ class AlertRequest(BaseModel):
 @app.post('/api/v1/demo/alerts')
 def create_alert(body: AlertRequest):
     with connect() as conn:
-        if not conn.execute('SELECT 1 FROM parking_lots WHERE lot_id=%s',(body.lot_id,)).fetchone(): raise APIError('주차장을 찾을 수 없습니다.','NOT_FOUND',404)
-        return conn.execute("INSERT INTO alerts(alert_id,lot_id,space_id,type,status,detected_at) VALUES(%s,%s,%s,'mock_fire_led','active',%s) RETURNING *",('alert-'+uuid4().hex[:12],body.lot_id,body.lot_id+'-10',FIXED_TIME)).fetchone()
+        if not conn.execute('SELECT 1 FROM parking_lots WHERE lot_id=%s',(body.lot_id,)).fetchone(): raise APIError('주차장을 찾을 수 없습니다.','PARKING_LOT_NOT_FOUND',404)
+        return conn.execute("INSERT INTO alerts(alert_id,lot_id,space_id,type,status,detected_at) VALUES(%s,%s,%s,'mock_fire_led_observed','active',%s) RETURNING *",('alert-'+uuid4().hex[:12],body.lot_id,None,FIXED_TIME)).fetchone()
 
 @app.post('/api/v1/alerts/{alert_id}/acknowledge')
 def acknowledge(alert_id: str):
     with connect() as conn:
         row=conn.execute('SELECT * FROM alerts WHERE alert_id=%s FOR UPDATE',(alert_id,)).fetchone()
-        if not row: raise APIError('경보를 찾을 수 없습니다.','NOT_FOUND',404)
+        if not row: raise APIError('경보를 찾을 수 없습니다.','ALERT_NOT_FOUND',404)
         if row['status']!='active': return row
         return conn.execute("UPDATE alerts SET status='acknowledged',acknowledged_at=%s WHERE alert_id=%s RETURNING *",(FIXED_TIME,alert_id)).fetchone()
 
@@ -202,7 +223,7 @@ def acknowledge(alert_id: str):
 def resolve(alert_id: str):
     with connect() as conn:
         row=conn.execute('SELECT * FROM alerts WHERE alert_id=%s FOR UPDATE',(alert_id,)).fetchone()
-        if not row: raise APIError('경보를 찾을 수 없습니다.','NOT_FOUND',404)
+        if not row: raise APIError('경보를 찾을 수 없습니다.','ALERT_NOT_FOUND',404)
         if row['status']=='active': raise APIError('먼저 경보를 확인해주세요.','INVALID_STATE',409)
         if row['status']=='resolved': return row
         return conn.execute("UPDATE alerts SET status='resolved',resolved_at=%s WHERE alert_id=%s RETURNING *",(FIXED_TIME,alert_id)).fetchone()

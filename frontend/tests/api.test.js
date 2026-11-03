@@ -77,20 +77,28 @@ test('invalid number never triggers a request', async () => {
   for (const value of ['12', '12345', 'abcd', '']) await assert.rejects(lookupVehicle(value,'plate'), /4자리/);
 });
 
-test('sticker input 1 is padded to 01 and preserves a missing session',async()=>{
- globalThis.fetch=async path=>{assert.equal(path,'/api/v1/vehicles/01/location');return ok({car_id:'01',session_id:null})};
- const result=await lookupVehicle('1','sticker','team');assert.equal(result.car_id,'01');assert.equal(result.fee,null);
+for(const number of ['10','99'])test('two-digit sticker '+number+' is sent unchanged',async()=>{
+ globalThis.fetch=async path=>{assert.equal(path,'/api/v1/vehicles/'+number+'/location');return ok({car_id:number,session_id:null})};
+ const result=await lookupVehicle(number,'sticker','team');assert.equal(result.car_id,number);assert.equal(result.fee,null);
+});
+test('single digit sticker is rejected with a two-digit instruction, never padded',async()=>{
+ globalThis.fetch=()=>{throw new Error('must not send')};
+ for(const value of ['1','7','9'])await assert.rejects(lookupVehicle(value,'sticker'),/두 자리로 입력/);
+});
+test('reserved and malformed sticker numbers never reach the network',async()=>{
+ globalThis.fetch=()=>{throw new Error('must not send')};
+ for(const value of ['00','07','09','100','1234',''])await assert.rejects(lookupVehicle(value,'sticker'),/10~99/);
 });
 test('sticker lookup gets server fee without calculating a price',async()=>{
- const calls=[];globalThis.fetch=async path=>{calls.push(path);return ok(path.includes('/location')?{car_id:'09',session_id:'ses_9'}:{session_id:'ses_9',amount_krw:7531,payment_status:'completed',fee_breakdown:{base_fee_krw:1000,extra_units:2,extra_fee_krw:6531}})};
- const result=await lookupVehicle('09','sticker','team');assert.equal(result.fee.amount_krw,7531);assert.equal(result.fee.payment_status,'completed');assert.deepEqual(calls,['/api/v1/vehicles/09/location','/api/v1/sessions/ses_9/fee']);
-});
-test('sticker lookup rejects identifiers outside 01 through 24',async()=>{
- globalThis.fetch=()=>{throw new Error('must not send')};
- for(const value of ['00','25','99','1234',''])await assert.rejects(lookupVehicle(value,'sticker'),/01~24/);
+ const calls=[];globalThis.fetch=async path=>{calls.push(path);return ok(path.includes('/location')?{car_id:'99',session_id:'ses_99'}:{session_id:'ses_99',amount_krw:7531,payment_status:'completed',fee_breakdown:{base_fee_krw:1000,extra_units:2,extra_fee_krw:6531}})};
+ const result=await lookupVehicle('99','sticker','team');assert.equal(result.fee.amount_krw,7531);assert.equal(result.fee.payment_status,'completed');assert.deepEqual(calls,['/api/v1/vehicles/99/location','/api/v1/sessions/ses_99/fee']);
 });
 test('team source does not expose demo four-digit search',async()=>{
- globalThis.fetch=()=>{throw new Error('must not send')};await assert.rejects(lookupVehicle('1234','plate','team'),/01~24/);
+ globalThis.fetch=()=>{throw new Error('must not send')};await assert.rejects(lookupVehicle('1234','plate','team'),/10~99/);
+});
+test('demo lot collection unwraps the common list envelope',async()=>{
+ globalThis.fetch=async()=>ok({items:[{lot_id:'A',spaces:[]}],next_cursor:null,as_of:'2026-11-03T00:00:00Z'});
+ assert.equal((await loadLots('demo'))[0].lot_id,'A');
 });
 
 test('legacy team URL still opens the final four-lot UI', async () => {
@@ -106,6 +114,6 @@ test('legacy team URL still opens the final four-lot UI', async () => {
 });
 
 test('fee API not implemented preserves successful location',async()=>{
- globalThis.fetch=async path=>path.includes('/location')?ok({car_id:'02',session_id:'ses_2'}):{ok:false,status:404,json:async()=>({detail:'Not Found'})};
- const result=await lookupVehicle('02','sticker','team');assert.equal(result.car_id,'02');assert.equal(result.fee,null);assert.match(result.fee_notice,/연결 대기/);
+ globalThis.fetch=async path=>path.includes('/location')?ok({car_id:'12',session_id:'ses_12'}):{ok:false,status:404,json:async()=>({detail:'Not Found'})};
+ const result=await lookupVehicle('12','sticker','team');assert.equal(result.car_id,'12');assert.equal(result.fee,null);assert.match(result.fee_notice,/연결 대기/);
 });

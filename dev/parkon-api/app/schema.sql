@@ -32,3 +32,7 @@ UPDATE mock_payments SET payment_method=CASE payment_method WHEN 'credit_card' T
 ALTER TABLE mock_payments ALTER COLUMN payment_method SET DEFAULT 'MOCK_CARD';
 ALTER TABLE mock_payments ADD CONSTRAINT mock_payments_payment_method_check CHECK(payment_method IN ('MOCK_CARD','MOCK_EASY_PAY','MOCK_ACCOUNT'));
 INSERT INTO schema_migrations(version) VALUES (6) ON CONFLICT DO NOTHING;
+
+-- Unknown LED observation locations must not be assigned to an arbitrary bay.
+ALTER TABLE alerts ALTER COLUMN space_id DROP NOT NULL;
+UPDATE alerts SET space_id=NULL,type='mock_fire_led_observed' WHERE type='mock_fire_led';
