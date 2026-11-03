@@ -268,7 +268,7 @@ def test_empty_db_seeds_four_lot_rate_policies(empty_client):
 def test_seeded_lots_appear_in_revenue_report(empty_client):
     lots = {l["lot_id"]: l for l in empty_client.get("/api/v1/reports/revenue").json()["lots"]}
     assert {k: (v["name"], v["total_spaces"]) for k, v in lots.items()} == {
-        "A": ("개발원주차장", 12), "B": ("부산역주차장", 16), "C": ("북항주차장", 12), "D": ("라 주차장", 64),
+        "A": ("개발원주차장", 12), "B": ("부산역주차장", 16), "C": ("북항주차장", 12), "D": ("신세계백화점주차장", 64),
     }
 
 

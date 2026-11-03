@@ -78,12 +78,12 @@ def init_schema(conn: sqlite3.Connection) -> None:
 
 
 # 주차장 4곳 기본 데이터 (2026-11-03, 요금표는 윤명수 작성·PM 확인)
-# (lot_id, 이름, 종류, 칸 수) — 이름·칸 수는 docs/DECISIONS.md D-14·D-15. D 이름은 김채린 지정 전 임시
+# (lot_id, 이름, 종류, 칸 수) — 이름·칸 수는 docs/DECISIONS.md D-14·D-15. D-16: 신세계백화점주차장
 DEFAULT_LOTS = [
     ("A", "개발원주차장", "real", 12),
     ("B", "부산역주차장", "real", 16),
     ("C", "북항주차장", "virtual", 12),
-    ("D", "라 주차장", "virtual", 64),
+    ("D", "신세계백화점주차장", "virtual", 64),
 ]
 # (lot_id, 기본 시간(분), 기본 요금, 추가 단위(분), 추가 요금, 일 최대)
 DEFAULT_RATE_POLICIES = [
