@@ -283,6 +283,14 @@
 - **결과:** 열린 PR은 #7·#8(Draft)뿐. 바로 병합 가능: `KAN-28-fee-quote`, `chore/progress-status` / 박해준 PR 생성 시: `sqlite-v1-verify`, `vision-event-step2`, 이후 d5·V3 / 대기: 김채린 `frontend/` 분리 PR, 4곳 요금표
 - **PROGRESS:** 전체 약 25% → 약 32%, #10 55%·#11 60%·#12 25%·#14 92%
 
+### 15:59 · ✅ main 병합 — PR #15 (KAN-28 `quote_id`, `5d46eaa`), PR #16 (진행 기록, `5b7cd88`)
+- **확인:** main pytest 59 passed
+
+### 16:00 · 병합 후 추가 할 일 — 김한별 요청
+- **PM 즉시:** 박해준 PR 2개(`sqlite-v1-verify`·`vision-event-step2`) 생성 요청·병합·PR #8 닫기 / 김채린 `frontend/` 분리 PR / 윤명수 요금표 승인
+- **오늘 담당:** 박해준 V3 테스트 `quote_id` 반영·목업 50칸·필드 공유, 서정범·우지원 진행 확인, 김채린 규격 잔여
+- **PM 결정:** 업무 재분배, 24대 배정표, 데모 서버(11/05), Jira Task
+
 ---
 
 ## 대기 중인 결정 (PM)
