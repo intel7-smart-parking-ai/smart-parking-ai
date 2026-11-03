@@ -1,109 +1,206 @@
-# [AI 스마트 주차장 통합관제] 윤명수 담당 개발 패키지
+# AI 스마트 주차장 통합관제 시스템
 
-**GitHub 조직**: `intel7-smart-parking-ai` / **저장소**: `smart-parking-ai`  
-**개발자**: **윤명수** (3팀 대표 Assignee & 요금·결제·매출 단일 소유자)  
-**공동 개발자**: 서정범 (3팀 LED 모의 화재 AI 공동 개발)  
-**협업 담당자**: 박해준(FastAPI/DB), 김채린(UI/관제), 우지원(카메라/ROI), 김한별(PM)
+> **2026-11-02 로컬 통합 작업:** 기존 health를 보존하고 조회 목업 API 3개를 추가했습니다.
+> A/B/C 데이터는 합성 예시이며 DB 연동·실제 면수·최종 계약·main 반영을 뜻하지 않습니다.
+> 실행·응답·미확정 사항은 [조회 목업 안내](docs/MOCK_API.md)를 확인하세요.
+> 아래 착수 시점의 골격 설명과 개발 목표는 당시 기록으로 보존합니다.
 
----
+> **프로젝트 상태:** 개발 착수 준비 / 초기 실행 골격 구성  
+> **개발 기간:** 2026년 11월 2일(월) ~ 11월 13일(금), 평일 10일  
+> **개발 인원:** 6명 · **PM:** 김한별  
+> **GitHub 조직:** `intel7-smart-parking-ai`  
+> **재료비 한도:** 300,000원
 
-## 1. 프로젝트 내 윤명수 님의 공식 담당 업무 (2대 핵심 영역)
+## 1. 프로젝트 소개
 
-본 패키지는 프로젝트 README 및 운영계획서에 정의된 윤명수 님의 2대 공식 업무를 공식 저장소 구조(`smart-parking-ai/backend/app/`)에 1:1로 정확하게 일치시켜 구현한 개발 결과물입니다.
+카메라 영상과 AI 모델로 미니어처 주차장의 **차량·차량 번호·LED 모의 화재 상황**을 인식하고, 여러 주차장을 하나의 시스템에서 관리하는 팀 프로젝트입니다.
+
+- **실물 주차장:** A, B 총 2곳, 카메라 각 1대(총 2대)
+- **미니카:** 실물 주차장 2곳에서 총 24대 사용
+- **가상 주차장:** C 1곳 기본 구현, D는 여유 시 추가
+- **주차장 모형 크기·주차면 수·카메라 위치:** 실제 촬영 및 차량 실측 후 확정
+  - 카메라 설치 후보: **중앙 상단** 또는 **모서리 상단에서 대각선 촬영**
+- **결제:** 실제 금전 거래 없는 **모의 결제**만 구현
+- **모의 화재:** 빨간 LED를 이용한 시연이며 실제 화재 감지 시스템이 아님
+
+## 2. 주요 개발 기능
+
+| 영역 | 목표 기능 | 비고 |
+| --- | --- | --- |
+| 차량 탐지 | AI로 미니카 탐지, 주차칸 ROI 기반 점유·빈자리 판정 | 2인 공동 개발 |
+| 차량 식별 | 차량에 붙인 `01`~`24` 숫자 스티커 인식 | OCR 성능 부족 시 대체 마커 검토 |
+| 모의 화재 | LED 점등 감지 및 관리자 경고 | 실제 화재·연기 사용 안 함 |
+| 주차 관리 | 실물 A·B 및 가상 C의 차량 위치·입출차 이력 | 가상 D는 선택 |
+| 요금·결제 | 이용 시간 기반 요금 계산, 모의 결제·취소, 매출 집계 | 실제 결제 연동 제외 |
+| 사용자 모바일 웹 | 빈자리·차량 위치·요금 조회, 모의 결제, 챗봇 | React 기반 |
+| 관리자 관제 | 다중 주차장 현황, 카메라, 경고, 일·월 매출 | 웹 대시보드 |
+| LLM 챗봇 | API/DB 근거로 빈자리·차량 위치·요금 답변 | 음성인식은 선택 기능 |
+
+**참고:** 위 내용은 **구현 목표**입니다. 현재 저장소에는 초기 서버 상태 확인 API와 프론트엔드 연결 확인 화면만 준비되어 있으며, 주요 기능은 개발 예정입니다.
+
+## 3. 팀 구성 및 담당 업무
+
+### AI 모델 개발 — 2인 공동 작업
+
+| 팀 | 공동 담당자 | 개발 영역 |
+| --- | --- | --- |
+| 1팀 | 김한별 · 박해준 | 차량 탐지 AI |
+| 2팀 | 우지원 · 김채린 | 차량 번호 스티커 인식 AI |
+| 3팀 | 윤명수 · 서정범 | LED 모의 화재 인식 AI |
+
+각 팀은 **데이터 수집 → 라벨링 → 학습 → 테스트 → 개선 → 모델 연동**까지 두 사람이 함께 수행합니다.
+
+### 개인별 추가 업무
+
+| 담당자 | 추가 책임 |
+| --- | --- |
+| **김한별 (PM)** | 공통 API 규격, 통합 조율, 일정·Jira·모형 제작 관리 |
+| 박해준 | FastAPI, DB, 입출차 이벤트 |
+| 우지원 | 카메라 2대 입력 관리, 주차칸 ROI 및 위치 매칭 |
+| 김채린 | 사용자 모바일 웹 및 관리자 통합관제 화면 |
+| 윤명수 | 주차요금, 모의 결제, 매출 집계 |
+| 서정범 | LLM 챗봇, 음성인식 검토 |
+
+## 4. 시스템 흐름
+
+```text
+실물 주차장 A ─ 카메라 A ─┐
+                        ├─ 공통 영상 입력 → 차량 탐지 / 번호 OCR / LED 인식
+실물 주차장 B ─ 카메라 B ─┘                       │
+                                               ▼
+                                       ROI 위치 매칭·분석 이벤트
+                                               │
+가상 주차장 C (D 선택) ─ 가상 이벤트 ───────────┤
+                                               ▼
+                                      FastAPI · 상태 관리 · DB
+                                               │
+                  ┌────────────────────────────┼──────────────────────────┐
+                  ▼                            ▼                          ▼
+             사용자 모바일 웹              관리자 통합관제              LLM 챗봇
+```
+
+- 한 카메라를 여러 모듈이 제각각 열지 않고 **우지원 담당 공통 영상 입력**을 사용합니다.
+- AI 모델은 **관측 결과**를 내보내고, **입출차·결제·주차 상태 확정은 서버**에서 처리합니다.
+- 프론트엔드와 챗봇은 공식 API를 이용하며 임의로 요금이나 빈자리를 추정하지 않습니다.
+
+## 5. 저장소 구조
 
 ```text
 smart-parking-ai/
 ├── backend/
 │   ├── app/
-│   │   ├── billing/              # ⭐ [윤명수 전담] 요금 계산 · 모의 결제 · 매출 집계
-│   │   │   ├── calculator.py     # 입·출차 시간 기반 기본/추가/최대요금 순수 계산 엔진
-│   │   │   ├── payment_service.py# 멱등키(idempotency_key) 중복방어, 기결제 409 차단, 모의 환불
-│   │   │   ├── revenue_service.py# 일별·월별·주차장별(A·B 12면, C·D 10면) 순매출 집계
-│   │   │   └── schemas.py        # Pydantic v2 데이터 모델 스키마
+│   │   ├── main.py          # FastAPI 진입점
+│   │   ├── api/             # 공통 API
+│   │   ├── camera/          # 카메라 입력
+│   │   ├── roi/             # 주차칸 좌표·위치 매칭
 │   │   ├── vision/
-│   │   │   └── fire/             # ⭐ [3팀: 윤명수·서정범 공동] LED 모의 화재 상황 인식 AI
-│   │   │       ├── detector.py   # 빨간 LED 점등 감지 및 빨간색 미니카 차체 오탐 방어
-│   │   │       ├── roi_matcher.py# Frame Hub 영상 수신 및 주차칸 ROI 좌표 매칭 (space_id)
-│   │   │       └── events.py     # mock_fire_led_observed 표준 이벤트 생성 어댑터
-│   │   └── api/
-│   │       ├── billing_router.py # 박해준 님 메인 FastAPI에 include할 공식 4대 API 라우터
-│   │       └── fire_router.py    # LED 모의 화재 경보 조회/해제 API 라우터
-├── tests/
-│   ├── test_billing.py           # 요금 및 결제 순수 함수 단위 테스트
-│   ├── test_fire_detection.py    # LED 점등 검출 및 적색 차량 오탐 방어 테스트
-│   └── test_api_integration.py   # 박해준 님 4대 API 전수 통합 테스트 (100% PASS)
-├── clients/
-│   ├── parking_billing_client.js # 김채린 님 모바일 웹/관리자 관제 UI 연동 클라이언트
-│   └── chatbot_billing_tools.py  # 서정범 님 LLM 챗봇 펑션 콜링 도구
-├── docs/
-│   ├── API_SPECIFICATION.md      # 공식 4대 REST API 명세서
-│   └── TEAM_INTEGRATION_GUIDE.md # 박해준·김채린·서정범 팀원 연동 종합 가이드
-├── server.py                     # 로컬 독립 서버 (FastAPI + SQLite, 0.0.0.0 외부접속 지원)
-├── ai_led.html                   # 44면 바둑판 정렬 통합 시뮬레이터 (브라우저 즉시 구동)
-└── run_server.bat / run_server.sh# Windows / Mac 원클릭 서버 실행 런처
+│   │   │   ├── vehicle/     # 차량 탐지
+│   │   │   ├── plate/       # 번호 인식
+│   │   │   └── fire/        # LED 감지
+│   │   ├── parking/         # 주차 상태·입출차
+│   │   ├── database/        # DB
+│   │   ├── billing/         # 요금·모의 결제·매출
+│   │   ├── chatbot/         # LLM
+│   │   └── simulation/      # 가상 주차장
+│   ├── requirements.txt
+│   └── requirements-dev.txt
+├── frontend/               # React + Vite
+├── configs/                # 주차장 A/B 설정 예시
+├── docs/                   # 공통 개발 문서
+├── tests/                  # 테스트
+└── .env.example            # 환경변수 예시 (비밀값 없음)
 ```
+
+## 6. 개발 환경 실행 (Windows PowerShell)
+
+**사전 준비:** Git, Python 3.11, Vite 7과 호환되는 Node.js, GitHub 저장소 접근 권한.
+
+### 6-1. 최초 1회: 저장소 내려받기
+
+```powershell
+git clone https://github.com/intel7-smart-parking-ai/smart-parking-ai.git
+cd smart-parking-ai
+```
+
+이미 Clone했다면 위 작업을 반복하지 말고 기존 프로젝트 폴더에서 명령을 실행하세요.
+
+### 6-2. 백엔드 실행 (PowerShell 창 1, 저장소 루트)
+
+```powershell
+py -3.11 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r backend/requirements-dev.txt
+.\.venv\Scripts\python.exe -m uvicorn backend.app.main:app --reload
+```
+
+- API 상태 확인: <http://127.0.0.1:8000/api/v1/health>
+- Swagger 문서: <http://127.0.0.1:8000/docs>
+
+### 6-3. 프론트엔드 실행 (PowerShell 창 2, 저장소 루트)
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+- 프론트엔드: <http://127.0.0.1:5173>
+- **두 터미널을 모두 실행**해야 화면에서 백엔드 연결 상태가 확인됩니다.
+
+### 6-4. 기본 테스트 (선택)
+
+저장소 루트에서 별도 PowerShell 창을 열거나 백엔드 실행을 중지하고 실행합니다.
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests/ -q
+```
+
+> 실제 AI 모델, 카메라, DB, 요금, LLM 기능은 아직 구현되어 있지 않습니다. 별도 API 키는 현재 초기 health API 실행에 필요하지 않습니다.
+
+## 7. Git/GitHub 협업 규칙
+
+1. **`main` 직접 수정 금지:** 작업마다 새 브랜치를 만들어 진행합니다.
+2. **브랜치 이름:** `feature/KAN-작업번호-기능명` (예: `feature/KAN-25-camera-roi`). `KAN-25`는 설명용 예시입니다.
+3. **작업 순서:** `main` 최신화 → 브랜치 생성 → 수정·테스트 → 커밋·Push → Pull Request → 리뷰 → 병합.
+4. **코드 경계:** 다른 담당자의 폴더·공통 API·DB 구조를 변경하기 전에 Jira 또는 Discord에서 협의합니다.
+5. **공동 모델 개발:** 두 명이 개발·시험·리뷰에 함께 참여합니다.
+6. **PR 완료 조건:** 변경 내용, 실행 방법, 테스트 결과와 Jira 작업 링크가 있어야 합니다.
+7. **보안:** `.env`, 토큰·비밀번호, 대용량 학습 데이터·영상·모델 가중치를 일반 Git에 올리지 않습니다.
+8. GPT·Gemini·Claude가 만든 코드도 담당자가 직접 실행·검증해야 합니다.
+
+자세한 명령어와 작업 절차는 [`docs/GIT_RULES.md`](docs/GIT_RULES.md), [`docs/MAKE_FIRST_PR.md`](docs/MAKE_FIRST_PR.md)를 확인하세요.
+
+## 8. 프로젝트 일정
+
+| 기간 | 목표 |
+| --- | --- |
+| 11/02~11/03 | 착수, 공통 API·DB 규격 및 카메라 설치 후보 테스트, 모형 실측 |
+| 11/04~11/05 | AI 모델 3종 1차 개발, 서버·웹 기본 화면 병행 |
+| 11/06 | 1차 통합 점검: A 주차장 영상 → 상태 → API → 화면 |
+| 11/09~11/10 | B 주차장·가상 C 및 요금·모의 결제·매출·LLM 연결 |
+| 11/11~11/12 | 인식 성능·오류 테스트, 핵심 기능 안정화, 시연 준비 |
+| 11/13 | 최종 시연 및 발표 |
+
+## 9. 프로젝트 문서 바로가기
+
+| 문서 | 용도 |
+| --- | --- |
+| [개발환경 설정](docs/SETUP.md) | 설치 및 실행 |
+| [팀원 역할](docs/ROLES.md) | 담당 영역과 공동 개발 원칙 |
+| [API 계약 초안](docs/API_CONTRACT.md) | 데이터 형식과 API 명세 |
+| [시스템 아키텍처](docs/ARCHITECTURE.md) | 컴포넌트별 연결 구조 |
+| [Git 협업 규칙](docs/GIT_RULES.md) | 브랜치·PR·병합 규칙 |
+| [첫 PR 안내](docs/MAKE_FIRST_PR.md) | Git 초보자용 첫 병합 순서 |
+| [통합 개발 운영 지침서](docs/통합_개발운영지침서.md) | 상세 개발·협업 기준 |
+| [PM 운영계획서](docs/PM_운영계획서.md) | 프로젝트 관리 |
+| [착수보고서](docs/착수보고서.md) | 프로젝트 계획 및 목표 |
+
+## 10. 변경·문의 방법
+
+- 기능·일정·API 변경 요청: **Jira**에 작업 또는 댓글 기록
+- 팀 내 질문·업무 조율: **Discord**
+- 코드 변경: **GitHub Pull Request**
+- 공통 API·DB 등 영향이 큰 변경은 PM 및 기능 소유자와 먼저 합의합니다.
 
 ---
 
-## 2. 박해준 님 확정 공식 4대 API 현황 (`backend/app/api/billing_router.py`)
-
-1. **`GET /api/v1/sessions/{session_id}/fee`** — 요금 조회 (소비자: 웹/관제/챗봇)
-2. **`POST /api/v1/mock-payments`** — 모의 결제 (소비자: 사용자 모바일 웹)
-3. **`POST /api/v1/mock-payments/{id}/cancel`** — 결제 취소 / 모의 환불 (소비자: 관리자 관제)
-4. **`GET /api/v1/reports/revenue`** — 매출 조회 (소비자: 관리자 관제, LLM 챗봇)
-
----
-
-## 3. 3팀 AI 공동 과업 현황 (`backend/app/vision/fire/`)
-
-* **담당자**: 윤명수 (Jira 대표 Assignee) · 서정범
-* **목표 기능**:
-  * 빨간색 LED 점등을 고휘도 스팟 필터링으로 감지
-  * 우지원 담당 공통 영상 입력(Frame Hub) 프레임 수신 및 주차칸 ROI(`space_id`) 매칭
-  * **빨간색 미니카(09번 등) 차체 색상 오탐 방어** (면적비 및 휘도 집중도 검증 완료)
-  * 표준 분석 이벤트(`mock_fire_led_observed`) 출력 및 "LED 모의 화재" 표기
-
----
-
-## 4. 로컬 서버 실행 및 단위 테스트
-
-### 1) 단위 테스트 및 API 전수 검증 실행 (100% PASS)
-```bash
-# 요금 계산 단위 테스트
-python tests/test_billing.py
-
-# 3팀 LED 모의 화재 감지 및 오탐 방어 테스트
-python tests/test_fire_detection.py
-
-# 박해준 님 4대 API 라이프사이클 전수 테스트
-python test_api.py
-```
-
-### 2) 로컬 서버 실행 (FastAPI + SQLite, Swagger /docs 지원)
-```bash
-python server.py --port 8080
-```
-* **내 PC 접속**: `http://localhost:8080` (시뮬레이터 웹 화면 자동 서빙)
-* **팀원 공유 접속**: `http://<내PC_IP>:8080` (콘솔에 자동 감지된 IP 출력)
-* **Swagger API 문서**: `http://<내PC_IP>:8080/docs`
-
----
-
-## 5. 팀 공식 저장소 Git 브랜치 작업 및 PR 절차
-
-Jira 및 Git 협업 규칙에 따라 아래 순서로 공식 저장소(`intel7-smart-parking-ai/smart-parking-ai`)에 반영합니다:
-
-```bash
-# 1. 저장소 최신화 및 브랜치 생성
-git checkout main
-git pull origin main
-git checkout -b feature/KAN-28-billing-and-fire-vision
-
-# 2. 본 패키지의 backend/, tests/, clients/, docs/ 폴더 복사 후 커밋
-git add backend/ tests/ clients/ docs/
-git commit -m "feat(billing,fire): implement billing engine and LED fire detection modules"
-
-# 3. GitHub Push 및 Pull Request 생성
-git push origin feature/KAN-28-billing-and-fire-vision
-```
-* **PR 리뷰어 지정**: 박해준(FastAPI/DB), 서정범(3팀 공동 개발자), 김한별(PM)
+**본 README는 2026년 11월 2일 착수 시점의 개발 계획과 초기 저장소 구조를 기준으로 작성되었습니다.** 구현 상태와 실행 방법이 바뀌면 담당자가 함께 갱신합니다.
