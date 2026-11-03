@@ -188,4 +188,4 @@ def test_session_list_not_implemented_and_location_is_mock():
     from backend.app.main import app
     with TestClient(app) as client:
         assert client.get('/api/v1/sessions').status_code == 404
-        assert client.get('/api/v1/vehicles/01/location').json()['session_id'] is None
+        assert client.get('/api/v1/vehicles/10/location').json()['session_id'] is None
