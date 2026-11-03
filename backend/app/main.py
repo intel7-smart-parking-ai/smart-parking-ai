@@ -2,10 +2,6 @@
 
 from datetime import datetime, timezone
 from fastapi import FastAPI
-try:
-    from backend.app.api.billing_router import billing_router
-except ModuleNotFoundError:
-    from app.api.billing_router import billing_router
 
 from backend.app.api.mock_queries import router as mock_queries_router
 
@@ -14,7 +10,7 @@ app = FastAPI(
     description="AI 스마트 주차장 통합관제 - 초기 골격 (구현 전)",
     version="0.1.0",
 )
-app.include_router(billing_router)
+
 @app.get('/api/v1/health', tags=['system'])
 def health_check():
     return {'status': 'ok', 'service': 'smart-parking-api',

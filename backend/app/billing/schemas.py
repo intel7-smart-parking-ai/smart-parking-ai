@@ -6,7 +6,7 @@
 
 from __future__ import annotations
 from typing import Any, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 # 1. 요금 조회 스키마 (GET /api/v1/sessions/{session_id}/fee)
@@ -37,17 +37,19 @@ class FeeResponse(BaseModel):
 
 # 2. 모의 결제 스키마 (POST /api/v1/mock-payments)
 class PaymentCreateRequest(BaseModel):
-  session_id: str = Field(..., description="결제할 주차 세션 ID (예: 'ses_0001')")
-  idempotency_key: str = Field(..., description="중복 결제 방지용 고유 멱등키 (UUID 또는 난수)")
+  # 금액·시각은 받지 않는다(요금은 서버 단일 계산). 정의되지 않은 필드는 422.
+  model_config = ConfigDict(extra="forbid")
+
+  session_id: str = Field(..., min_length=1, description="결제할 주차 세션 ID (예: 'ses_0001')")
+  idempotency_key: str = Field(..., min_length=1, description="중복 결제 방지용 고유 멱등키 (UUID 또는 난수)")
   payment_method: str = Field("MOCK_CARD", description="모의 결제 수단 ('MOCK_CARD', 'MOCK_EASY_PAY', 'MOCK_ACCOUNT')")
-  amount_krw: Optional[int] = Field(None, description="결제 금액 (생략 시 서버에서 실시간 자동 계산)")
 
 
 class PaymentResponse(BaseModel):
   payment_id: str = Field(..., description="발급된 결제 고유 ID (예: 'pay_0001')")
   session_id: str = Field(..., description="주차 세션 ID")
   lot_id: str = Field(..., description="주차장 ID")
-  car_id: str = Field(..., description="차량 번호")
+  car_id: Optional[str] = Field(None, description="차량 번호 (미인식 null)")
   amount_krw: int = Field(..., description="결제 승인 금액 (KRW)")
   payment_method: str = Field(..., description="결제 수단")
   status: str = Field(..., description="결제 상태 ('completed' or 'failed')")
@@ -68,7 +70,7 @@ class PaymentCancelResponse(BaseModel):
   payment_id: str = Field(..., description="취소된 결제 ID")
   session_id: str = Field(..., description="주차 세션 ID")
   lot_id: str = Field(..., description="주차장 ID")
-  car_id: str = Field(..., description="차량 번호")
+  car_id: Optional[str] = Field(None, description="차량 번호 (미인식 null)")
   refunded_amount_krw: int = Field(..., description="환불 차감 금액 (KRW)")
   status: str = Field("canceled", description="변경된 결제 상태")
   canceled_at: str = Field(..., description="취소 일시 (ISO 8601)")
