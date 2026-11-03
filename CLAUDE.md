@@ -44,10 +44,11 @@
 ## 데이터 규약 (요약 — 상세는 `api-contract` 스킬)
 
 - 기본 경로 `/api/v1`, JSON UTF-8, 필드 `snake_case`, 시각 ISO 8601 타임존 포함, 금액 KRW 정수, ID는 문자열
-- `lot_id`: `A`/`B`(실물), `C`/`D`(가상) · `camera_id`: `camera_a`/`camera_b`, 가상은 `null`
-- `space_id`: `A-01` 형식, DB에서는 `(lot_id, space_id)` 고유
+- `lot_id`: `A`/`B`(실물), `C`/`D`(가상), 화면 이름은 가·나·다·라 · `camera_id`: `camera_a`/`camera_b`, 가상은 `null`
+- 칸 수: 가(A) 12 · 나(B) 16 · 다(C) 12 · 라(D) 10 = 50칸, 전기차·장애인 전용 칸 포함 (상세 `docs/API_CONTRACT.md`)
+- `space_id`: 주차장별 도면 번호 `A-01`·`B-06` (A·B는 주차장 안 구역, `lot_id`와 무관). 항상 `(lot_id, space_id)`로 식별, 표시는 "가 주차장 B-06"
 - `car_id`(실물 미니카 스티커): `"10"`~`"99"` **두 자리 숫자 문자열**, `00`~`09` 미사용, 미인식 `null`, `int` 변환 금지
-- 가상 C/D 차량: 화면 4자리 숫자(앞자리 0 보존), 상세 조회 시 번호판(`56다9012`) — 필드명 확정 전 (`vehicle_number`·`plate_number` 제안)
+- 가상 C/D 차량: 번호판 `17가1724`가 기준, 화면은 뒤 4자리 `1724`, 상세·관리는 전체 번호판 — 필드명 확정 전 (`plate_number` 제안)
 - 주차칸 status: `empty` / `occupied` / `uncertain` / `unavailable`
 
 ## 실행 명령 (Windows PowerShell, 저장소 루트)
