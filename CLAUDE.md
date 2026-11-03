@@ -49,7 +49,9 @@
 - `space_id`: 주차장별 도면 번호 `A-01`·`B-06` (A·B는 주차장 안 구역, `lot_id`와 무관). 항상 `(lot_id, space_id)`로 식별, 표시는 "가 주차장 B-06"
 - `car_id`(실물 미니카 스티커): `"10"`~`"99"` **두 자리 숫자 문자열**, `00`~`09` 미사용, 미인식 `null`, `int` 변환 금지
 - 가상 C/D 차량: 번호판 `17가1724`가 기준, 화면은 뒤 4자리 `1724`, 상세·관리는 전체 번호판 — 필드명 확정 전 (`plate_number` 제안)
-- 주차칸 status: `empty` / `occupied` / `uncertain` / `unavailable`
+- 차량 종류 `vehicle_type`: `general`/`ev`/`accessible` — 실물은 스티커 색(초록=전기차, 파랑=장애인)으로 인식, 일반차는 전용 칸 주차 불가
+- 주차칸 status: `empty` / `occupied` / `uncertain` / `unavailable` · 세션 상태: `active`(주차 중) / `closed`(출차 완료)
+- 요금 견적 `quote_id`: 요금 화면에 표시된 견적 금액으로 결제, 만료 시 재조회 (클라이언트는 금액을 보내지 않음)
 
 ## 실행 명령 (Windows PowerShell, 저장소 루트)
 
