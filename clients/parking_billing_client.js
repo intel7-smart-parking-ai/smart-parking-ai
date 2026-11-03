@@ -4,14 +4,14 @@
  * 연동 대상: 김채린 님 모바일 웹 (PWA) 및 관리자 통합관제 화면
  * 
  * [사용 방법]:
- *   const billing = new ParkingBillingClient("http://<윤명수PC_IP>:8080");
+ *   const billing = new ParkingBillingClient("http://<서버PC_IP>:8000");
  *   const fee = await billing.getFee("ses_0001");
  *   const pay = await billing.pay("ses_0001", "MOCK_CARD");
  *   await billing.cancel(pay.payment_id, "고객 모의 환불");
  *   const rev = await billing.getRevenue("2026-11");
  */
 class ParkingBillingClient {
-  constructor(baseUrl = "http://127.0.0.1:8080") {
+  constructor(baseUrl = "http://127.0.0.1:8000") {
     this.baseUrl = baseUrl.replace(/\/+$/, "");
   }
 
@@ -24,7 +24,8 @@ class ParkingBillingClient {
   }
 
   async pay(sessionId, paymentMethod = "MOCK_CARD", idempotencyKey = null) {
-    const key = idempotencyKey || `idem_${sessionId}_${Date.now()}`;
+    // 같은 결제를 재시도할 때는 같은 idempotencyKey를 다시 넘겨야 중복 결제가 막힌다.
+    const key = idempotencyKey || crypto.randomUUID();
     const res = await fetch(`${this.baseUrl}/api/v1/mock-payments`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -35,8 +36,8 @@ class ParkingBillingClient {
       })
     });
     const data = await res.json();
-    if (!res.ok && res.status !== 409) {
-      throw new Error(`[Billing API Error ${res.status}] ${data.message || "결제 실패"}`);
+    if (!res.ok) {
+      throw new Error(`[Billing API Error ${res.status}] ${data.error?.message || "결제 실패"}`);
     }
     return data;
   }
@@ -48,7 +49,7 @@ class ParkingBillingClient {
       body: JSON.stringify({ refund_reason: reason })
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(`[Billing API Error ${res.status}] ${data.message || "환불 실패"}`);
+    if (!res.ok) throw new Error(`[Billing API Error ${res.status}] ${data.error?.message || "환불 실패"}`);
     return data;
   }
 

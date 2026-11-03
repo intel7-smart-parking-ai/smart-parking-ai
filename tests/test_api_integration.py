@@ -95,7 +95,7 @@ def test_fee_active_session_uses_now_param(client):
 def test_fee_unknown_session_404(client):
     r = client.get("/api/v1/sessions/nope/fee")
     assert r.status_code == 404
-    assert r.json()["error_code"] == "SESSION_NOT_FOUND"
+    assert r.json()["error"]["code"] == "SESSION_NOT_FOUND"
 
 
 # ---------- 모의 결제 ----------
@@ -134,7 +134,7 @@ def test_payment_different_key_same_session_409(client):
     _pay(client)
     r = _pay(client, key="idem-2")
     assert r.status_code == 409
-    assert r.json()["error_code"] == "ALREADY_PAID"
+    assert r.json()["error"]["code"] == "ALREADY_PAID"
 
 
 def test_payment_unrecognized_car(client):
@@ -159,8 +159,8 @@ def test_cancel_adjusts_revenue_and_cannot_repeat(client):
     assert after["canceled_amount_krw"] == 2500
 
     again = client.post(f"/api/v1/mock-payments/{pay['payment_id']}/cancel")
-    assert again.status_code == 400
-    assert again.json()["error_code"] == "INVALID_PAYMENT_STATE"
+    assert again.status_code == 409
+    assert again.json()["error"]["code"] == "INVALID_PAYMENT_STATE"
 
 
 def test_cancel_unknown_payment_404(client):
@@ -184,3 +184,48 @@ def test_revenue_report_shape(client):
         assert key in body
     lot_a = next(l for l in body["lots"] if l["lot_id"] == "A")
     assert lot_a["net_revenue_krw"] == 2500
+
+
+# ---------- 팀 공통 형식 (에러·목록) ----------
+
+def test_error_uses_team_format(client):
+    r = client.get("/api/v1/sessions/nope/fee")
+    assert set(r.json()) == {"error"}
+    assert set(r.json()["error"]) == {"code", "message", "details"}
+
+
+def test_already_paid_details_has_existing_payment(client):
+    first = _pay(client).json()
+    r = _pay(client, key="idem-2")
+    assert r.json()["error"]["details"] == [{"existing_payment_id": first["payment_id"]}]
+
+
+def test_same_key_other_session_409(client):
+    _pay(client, key="shared-key")
+    r = _pay(client, session_id="ses_nocar", key="shared-key")
+    assert r.status_code == 409
+    assert r.json()["error"]["code"] == "IDEMPOTENCY_CONFLICT"
+
+
+def test_list_mock_payments_with_filters(client):
+    paid = _pay(client).json()
+    _pay(client, session_id="ses_nocar", key="idem-nocar")
+    client.post(f"/api/v1/mock-payments/{paid['payment_id']}/cancel")
+
+    body = client.get("/api/v1/mock-payments").json()
+    assert set(body) == {"items", "next_cursor", "as_of"}
+    assert len(body["items"]) == 2
+
+    canceled = client.get("/api/v1/mock-payments", params={"status": "canceled"}).json()["items"]
+    assert [p["payment_id"] for p in canceled] == [paid["payment_id"]]
+
+    by_car = client.get("/api/v1/mock-payments", params={"car_id": "01"}).json()["items"]
+    assert len(by_car) == 1 and by_car[0]["car_id"] == "01"
+
+    assert client.get("/api/v1/mock-payments", params={"status": "cancelled"}).status_code == 422
+
+
+def test_rate_policies(client):
+    body = client.get("/api/v1/rate-policies").json()
+    assert set(body) == {"items", "next_cursor", "as_of"}
+    assert body["items"] == [{"lot_id": "A", **POLICY}]

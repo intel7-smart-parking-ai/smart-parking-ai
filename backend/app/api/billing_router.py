@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import sqlite3
-from typing import Any, Optional
+from typing import Any, Literal, Optional
 
 from fastapi import APIRouter, Depends, Path, Query
 from fastapi.responses import JSONResponse
@@ -12,6 +12,7 @@ from backend.app.billing.calculator import calculate_parking_fee_pure
 from backend.app.billing.db import get_db_conn
 from backend.app.billing.payment_service import (
     cancel_mock_payment,
+    list_mock_payments,
     now_kst_iso,
     process_mock_payment,
 )
@@ -69,6 +70,26 @@ def _calculate_fee_helper(
     }
 
 
+def _respond(code: int, data: dict[str, Any]) -> JSONResponse:
+    """성공은 그대로, 오류는 팀 공통 형식 {"error": {"code", "message", "details"}}으로 변환."""
+    if code < 400:
+        return JSONResponse(status_code=code, content=data)
+    extra = {k: v for k, v in data.items() if k not in ("error_code", "message")}
+    return JSONResponse(
+        status_code=code,
+        content={"error": {
+            "code": data.get("error_code", "ERROR"),
+            "message": data.get("message", ""),
+            "details": [extra] if extra else [],
+        }},
+    )
+
+
+def _list_response(items: list[dict[str, Any]]) -> JSONResponse:
+    """팀 공통 목록 형식 {"items", "next_cursor", "as_of"}."""
+    return JSONResponse(content={"items": items, "next_cursor": None, "as_of": now_kst_iso()})
+
+
 # [API 1] GET /api/v1/sessions/{session_id}/fee
 @billing_router.get("/sessions/{session_id}/fee", summary="차량별 주차요금 실시간 계산 및 조회")
 def get_session_fee(
@@ -77,7 +98,7 @@ def get_session_fee(
     conn: sqlite3.Connection = Depends(get_db_conn),
 ) -> JSONResponse:
     code, data = _calculate_fee_helper(conn, session_id, now)
-    return JSONResponse(status_code=code, content=data)
+    return _respond(code, data)
 
 
 # [API 2] POST /api/v1/mock-payments
@@ -90,7 +111,28 @@ def create_mock_payment(
         return _calculate_fee_helper(conn, s_id, t_iso)
 
     code, data = process_mock_payment(conn, req.model_dump(), fee_calc_fn)
-    return JSONResponse(status_code=code, content=data)
+    return _respond(code, data)
+
+
+# [API 2-1] GET /api/v1/mock-payments
+@billing_router.get("/mock-payments", summary="모의 결제 목록 조회")
+def get_mock_payments(
+    lot_id: Optional[str] = Query(None, description="주차장 ID 필터"),
+    status: Optional[Literal["completed", "canceled"]] = Query(None, description="결제 상태 필터"),
+    car_id: Optional[str] = Query(None, description="차량 번호 필터 (예: '01')"),
+    conn: sqlite3.Connection = Depends(get_db_conn),
+) -> JSONResponse:
+    return _list_response(list_mock_payments(conn, lot_id, status, car_id))
+
+
+# [API 2-2] GET /api/v1/rate-policies
+@billing_router.get("/rate-policies", summary="주차장별 요금 정책 조회")
+def get_rate_policies(conn: sqlite3.Connection = Depends(get_db_conn)) -> JSONResponse:
+    cur = conn.cursor()
+    cur.execute(
+        "SELECT lot_id, base_minutes, base_fee, unit_minutes, extra_fee, daily_cap FROM rate_policies ORDER BY lot_id"
+    )
+    return _list_response([dict(r) for r in cur.fetchall()])
 
 
 # [API 3] POST /api/v1/mock-payments/{id}/cancel
@@ -102,7 +144,7 @@ def cancel_payment(
 ) -> JSONResponse:
     payload = req.model_dump() if req else {}
     code, data = cancel_mock_payment(conn, id, payload)
-    return JSONResponse(status_code=code, content=data)
+    return _respond(code, data)
 
 
 # [API 4] GET /api/v1/reports/revenue
@@ -112,4 +154,4 @@ def get_revenue_report(
     conn: sqlite3.Connection = Depends(get_db_conn),
 ) -> JSONResponse:
     code, data = generate_revenue_report(conn, month)
-    return JSONResponse(status_code=code, content=data)
+    return _respond(code, data)

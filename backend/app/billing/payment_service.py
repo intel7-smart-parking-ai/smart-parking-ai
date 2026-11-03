@@ -17,15 +17,35 @@ def now_kst_iso() -> str:
 def _new_id(prefix: str) -> str:
   return f"{prefix}_{uuid.uuid4().hex[:12]}"
 
-def _find_by_idempotency_key(cur: sqlite3.Cursor, idempotency_key: str) -> dict[str, Any] | None:
+def _find_by_idempotency_key(cur: sqlite3.Cursor, idempotency_key: str, session_id: str) -> tuple[int, dict[str, Any]] | None:
+  """같은 멱등키가 있으면 (같은 세션: 200 기존 결제 / 다른 세션: 409) 반환."""
   cur.execute("SELECT * FROM mock_payments WHERE idempotency_key = ?", (idempotency_key,))
   row = cur.fetchone()
   if not row:
     return None
+  if row["session_id"] != session_id:
+    return 409, {
+        "error_code": "IDEMPOTENCY_CONFLICT",
+        "message": "다른 주차 세션에 이미 사용된 결제 요청 키입니다.",
+    }
   res = dict(row)
   res["idempotent_replayed"] = True
   res["notice"] = "중복 결제 방지 작동: 동일 멱등키 요청이므로 기존 결제 결과를 반환합니다."
-  return res
+  return 200, res
+
+
+def list_mock_payments(
+    conn: sqlite3.Connection, lot_id: str | None = None, status: str | None = None, car_id: str | None = None
+) -> list[dict[str, Any]]:
+  """결제 목록 (최신순). 필터는 모두 선택."""
+  cur = conn.cursor()
+  cur.execute(
+      """SELECT * FROM mock_payments
+         WHERE (? IS NULL OR lot_id = ?) AND (? IS NULL OR status = ?) AND (? IS NULL OR car_id = ?)
+         ORDER BY created_at DESC, payment_id""",
+      (lot_id, lot_id, status, status, car_id, car_id),
+  )
+  return [dict(r) for r in cur.fetchall()]
 
 def _already_paid(cur: sqlite3.Cursor, session_id: str) -> tuple[int, dict[str, Any]] | None:
   cur.execute("SELECT payment_id FROM mock_payments WHERE session_id = ? AND status = 'completed'", (session_id,))
@@ -49,9 +69,9 @@ def process_mock_payment(conn: sqlite3.Connection, payload: dict[str, Any], fee_
     return 400, {"error_code": "INVALID_INPUT", "message": "session_id와 idempotency_key는 필수입니다."}
 
   cur = conn.cursor()
-  replay = _find_by_idempotency_key(cur, idempotency_key)
+  replay = _find_by_idempotency_key(cur, idempotency_key, session_id)
   if replay:
-    return 200, replay
+    return replay
 
   conflict = _already_paid(cur, session_id)
   if conflict:
@@ -83,9 +103,9 @@ def process_mock_payment(conn: sqlite3.Connection, payload: dict[str, Any], fee_
   except sqlite3.IntegrityError:
     # 동시 요청 경합: 같은 멱등키 또는 같은 세션의 완료 결제가 먼저 들어간 경우
     conn.rollback()
-    replay = _find_by_idempotency_key(cur, idempotency_key)
+    replay = _find_by_idempotency_key(cur, idempotency_key, session_id)
     if replay:
-      return 200, replay
+      return replay
     return _already_paid(cur, session_id) or (409, {"error_code": "PAYMENT_CONFLICT", "message": "결제 처리 중 충돌이 발생했습니다."})
 
   cur.execute("SELECT * FROM mock_payments WHERE payment_id = ?", (payment_id,))
@@ -103,7 +123,7 @@ def cancel_mock_payment(conn: sqlite3.Connection, payment_id: str, payload: dict
     return 404, {"error_code": "PAYMENT_NOT_FOUND", "message": "결제 내역을 찾을 수 없습니다."}
 
   if payment["status"] != "completed":
-    return 400, {
+    return 409, {
         "error_code": "INVALID_PAYMENT_STATE",
         "message": f"현재 상태가 '{payment['status']}'이므로 취소/환불할 수 없습니다.",
     }

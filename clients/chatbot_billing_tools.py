@@ -12,7 +12,7 @@ import urllib.parse
 import urllib.request
 
 class ChatbotBillingTools:
-  def __init__(self, base_url: str = "http://127.0.0.1:8080") -> None:
+  def __init__(self, base_url: str = "http://127.0.0.1:8000") -> None:
     self.base_url = base_url.rstrip("/")
 
   def get_vehicle_fee(self, session_id: str) -> dict[str, Any]:

@@ -31,10 +31,9 @@
   "lot_id": "A",
   "space_id": "A-01",
   "car_id": "01",
-  "session_status": "active",
   "entry_at": "2026-11-02T09:05:00+09:00",
   "exit_at": null,
-  "calculated_at": "2026-11-02T10:00:00+09:00",
+  "target_at": "2026-11-02T10:00:00+09:00",
   "duration_minutes": 55,
   "fee_breakdown": {
     "base_fee_krw": 1000,
@@ -45,8 +44,8 @@
   },
   "amount_krw": 2500,
   "is_daily_capped": false,
-  "applied_policy_id": "POL-LOT-A",
-  "payment_status": "unpaid"
+  "payment_status": "unpaid",
+  "rate_policy": {"base_minutes": 30, "base_fee": 1000, "unit_minutes": 10, "extra_fee": 500, "daily_cap": 10000}
 }
 ```
 
@@ -85,8 +84,28 @@
 ```
 
 ### 중복 결제 방지 동작 (Idempotent Replay)
-* 동일한 `idempotency_key`로 재요청 시: **200 OK**와 함께 기존 결제 레코드 반환 (`"idempotent_replayed": true`)
-* 이미 결제 완료된 세션에 다른 키로 요청 시: **409 Conflict** (`"error_code": "ALREADY_PAID"`)
+* 동일한 `idempotency_key`로 같은 세션 재요청 시: **200 OK**와 함께 기존 결제 레코드 반환 (`"idempotent_replayed": true`)
+* 같은 `idempotency_key`를 **다른 세션**에 사용 시: **409** `IDEMPOTENCY_CONFLICT`
+* 이미 결제 완료된 세션에 다른 키로 요청 시: **409** `ALREADY_PAID` (`details`에 기존 `existing_payment_id`)
+* 없는 세션: **404** `SESSION_NOT_FOUND` (결제를 만들지 않음)
+* `amount_krw` 등 정의되지 않은 필드를 보내면 **422** (요금은 서버만 계산)
+
+### 에러 응답 형식 (모든 billing API 공통, 팀 계약 형식)
+```json
+{"error": {"code": "ALREADY_PAID", "message": "이미 결제 완료된 주차 세션(ses_0001)입니다.",
+           "details": [{"existing_payment_id": "pay_3f9a1c2b7d10"}]}}
+```
+
+---
+
+## 2-1. GET `/api/v1/mock-payments` — 결제 목록
+
+* **Query Parameter (모두 선택)**: `lot_id`, `status` (`completed` / `canceled`), `car_id` (예: `01`)
+* **응답**: `{"items": [결제 객체, ...], "next_cursor": null, "as_of": "<조회 시각>"}` — 최신순
+
+## 2-2. GET `/api/v1/rate-policies` — 요금 정책
+
+* **응답**: `{"items": [{"lot_id": "A", "base_minutes": 30, "base_fee": 1000, "unit_minutes": 10, "extra_fee": 500, "daily_cap": 10000}], "next_cursor": null, "as_of": "..."}`
 
 ---
 
@@ -102,6 +121,8 @@
   "refund_reason": "고객 요청 모의 환불"
 }
 ```
+
+* 이미 취소된 결제를 다시 취소: **409** `INVALID_PAYMENT_STATE` / 없는 결제: **404** `PAYMENT_NOT_FOUND`
 
 ### 응답 (Response — 200 OK)
 ```json
@@ -166,12 +187,10 @@
 ## 5. 팀원별 프로젝트 코드 연동 방법
 
 ### ⚙️ 박해준 님 (FastAPI 메인 서버)
-패키지 내 `billing_router.py`와 `schemas.py`를 프로젝트의 `routers/`에 넣고 `main.py`에 등록:
+라우터는 `backend/app/api/billing_router.py`에 있습니다. **아직 `main.py`에 등록하지 않았습니다** (main은 현재 DB 미사용 목업만 허용).
+DB 방식(KAN-17) 확정 후 `backend/app/billing/db.py`의 `get_db_conn`을 공용 DB 연결로 바꾸고 아래 한 줄로 등록합니다.
 ```python
-from fastapi import FastAPI
-from routers.billing_router import billing_router
-
-app = FastAPI(title="AI 스마트 주차장 통합 서버")
+from backend.app.api.billing_router import billing_router
 app.include_router(billing_router)
 ```
 
@@ -179,7 +198,7 @@ app.include_router(billing_router)
 패키지 내 `parking_billing_client.js`를 임포트하여 호출:
 ```javascript
 import { ParkingBillingClient } from './parking_billing_client.js';
-const billing = new ParkingBillingClient("http://<윤명수PC_IP>:8080");
+const billing = new ParkingBillingClient("http://<서버PC_IP>:8000");
 
 const fee = await billing.getFee("ses_0001");
 const pay = await billing.pay("ses_0001", "MOCK_CARD");
@@ -191,7 +210,7 @@ const rev = await billing.getRevenue("2026-11");
 패키지 내 `chatbot_billing_tools.py`를 챗봇 툴로 등록하여 사용:
 ```python
 from chatbot_billing_tools import ChatbotBillingTools
-tools = ChatbotBillingTools("http://<윤명수PC_IP>:8080")
+tools = ChatbotBillingTools("http://<서버PC_IP>:8000")
 fee = tools.get_vehicle_fee("ses_0001")
 rev = tools.get_monthly_revenue("2026-11")
 ```
