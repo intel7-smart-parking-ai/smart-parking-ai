@@ -1,0 +1,13 @@
+services:
+  mobile-app:
+    image: parkon-app-web:local
+    ports:
+      - '0.0.0.0:8081:80'
+    depends_on:
+      admin-auth:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+      demo-api:
+        condition: service_healthy
+    restart: unless-stopped

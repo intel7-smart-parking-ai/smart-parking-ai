@@ -243,3 +243,10 @@ __pycache__/
 # Claude Code harness
 _workspace/
 .claude/settings.local.json
+
+# PARK:ON integration runtime artifacts
+scripts/verification-record.json
+backups/
+
+# Local administrator credentials
+.local-access/

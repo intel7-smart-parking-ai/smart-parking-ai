@@ -1,0 +1,119 @@
+name: parkon
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: parkon
+      POSTGRES_USER: parkon
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run scripts/start.ps1 first}
+      TZ: Asia/Seoul
+    volumes:
+      - parkon_db:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U parkon -d parkon']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      target: production
+    ports:
+      - '127.0.0.1:${API_PORT:-8000}:8000'
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=3)"]
+      interval: 5s
+      timeout: 4s
+      retries: 20
+    restart: unless-stopped
+  demo-api:
+    build: ./dev/parkon-api
+    environment:
+      PGHOST: db
+      PGDATABASE: parkon
+      PGUSER: parkon
+      PGPASSWORD: ${POSTGRES_PASSWORD:?Run scripts/start.ps1 first}
+      BILLING_PROVIDER: fixtures
+      TZ: Asia/Seoul
+    ports:
+      - '127.0.0.1:${DEMO_API_PORT:-8002}:8000'
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=3)"]
+      interval: 5s
+      timeout: 4s
+      retries: 20
+    restart: unless-stopped
+  admin-auth:
+    image: python:3.11-slim
+    command: python -W ignore::DeprecationWarning /service/admin_auth.py
+    volumes:
+      - ./deployment/admin_auth.py:/service/admin_auth.py:ro
+      - ./.local-access/htpasswd:/secrets/htpasswd:ro
+    user: '65534:65534'
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    restart: unless-stopped
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8090/healthz')"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+  web:
+    image: parkon-app-web:local
+    build:
+      context: ./frontend
+      target: production
+    ports:
+      - '127.0.0.1:${WEB_PORT:-8080}:81'
+      - '127.0.0.1:8082:80'
+    depends_on:
+      admin-auth:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+      demo-api:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, wget, -q, --spider, 'http://127.0.0.1/healthz']
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+  tunnel:
+    profiles: [external]
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate --url http://web:80
+    depends_on:
+      web:
+        condition: service_healthy
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+  frontend-dev:
+    profiles: [dev]
+    build:
+      context: ./frontend
+      target: development
+    ports:
+      - '127.0.0.1:${DEV_PORT:-5173}:5173'
+    environment:
+      API_PROXY_TARGET: http://api:8000
+      DEMO_API_PROXY_TARGET: http://demo-api:8000
+    volumes:
+      - ./frontend:/app
+      - frontend_modules:/app/node_modules
+    depends_on:
+      api:
+        condition: service_healthy
+      demo-api:
+        condition: service_healthy
+volumes:
+  parkon_db:
+  frontend_modules:
