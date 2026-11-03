@@ -75,7 +75,9 @@ def get_db_conn() -> Iterator[sqlite3.Connection]:
     """FastAPI 의존성. 요청마다 연결을 열고 닫는다."""
     path = get_db_path()
     path.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(path)
+    # FastAPI는 sync 의존성과 sync 엔드포인트를 서로 다른 스레드에서 실행할 수 있다.
+    # 연결은 요청 하나에서만 순차적으로 쓰이므로 스레드 검사를 끄고, 동시 쓰기 대기 시간을 둔다.
+    conn = sqlite3.connect(path, check_same_thread=False, timeout=10)
     conn.row_factory = sqlite3.Row
     init_schema(conn)
     try:

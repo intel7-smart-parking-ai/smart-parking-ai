@@ -229,3 +229,37 @@ def test_rate_policies(client):
     body = client.get("/api/v1/rate-policies").json()
     assert set(body) == {"items", "next_cursor", "as_of"}
     assert body["items"] == [{"lot_id": "A", **POLICY}]
+
+
+# ---------- 실서버 조건 (스레드·동시성) ----------
+
+def test_db_conn_usable_from_other_thread(tmp_path, monkeypatch):
+    """uvicorn은 의존성과 엔드포인트를 다른 스레드에서 실행할 수 있다 (실서버 500 재현 방지)."""
+    import threading
+    from backend.app.billing.db import get_db_conn
+
+    monkeypatch.setenv("SMART_PARKING_DB_PATH", str(tmp_path / "t.db"))
+    gen = get_db_conn()
+    conn = next(gen)
+    errors = []
+
+    def use():
+        try:
+            conn.execute("SELECT 1").fetchone()
+        except Exception as exc:  # noqa: BLE001
+            errors.append(exc)
+
+    t = threading.Thread(target=use)
+    t.start()
+    t.join()
+    gen.close()
+    assert errors == []
+
+
+def test_concurrent_payments_only_one_succeeds(client):
+    from concurrent.futures import ThreadPoolExecutor
+
+    with ThreadPoolExecutor(10) as ex:
+        results = list(ex.map(lambda i: _pay(client, key=f"race-{i}").status_code, range(10)))
+    assert results.count(200) == 1
+    assert set(results) <= {200, 409}
