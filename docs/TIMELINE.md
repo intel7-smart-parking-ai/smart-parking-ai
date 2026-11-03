@@ -269,6 +269,20 @@
 ### 15:46 · 요금 응답 필드 정정 — 서정범·김채린
 - **정정:** 오전 안내("`target_at`·`rate_policy` 없음, `calculated_at`·`applied_policy_id`가 맞음")는 반대였음. 실제 응답은 라우터 기준 `target_at`·`rate_policy` (`schemas.py`의 `FeeResponse`는 응답에 쓰이지 않는 설명용)
 
+### 15:47 · 요금표 반영 방법 안내 — 윤명수
+- **안내:** 숫자를 디스코드에 먼저 올려 PM 확인 → billing `rate_policies` 시드가 없어 실서버는 모든 주차장을 기본값(A 요금)으로 계산 중 → 시드·문서 반영 패치는 Claude가 작성 예정
+
+### 15:55 · 박해준 7개 브랜치 검토 — 박해준 요청
+- **검증:** main + 끝 브랜치 3개(`sqlite-v1-verify`·`session-id-verify`·`d5-occupancy-prototype`) 병합 충돌 없음, **265 passed**. 오늘 결정(car_id·`vehicle_type`·`source`·50칸 도면) 반영 확인. V1 60초 부하 720건 잠금 0·p95 31ms
+- **발견:** KAN-28 `quote_id`까지 합치면 `test_v3_session_ids.py` 13 실패(견적 없이 결제) → V3 브랜치 수정 필요
+- **의존·순서:** DB 줄기(#8→stage1→v1) / vision 줄기(step1→step2→d5·V3). 병합 순서 KAN-28 → `sqlite-v1-verify`(PR #8 닫기) → `vision-event-step2` → d5·V3
+- **진행률:** 박해준 20% → 약 45% (DB 55·vision-event 60·점유 25)
+- **공유 필요:** vision-event 필드(`bbox_xyxy` 주의), 50칸 도면 fixture, D5 실험 경로
+
+### 15:56 · PM 병합 확인 목록 — 김한별 요청
+- **결과:** 열린 PR은 #7·#8(Draft)뿐. 바로 병합 가능: `KAN-28-fee-quote`, `chore/progress-status` / 박해준 PR 생성 시: `sqlite-v1-verify`, `vision-event-step2`, 이후 d5·V3 / 대기: 김채린 `frontend/` 분리 PR, 4곳 요금표
+- **PROGRESS:** 전체 약 25% → 약 32%, #10 55%·#11 60%·#12 25%·#14 92%
+
 ---
 
 ## 대기 중인 결정 (PM)
