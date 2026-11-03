@@ -143,6 +143,15 @@
 - **결과:** 시간표(결정 4건·공지 → 재료 주문 → 카메라 위치 확정 → Jira Task 11개 → PR 처리 → 규격 문서), 결정별 권장안과 복사용 공지문, 재료 목록, PR 처리안(progress-status 병합, #7·#8 보류)
 - **후속:** 내일(11/04) 오후 DB 결정 회의 시간 확정
 
+### 14:03 · 윤명수 오늘 할 일 — 윤명수 요청
+- **결과:** 작업 환경(Python 3.11 or 박해준 PC) → DB V2 기존 데이터 확인·백업 리허설 → 김채린에 결제 API 형식 전달(`schemas.py` 기준 필드·에러 code) → LED 경보 규칙 초안(서정범과) → DB 가이드 Step 3 숙지
+- **발견:** billing `FeeResponse.session_status` 설명이 `active/exited` — DB 결정안 `active/closed`와 다름 → billing 이전 때 정렬
+
+### 14:05 · 서정범 오늘 할 일 — 서정범 요청
+- **확인:** main 챗봇은 `api_paths.json` 옛 경로 그대로, `vehicle_no` 약 120곳, 브랜치 진행 없음
+- **결과:** 경로 변경 → `car_id` 통일·요금 흐름(`session_id` null 처리)·결제 body·에러 분기 → LED 경보 챗봇 답변 → api 모드 질문 4개 확인 → push
+- **발견:** 요금·결제 라우터가 `main.py`에 미등록이라 실서버에서 404 (DB 통합 후 등록 예정). 오전 작업지시의 `target_at`·`rate_policy` 필드는 실제 코드에 없음(`calculated_at`·`applied_policy_id`) → 정정 안내
+
 ---
 
 ## 대기 중인 결정 (PM)
