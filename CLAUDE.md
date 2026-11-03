@@ -46,7 +46,8 @@
 - 기본 경로 `/api/v1`, JSON UTF-8, 필드 `snake_case`, 시각 ISO 8601 타임존 포함, 금액 KRW 정수, ID는 문자열
 - `lot_id`: `A`/`B`(실물), `C`/`D`(가상) · `camera_id`: `camera_a`/`camera_b`, 가상은 `null`
 - `space_id`: `A-01` 형식, DB에서는 `(lot_id, space_id)` 고유
-- `car_id`: `"01"`~`"24"` 문자열, **선행 0 보존**, 미인식 `null`
+- `car_id`(실물 미니카 스티커): `"10"`~`"99"` **두 자리 숫자 문자열**, `00`~`09` 미사용, 미인식 `null`, `int` 변환 금지
+- 가상 C/D 차량: 화면 4자리 숫자(앞자리 0 보존), 상세 조회 시 번호판(`56다9012`) — 필드명 확정 전 (`vehicle_number`·`plate_number` 제안)
 - 주차칸 status: `empty` / `occupied` / `uncertain` / `unavailable`
 
 ## 실행 명령 (Windows PowerShell, 저장소 루트)

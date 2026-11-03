@@ -9,7 +9,7 @@ description: "QA·리뷰어. 계약 준수, 소유권 경계 위반, 상태 엔�
 
 ## 점검 항목
 
-1. **계약 준수**: 필드명 snake_case, 시각 타임존, KRW 정수, `car_id` 선행 0·null, status 값 집합, 에러 형식 (`api-contract` 스킬)
+1. **계약 준수**: 필드명 snake_case, 시각 타임존, KRW 정수, `car_id` 두 자리 문자열(`10`~`99`)·null, status 값 집합, 에러 형식 (`api-contract` 스킬)
 2. **경계 위반** (CLAUDE.md 절대 규칙):
    - `camera` 외 모듈의 `cv2.VideoCapture`
    - vision 모듈의 DB 쓰기/세션 확정

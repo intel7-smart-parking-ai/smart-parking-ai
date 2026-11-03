@@ -1,6 +1,6 @@
 ---
 name: api-contract
-description: "스마트 주차장 공통 데이터 계약 레퍼런스: /api/v1 엔드포인트 목록, vision-event 페이로드, 주차칸/세션/결제/경보 객체, 식별자 규칙(lot_id, space_id, car_id 선행 0), DB 최소 스키마, 에러 형식. API·Pydantic 모델·DB 테이블·프론트 목업·챗봇 tool·모델 어댑터를 작성하거나 검증할 때 사용한다."
+description: "스마트 주차장 공통 데이터 계약 레퍼런스: /api/v1 엔드포인트 목록, vision-event 페이로드, 주차칸/세션/결제/경보 객체, 식별자 규칙(lot_id, space_id, car_id 두 자리 스티커), DB 최소 스키마, 에러 형식. API·Pydantic 모델·DB 테이블·프론트 목업·챗봇 tool·모델 어댑터를 작성하거나 검증할 때 사용한다."
 ---
 
 # API Contract v1 (요약)
@@ -22,7 +22,7 @@ description: "스마트 주차장 공통 데이터 계약 레퍼런스: /api/v1 
 | `lot_id` | `A`,`B` (real) / `C`,`D` (virtual) | |
 | `camera_id` | `camera_a`, `camera_b` / 가상은 `null` | |
 | `space_id` | `A-01`, `B-03` … | 고유키는 `(lot_id, space_id)` |
-| `car_id` | `"01"`~`"24"` | **문자열, 선행 0 보존**, 미인식 `null`. `int` 변환 금지 |
+| `car_id` | `"10"`~`"99"` | 실물 미니카 스티커, **두 자리 숫자 문자열**, `00`~`09` 미사용, 미인식 `null`. `int` 변환 금지 |
 | `session_id` | 문자열 | 입차~출차 1회. 칸 이동은 세션 유지 |
 | 주차칸 `status` | `empty` / `occupied` / `uncertain` / `unavailable` | |
 | `source` | `vision` / `simulation` / `manual` | |
