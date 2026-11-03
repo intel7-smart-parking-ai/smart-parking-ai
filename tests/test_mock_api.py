@@ -33,29 +33,33 @@ def test_lot_contract(client):
     assert set(body) == {"items", "next_cursor", "as_of"}
     assert body["next_cursor"] is None
     assert [(x["lot_id"], x["type"]) for x in body["items"]] == [
-        ("A", "real"), ("B", "real"), ("C", "virtual")]
+        ("A", "real"), ("B", "real"), ("C", "virtual"), ("D", "virtual")]
     for item in body["items"]:
         assert set(item) == {"lot_id", "name", "type", "total_spaces", "empty_spaces",
                              "uncertain_spaces", "unavailable_spaces"}
-        assert item["name"] == f"목업 주차장 {item['lot_id']} (합성 예시)"
+        assert item['name'] == {'A': '개발원주차장', 'B': '부산역주차장', 'C': '북항주차장', 'D': '신세계백화점주차장'}[item['lot_id']]
+    assert sum(x['total_spaces'] for x in body['items']) == 104
 
 
-@pytest.mark.parametrize("lot", ["A", "B", "C"])
+@pytest.mark.parametrize("lot", ["A", "B", "C", "D"])
 def test_spaces_and_aggregates(client, lot):
     r = client.get(f"/api/v1/parking-lots/{lot}/spaces")
     assert r.status_code == 200
     spaces = r.json()["items"]
-    assert len(spaces) == 4
-    assert len({s["space_id"] for s in spaces}) == 4
+    size = {'A': 12, 'B': 16, 'C': 12, 'D': 64}[lot]
+    assert len(spaces) == size
+    assert len({s["space_id"] for s in spaces}) == size
     counts = Counter(s["status"] for s in spaces)
-    assert counts == {"occupied": 1, "empty": 1, "uncertain": 1, "unavailable": 1}
+    assert counts == {"occupied": 1, "empty": size - 3, "uncertain": 1, "unavailable": 1}
     summary = next(x for x in client.get("/api/v1/parking-lots").json()["items"] if x["lot_id"] == lot)
     assert summary["total_spaces"] == sum(counts.values())
     for status in ("empty", "uncertain", "unavailable"):
         assert summary[status + "_spaces"] == counts[status]
     for s in spaces:
-        assert set(s) == {"space_id", "status", "car_id", "observed_at", "confidence", "version"}
-        assert s["space_id"].startswith(lot + "-")
+        assert set(s) == {"space_id", "status", "car_id", "observed_at", "confidence", "version",
+                          'space_type', 'vehicle_type', 'source', 'is_mock'}
+        assert s['source'] == 'simulation' and s['is_mock'] is True
+        assert s['car_id'] is None or (isinstance(s['car_id'], str) and len(s['car_id']) == 2 and '10' <= s['car_id'] <= '99')
         if s["status"] == "unavailable":
             assert s["observed_at"] is None and s["confidence"] is None
         else:
@@ -63,16 +67,18 @@ def test_spaces_and_aggregates(client, lot):
             assert 0 <= s["confidence"] <= 1
 
 
-@pytest.mark.parametrize("number,lot", [(1, "A"), (2, "B"), (3, "C")])
+@pytest.mark.parametrize("number,lot", [(10, "A"), (20, "B")])
 def test_location_matches_occupied_space(client, number, lot):
     car = f"{number:02d}"
     r = client.get(f"/api/v1/vehicles/{car}/location")
     assert r.status_code == 200
     location = r.json()
-    assert set(location) == {"car_id", "lot_id", "space_id", "session_id", "status", "observed_at", "confidence"}
+    assert set(location) == {"car_id", "lot_id", "space_id", "session_id", "status", "observed_at", "confidence",
+                             'vehicle_type', 'source', 'is_mock'}
+    assert location['vehicle_type'] == 'general' and location['source'] == 'simulation' and location['is_mock'] is True
     assert location["lot_id"] == lot and location["car_id"] == car
     assert location["status"] == "occupied" and location["session_id"] is None
-    all_spaces = [s for lot_id in "ABC" for s in client.get(f"/api/v1/parking-lots/{lot_id}/spaces").json()["items"]]
+    all_spaces = [s for lot_id in "ABCD" for s in client.get(f"/api/v1/parking-lots/{lot_id}/spaces").json()["items"]]
     matches = [s for s in all_spaces if s["car_id"] == car]
     assert len(matches) == 1
     assert matches[0]["space_id"] == location["space_id"]
@@ -82,7 +88,7 @@ def test_location_matches_occupied_space(client, number, lot):
 
 
 @pytest.mark.parametrize("path,code", [
-    ("/api/v1/parking-lots/D/spaces", "PARKING_LOT_NOT_FOUND"),
+    ("/api/v1/parking-lots/Z/spaces", "PARKING_LOT_NOT_FOUND"),
     ("/api/v1/parking-lots/unknown/spaces", "PARKING_LOT_NOT_FOUND"),
     ("/api/v1/vehicles/unknown/location", "VEHICLE_NOT_FOUND"),
     ("/api/v1/vehicles/1/location", "VEHICLE_NOT_FOUND"),
@@ -100,7 +106,7 @@ def test_missing(client, path, code):
 
 
 @pytest.mark.parametrize("path", ["/api/v1/parking-lots", "/api/v1/parking-lots/A/spaces",
-                                      "/api/v1/vehicles/01/location", "/api/v1/vehicles/missing/location"])
+                                      "/api/v1/vehicles/10/location", "/api/v1/vehicles/missing/location"])
 def test_mock_header(client, path):
     assert client.get(path).headers["X-ParkFlow-Data-Source"] == "mock"
 
@@ -123,7 +129,7 @@ def test_swagger_and_only_read_operations(client):
 def test_responses_are_repeatable(client):
     before = client.get("/api/v1/parking-lots/A/spaces").json()
     before["items"][0]["car_id"] = "CLIENT-LOCAL-EDIT"
-    assert client.get("/api/v1/parking-lots/A/spaces").json()["items"][0]["car_id"] == "01"
+    assert client.get("/api/v1/parking-lots/A/spaces").json()["items"][0]["car_id"] == "10"
 
 
 def test_existing_health_is_preserved(client):
@@ -172,9 +178,31 @@ from backend.app.main import app
 from fastapi.testclient import TestClient
 with TestClient(app) as client:
     for path in ['/api/v1/health', '/api/v1/parking-lots',
-                 '/api/v1/parking-lots/A/spaces', '/api/v1/vehicles/01/location']:
+                 '/api/v1/parking-lots/A/spaces', '/api/v1/vehicles/10/location']:
         assert client.get(path).status_code == 200
 """
     result = subprocess.run([sys.executable, "-B", "-c", script],
                             capture_output=True, text=True, encoding="utf-8")
     assert result.returncode == 0, result.stdout + result.stderr
+
+
+def test_layout_matches_pm_fixture_and_independent_keys(client):
+    import json
+    from pathlib import Path
+    layout = json.loads((Path(__file__).parent / 'fixtures/pm_parking_layout.json').read_text('utf-8'))
+    keys = set()
+    for lot in layout['lots']:
+        body = client.get(f"/api/v1/parking-lots/{lot['lot_id']}/spaces").json()
+        assert body['next_cursor'] is None
+        assert {s['space_id']: s['space_type'] for s in body['items']} == {
+            s['space_id']: s['space_type'] for s in lot['spaces']}
+        keys.update((lot['lot_id'], s['space_id']) for s in body['items'])
+        if lot['lot_id'] in 'CD':
+            assert all(s['car_id'] is None and s['vehicle_type'] is None for s in body['items'])
+    assert len(keys) == 104 and ('D', 'C-13') in keys and ('A', 'B-06') in keys
+
+
+@pytest.mark.parametrize('car', ['01', '09', '1', '100', '17가1724'])
+def test_no_legacy_alias_or_unconfirmed_plate_search(client, car):
+    response = client.get(f'/api/v1/vehicles/{car}/location')
+    assert response.status_code == 404 and response.json()['error']['code'] == 'VEHICLE_NOT_FOUND'
