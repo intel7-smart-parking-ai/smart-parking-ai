@@ -69,6 +69,8 @@ services:
     build:
       context: ./frontend
       target: production
+      args:
+        VITE_DATA_SOURCE: ${VITE_DATA_SOURCE:-demo}
     ports:
       - '127.0.0.1:${WEB_PORT:-8080}:81'
       - '127.0.0.1:8082:80'
@@ -87,7 +89,7 @@ services:
     restart: unless-stopped
   tunnel:
     profiles: [external]
-    image: cloudflare/cloudflared:latest
+    image: cloudflare/cloudflared@sha256:4955524aeaa379e154023d5a027c250f7b35041a2e7e950cf13f144bc9b9c5ba
     command: tunnel --no-autoupdate --url http://web:80
     depends_on:
       web:
@@ -104,6 +106,8 @@ services:
     ports:
       - '127.0.0.1:${DEV_PORT:-5173}:5173'
     environment:
+      VITE_DATA_SOURCE: ${VITE_DATA_SOURCE:-demo}
+      ADMIN_PROXY_TARGET: http://web:80
       API_PROXY_TARGET: http://api:8000
       DEMO_API_PROXY_TARGET: http://demo-api:8000
     volumes:

@@ -7,6 +7,8 @@ COPY . .
 EXPOSE 5173
 CMD ["npm", "run", "dev"]
 FROM dependencies AS build
+ARG VITE_DATA_SOURCE=demo
+ENV VITE_DATA_SOURCE=$VITE_DATA_SOURCE
 COPY . .
 RUN npm run build
 FROM nginx:stable-alpine AS production

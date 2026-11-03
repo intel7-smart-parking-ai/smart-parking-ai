@@ -4,7 +4,7 @@ from uuid import uuid4
 from typing import Literal
 from fastapi import FastAPI, Request, Query
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from .db import connect, initialize
 from .billing import quote, FIXED_TIME
 
@@ -58,7 +58,7 @@ def sessions(lot_id: str | None = None):
 def location(car_id: str):
     with connect() as conn:
         row = conn.execute("SELECT * FROM parking_sessions WHERE car_id=%s AND status='parked'",(car_id,)).fetchone()
-        if not row: raise APIError('현재 주차 중인 차량을 찾지 못했습니다.','NOT_FOUND',404)
+        if not row: raise APIError('현재 주차 중인 차량을 찾지 못했습니다.','VEHICLE_NOT_FOUND',404)
         return row
 
 def get_quote(conn, session_id):
@@ -72,6 +72,8 @@ def fee(session_id: str):
     with connect() as conn:
         _, result = get_quote(conn,session_id)
         result['payment'] = conn.execute("SELECT * FROM mock_payments WHERE session_id=%s AND status='completed'",(session_id,)).fetchone()
+        latest=conn.execute('SELECT status FROM mock_payments WHERE session_id=%s ORDER BY created_at DESC,payment_id DESC LIMIT 1',(session_id,)).fetchone()
+        result['payment_status'] = latest['status'] if latest else 'unpaid'
         return result
 
 def lookup_result(conn, rows, lookup_type):
@@ -87,6 +89,8 @@ def lookup_result(conn, rows, lookup_type):
         result.pop('vehicle_number', None)
     _, result['fee'] = get_quote(conn, result['session_id'])
     result['fee']['payment'] = conn.execute("SELECT * FROM mock_payments WHERE session_id=%s AND status='completed'", (result['session_id'],)).fetchone()
+    latest=conn.execute('SELECT status FROM mock_payments WHERE session_id=%s ORDER BY created_at DESC,payment_id DESC LIMIT 1',(result['session_id'],)).fetchone()
+    result['fee']['payment_status'] = latest['status'] if latest else 'unpaid'
     return result
 
 @app.get('/api/v1/vehicle-search')
@@ -100,8 +104,9 @@ def search_vehicle(vehicle_number: str = Query(pattern=r'^[0-9]{4}$')):
 
 @app.get('/api/v1/sticker-search')
 def search_sticker(car_id: str = Query(pattern=r'^[0-9]{1,2}$')):
-    if int(car_id) < 10:
-        raise APIError('해당 스티커 번호의 차량이 없습니다.', 'NOT_FOUND', 404)
+    car_id=car_id.zfill(2)
+    if not 1 <= int(car_id) <= 24:
+        raise APIError('스티커 번호 01~24를 확인해주세요.', 'VEHICLE_NOT_FOUND', 404)
     with connect() as conn:
         rows = conn.execute(
             "SELECT s.*, p.bay_label AS space_label FROM parking_sessions s JOIN parking_spaces p ON p.space_id=s.space_id WHERE s.car_id=%s AND s.lot_id IN ('A','B') AND s.status='parked' ORDER BY s.entry_at DESC",
@@ -110,11 +115,10 @@ def search_sticker(car_id: str = Query(pattern=r'^[0-9]{1,2}$')):
         return lookup_result(conn, rows, 'sticker')
 
 class PaymentRequest(BaseModel):
-    session_id: str
+    session_id: str = Field(min_length=1)
     idempotency_key: str = Field(min_length=1,max_length=200)
-    quote_id: str
-    simulate_failure: bool = False
-    payment_method: Literal['credit_card', 'naver_pay', 'kakao_pay'] = 'credit_card'
+    model_config = ConfigDict(extra='forbid')
+    payment_method: Literal['MOCK_CARD', 'MOCK_EASY_PAY', 'MOCK_ACCOUNT'] = 'MOCK_CARD'
 
 @app.post('/api/v1/mock-payments')
 def pay(body: PaymentRequest):
@@ -123,12 +127,10 @@ def pay(body: PaymentRequest):
         old = conn.execute('SELECT * FROM mock_payments WHERE idempotency_key=%s',(body.idempotency_key,)).fetchone()
         if old:
             if old['session_id']!=body.session_id: raise APIError('다른 차량에 사용된 결제 요청 키입니다.','IDEMPOTENCY_CONFLICT',409)
-            if old['payment_method']!=body.payment_method: raise APIError('이미 처리된 결제 수단과 다릅니다. 요금을 다시 조회해주세요.','PAYMENT_METHOD_CONFLICT',409)
+            if old['payment_method']!=body.payment_method: raise APIError('이미 처리된 결제 수단과 다릅니다. 요금을 다시 조회해주세요.','IDEMPOTENCY_CONFLICT',409)
             return old
         conn.execute('SELECT pg_advisory_xact_lock(hashtextextended(%s,0))',('session:'+body.session_id,))
         session, result = get_quote(conn,body.session_id)
-        if body.quote_id!=result['quote_id']: raise APIError('요금을 다시 조회해주세요.','QUOTE_MISMATCH',409)
-        if body.simulate_failure: raise APIError('모의 결제가 거절되었습니다. 다시 시도해주세요.','PAYMENT_DECLINED')
         if conn.execute("SELECT 1 FROM mock_payments WHERE session_id=%s AND status='completed'",(body.session_id,)).fetchone(): raise APIError('이미 결제 완료된 차량입니다.','ALREADY_PAID',409)
         return conn.execute("INSERT INTO mock_payments(payment_id,session_id,lot_id,car_id,amount_krw,status,idempotency_key,created_at,payment_method) VALUES(%s,%s,%s,%s,%s,'completed',%s,%s,%s) RETURNING *",('pay-'+uuid4().hex[:12],body.session_id,session['lot_id'],session['car_id'],result['amount_krw'],body.idempotency_key,FIXED_TIME,body.payment_method)).fetchone()
 
@@ -142,8 +144,8 @@ def cancel(payment_id: str):
     with connect() as conn:
         row=conn.execute('SELECT * FROM mock_payments WHERE payment_id=%s FOR UPDATE',(payment_id,)).fetchone()
         if not row: raise APIError('결제를 찾을 수 없습니다.','NOT_FOUND',404)
-        if row['status']=='cancelled': return row
-        return conn.execute("UPDATE mock_payments SET status='cancelled',cancelled_at=%s WHERE payment_id=%s RETURNING *",(FIXED_TIME,payment_id)).fetchone()
+        if row['status']=='canceled': return row
+        return conn.execute("UPDATE mock_payments SET status='canceled',canceled_at=%s WHERE payment_id=%s RETURNING *",(FIXED_TIME,payment_id)).fetchone()
 
 @app.get('/api/v1/reports/revenue')
 def revenue(month: str | None=None, date: str | None=None, lot_id: str | None=None):
@@ -162,14 +164,17 @@ def revenue(month: str | None=None, date: str | None=None, lot_id: str | None=No
     params=(start,start,end,end)
     with connect() as conn:
         rows=conn.execute(f"""SELECT l.lot_id, COALESCE(sum(p.amount_krw) FILTER(WHERE p.status='completed'),0)::bigint amount_krw,
-          COALESCE(sum(p.amount_krw),0)::bigint gross_krw, COALESCE(sum(p.amount_krw) FILTER(WHERE p.status='cancelled'),0)::bigint cancelled_krw,
-          count(p.payment_id) FILTER(WHERE p.status='completed') payment_count, count(p.payment_id) FILTER(WHERE p.status='cancelled') cancelled_count
+          COALESCE(sum(p.amount_krw),0)::bigint gross_krw, COALESCE(sum(p.amount_krw) FILTER(WHERE p.status='canceled'),0)::bigint canceled_krw,
+          count(p.payment_id) FILTER(WHERE p.status='completed') payment_count, count(p.payment_id) FILTER(WHERE p.status='canceled') canceled_count
           FROM parking_lots l LEFT JOIN mock_payments p ON p.lot_id=l.lot_id AND {where}
           WHERE (%s::text IS NULL OR l.lot_id=%s) GROUP BY l.lot_id ORDER BY l.lot_id""",(*params,lot_id,lot_id)).fetchall()
-        daily=conn.execute(f"""SELECT (p.created_at AT TIME ZONE 'Asia/Seoul')::date date, COALESCE(sum(p.amount_krw) FILTER(WHERE p.status='completed'),0)::bigint amount_krw, COALESCE(sum(p.amount_krw),0)::bigint gross_krw, COALESCE(sum(p.amount_krw) FILTER(WHERE p.status='cancelled'),0)::bigint cancelled_krw, count(*) FILTER(WHERE p.status='completed') payment_count, count(*) FILTER(WHERE p.status='cancelled') cancelled_count
+        daily=conn.execute(f"""SELECT (p.created_at AT TIME ZONE 'Asia/Seoul')::date date, COALESCE(sum(p.amount_krw) FILTER(WHERE p.status='completed'),0)::bigint amount_krw, COALESCE(sum(p.amount_krw),0)::bigint gross_krw, COALESCE(sum(p.amount_krw) FILTER(WHERE p.status='canceled'),0)::bigint canceled_krw, count(*) FILTER(WHERE p.status='completed') payment_count, count(*) FILTER(WHERE p.status='canceled') canceled_count
           FROM mock_payments p WHERE {where} AND (%s::text IS NULL OR p.lot_id=%s) GROUP BY 1 ORDER BY 1""",(*params,lot_id,lot_id)).fetchall()
-    summary={key:sum(r[key] for r in rows) for key in ['amount_krw','gross_krw','cancelled_krw','payment_count','cancelled_count']}
-    return dict(summary=summary,lots=rows,daily=daily,period=date or month or 'all',lot_id=lot_id,authority='server_fixture',cancellation_basis='original_payment_period',is_mock=True)
+    summary={key:sum(r[key] for r in rows) for key in ['amount_krw','gross_krw','canceled_krw','payment_count','canceled_count']}
+    def totals(row):
+        return dict(gross_amount_krw=row['gross_krw'],canceled_amount_krw=row['canceled_krw'],net_revenue_krw=row['amount_krw'],completed_count=row['payment_count'],canceled_count=row['canceled_count'])
+    daily_items=[dict(date=str(r['date']),gross_krw=r['gross_krw'],canceled_krw=r['canceled_krw'],net_krw=r['amount_krw'],completed_count=r['payment_count'],canceled_count=r['canceled_count']) for r in daily]
+    return dict(summary={**totals(summary),'by_type':{}},lots=[dict(lot_id=r['lot_id'],**totals(r)) for r in rows],daily_revenue=daily_items,monthly_revenue=[],filter_month=date or month or 'ALL',lot_id=lot_id,aggregated_basis='original_payment_period',is_mock=True)
 
 @app.get('/api/v1/alerts')
 def alerts(lot_id: str | None=None,status: str | None=None):

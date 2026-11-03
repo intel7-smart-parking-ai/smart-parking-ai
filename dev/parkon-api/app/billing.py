@@ -27,5 +27,7 @@ def quote(session, policy):
         'session_id': session['session_id'], 'quote_id': 'quote-' + session['session_id'],
         'duration_seconds': 6600, 'duration_minutes': 110,
         'cap_discount_krw': 0, 'calculated_at': FIXED_TIME,
+        'entry_at': session['entry_at'], 'rate_policy': policy,
+        'fee_breakdown': dict(base_fee_krw=QUOTES[session['lot_id']]['base_amount_krw'],extra_units=QUOTES[session['lot_id']]['extra_units'],extra_fee_krw=QUOTES[session['lot_id']]['extra_amount_krw'],daily_cap_krw=policy['daily_cap'],cap_discount_krw=0),
         'is_mock': True, 'authority': 'server_fixture',
     }

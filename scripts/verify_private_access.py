@@ -27,11 +27,11 @@ def call(path,method='GET',body=None,origin=None,headers=None,retry=0):
             time.sleep(1.1)
             return call(path,method,body,origin,headers,retry+1)
         return e.code,e.read(),e.headers
-for path in ['/','/?app=1','/demo-api/v1/parking-lots','/demo-api/v1/rate-policies','/demo-api/v1/alerts','/admin/login']:
+for path in ['/','/?app=1','/demo-api/v1/parking-lots','/demo-api/v1/rate-policies','/demo-api/v1/alerts','/api/v1/parking-lots','/admin/login']:
     assert call(path)[0]==200,path
 for path in ['/admin-api/demo/v1/reports/revenue?month=2026-11','/admin-api/demo/v1/mock-payments','/admin-api/demo/v1/sessions','/admin-api/team/v1/parking-lots']:
     assert call(path)[0]==401,path
-for path in ['/demo-api/v1/reports/revenue','/demo-api/v1/sessions','/demo-api/v1/mock-payments','/api/v1/parking-lots']:
+for path in ['/demo-api/v1/reports/revenue','/demo-api/v1/sessions','/demo-api/v1/mock-payments']:
     assert call(path)[0]==403,path
 for path in ['/demo-api/v1/mock-payments/no-such-payment/cancel','/demo-api/v1/demo/alerts','/demo-api/v1/alerts/no-such-alert/resolve']:
     assert call(path,'POST',b'{}')[0]==403,path

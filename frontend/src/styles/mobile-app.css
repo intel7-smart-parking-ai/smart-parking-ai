@@ -5,3 +5,5 @@
 .app-car-result>.app-exit-notice{padding:12px 14px;border-radius:10px;background:#e5edce;color:#36512c;font-size:12px;font-weight:700;line-height:1.7;margin-top:16px}
 
 .mobile-app-header-actions{display:flex;align-items:center;gap:8px}.app-switch-web{display:inline-flex;align-items:center;gap:5px;min-height:36px;padding:8px 10px;border:1px solid #c9d7a7;border-radius:20px;background:#fff;color:#36512c;font-size:12px;font-weight:700;white-space:nowrap;text-decoration:none}.app-switch-web .icon{width:14px;height:14px}.app-switch-web:focus-visible{outline:2px solid #526f35;outline-offset:3px}@media(max-width:380px){.mobile-app-header{padding-left:14px;padding-right:14px}.mobile-app-header>a{gap:6px}.mobile-app-header img{width:28px;height:28px}.mobile-app-header b{font-size:20px}.mobile-app-header-actions{gap:5px}.app-switch-web,.mobile-app-header-actions .app-install-button{font-size:11px;padding:8px}}
+
+.mobile-bottom-nav{grid-template-columns:repeat(5,minmax(0,1fr))}

@@ -27,9 +27,9 @@ test('team response keeps IDs, states and missing dedicated bay types', async ()
   assert.equal(lots[0].updated_at, '2026-11-02T10:00:00+09:00');
 });
 
-test('team mutations are rejected before a network call', async () => {
-  globalThis.fetch = () => { throw new Error('must not send'); };
-  await assert.rejects(request('/mock-payments', {method: 'POST'}, 'team'), /조회만/);
+test('team payment mutations reach the official route',async()=>{
+ globalThis.fetch=async(path,options)=>{assert.equal(path,'/api/v1/mock-payments');assert.equal(options.method,'POST');return ok({status:'completed'})};
+ assert.equal((await request('/mock-payments',{method:'POST',body:{session_id:'ses_01'}},'team')).status,'completed');
 });
 
 test('demo payment requests use the isolated proxy', async () => {
@@ -67,27 +67,30 @@ test('four-digit lookup preserves leading zeroes and uses demo search API', asyn
     assert.equal(path, '/demo-api/v1/vehicle-search?vehicle_number=0022');
     return ok({vehicle_number: '0022', car_id: '22', fee: {amount_krw: 3200}});
   };
-  const result = await lookupVehicle('0022');
+  const result = await lookupVehicle('0022','plate');
   assert.equal(result.vehicle_number, '0022');
   assert.equal(result.car_id, '22');
 });
 
 test('invalid number never triggers a request', async () => {
   globalThis.fetch = () => { throw new Error('must not send'); };
-  for (const value of ['12', '12345', 'abcd', '']) await assert.rejects(lookupVehicle(value), /4자리/);
+  for (const value of ['12', '12345', 'abcd', '']) await assert.rejects(lookupVehicle(value,'plate'), /4자리/);
 });
 
-test('physical sticker lookup supports two-digit numbers through 99', async () => {
-  globalThis.fetch = async path => {
-    assert.equal(path, '/demo-api/v1/sticker-search?car_id=99');
-    return ok({car_id: '99', lookup_type: 'sticker'});
-  };
-  assert.equal((await lookupVehicle('99','sticker')).car_id, '99');
+test('sticker input 1 is padded to 01 and preserves a missing session',async()=>{
+ globalThis.fetch=async path=>{assert.equal(path,'/api/v1/vehicles/01/location');return ok({car_id:'01',session_id:null})};
+ const result=await lookupVehicle('1','sticker','team');assert.equal(result.car_id,'01');assert.equal(result.fee,null);
 });
-
-test('physical sticker lookup rejects plate-sized and out-of-range inputs', async () => {
-  globalThis.fetch = () => { throw new Error('must not send'); };
-  for (const value of ['1234', '100', '']) await assert.rejects(lookupVehicle(value,'sticker'), /10~99/);
+test('sticker lookup gets server fee without calculating a price',async()=>{
+ const calls=[];globalThis.fetch=async path=>{calls.push(path);return ok(path.includes('/location')?{car_id:'09',session_id:'ses_9'}:{session_id:'ses_9',amount_krw:7531,payment_status:'completed',fee_breakdown:{base_fee_krw:1000,extra_units:2,extra_fee_krw:6531}})};
+ const result=await lookupVehicle('09','sticker','team');assert.equal(result.fee.amount_krw,7531);assert.equal(result.fee.payment_status,'completed');assert.deepEqual(calls,['/api/v1/vehicles/09/location','/api/v1/sessions/ses_9/fee']);
+});
+test('sticker lookup rejects identifiers outside 01 through 24',async()=>{
+ globalThis.fetch=()=>{throw new Error('must not send')};
+ for(const value of ['00','25','99','1234',''])await assert.rejects(lookupVehicle(value,'sticker'),/01~24/);
+});
+test('team source does not expose demo four-digit search',async()=>{
+ globalThis.fetch=()=>{throw new Error('must not send')};await assert.rejects(lookupVehicle('1234','plate','team'),/01~24/);
 });
 
 test('legacy team URL still opens the final four-lot UI', async () => {
@@ -102,7 +105,7 @@ test('legacy team URL still opens the final four-lot UI', async () => {
   }
 });
 
-test('single-digit and zero-prefixed stickers are not found without a request', async () => {
- globalThis.fetch = () => {throw new Error('must not send');};
- for (let n=0;n<10;n++) for (const value of [String(n),String(n).padStart(2,'0')]) await assert.rejects(lookupVehicle(value,'sticker'), /차량이 없습니다/);
+test('fee API not implemented preserves successful location',async()=>{
+ globalThis.fetch=async path=>path.includes('/location')?ok({car_id:'02',session_id:'ses_2'}):{ok:false,status:404,json:async()=>({detail:'Not Found'})};
+ const result=await lookupVehicle('02','sticker','team');assert.equal(result.car_id,'02');assert.equal(result.fee,null);assert.match(result.fee_notice,/연결 대기/);
 });
