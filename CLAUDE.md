@@ -44,7 +44,7 @@
 ## 데이터 규약 (요약 — 상세는 `api-contract` 스킬)
 
 - 기본 경로 `/api/v1`, JSON UTF-8, 필드 `snake_case`, 시각 ISO 8601 타임존 포함, 금액 KRW 정수, ID는 문자열
-- `lot_id`: `A`/`B`(실물), `C`/`D`(가상), 화면 이름 A 개발원주차장 · B 부산역주차장 · C 북항주차장 · D 미정(김채린 지정) · `camera_id`: `camera_a`/`camera_b`, 가상은 `null`
+- `lot_id`: `A`/`B`(실물), `C`/`D`(가상), 화면 이름 A 개발원주차장 · B 부산역주차장 · C 북항주차장 · D 신세계백화점주차장 · `camera_id`: `camera_a`/`camera_b`, 가상은 `null`
 - 칸 수: A 12 · B 16 · C 12 · D 64(4구역 A~D 각 16) = 104칸, 전기차·장애인 전용 칸 포함 (상세 `docs/API_CONTRACT.md`)
 - `space_id`: 주차장별 도면 번호 `A-01`·`B-06` (A·B는 주차장 안 구역, `lot_id`와 무관). 항상 `(lot_id, space_id)`로 식별, 표시는 "가 주차장 B-06"
 - `car_id`(실물 미니카 스티커): `"10"`~`"99"` **두 자리 숫자 문자열**, `00`~`09` 미사용, 미인식 `null`, `int` 변환 금지

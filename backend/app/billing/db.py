@@ -77,6 +77,42 @@ def init_schema(conn: sqlite3.Connection) -> None:
     conn.executescript(SCHEMA)
 
 
+# 주차장 4곳 기본 데이터 (2026-11-03, 요금표는 윤명수 작성·PM 확인)
+# (lot_id, 이름, 종류, 칸 수) — 이름·칸 수는 docs/DECISIONS.md D-14·D-15. D-16: 신세계백화점주차장
+DEFAULT_LOTS = [
+    ("A", "개발원주차장", "real", 12),
+    ("B", "부산역주차장", "real", 16),
+    ("C", "북항주차장", "virtual", 12),
+    ("D", "신세계백화점주차장", "virtual", 64),
+]
+# (lot_id, 기본 시간(분), 기본 요금, 추가 단위(분), 추가 요금, 일 최대)
+DEFAULT_RATE_POLICIES = [
+    ("A", 30, 1000, 10, 500, 10000),
+    ("B", 30, 2000, 10, 700, 20000),
+    ("C", 30, 3000, 10, 800, 40000),
+    ("D", 30, 4000, 10, 1000, 50000),
+]
+
+
+def seed_defaults(conn: sqlite3.Connection) -> None:
+    """빈 DB일 때만 주차장·요금표 기본 데이터를 넣는다 (이미 데이터가 있으면 건드리지 않음).
+
+    DB 통합(박해준) 후에는 공용 시드로 옮긴다.
+    """
+    if conn.execute("SELECT 1 FROM parking_lots LIMIT 1").fetchone():
+        return
+    # 첫 요청이 동시에 들어와도 충돌하지 않도록 OR IGNORE
+    conn.executemany(
+        "INSERT OR IGNORE INTO parking_lots (lot_id, name, type, total_spaces) VALUES (?, ?, ?, ?)", DEFAULT_LOTS
+    )
+    conn.executemany(
+        "INSERT OR IGNORE INTO rate_policies (lot_id, base_minutes, base_fee, unit_minutes, extra_fee, daily_cap)"
+        " VALUES (?, ?, ?, ?, ?, ?)",
+        DEFAULT_RATE_POLICIES,
+    )
+    conn.commit()
+
+
 def get_db_path() -> Path:
     return Path(os.getenv("SMART_PARKING_DB_PATH", str(DEFAULT_DB_PATH)))
 
@@ -90,6 +126,7 @@ def get_db_conn() -> Iterator[sqlite3.Connection]:
     conn = sqlite3.connect(path, check_same_thread=False, timeout=10)
     conn.row_factory = sqlite3.Row
     init_schema(conn)
+    seed_defaults(conn)
     try:
         yield conn
     finally:
