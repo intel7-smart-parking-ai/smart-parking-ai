@@ -19,7 +19,7 @@ description: "스마트 주차장 공통 데이터 계약 레퍼런스: /api/v1 
 
 | 필드 | 값 | 규칙 |
 | --- | --- | --- |
-| `lot_id` | `A`,`B` (real) / `C`,`D` (virtual) | 화면 이름 개발원·부산역·북항·(D 미정). 칸 수 12·16·12·64 (`docs/API_CONTRACT.md`) |
+| `lot_id` | `A`,`B` (real) / `C`,`D` (virtual) | 화면 이름 개발원·부산역·북항·신세계백화점. 칸 수 12·16·12·64 (`docs/API_CONTRACT.md`) |
 | `camera_id` | `camera_a`, `camera_b` / 가상은 `null` | |
 | `space_id` | `A-01`, `B-03` … | 주차장별 도면 번호(A·B = 주차장 안 구역, `lot_id`와 무관). 고유키는 `(lot_id, space_id)` |
 | `car_id` | `"10"`~`"99"` | 실물 미니카 스티커, **두 자리 숫자 문자열**, `00`~`09` 미사용, 미인식 `null`. `int` 변환 금지 |
