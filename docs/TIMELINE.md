@@ -378,6 +378,13 @@
 - **주의:** 프론트 기본 `demo` 모드는 데모 서버가 main에 없어 동작 안 함 → 팀 서버 연결은 `VITE_DATA_SOURCE=team`
 
 ---
+### 17:00 · 박해준 다음 작업 정리 — 박해준 요청
+- **검증:** main + `d5-occupancy-prototype`(104칸) + `v3-quote-id-compat`(PR #23, Draft) → 충돌 0, 289 passed — 둘 다 병합 가능
+- **우선순위:** PR 정리(#23 Ready, d5 PR, 옛 V3 브랜치 삭제) → KAN-16 조회 104칸·두 자리 → `main.py` 등록 → 필드명 공지 → 입출차 세션
+- **`main.py` 범위:** billing 라우터 등록(KAN-16 "DB import 금지" 테스트 기준 조정 필요), 조회 3종을 점유 store 기반으로 단일화(같은 경로 중복 해소, 기존 응답 형식 유지 + `name`·`space_type`·`source`·`is_mock`), vision-event 수신(시연용 고정 키 제안), 챗봇은 정렬 후
+- **세션·billing:** 세션 생성 박해준 / billing 읽기 윤명수(권장). 빠른 길 = 같은 SQLite 파일·`parking_sessions` 테이블(+`status`)에 기록 → 11/04 테이블 확정, 11/05 생성·`GET /sessions`, 11/06 billing 확인, 11/09 통합 시험
+
+---
 ---
 
 ## 대기 중인 결정 (PM)
