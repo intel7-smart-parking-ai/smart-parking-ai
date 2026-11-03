@@ -41,7 +41,7 @@ class OccupancyExperiment(InMemoryEventStore):
                 if key in self._spaces:
                     raise ValueError('중복 주차칸 키입니다.')
                 self._spaces[key] = dict(lot_id=key[0], space_id=key[1], space_type=space['space_type'],
-                    status=policy.initial_status, car_id=None, source=None, is_mock=None,
+                    status=policy.initial_status, car_id=None, vehicle_type=None, source=None, is_mock=None,
                     observed_at=None, version=0, candidate=None)
 
     def receive(self, event):
@@ -67,20 +67,21 @@ class OccupancyExperiment(InMemoryEventStore):
             if event.confidence < self.policy.min_confidence or (
                 event.event_type == 'space_empty_observed' and event.car_id is not None
             ):
-                row.update(status='uncertain', car_id=None, candidate=None)
+                row.update(status='uncertain', car_id=None, vehicle_type=None, candidate=None)
                 return outcome
             target = 'occupied' if event.event_type == 'vehicle_observed' else 'empty'
             car = event.car_id if target == 'occupied' else None
-            signature = (target, car, event.source)
+            observed_type = event.vehicle_type if target == 'occupied' else None
+            signature = (target, car, event.source, observed_type)
             if (candidate is None or candidate[0] != signature or gap is None
                     or gap > self.policy.max_gap_seconds):
                 candidate = (signature, event.observed_at)
             elapsed = (event.observed_at - candidate[1]).total_seconds()
             required = self.policy.occupy_seconds if target == 'occupied' else self.policy.empty_seconds
             if elapsed >= required:
-                row.update(status=target, car_id=car)
+                row.update(status=target, car_id=car, vehicle_type=observed_type)
             else:
-                row.update(status='uncertain', car_id=None)
+                row.update(status='uncertain', car_id=None, vehicle_type=None)
             row['candidate'] = candidate
             return outcome
 
@@ -95,5 +96,5 @@ class OccupancyExperiment(InMemoryEventStore):
             row.pop('candidate')
             timestamp = row['observed_at']
             if timestamp is not None and (as_of - timestamp).total_seconds() > self.policy.stale_seconds:
-                row.update(status='uncertain', car_id=None)
+                row.update(status='uncertain', car_id=None, vehicle_type=None)
         return rows

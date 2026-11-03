@@ -69,7 +69,7 @@ def test_same_space_name_is_independent_per_lot(experiment):
     occupy(client, lot_id='C', camera_id=None)
     assert space(client, 'C')['status'] == 'occupied'
     assert space(client, 'A')['status'] == 'empty'
-    assert sum(len(client.get(GET.format(lot)).json()['items']) for lot in 'ABCD') == 50
+    assert sum(len(client.get(GET.format(lot)).json()['items']) for lot in 'ABCD') == 104
     assert space(client, 'B', 'B-08')['space_type'] == 'accessible'
 
 
@@ -124,7 +124,62 @@ def test_unknown_space_and_lot(experiment):
     client, store, clock = experiment
     assert client.post(POST, json=event(0, space_id='A-99')).status_code == 422
     assert len(store) == 0
-    assert client.get(GET.format('Z')).status_code == 404
+    response = client.get(GET.format('Z'))
+    assert response.status_code == 404
+    assert response.json() == {'error': {'code': 'PARKING_LOT_NOT_FOUND',
+                                        'message': '주차장이 없습니다.', 'details': []}}
+
+
+@pytest.mark.parametrize('lot,count', [('A', 12), ('B', 16), ('C', 12), ('D', 64)])
+def test_common_list_and_104_layout(experiment, lot, count):
+    client, store, clock = experiment
+    response = client.get(GET.format(lot))
+    body = response.json()
+    assert response.status_code == 200 and body['next_cursor'] is None
+    assert datetime.fromisoformat(body['as_of']) == clock[0]
+    assert len(body['items']) == count
+    spaces = {s['space_id']: s for s in body['items']}
+    expected = next(x for x in LAYOUT['lots'] if x['lot_id'] == lot)
+    assert {k: v['space_type'] for k, v in spaces.items()} == {
+        s['space_id']: s['space_type'] for s in expected['spaces']}
+    if lot == 'D':
+        assert set(spaces) == {f'{zone}-{i:02}' for zone in 'ABCD' for i in range(1, 17)}
+        assert {k for k, v in spaces.items() if v['space_type'] == 'ev'} == {f'D-{i:02}' for i in range(1, 9)}
+        assert {k for k, v in spaces.items() if v['space_type'] == 'accessible'} == {f'C-{i:02}' for i in range(13, 17)}
+
+
+@pytest.mark.parametrize('observed', ['general', 'ev', 'accessible', None])
+def test_vehicle_type_comes_only_from_observation(experiment, observed):
+    client, store, clock = experiment
+    occupy(client, lot_id='D', camera_id=None, space_id='D-01', vehicle_type=observed)
+    row = space(client, 'D', 'D-01')
+    assert row['space_type'] == 'ev' and row['vehicle_type'] == observed
+    assert row['status'] == 'occupied'  # 전용칸 종류로 차량 종류를 추정/차단하지 않는다.
+    # 미인식 새 관측은 이전 차량 종류를 복사하지 않는다.
+    client.post(POST, json=event(3, lot_id='D', camera_id=None, space_id='D-01', vehicle_type=None, confidence=.2))
+    assert space(client, 'D', 'D-01')['vehicle_type'] is None
+
+
+def test_vehicle_type_cleared_on_stale_and_empty(experiment):
+    client, store, clock = experiment
+    occupy(client, vehicle_type='ev')
+    assert space(client)['vehicle_type'] == 'ev'
+    clock[0] = START + timedelta(seconds=13)
+    assert space(client)['vehicle_type'] is None
+    clock[0] = START + timedelta(seconds=6)
+    for tick in (3, 4, 5, 6):
+        client.post(POST, json=event(tick, event_type='space_empty_observed', car_id=None, vehicle_type=None))
+    assert space(client)['status'] == 'empty' and space(client)['vehicle_type'] is None
+
+
+def test_pending_vehicle_type_and_d_zone_independence(experiment):
+    client, store, clock = experiment
+    client.post(POST, json=event(0, vehicle_type='ev', lot_id='D', camera_id=None, space_id='C-13'))
+    assert space(client, 'D', 'C-13')['vehicle_type'] is None
+    for tick in (1, 2):
+        client.post(POST, json=event(tick, vehicle_type='ev', lot_id='D', camera_id=None, space_id='C-13'))
+    assert space(client, 'D', 'C-13')['vehicle_type'] == 'ev'
+    assert space(client, 'C', 'A-01')['status'] == 'empty'
 
 
 def test_plate_and_led_are_not_occupancy_evidence(experiment):

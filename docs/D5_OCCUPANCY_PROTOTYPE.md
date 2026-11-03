@@ -1,5 +1,16 @@
 # D5 점유 프로토타입 · 2026-11-03
 
+## Step 4.1 최신 결과 · 2026-11-03
+
+- Vision PR#19 ed369910을 선행 부모로 가져왔다. 현재 fixture는 개발원12/부산역16/북항12/신세계백화점64, 전체104칸(실물28/가상76)이다. D의4구역 각16칸, EV D-01~D-08·장애인 C-13~C-16을 API에서도 검증했다. 아래50칸/166개는 당시 이력이다.
+- 격리 GET 목록에 items/next_cursor:null/as_of를 제공한다. 추가 data_source/policy_status 및 칸별 source/is_mock/space_type은 유지한다. 커서 생성·페이지네이션은 구현하지 않았다. 없는 주차장은404 error/code=PARKING_LOT_NOT_FOUND/message/details[] 형식이다.
+- vehicle_type은 안정화된 점유 관측에서 확인한 값만 제공한다. 미인식·안정화 대기·uncertain·stale·empty에서는null이며 칸 종류로 추정하지 않는다. 서로 다른 차량 종류 관측은 안정화 후보를 새로 시작한다. 전용칸 위반 처리 정책은 별도다.
+- 이번 실제 실행: 176 passed, 실패/skip0, 기존 Starlette/httpx 경고1, 2.82초. D5시험28개(이번 추가10개 포함)+Vision/기존 비접속148개다. 기존 Python3.11.18에서 아래 선택 시험을 sqlite3.connect·PostgreSQL 드라이버/Alembic 차단 상태로 실행했다. V1/V3/실제 DB·네트워크 서버 시험은 미실행이다.
+- 입력 경로·점유/해제·불확실·중복/충돌·동시 이벤트·출처 구분과 운영 앱 미등록을 유지한다. 기존 main의 KAN-16 조회와 같은 경로이므로 이 실험 라우터를 운영에 중복 등록하지 않는다. 기존 안정화 수치는 계속 실험 가정이다.
+- main672124a의 결정 문서는 D 이름이 여전히 미정이므로 최신 사용자 확정명을 사용한다. PR#19가 병합되기 전 D5 PR은 생성하지 않는다. 다음은 PR#19 검토/병합 후 D5 누적 차이·최신 main 통합 회귀를 재확인하는 것이다.
+
+## 기존 Step 4 검증 이력 (50칸 기준)
+
 - 별도 메모리 실험이며 운영 main·DB·billing·기존 수신기를 수정하지 않았다. 세션 입출차·차량 위치 확정 엔진이 아니다.
 - 신규: api/occupancy_prototype.py, api/occupancy_experiment_app.py, tests/test_occupancy_prototype.py와 본 문서.
 - 기존 create_experiment_app 수신기와 PM 50칸 fixture를 명시적으로 주입해 재사용한다. 전역 app·자동 도면 로딩·서버 기동은 없다. 인증 콜백의 정확한 True가 읽기/쓰기 모두 필요하며 실제 인증은 미확정이다.
