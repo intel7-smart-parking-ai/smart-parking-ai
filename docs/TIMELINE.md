@@ -162,6 +162,16 @@
 - **결과:** Draft PR 생성 → V2 기존 데이터 확인(윤명수와) → **vision-event 스키마 + 가짜 이벤트 샘플 7개**(D5 대비, 가상 C 공용) → 우지원과 ROI 출력 형식 합의 → 내일 V1 준비(WAL·busy_timeout, `check_same_thread=False`, `AwareDateTime`)
 - **후속:** 가상 C 시뮬레이터 이관 제안에 대한 박해준 의견
 
+### 14:15 · 가상 시뮬레이션 담당 문의 — fkwmqpf
+- **답변:** 문서상 박해준, 윤명수 이관 제안 PM 결정 대기
+
+### 14:25 · 프론트 push 검토 + 추가 구현 — fkwmqpf(김채린 추정) 요청
+- **대상:** `codex/parkon-user-admin-revenue` (`07dd13a`, PR #7 포함, 사용자/관리자 분리·로그인·매출 달력·PWA)
+- **검증:** `npm test` 23 passed, `npm run build` 성공, main 시험 병합 충돌 없음, 비밀값 없음
+- **발견 (팀 서버 규격 불일치 7건):** `dataSource='demo'` 고정, 스티커 검색 10~99만 허용(01~09 불가), 결제 body `quote_id`·`simulate_failure`(422), 결제 수단 값, `payment.status` vs `payment_status`, `cancelled` 철자, 매출 필드명
+- **추가 구현:** D5 팀 서버 스위치·점유 화면 자동 새로고침·스티커 01~24 위치 조회 / D7 요금·결제·매출·경보·챗봇 연결
+- **PM 결정 필요:** `dev/parkon-api` 별도 백엔드(PostgreSQL) 처리, 4자리 차량번호 검색, cloudflared 외부 공개 터널, 브랜치명, PR #7 처리
+
 ---
 
 ## 대기 중인 결정 (PM)
@@ -177,3 +187,4 @@
 | D5 중간 점검 범위 (차량 점유만으로 축소 여부) | 12:15 | ⏳ |
 | 재료가 11/04까지 오지 않을 때 대체 마커 방안 | 13:50 | ⏳ |
 | 가상 C 시뮬레이터 담당 이관 (박해준 → 윤명수) | 14:07 | ⏳ |
+| 프론트 데모 백엔드(`dev/parkon-api`)·외부 터널·4자리 번호 검색 처리 | 14:25 | ⏳ |
