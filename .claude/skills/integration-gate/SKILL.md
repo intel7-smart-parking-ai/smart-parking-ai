@@ -20,7 +20,7 @@ git diff --stat main...HEAD # 내 담당 폴더 밖 변경이 있는지
 - `VideoCapture` → `backend/app/camera` 및 `smart_parking_dataset_capture/` 외에서 나오면 🔴
 - `backend/app/vision/**`에서 DB 세션/`session.add`/`INSERT` → 🔴
 - `frontend/src/**`, `backend/app/chatbot/**`에서 요금 계산식(`extra_fee`, `unit_minutes` 연산) → 🔴
-- `car_id`를 `int(`로 변환 → 🔴 (선행 0 손실)
+- `car_id`를 `int(`로 변환 → 🔴 (문자열 규칙 위반, 두 자리 형식 검증 누락)
 - `실제 화재`, `fire detected` 같은 표기 → 🟡 "모의 화재"로
 
 PR 본문: `.github/PULL_REQUEST_TEMPLATE.md` (Jira 링크, 영향 영역 체크, 실행/테스트 결과, 복구 방법).
