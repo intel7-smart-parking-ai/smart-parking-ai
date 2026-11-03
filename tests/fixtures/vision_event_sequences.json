@@ -1,0 +1,198 @@
+{
+  "normal": [
+    {
+      "event_id": "fixture-001",
+      "event_type": "vehicle_observed",
+      "source": "vision",
+      "lot_id": "A",
+      "camera_id": "camera_a",
+      "space_id": "A-01",
+      "car_id": "01",
+      "confidence": 0.92,
+      "bbox_xyxy": [
+        100,
+        140,
+        180,
+        260
+      ],
+      "observed_at": "2026-11-06T10:00:00+09:00"
+    },
+    {
+      "event_id": "fixture-002",
+      "event_type": "vehicle_observed",
+      "source": "vision",
+      "lot_id": "A",
+      "camera_id": "camera_a",
+      "space_id": "A-01",
+      "car_id": "01",
+      "confidence": 0.92,
+      "bbox_xyxy": [
+        100,
+        140,
+        180,
+        260
+      ],
+      "observed_at": "2026-11-06T10:00:01+09:00"
+    }
+  ],
+  "temporary_miss": [
+    {
+      "event_id": "fixture-003",
+      "event_type": "vehicle_observed",
+      "source": "vision",
+      "lot_id": "A",
+      "camera_id": "camera_a",
+      "space_id": "A-01",
+      "car_id": "01",
+      "confidence": 0.92,
+      "bbox_xyxy": [
+        100,
+        140,
+        180,
+        260
+      ],
+      "observed_at": "2026-11-06T10:00:00+09:00"
+    },
+    {
+      "event_id": "fixture-004",
+      "event_type": "vehicle_observed",
+      "source": "vision",
+      "lot_id": "A",
+      "camera_id": "camera_a",
+      "space_id": "A-01",
+      "car_id": "01",
+      "confidence": 0.92,
+      "bbox_xyxy": [
+        100,
+        140,
+        180,
+        260
+      ],
+      "observed_at": "2026-11-06T10:00:02+09:00"
+    }
+  ],
+  "empty_space": [
+    {
+      "event_id": "fixture-005",
+      "event_type": "space_empty_observed",
+      "source": "vision",
+      "lot_id": "A",
+      "camera_id": "camera_a",
+      "space_id": "A-01",
+      "car_id": null,
+      "confidence": 0.92,
+      "bbox_xyxy": null,
+      "observed_at": "2026-11-06T10:00:00+09:00"
+    }
+  ],
+  "unrecognized": [
+    {
+      "event_id": "fixture-006",
+      "event_type": "vehicle_observed",
+      "source": "vision",
+      "lot_id": "A",
+      "camera_id": "camera_a",
+      "space_id": "A-01",
+      "car_id": null,
+      "confidence": 0.92,
+      "bbox_xyxy": [
+        100,
+        140,
+        180,
+        260
+      ],
+      "observed_at": "2026-11-06T10:00:00+09:00"
+    }
+  ],
+  "move": [
+    {
+      "event_id": "fixture-007",
+      "event_type": "vehicle_observed",
+      "source": "vision",
+      "lot_id": "A",
+      "camera_id": "camera_a",
+      "space_id": "A-01",
+      "car_id": "01",
+      "confidence": 0.92,
+      "bbox_xyxy": [
+        100,
+        140,
+        180,
+        260
+      ],
+      "observed_at": "2026-11-06T10:00:00+09:00"
+    },
+    {
+      "event_id": "fixture-008",
+      "event_type": "vehicle_observed",
+      "source": "vision",
+      "lot_id": "A",
+      "camera_id": "camera_a",
+      "space_id": "A-02",
+      "car_id": "01",
+      "confidence": 0.92,
+      "bbox_xyxy": [
+        200,
+        140,
+        280,
+        260
+      ],
+      "observed_at": "2026-11-06T10:00:01+09:00"
+    }
+  ],
+  "low_confidence": [
+    {
+      "event_id": "fixture-009",
+      "event_type": "vehicle_observed",
+      "source": "vision",
+      "lot_id": "A",
+      "camera_id": "camera_a",
+      "space_id": "A-01",
+      "car_id": "01",
+      "confidence": 0.2,
+      "bbox_xyxy": [
+        100,
+        140,
+        180,
+        260
+      ],
+      "observed_at": "2026-11-06T10:00:00+09:00"
+    }
+  ],
+  "duplicate": [
+    {
+      "event_id": "fixture-010",
+      "event_type": "vehicle_observed",
+      "source": "vision",
+      "lot_id": "A",
+      "camera_id": "camera_a",
+      "space_id": "A-01",
+      "car_id": "01",
+      "confidence": 0.92,
+      "bbox_xyxy": [
+        100,
+        140,
+        180,
+        260
+      ],
+      "observed_at": "2026-11-06T10:00:00+09:00"
+    },
+    {
+      "event_id": "fixture-010",
+      "event_type": "vehicle_observed",
+      "source": "vision",
+      "lot_id": "A",
+      "camera_id": "camera_a",
+      "space_id": "A-01",
+      "car_id": "01",
+      "confidence": 0.92,
+      "bbox_xyxy": [
+        100,
+        140,
+        180,
+        260
+      ],
+      "observed_at": "2026-11-06T10:00:00+09:00"
+    }
+  ]
+}
