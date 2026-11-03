@@ -2,13 +2,13 @@
 
 > 전체 개발 항목과 완료 여부를 한곳에서 확인한다. 상세 작업·담당 변경은 Jira(KAN)가 기준이다.
 > 체크 기준: **☑ = main 병합 완료**, ◐ = 브랜치/PR 진행 중, ☐ = 미착수. "완료"는 실행 증거 + 테스트 + PR 병합까지 끝난 상태.
-> 최종 갱신: 2026-11-03 (화) 11:20
+> 최종 갱신: 2026-11-03 (화) 12:00 · 작업 이력은 [TIMELINE.md](TIMELINE.md)
 
 ## 요약
 
 | 전체 항목 | ☑ 완료 | ◐ 진행 | ☐ 미착수 |
 | :-: | :-: | :-: | :-: |
-| 48 | 7 | 5 | 36 |
+| 49 | 8 | 5 | 36 |
 
 (2~12장의 최상위 체크 항목 기준. 하위 항목 제외)
 
@@ -36,8 +36,9 @@
 - [x] 초기 실행 골격 (FastAPI health, React 화면) — PR #1
 - [x] Claude Code 하네스 (에이전트·스킬·CLAUDE.md) — PR #2
 - [ ] API 계약 v0.2 확정 (`docs/API_CONTRACT.md` 반영) — 김한별 ◐ 규격 정리 완료, 반영 PR 대기
-- [ ] 진행 현황 문서 (`docs/PROGRESS.md`) — 김한별 ◐ 이 문서 (PR 대기)
-- [ ] DB 엔진·세션 상태값 결정 (SQLite 권장, `active/closed`) — 김한별·박해준 ◐ 통합 방안 제안됨
+- [x] 진행 현황 문서 (`docs/PROGRESS.md`) — PR #9
+- [ ] 작업 타임라인 (`docs/TIMELINE.md`) — 김한별 ◐ `chore/progress-timeline` PR 대기
+- [ ] DB 엔진·세션 상태값 결정 (SQLite + SQLAlchemy, `active/closed`) — 김한별·박해준 ◐ DB 담당 동의, PM 승인 대기
 
 ## 3. EPIC 01 차량 탐지·주차칸 (1팀 김한별·박해준) — P0
 
@@ -68,7 +69,7 @@
 
 - [x] 조회 목업 API 3종 (`/parking-lots`, `/spaces`, `/vehicles/{car_id}/location`) — KAN-16, PR #3
 - [x] DB 통합 계획 문서 (PostgreSQL 제안) — KAN-17, PR #6
-- [ ] DB 모델 프로토타입 (`parking_lots`, `parking_spaces`) — KAN-17 ◐ `feature/KAN-17-db-model-prototype` (sqlalchemy 의존성 추가됨)
+- [ ] DB 모델 프로토타입 (`parking_lots`, `parking_spaces`) — KAN-17 ◐ PR #8 (sqlalchemy 추가됨), SQLite 호환형 전환 예정
 - [ ] `GET /sessions` (lot_id·car_id·status 필터)
 - [ ] `location.session_id` 실제 세션 연결
 - [ ] vision-event 수집 `POST /internal/vision-events`
@@ -90,7 +91,7 @@
 
 ## 9. 프론트엔드 (김채린) — P0
 
-- [ ] PARK:ON 데모 PR — ◐ `chore/parkon-react-docker-demo-20261103` (미병합)
+- [ ] PARK:ON 데모 PR — ◐ PR #7 (미병합)
 - [ ] API 데이터 규격 통일 (`canceled` 철자, 에러 형식, 요금 필드명, 목록 `items`)
 - [ ] 사용자 모바일 웹: 빈자리·내 차 위치·요금·모의 결제
 - [ ] 관리자 관제: 다중 주차장 현황·카메라·경보·일·월 매출
