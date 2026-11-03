@@ -1,0 +1,17 @@
+{
+  "id": "/?app=1",
+  "name": "PARK:ON 주차장",
+  "short_name": "PARK:ON",
+  "description": "주차장 빈자리와 차량 위치, 이용요금 조회",
+  "lang": "ko",
+  "start_url": "/?app=1",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f4f6ee",
+  "theme_color": "#29432f",
+  "icons": [
+    {"src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

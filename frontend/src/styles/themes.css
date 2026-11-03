@@ -1,0 +1,213 @@
+/* A light alternative inspired by Parkzone. Both modes share the same data. */
+.theme-switch{display:flex;align-items:center;border:1px solid #3b4249;padding:3px;border-radius:6px;gap:2px}
+.theme-switch button{font-size:10px;padding:5px 9px;display:flex;align-items:center;gap:5px;border-radius:3px;color:#88939c;white-space:nowrap}
+.theme-switch button>span{font-size:14px;line-height:1}
+.theme-switch .selected{background:#3b4445;color:#e0e8d9}
+html[data-theme='light']{color-scheme:light;--bg:#e9ebe7;--panel:#f6f7f3;--ink:#262b29;--muted:#6d756f;--faint:#929a92;--line:#d8dcd5;--lime:#edc24b}
+html[data-theme='light'] body{color:#2c322e;background:#e9ebe7}
+html[data-theme='light'] button:focus-visible,html[data-theme='light'] a:focus-visible,html[data-theme='light'] input:focus-visible{outline-color:#b08a22}
+html[data-theme='light'] .app-header{background:#f9faf7;border-color:#d7ddd3}
+html[data-theme='light'] .brand-symbol{color:#a78019}
+html[data-theme='light'] .brand b{color:#292e28}
+html[data-theme='light'] .brand b span{color:#a8801e}
+html[data-theme='light'] .brand i{color:#8b9489;border-color:#d2d9ce}
+html[data-theme='light'] .demo-label{color:#727b65}
+html[data-theme='light'] .demo-label i{background:#74934b;box-shadow:none}
+html[data-theme='light'] .header-date{color:#8c958b}
+html[data-theme='light'] .header-date b{color:#58634f}
+html[data-theme='light'] .avatar{background:#dce2d5;border-color:#cbd4c3;color:#58694d}
+html[data-theme='light'] .theme-switch{border-color:#d8ddd2;background:#edf0e9}
+html[data-theme='light'] .theme-switch button{color:#8b9484}
+html[data-theme='light'] .theme-switch .selected{background:#fff;color:#555f49;box-shadow:0 1px 3px #41533316}
+html[data-theme='light'] .mode-switch{background:#e9ede4}
+html[data-theme='light'] .mode-switch button{color:#818d77}
+html[data-theme='light'] .mode-switch .selected{background:#343d32;color:#fff}
+html[data-theme='light'] .icon-rail{background:#e1e5df;border-color:#d0d7cd}
+html[data-theme='light'] .rail-button{color:#899582}
+html[data-theme='light'] .rail-button:hover{background:#d1d9cc;color:#475640}
+html[data-theme='light'] .rail-button.active{background:#edc24b;color:#3f361b;box-shadow:none}
+html[data-theme='light'] .rail-bottom{color:#9aa492}
+html[data-theme='light'] .locations{background:#edf0e9;border-color:#d6ddd1}
+html[data-theme='light'] .locations-heading{color:#46523f}
+html[data-theme='light'] .locations-heading b{color:#91a085}
+html[data-theme='light'] .locations-caption{color:#8c9783}
+html[data-theme='light'] .location{border-color:#d3dbcc;background:#f7f9f4;color:#394532}
+html[data-theme='light'] .location:hover{border-color:#b8c3a9;background:#fff}
+html[data-theme='light'] .location.selected{border-color:#d5ad3f;background:#fffdf6;box-shadow:0 3px 10px #66724809}
+html[data-theme='light'] .location.selected:after{border-left-color:#c9a336}
+html[data-theme='light'] .location-type,html[data-theme='light'] .location.selected .location-type{color:#849078}
+html[data-theme='light'] .location-progress{background:#dde3d6}
+html[data-theme='light'] .location-progress>i{background:#b5bf95}
+html[data-theme='light'] .selected .location-progress{background:#ece8d9}
+html[data-theme='light'] .selected .location-progress>i{background:#d7af3b}
+html[data-theme='light'] .location-meta{color:#8a9780}
+html[data-theme='light'] .location-meta b{color:#657b4a}
+html[data-theme='light'] .selected .location-meta b{color:#8f742c}
+html[data-theme='light'] .selected .location-meta>span{color:#968c70}
+html[data-theme='light'] .location-total{border-color:#d6dece}
+html[data-theme='light'] .location-total>span{color:#829077}
+html[data-theme='light'] .location-total strong{color:#465539}
+html[data-theme='light'] .location-total strong small{color:#87957b}
+html[data-theme='light'] .location-total>div,html[data-theme='light'] .location-foot{color:#8c9a80}
+html[data-theme='light'] .breadcrumbs{color:#88947d}
+html[data-theme='light'] .breadcrumbs span{color:#b3bcaa}
+html[data-theme='light'] .refresh-button{border-color:#cfd7c6;background:#f7f9f3;color:#7e8a72}
+html[data-theme='light'] .refresh-button:hover{border-color:#c0a54e;color:#937528}
+html[data-theme='light'] .badge{background:#e2ebd9;color:#637a4c}
+html[data-theme='light'] .badge.virtual{background:#e2e7eb;color:#6c8290}
+html[data-theme='light'] .badge.orange{background:#f7e6d5;color:#ad8050}
+html[data-theme='light'] .badge.neutral{background:#e5e8e1;color:#87927b}
+html[data-theme='light'] main{padding-top:28px}
+html[data-theme='light'] .parking-workspace{gap:22px}
+html[data-theme='light'] .map-panel{background:#f1f3ee;border:1px solid #dce1d5;padding:22px 20px 16px;border-radius:12px}
+html[data-theme='light'] .filter-tabs{gap:8px;flex:1}
+html[data-theme='light'] .filter-tabs button{background:#fff;color:#77836b;border:1px solid #e1e6d9;border-radius:7px;flex:1;padding:9px 12px}
+html[data-theme='light'] .filter-tabs button.active{background:#edc24b;color:#4f401a;border-color:#e5ba46}
+html[data-theme='light'] .filter-tabs button:not(.active):hover{background:#faf4dc;color:#967725}
+html[data-theme='light'] .map-level{color:#87947b;font-size:8px}
+html[data-theme='light'] .map-level>span{color:#b4bda9}
+html[data-theme='light'] .map-meta{color:#9ba58f;margin-bottom:15px}
+html[data-theme='light'] .map-meta>span:first-child{color:#81916b}
+html[data-theme='light'] .map-meta i{background:#79994d}
+html[data-theme='light'] .parking-map{background:#fff;border:1px solid #e4e8df;border-radius:8px;padding:18px 18px 17px;max-width:none}
+html[data-theme='light'] .map-topline strong{color:#535f4a}
+html[data-theme='light'] .map-topline>div>span{color:#b0b8a8}
+html[data-theme='light'] .map-topline .road-label{color:#bac3b1}
+html[data-theme='light'] .map-topline .road-label span{color:#a9b68d}
+html[data-theme='light'] .space-column{border-color:#d3d9cd}
+html[data-theme='light'] .parking-space{border-color:#d3d9cd;background-color:#fff}
+html[data-theme='light'] .parking-space.occupied{background-color:#f0f2ef}
+html[data-theme='light'] .parking-space:hover{background-color:#fff7dc}
+html[data-theme='light'] .parking-space.found{background-color:#fff1b9;box-shadow:inset 0 0 0 1px #d2ad3d}
+html[data-theme='light'] .parking-space .bay-id,html[data-theme='light'] .parking-space.empty .bay-id{color:#47533e}
+html[data-theme='light'] .parking-space.occupied .bay-id{color:#7d8a74;text-shadow:none}
+html[data-theme='light'] .parking-space.empty .empty-bay{color:#8a9b75}
+html[data-theme='light'] .parking-space.empty:after{background:#a8b77d}
+html[data-theme='light'] .car-wrap{filter:drop-shadow(0 4px 3px #4e5b4230)}
+html[data-theme='light'] .parking-space.space-ev{background-color:#d3eadd;border-bottom-color:#a1c8ae}
+html[data-theme='light'] .parking-space.space-ev:hover{background-color:#c2e2cf}
+html[data-theme='light'] .parking-space.space-accessible{background-color:#d6e8f8;border-bottom-color:#a1c1dd}
+html[data-theme='light'] .parking-space.space-accessible:hover{background-color:#c6dff4}
+html[data-theme='light'] .parking-space.space-ev .bay-id,html[data-theme='light'] .parking-space.occupied.space-ev .bay-id{color:#2c6848}
+html[data-theme='light'] .parking-space.space-accessible .bay-id,html[data-theme='light'] .parking-space.occupied.space-accessible .bay-id{color:#2f5c85}
+html[data-theme='light'] .bay-type.ev{color:#367452}
+html[data-theme='light'] .bay-type.accessible{color:#35688f}
+html[data-theme='light'] .parking-space.uncertain{background-color:#faf5e6;background-image:repeating-linear-gradient(135deg,#c7ad6e17 0,#c7ad6e17 1px,transparent 1px,transparent 10px)}
+html[data-theme='light'] .parking-space.unavailable{background-color:#eef0ea;background-image:repeating-linear-gradient(135deg,#abb69e25 0,#abb69e25 1px,transparent 1px,transparent 10px)}
+html[data-theme='light'] .parking-space.uncertain .bay-id,html[data-theme='light'] .parking-space.unavailable .bay-id{color:#9c967d}
+html[data-theme='light'] .unknown-bay{color:#af9863}
+html[data-theme='light'] .parking-space.unavailable .unknown-bay{color:#98a18e}
+html[data-theme='light'] .lane>span{color:#bcaa66;background:#fff}
+html[data-theme='light'] .lane small{color:#a3af96}
+html[data-theme='light'] .lane>i{background:repeating-linear-gradient(to bottom,#c1ba91 0,#c1ba91 6px,transparent 6px,transparent 13px);opacity:.65}
+html[data-theme='light'] .center-road{color:#c2ccb7}
+html[data-theme='light'] .map-entrance>span{color:#8e8c63}
+html[data-theme='light'] .map-entrance b{color:#b89a3c}
+html[data-theme='light'] .map-entrance small{color:#b1b799}
+html[data-theme='light'] .map-legend{border-color:#dde3d5;color:#808c74;margin-top:18px;padding-top:15px}
+html[data-theme='light'] .legend-dot.empty{background:#b18c27}
+html[data-theme='light'] .legend-dot.occupied{background:#84917a}
+html[data-theme='light'] .legend-dot.uncertain{background:#c6a66a}
+html[data-theme='light'] .legend-dot.unavailable{background:#b4beac}
+html[data-theme='light'] .layout-note{color:#929f85;font-size:8px;line-height:1.9}
+html[data-theme='light'] .right-column{border-left:0;padding:0;gap:15px}
+html[data-theme='light'] .occupancy-panel,html[data-theme='light'] .right-column>.panel{background:#f8faf5;border:1px solid #dce3d4;border-radius:9px;padding:18px 16px}
+html[data-theme='light'] .section-kicker{color:#8c977e}
+html[data-theme='light'] .section-kicker>span{color:#9fa991}
+html[data-theme='light'] .occupancy-ring{background:conic-gradient(#dfb743 0 var(--percent),#e2e7d9 var(--percent) 100%);width:110px;height:110px;margin:20px auto}
+html[data-theme='light'] .occupancy-ring:before{background:#f8faf5}
+html[data-theme='light'] .occupancy-ring strong{color:#4b5840;font-size:28px}
+html[data-theme='light'] .occupancy-ring strong small{color:#8c9b73}
+html[data-theme='light'] .occupancy-ring>div span{color:#9ba78b}
+html[data-theme='light'] .status-numbers>div{color:#8b977f}
+html[data-theme='light'] .status-numbers b{color:#5a6b46}
+html[data-theme='light'] .card-heading h3{color:#59694b}
+html[data-theme='light'] .mini-icon{color:#a49c6e}
+html[data-theme='light'] .quick-find>p{color:#9ba58e}
+html[data-theme='light'] .search-input{border-color:#dbe3d1;background:#fff}
+html[data-theme='light'] .search-input .icon{color:#a2ad93}
+html[data-theme='light'] .search-input input{color:#5a6d44}
+html[data-theme='light'] .button.primary{background:#ebc04b;color:#51421d}
+html[data-theme='light'] .button.primary:hover{background:#f3cf71}
+html[data-theme='light'] .button.white{background:#fafcf7;border-color:#d6dfcc;color:#7d8e6b}
+html[data-theme='light'] .button.danger{background:#f7e8d9;border-color:#e8cfb4;color:#aa7b4c}
+html[data-theme='light'] .sample-hint{color:#a2ad94}
+html[data-theme='light'] .sample-hint button{background:#e8eedf;color:#829663}
+html[data-theme='light'] .green-text{color:#789a50!important}
+html[data-theme='light'] .availability-row{color:#8b9c77;border-color:#e1e8d7}
+html[data-theme='light'] .availability-row .icon{color:#98aa80}
+html[data-theme='light'] .availability-row b{color:#697f4a}
+html[data-theme='light'] .availability-row small{color:#a1ad91}
+html[data-theme='light'] .last-sync{color:#9fac92;padding:0 6px}
+html[data-theme='light'] .found-card{background:#f7f0d7;border-color:#e8dba6}
+html[data-theme='light'] .found-icon,html[data-theme='light'] .found-card button{color:#b09a4d}
+html[data-theme='light'] .found-card div>span{color:#a89a6d}
+html[data-theme='light'] .found-card strong{color:#8a7439}
+html[data-theme='light'] .camera-card .card-heading>.icon{color:#a1ae91}
+html[data-theme='light'] .camera-placeholder{background:#e8ede4;border-color:#d7e0cd;color:#9cad8c}
+html[data-theme='light'] .camera-frame{border-color:#c4d0b8}
+html[data-theme='light'] .camera-placeholder strong{color:#839574}
+html[data-theme='light'] .camera-placeholder small,html[data-theme='light'] .camera-id{color:#a5b399}
+html[data-theme='light'] .muted{color:#93a080}
+html[data-theme='light'] .inline-alert{background:#fff1df;border-color:#d8b68a;color:#b58b59}
+html[data-theme='light'] .panel{background:#f9fbf6;border-color:#dae3cf}
+html[data-theme='light'] .panel-header p{color:#9aa88b}
+html[data-theme='light'] .search-large{background:#fafcf7}
+html[data-theme='light'] .large-symbol{background:#f1e8c8;color:#ac9348}
+html[data-theme='light'] .search-large>p{color:#8c9d7b}
+html[data-theme='light'] .eyebrow{color:#a99c64}
+html[data-theme='light'] .step>span{border-color:#ded7b8;background:#f4eedb;color:#a18a45}
+html[data-theme='light'] .step h3{color:#768a5d}
+html[data-theme='light'] .step p{color:#9dad8b}
+html[data-theme='light'] .session-detail,html[data-theme='light'] .session-detail>div{border-color:#dce5d2}
+html[data-theme='light'] .session-detail span{color:#96a586}
+html[data-theme='light'] .session-detail b{color:#778d61}
+html[data-theme='light'] .session-detail small{color:#a5b297}
+html[data-theme='light'] .session-detail strong{color:#b28d29}
+html[data-theme='light'] .search-large .fee-note{color:#a3ae96}
+html[data-theme='light'] .failure-toggle{color:#9aaa8b}
+html[data-theme='light'] th{background:#edf2e6;border-color:#dce5d2;color:#98a886}
+html[data-theme='light'] td{border-color:#e0e8d7;color:#8d9e7a}
+html[data-theme='light'] td b{color:#687f4d}
+html[data-theme='light'] .text-button{color:#b59868}
+html[data-theme='light'] .revenue-heading{background:#f6f9f1}
+html[data-theme='light'] .stat-icon{background:#eee7cd;color:#b29d56}
+html[data-theme='light'] .stat-icon.orange{background:#f5e6d4;color:#b99769}
+html[data-theme='light'] .stat-icon.green{background:#e5eedb;color:#95ad74}
+html[data-theme='light'] .revenue-heading>div>span{color:#9aab86}
+html[data-theme='light'] .revenue-heading strong{color:#7d875c}
+html[data-theme='light'] .revenue-heading p{color:#a1b08e}
+html[data-theme='light'] .revenue-row b{color:#899f71}
+html[data-theme='light'] .revenue-row>strong{color:#9a925b}
+html[data-theme='light'] .bar-track{background:#e7eddd}
+html[data-theme='light'] .bar-track>span{background:#d9b548}
+html[data-theme='light'] .chart-note{background:#f0f5e9;color:#9dae89;border-color:#dde7d2}
+html[data-theme='light'] .alert-row{border-color:#dee7d4}
+html[data-theme='light'] .alert-row h3{color:#84996d}
+html[data-theme='light'] .alert-row p{color:#a6b796}
+html[data-theme='light'] .empty-state{border-color:#dce7d1}
+html[data-theme='light'] .empty-state>span{background:#e7efdc;color:#96ac72}
+html[data-theme='light'] .empty-state h3{color:#8c9d76}
+html[data-theme='light'] .empty-state p{color:#a3b28f}
+html[data-theme='light'] footer{border-color:#d9e3cf;color:#a8b398}
+html[data-theme='light'] footer b{color:#98a687}
+html[data-theme='light'] footer i{background:#a5b583}
+html[data-theme='light'] dialog{background:#fbfdf7;border-color:#d7e1cb;color:#4f603e;box-shadow:0 20px 90px #59634430}
+html[data-theme='light'] dialog::backdrop{background:#40512b44}
+html[data-theme='light'] .dialog-header button{color:#9bad88}
+html[data-theme='light'] dialog>p{color:#98aa83}
+html[data-theme='light'] .detail-status{background:#e5efd9;border-color:#d1dfbe;color:#8fa76b}
+html[data-theme='light'] .detail-status.occupied{background:#e9ede3;border-color:#d7dfcd;color:#99a987}
+html[data-theme='light'] .detail-status.uncertain,html[data-theme='light'] .detail-status.unavailable{background:#f6efd9;border-color:#e1d5b1;color:#ae9a63}
+html[data-theme='light'] dl>div{border-color:#e0e8d5}
+html[data-theme='light'] dt{color:#9bab8a}
+html[data-theme='light'] dd{color:#81966a}
+html[data-theme='light'] .detail-warning{background:#f7f0dc;color:#b09b64!important;border-color:#ddc993}
+html[data-theme='light'] #toast{background:#3b4635;color:#f3f7ed}
+html[data-theme='light'] .initial-loading{color:#b39639}
+html[data-theme='light'] .initial-loading span{color:#96a384}
+html[data-theme='light'] .quick-find>p,html[data-theme='light'] .location-type,html[data-theme='light'] .panel-header p,html[data-theme='light'] .muted,html[data-theme='light'] .step p,html[data-theme='light'] .search-large>p{color:#737e68}
+@media(max-width:1200px){.header-tools{gap:13px}.brand i{display:none}html[data-theme='light'] .map-panel{padding:18px 14px 15px}html[data-theme='light'] .parking-map{padding:17px 12px}html[data-theme='light'] .right-column>.panel,html[data-theme='light'] .occupancy-panel{padding:17px 12px}html[data-theme='light'] .filter-tabs{gap:5px}html[data-theme='light'] .filter-tabs button{font-size:9px;padding:8px 7px}html[data-theme='light'] .map-level{display:none}}
+@media(max-width:1000px) and (min-width:801px){html[data-theme='light'] .right-column{border-top:0;padding-top:0}.header-date,.demo-label{display:none}html[data-theme='light'] .right-column>.panel{padding:15px 12px}html[data-theme='light'] .parking-map{padding:17px 20px}}
+@media(max-width:800px){.header-date,.demo-label{display:none}.header-tools{gap:10px}.theme-switch button{font-size:9px;padding:5px 7px}.theme-switch button>span{font-size:11px}.theme-switch{padding:2px}html[data-theme='light'] .locations{border-bottom-color:#d7dfce}html[data-theme='light'] .icon-rail{background:#f7faf2ed;border-top-color:#d5dfca}html[data-theme='light'] .map-panel{padding:18px 13px 14px}html[data-theme='light'] .parking-workspace{gap:18px}html[data-theme='light'] .parking-map{padding:16px 9px}html[data-theme='light'] .map-body,html[data-theme='light'] .map-topline{grid-template-columns:minmax(0,1fr) 60px minmax(0,1fr)}html[data-theme='light'] .parking-space .bay-id{font-size:21px}html[data-theme='light'] .parking-space.occupied .bay-id{font-size:10px}html[data-theme='light'] .parking-space.uncertain .bay-id,html[data-theme='light'] .parking-space.unavailable .bay-id{font-size:11px}html[data-theme='light'] .car-wrap{width:76px;height:34px}html[data-theme='light'] .right-column{gap:13px}html[data-theme='light'] .bay-type.ev,html[data-theme='light'] .bay-type.accessible{font-size:8px;gap:2px}html[data-theme='light'] .bay-type svg{width:12px;height:12px}}
+@media(max-width:600px){.header-tools{gap:7px}.app-header{padding:0 13px}.avatar{display:none}.brand b{font-size:18px}.brand-symbol{width:18px}.brand-symbol .icon{width:19px}.brand{gap:3px}.theme-switch button{font-size:8px;padding:5px}.theme-switch button>span{font-size:11px}.mode-switch button{font-size:8px;padding:6px 7px}.brand i{display:none}html[data-theme='light'] main{padding-top:22px}html[data-theme='light'] .right-column{border-top:0;padding-top:0;gap:14px}html[data-theme='light'] .occupancy-panel{grid-row:auto}html[data-theme='light'] .right-column>.availability,html[data-theme='light'] .right-column .camera-card+.panel{border:1px solid #dce3d4;padding:18px 16px}html[data-theme='light'] .parking-map{padding:16px 9px 15px}html[data-theme='light'] .filter-tabs{gap:5px}html[data-theme='light'] .filter-tabs button{font-size:9px;padding:9px 5px}html[data-theme='light'] .map-body,html[data-theme='light'] .map-topline{grid-template-columns:minmax(0,1fr) 64px minmax(0,1fr)}html[data-theme='light'] .parking-space .bay-id{font-size:23px}html[data-theme='light'] .parking-space.occupied .bay-id{font-size:10px}html[data-theme='light'] .parking-space.uncertain .bay-id,html[data-theme='light'] .parking-space.unavailable .bay-id{font-size:11px}html[data-theme='light'] .car-wrap{width:78px;height:35px}html[data-theme='light'] .map-meta{font-size:6px}html[data-theme='light'] .layout-note{font-size:7px}html[data-theme='light'] .map-legend{gap:12px;font-size:6px}html[data-theme='light'] .map-topline strong{font-size:18px}html[data-theme='light'] .bay-type.ev,html[data-theme='light'] .bay-type.accessible{font-size:8px}html[data-theme='light'] .last-sync{padding:0 8px}}
