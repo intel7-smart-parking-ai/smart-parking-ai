@@ -368,6 +368,16 @@
 - **3개 동시:** 충돌 0, 백엔드 242 passed, 프론트 41 passed
 
 ---
+### 16:48 · ✅ main 병합 — PR #18 (DB 기반+V1), PR #19 (vision-event 104칸), PR #21 (프론트 UI), PR #8 닫힘
+
+### 16:55 · 병합 후 전체 재점검 + PROGRESS 갱신 — 김한별 요청
+- **main 검증:** 백엔드 pytest **242 passed**, 프론트 npm test **41 passed**·build 성공
+- **남은 브랜치:** `d5-occupancy-prototype`(main 병합 시 통과, PR 대기), `session-id-verify`(13 실패 — `quote_id`), `codex/parkon-user-admin-revenue`(데모 서버·시뮬레이터, 이름 순서 수정 필요), PR #7(닫기 대상)
+- **`main.py`:** 아직 조회 목업만 등록 — billing·vision-event·점유·챗봇 미등록
+- **PROGRESS:** 전체 약 32% → **약 43%** (64항목 중 완료 24·진행 4), #10 65%·#11 70%·#14 95%·#15 70%·#17 김채린 60%, 지연 🔴 카메라·ROI / 🟠 입출차 세션·`main.py`·조회 목업·챗봇
+- **주의:** 프론트 기본 `demo` 모드는 데모 서버가 main에 없어 동작 안 함 → 팀 서버 연결은 `VITE_DATA_SOURCE=team`
+
+---
 ---
 
 ## 대기 중인 결정 (PM)
