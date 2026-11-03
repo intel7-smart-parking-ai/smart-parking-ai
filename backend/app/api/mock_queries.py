@@ -7,7 +7,7 @@ from fastapi.routing import APIRoute
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from backend.app.simulation.mock_data import LOT_TYPES, OBSERVED_AT, SPACES, STATUS
+from backend.app.simulation.mock_data import LOT_NAMES, LOT_TYPES, OBSERVED_AT, SPACES, STATUS
 
 
 class LotSummary(BaseModel):
@@ -33,6 +33,10 @@ class SpaceResponse(BaseModel):
     observed_at: str | None
     confidence: float | None
     version: int
+    space_type: Literal['general', 'ev', 'accessible']
+    vehicle_type: Literal['general', 'ev', 'accessible'] | None = None
+    source: Literal['simulation'] = 'simulation'
+    is_mock: bool = True
 
 
 class SpaceList(BaseModel):
@@ -49,6 +53,9 @@ class VehicleLocation(BaseModel):
     status: STATUS
     observed_at: str
     confidence: float | None
+    vehicle_type: Literal['general', 'ev', 'accessible'] | None = None
+    source: Literal['simulation'] = 'simulation'
+    is_mock: bool = True
 
 
 class MockError(BaseModel):
@@ -69,8 +76,9 @@ def not_found(code: str, message: str) -> JSONResponse:
 
 MOCK_DESCRIPTION = (
     "팀 계약 초안 기준 임시 목업입니다. 최종 승인된 계약이 아닙니다. "
-    "A/B는 실물 주차장의 합성 예시, C는 가상 주차장입니다. "
-    "각 4칸과 차량 01/02/03은 테스트 데이터이며 실제 면수·차량·DB 시드가 아닙니다. "
+    "PM 확정 A12/B16/C12/D64 총104칸 도면의 합성 상태입니다. "
+    "차량10/20은 실물 식별 규격의 합성 예시이며 실제 차량·DB 시드가 아닙니다. "
+    "C/D 미식별 차량은 null이며 가상 번호판 조회는 아직 연결하지 않았습니다. "
     "시각은 고정 자료의 기준 시각이며 실시간 관측이 아닙니다. 세션 미생성으로 session_id는 null입니다."
 )
 
@@ -97,11 +105,11 @@ router = APIRouter(
 
 
 @router.get("/parking-lots", response_model=LotList,
-         description=MOCK_DESCRIPTION, summary="[목업] A/B/C 주차장 및 빈자리")
+         description=MOCK_DESCRIPTION, summary="[목업] A/B/C/D 주차장 및 빈자리")
 def list_lots():
     return LotList(items=[
         LotSummary(
-            lot_id=lot_id, name=f"목업 주차장 {lot_id} (합성 예시)", type=lot_type,
+            lot_id=lot_id, name=LOT_NAMES[lot_id], type=lot_type,
             total_spaces=sum(s.lot_id == lot_id for s in SPACES),
             empty_spaces=sum(s.lot_id == lot_id and s.status == "empty" for s in SPACES),
             uncertain_spaces=sum(s.lot_id == lot_id and s.status == "uncertain" for s in SPACES),
@@ -119,7 +127,7 @@ def list_spaces(lot_id: str):
     return SpaceList(items=[
         SpaceResponse(space_id=s.space_id, status=s.status, car_id=s.car_id,
                       observed_at=None if s.status == "unavailable" else OBSERVED_AT,
-                      confidence=s.confidence, version=0)
+                      confidence=s.confidence, version=0, space_type=s.space_type, vehicle_type=s.vehicle_type)
         for s in SPACES if s.lot_id == lot_id
     ], as_of=OBSERVED_AT)
 
@@ -133,5 +141,5 @@ def read_location(car_id: str):
             return VehicleLocation(car_id=car_id, lot_id=space.lot_id,
                                    space_id=space.space_id, session_id=None,
                                    status=space.status, observed_at=OBSERVED_AT,
-                                   confidence=space.confidence)
+                                   confidence=space.confidence, vehicle_type=space.vehicle_type)
     return not_found("VEHICLE_NOT_FOUND", "목업 차량이 없습니다.")
