@@ -244,6 +244,11 @@
 - **규격 통일표:** 공통 형식·주차장·칸·차량·세션·요금·결제·이벤트·에러 코드별 기준값과 모듈별 상태(✅/❌/➕). 수정 많은 순: 챗봇 > 조회 목업 > 프론트 > billing
 - **팀원별:** PM(공지·PR·24대 배정표·Jira), 박해준(필드명 공지·공용 모델·목업·vision-event `vehicle_type`), 윤명수(`quote_id`·설명·요금표), 서정범(경로·`lots.json`·"1→01" 제거), 김채린(`quote_id` 재추가·`bay_label` 통합·PR①), 우지원(ROI 가12·나16·스티커 색 분류)
 
+### 15:20 · ✅ 결정 문서 main 병합 (PR #14, `chore/docs-lot-layout-1103`) — DECISIONS.md·API_CONTRACT·CLAUDE.md·PROGRESS
+
+### 15:22 · 윤명수 참고 자료 안내 — 윤명수 요청
+- **결과:** 읽을 것(DECISIONS D-02·06·09, API_CONTRACT 견적·세션·주차장 절, parking-state-engine 스킬) / 고칠 파일(schemas·payment_service·db·billing_router·테스트·API_SPECIFICATION) / 참고만(김채린 데모 서버 `quote_id` 구현, 프론트 `payments.js`, 박해준 SQLAlchemy 모델)
+
 ---
 
 ## 대기 중인 결정 (PM)
