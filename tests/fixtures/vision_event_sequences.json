@@ -7,7 +7,7 @@
       "lot_id": "A",
       "camera_id": "camera_a",
       "space_id": "A-01",
-      "car_id": "01",
+      "car_id": "10",
       "confidence": 0.92,
       "bbox_xyxy": [
         100,
@@ -15,7 +15,8 @@
         180,
         260
       ],
-      "observed_at": "2026-11-06T10:00:00+09:00"
+      "observed_at": "2026-11-06T10:00:00+09:00",
+      "vehicle_type": "general"
     },
     {
       "event_id": "fixture-002",
@@ -24,7 +25,7 @@
       "lot_id": "A",
       "camera_id": "camera_a",
       "space_id": "A-01",
-      "car_id": "01",
+      "car_id": "10",
       "confidence": 0.92,
       "bbox_xyxy": [
         100,
@@ -32,7 +33,8 @@
         180,
         260
       ],
-      "observed_at": "2026-11-06T10:00:01+09:00"
+      "observed_at": "2026-11-06T10:00:01+09:00",
+      "vehicle_type": "general"
     }
   ],
   "temporary_miss": [
@@ -43,7 +45,7 @@
       "lot_id": "A",
       "camera_id": "camera_a",
       "space_id": "A-01",
-      "car_id": "01",
+      "car_id": "10",
       "confidence": 0.92,
       "bbox_xyxy": [
         100,
@@ -51,7 +53,8 @@
         180,
         260
       ],
-      "observed_at": "2026-11-06T10:00:00+09:00"
+      "observed_at": "2026-11-06T10:00:00+09:00",
+      "vehicle_type": "general"
     },
     {
       "event_id": "fixture-004",
@@ -60,7 +63,7 @@
       "lot_id": "A",
       "camera_id": "camera_a",
       "space_id": "A-01",
-      "car_id": "01",
+      "car_id": "10",
       "confidence": 0.92,
       "bbox_xyxy": [
         100,
@@ -68,7 +71,8 @@
         180,
         260
       ],
-      "observed_at": "2026-11-06T10:00:02+09:00"
+      "observed_at": "2026-11-06T10:00:02+09:00",
+      "vehicle_type": "general"
     }
   ],
   "empty_space": [
@@ -82,7 +86,8 @@
       "car_id": null,
       "confidence": 0.92,
       "bbox_xyxy": null,
-      "observed_at": "2026-11-06T10:00:00+09:00"
+      "observed_at": "2026-11-06T10:00:00+09:00",
+      "vehicle_type": null
     }
   ],
   "unrecognized": [
@@ -101,7 +106,8 @@
         180,
         260
       ],
-      "observed_at": "2026-11-06T10:00:00+09:00"
+      "observed_at": "2026-11-06T10:00:00+09:00",
+      "vehicle_type": null
     }
   ],
   "move": [
@@ -112,7 +118,7 @@
       "lot_id": "A",
       "camera_id": "camera_a",
       "space_id": "A-01",
-      "car_id": "01",
+      "car_id": "10",
       "confidence": 0.92,
       "bbox_xyxy": [
         100,
@@ -120,7 +126,8 @@
         180,
         260
       ],
-      "observed_at": "2026-11-06T10:00:00+09:00"
+      "observed_at": "2026-11-06T10:00:00+09:00",
+      "vehicle_type": "general"
     },
     {
       "event_id": "fixture-008",
@@ -129,7 +136,7 @@
       "lot_id": "A",
       "camera_id": "camera_a",
       "space_id": "A-02",
-      "car_id": "01",
+      "car_id": "10",
       "confidence": 0.92,
       "bbox_xyxy": [
         200,
@@ -137,7 +144,8 @@
         280,
         260
       ],
-      "observed_at": "2026-11-06T10:00:01+09:00"
+      "observed_at": "2026-11-06T10:00:01+09:00",
+      "vehicle_type": "general"
     }
   ],
   "low_confidence": [
@@ -148,7 +156,7 @@
       "lot_id": "A",
       "camera_id": "camera_a",
       "space_id": "A-01",
-      "car_id": "01",
+      "car_id": "10",
       "confidence": 0.2,
       "bbox_xyxy": [
         100,
@@ -156,7 +164,8 @@
         180,
         260
       ],
-      "observed_at": "2026-11-06T10:00:00+09:00"
+      "observed_at": "2026-11-06T10:00:00+09:00",
+      "vehicle_type": "general"
     }
   ],
   "duplicate": [
@@ -167,7 +176,7 @@
       "lot_id": "A",
       "camera_id": "camera_a",
       "space_id": "A-01",
-      "car_id": "01",
+      "car_id": "10",
       "confidence": 0.92,
       "bbox_xyxy": [
         100,
@@ -175,7 +184,8 @@
         180,
         260
       ],
-      "observed_at": "2026-11-06T10:00:00+09:00"
+      "observed_at": "2026-11-06T10:00:00+09:00",
+      "vehicle_type": "general"
     },
     {
       "event_id": "fixture-010",
@@ -184,7 +194,7 @@
       "lot_id": "A",
       "camera_id": "camera_a",
       "space_id": "A-01",
-      "car_id": "01",
+      "car_id": "10",
       "confidence": 0.92,
       "bbox_xyxy": [
         100,
@@ -192,7 +202,8 @@
         180,
         260
       ],
-      "observed_at": "2026-11-06T10:00:00+09:00"
+      "observed_at": "2026-11-06T10:00:00+09:00",
+      "vehicle_type": "general"
     }
   ]
 }

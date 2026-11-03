@@ -17,7 +17,9 @@ class VisionEvent(BaseModel):
     lot_id: Literal['A', 'B', 'C', 'D']
     camera_id: StrictStr | None
     space_id: StrictStr | None
-    car_id: Annotated[StrictStr, Field(pattern=r'^(0[1-9]|1[0-9]|2[0-4])$')] | None
+    # 11/03 PM 확정: 실물 식별자. 가상 번호판을 car_id로 변환하지 않는다.
+    car_id: Annotated[StrictStr, Field(pattern=r'^[1-9][0-9]$')] | None
+    vehicle_type: Literal['general', 'ev', 'accessible'] | None = None
     confidence: Annotated[float, Field(strict=True, ge=0, le=1, allow_inf_nan=False)]
     bbox_xyxy: tuple[FiniteCoordinate, FiniteCoordinate, FiniteCoordinate, FiniteCoordinate] | None
     observed_at: datetime

@@ -1,0 +1,234 @@
+{
+  "basis": "2026-11-03 PM 확정 도면·테스트 전용, 실제 DB 시드 아님",
+  "virtual_plate_example": {
+    "plate_number": "17가1724",
+    "display": "1724",
+    "note": "표시 예시만 보존. 이벤트 필드·car_id 연결은 미확정"
+  },
+  "lots": [
+    {
+      "lot_id": "A",
+      "name": "가",
+      "spaces": [
+        {
+          "space_id": "A-01",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-02",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-03",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-04",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-05",
+          "space_type": "ev"
+        },
+        {
+          "space_id": "A-06",
+          "space_type": "ev"
+        },
+        {
+          "space_id": "B-01",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-02",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-03",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-04",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-05",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-06",
+          "space_type": "accessible"
+        }
+      ]
+    },
+    {
+      "lot_id": "B",
+      "name": "나",
+      "spaces": [
+        {
+          "space_id": "A-01",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-02",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-03",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-04",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-05",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-06",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-07",
+          "space_type": "ev"
+        },
+        {
+          "space_id": "A-08",
+          "space_type": "ev"
+        },
+        {
+          "space_id": "B-01",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-02",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-03",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-04",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-05",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-06",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-07",
+          "space_type": "accessible"
+        },
+        {
+          "space_id": "B-08",
+          "space_type": "accessible"
+        }
+      ]
+    },
+    {
+      "lot_id": "C",
+      "name": "다",
+      "spaces": [
+        {
+          "space_id": "A-01",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-02",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-03",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-04",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-05",
+          "space_type": "ev"
+        },
+        {
+          "space_id": "A-06",
+          "space_type": "ev"
+        },
+        {
+          "space_id": "B-01",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-02",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-03",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-04",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-05",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-06",
+          "space_type": "accessible"
+        }
+      ]
+    },
+    {
+      "lot_id": "D",
+      "name": "라",
+      "spaces": [
+        {
+          "space_id": "A-01",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-02",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-03",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-04",
+          "space_type": "ev"
+        },
+        {
+          "space_id": "A-05",
+          "space_type": "ev"
+        },
+        {
+          "space_id": "B-01",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-02",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-03",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-04",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-05",
+          "space_type": "accessible"
+        }
+      ]
+    }
+  ]
+}

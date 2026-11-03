@@ -43,7 +43,7 @@ def test_samples_are_evidence_without_state_decisions():
 
 @pytest.mark.parametrize('field,value', [
     ('event_id',' '),('event_id',1),('event_type','entry_confirmed'),('source','unknown'),
-    ('lot_id','Z'),('camera_id',''),('space_id',1),('car_id',1),('car_id','1'),('car_id','00'),('car_id','25'),
+    ('lot_id','Z'),('camera_id',''),('space_id',1),('car_id',1),('car_id','1'),('car_id','00'),('car_id','09'),
     ('confidence',-.1),('confidence',1.1),('confidence',float('nan')),('confidence',float('inf')),('confidence',True),('confidence','0.9'),
     ('bbox_xyxy',[1,2,3]),('bbox_xyxy',[3,2,1,4]),('bbox_xyxy',[-1,0,1,2]),('bbox_xyxy',[0,0,float('inf'),2]),
     ('observed_at','2026-11-03T10:00:00'),('observed_at',1234),('observed_at','bad-time')])
@@ -79,6 +79,8 @@ def test_naive_datetime_object_and_equivalent_instants():
 def test_required_fields_and_canonical_bbox_name():
     value = example()
     for key in value:
+        if key == 'vehicle_type':  # 불확실/이전 생산자의 생략은 null로 유지한다.
+            continue
         incomplete = value.copy()
         del incomplete[key]
         with pytest.raises(ValidationError):
