@@ -244,6 +244,55 @@ def test_rate_policies(client):
     assert body["items"] == [{"lot_id": "A", **POLICY}]
 
 
+# ---------- 주차장 4곳 기본 요금표 (빈 DB 시드) ----------
+
+@pytest.fixture()
+def empty_client(tmp_path, monkeypatch):
+    """데이터가 하나도 없는 DB로 시작 → 첫 연결에서 기본 데이터가 들어간다."""
+    monkeypatch.setenv("SMART_PARKING_DB_PATH", str(tmp_path / "empty.db"))
+    with TestClient(app) as c:
+        yield c
+
+
+def test_empty_db_seeds_four_lot_rate_policies(empty_client):
+    items = empty_client.get("/api/v1/rate-policies").json()["items"]
+    assert [(p["lot_id"], p["base_fee"], p["extra_fee"], p["daily_cap"]) for p in items] == [
+        ("A", 1000, 500, 10000),
+        ("B", 2000, 700, 20000),
+        ("C", 3000, 800, 40000),
+        ("D", 4000, 1000, 50000),
+    ]
+    assert all(p["base_minutes"] == 30 and p["unit_minutes"] == 10 for p in items)
+
+
+def test_seeded_lots_appear_in_revenue_report(empty_client):
+    lots = {l["lot_id"]: l for l in empty_client.get("/api/v1/reports/revenue").json()["lots"]}
+    assert {k: (v["name"], v["total_spaces"]) for k, v in lots.items()} == {
+        "A": ("개발원주차장", 12), "B": ("부산역주차장", 16), "C": ("북항주차장", 12), "D": ("라 주차장", 64),
+    }
+
+
+def test_seed_does_not_touch_existing_data(client):
+    """이미 주차장 데이터가 있으면 기본 데이터를 넣지 않는다 (기존 테스트 DB의 A 정책만 유지)."""
+    assert [p["lot_id"] for p in client.get("/api/v1/rate-policies").json()["items"]] == ["A"]
+
+
+@pytest.mark.parametrize(
+    "lot, minutes, expected",
+    [("B", 30, 2000), ("B", 41, 3400), ("C", 31, 3800), ("D", 55, 7000), ("D", 600, 50000)],
+)
+def test_lot_specific_fees(lot, minutes, expected):
+    """주차장별 요금표로 계산 (기본 30분, 10분 단위 올림, 일 최대)."""
+    from datetime import datetime, timedelta
+    from backend.app.billing.db import DEFAULT_RATE_POLICIES
+
+    row = next(r for r in DEFAULT_RATE_POLICIES if r[0] == lot)
+    policy = dict(zip(("base_minutes", "base_fee", "unit_minutes", "extra_fee", "daily_cap"), row[1:]))
+    entry = "2026-11-02T00:00:00+09:00"
+    target = (datetime.fromisoformat(entry) + timedelta(minutes=minutes)).isoformat()
+    assert calculate_parking_fee_pure(entry, target, policy)["amount_krw"] == expected
+
+
 # ---------- 실서버 조건 (스레드·동시성) ----------
 
 def test_db_conn_usable_from_other_thread(tmp_path, monkeypatch):
