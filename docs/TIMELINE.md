@@ -264,6 +264,7 @@
 - **패치:** `kan28-fee-quote.patch` (6파일 +155/−25) — 요금 조회 시 견적 저장·응답 `quote_id`/`quote_expires_at`, 결제는 견적 금액, `QUOTE_NOT_FOUND`/`QUOTE_MISMATCH`/`QUOTE_EXPIRED`, 멱등 재요청 우선, TTL `FEE_QUOTE_TTL_SECONDS`(300초), 세션 상태·car_id 설명, 테스트 데이터 `27`·`12`, `API_SPECIFICATION.md` 칸 수·견적
 - **검증:** pytest **59 passed**(53+6), 실서버 uvicorn 동시 견적+결제 20건 → 성공 1·`ALREADY_PAID` 19·DB 완료 1건·500 없음, 깨끗한 브랜치에 `git apply --check` 통과
 - **후속:** 윤명수 적용·검토·push → 병합 판단, 4곳 요금표
+- **결과(15:43):** 윤명수 push `ee7f578` — 변경 6파일 패치와 동일, pytest 59 passed, 실서버 동시 20건 성공 1·이중 결제 0·500 없음 → **병합 가능**, PR 생성·4곳 요금표 대기
 
 ### 15:46 · 요금 응답 필드 정정 — 서정범·김채린
 - **정정:** 오전 안내("`target_at`·`rate_policy` 없음, `calculated_at`·`applied_policy_id`가 맞음")는 반대였음. 실제 응답은 라우터 기준 `target_at`·`rate_policy` (`schemas.py`의 `FeeResponse`는 응답에 쓰이지 않는 설명용)
