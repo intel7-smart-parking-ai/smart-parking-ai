@@ -1,0 +1,182 @@
+[
+  {
+    "file": "tests/test_regressions.py",
+    "test": "test_one_vacancy_does_not_notify_two_people",
+    "action": "delete",
+    "reason": "삭제된 대기 배정 또는 문의 상태 변경 전용 검사"
+  },
+  {
+    "file": "tests/test_regressions.py",
+    "test": "test_parallel_waiters_receive_only_available_vacancies",
+    "action": "delete",
+    "reason": "삭제된 대기 배정 또는 문의 상태 변경 전용 검사"
+  },
+  {
+    "file": "tests/test_regressions.py",
+    "test": "test_stale_vacancy_does_not_notify",
+    "action": "delete",
+    "reason": "삭제된 대기 배정 또는 문의 상태 변경 전용 검사"
+  },
+  {
+    "file": "tests/test_fastapi.py",
+    "test": "test_call_status_route",
+    "action": "replace",
+    "reason": "삭제된 기능의 명세를 현재 조회·접수 확인으로 변경"
+  },
+  {
+    "file": "tests/test_final_cleanup.py",
+    "test": "test_wait_any_only_when_everything_full",
+    "action": "replace",
+    "reason": "삭제된 기능의 명세를 현재 조회·접수 확인으로 변경"
+  },
+  {
+    "file": "tests/test_final_cleanup.py",
+    "test": "test_sentence_wait_request_still_registers",
+    "action": "replace",
+    "reason": "삭제된 기능의 명세를 현재 조회·접수 확인으로 변경"
+  },
+  {
+    "file": "tests/test_final_cleanup.py",
+    "test": "test_my_status_chip_never_shown_but_sentence_works",
+    "action": "replace",
+    "reason": "삭제된 기능의 명세를 현재 조회·접수 확인으로 변경"
+  },
+  {
+    "file": "tests/test_final_cleanup.py",
+    "test": "test_status_tracking_off_by_default",
+    "action": "replace",
+    "reason": "삭제된 기능의 명세를 현재 조회·접수 확인으로 변경"
+  },
+  {
+    "file": "tests/test_extended.py",
+    "test": "test_decline_wait_keeps_no_registration",
+    "action": "replace",
+    "reason": "삭제된 기능의 명세를 현재 조회·접수 확인으로 변경"
+  },
+  {
+    "file": "tests/test_reliability.py",
+    "test": "test_cancel_removes_undelivered_wait_notification",
+    "action": "delete",
+    "reason": "삭제된 대기 배정 또는 문의 상태 변경 전용 검사"
+  },
+  {
+    "file": "tests/test_reliability.py",
+    "test": "test_wait_status_reports_queue",
+    "action": "delete",
+    "reason": "삭제된 대기 배정 또는 문의 상태 변경 전용 검사"
+  },
+  {
+    "file": "tests/test_reliability.py",
+    "test": "test_expired_offer_does_not_block_next_waiter",
+    "action": "delete",
+    "reason": "삭제된 대기 배정 또는 문의 상태 변경 전용 검사"
+  },
+  {
+    "file": "tests/test_audit_fixes.py",
+    "test": "test_default_off_status_route_rejects_without_changing_call",
+    "action": "replace",
+    "reason": "삭제된 기능의 명세를 현재 조회·접수 확인으로 변경"
+  },
+  {
+    "file": "tests/test_realistic.py",
+    "test": "test_switch_lot_does_not_cancel_wait_registration",
+    "action": "replace",
+    "reason": "삭제된 기능의 명세를 현재 조회·접수 확인으로 변경"
+  },
+  {
+    "file": "tests/test_stability.py",
+    "test": "test_lv2_vacancy_is_deferred_until_clear",
+    "action": "delete",
+    "reason": "삭제된 대기 배정 또는 문의 상태 변경 전용 검사"
+  },
+  {
+    "file": "tests/test_stability.py",
+    "test": "test_previously_queued_vacancy_is_withdrawn_during_alarm",
+    "action": "delete",
+    "reason": "삭제된 대기 배정 또는 문의 상태 변경 전용 검사"
+  },
+  {
+    "file": "tests/test_optimization.py",
+    "test": "test_waiter_poll_does_not_calculate_queue_position_for_all_sessions",
+    "action": "delete",
+    "reason": "삭제된 대기 배정 또는 문의 상태 변경 전용 검사"
+  },
+  {
+    "file": "tests/test_optimization.py",
+    "test": "test_registered_call_status_card_and_actions_render",
+    "action": "replace",
+    "reason": "삭제된 기능의 명세를 현재 조회·접수 확인으로 변경"
+  },
+  {
+    "file": "tests/test_optimization.py",
+    "test": "test_completed_call_query_can_reopen_same_call",
+    "action": "delete",
+    "reason": "삭제된 대기 배정 또는 문의 상태 변경 전용 검사"
+  },
+  {
+    "file": "tests/test_ux.py",
+    "test": "test_status_redelivery_and_reopen",
+    "action": "delete",
+    "reason": "삭제된 대기 배정 또는 문의 상태 변경 전용 검사"
+  },
+  {
+    "file": "tests/test_ux.py",
+    "test": "test_other_session_cannot_use_feedback",
+    "action": "delete",
+    "reason": "삭제된 대기 배정 또는 문의 상태 변경 전용 검사"
+  },
+  {
+    "file": "tests/test_ux.py",
+    "test": "test_old_manager_revision_and_runtime_rejected",
+    "action": "delete",
+    "reason": "삭제된 대기 배정 또는 문의 상태 변경 전용 검사"
+  },
+  {
+    "file": "tests/test_ux.py",
+    "test": "test_status_retry_emits_only_one_notification",
+    "action": "delete",
+    "reason": "삭제된 대기 배정 또는 문의 상태 변경 전용 검사"
+  },
+  {
+    "file": "tests/test_ux.py",
+    "test": "test_feedback_resolve_and_stale_button",
+    "action": "delete",
+    "reason": "삭제된 대기 배정 또는 문의 상태 변경 전용 검사"
+  },
+  {
+    "file": "tests/test_navigation.py",
+    "test": "test_no_available_candidates_offers_wait_only_without_reservation",
+    "action": "replace",
+    "reason": "삭제된 기능의 명세를 현재 조회·접수 확인으로 변경"
+  },
+  {
+    "file": "tests/test_navigation.py",
+    "test": "test_ttl_and_cancel_preserve_waiting_queue",
+    "action": "replace",
+    "reason": "삭제된 기능의 명세를 현재 조회·접수 확인으로 변경"
+  },
+  {
+    "file": "tests/test_navigation.py",
+    "test": "test_zone_waiting_gets_only_requested_zone",
+    "action": "delete",
+    "reason": "삭제된 대기 배정 또는 문의 상태 변경 전용 검사"
+  },
+  {
+    "file": "tests/test_navigation.py",
+    "test": "test_shared_total_and_zone_waiters_do_not_receive_same_spot_twice",
+    "action": "delete",
+    "reason": "삭제된 대기 배정 또는 문의 상태 변경 전용 검사"
+  },
+  {
+    "file": "tests/test_stability.py",
+    "test": "test_lv1_retains_confirmation_but_lv2_admin_notice_does_not_hide_evacuation",
+    "action": "modify",
+    "reason": "삭제된 문의 상태 변경(change_call) 호출과 CALL_STATUS_TRACKING 패치만 제거. Lv2 중 관리자 호출 뒤에도 대피 칩 유지 단언은 그대로 (Claude 검수에서 기록 누락 보완)"
+  },
+  {
+    "file": "tests/test_review_fixes.py",
+    "test": "(6개)",
+    "action": "add",
+    "reason": "Claude 검수 수정 회귀 검사: 브리핑 장비 판단 범위·우선순위, 확인 중 칸 문구 주차장 귀속"
+  }
+]

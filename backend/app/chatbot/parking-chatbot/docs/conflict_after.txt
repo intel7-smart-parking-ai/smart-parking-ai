@@ -1,0 +1,11 @@
+test_latest_problem_replaces_unacknowledged_previous_problem (test_navigation_conflicts.NavigationConflictTests.test_latest_problem_replaces_unacknowledged_previous_problem) ... ok
+test_missing_zone_does_not_hide_stale_state (test_navigation_conflicts.NavigationConflictTests.test_missing_zone_does_not_hide_stale_state) ... ok
+test_recovery_removes_unacknowledged_obsolete_destination_notice (test_navigation_conflicts.NavigationConflictTests.test_recovery_removes_unacknowledged_obsolete_destination_notice) ... ok
+test_rejected_switch_preserves_pending_destination_notice (test_navigation_conflicts.NavigationConflictTests.test_rejected_switch_preserves_pending_destination_notice) ... ok
+test_same_session_simultaneous_duplicate_selection (test_navigation_conflicts.NavigationConflictTests.test_same_session_simultaneous_duplicate_selection) ... ok
+test_simultaneous_poll_and_selection_do_not_deadlock (test_navigation_conflicts.NavigationConflictTests.test_simultaneous_poll_and_selection_do_not_deadlock) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.359s
+
+OK

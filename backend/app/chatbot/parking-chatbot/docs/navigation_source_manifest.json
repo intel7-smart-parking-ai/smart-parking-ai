@@ -1,0 +1,42 @@
+{
+  "baseline_library_version": 10,
+  "changed": [
+    "README.md",
+    "chatbot/adapters.py",
+    "chatbot/chips.json",
+    "chatbot/config.py",
+    "chatbot/contracts.py",
+    "chatbot/engine.py",
+    "chatbot/notifications.py",
+    "chatbot/parser.py",
+    "chatbot/state.py",
+    "chatbot/templates.py",
+    "chatbot/waitlist.py",
+    "docs/api_contract.md",
+    "docs/stability_benchmark.json",
+    "docs/validation_benchmark.txt",
+    "docs/validation_optimization_soak.txt",
+    "docs/validation_python.txt",
+    "docs/validation_questions.txt",
+    "server_dev.py",
+    "server_fastapi.py",
+    "static/index.html",
+    "tests/run_eval.py"
+  ],
+  "added": [
+    "chatbot/catalog.py",
+    "chatbot/lots.json",
+    "chatbot/navigation.py",
+    "docs/navigation_holdout_first.json",
+    "docs/navigation_layout_matrix.json",
+    "docs/navigation_validation_results.json",
+    "docs/parking_expansion_report.md",
+    "docs/validation_browser_navigation.txt",
+    "tests/browser_navigation.cjs",
+    "tests/questions_navigation_dev.csv",
+    "tests/questions_navigation_holdout.csv",
+    "tests/run_layout_matrix.py",
+    "tests/test_navigation.py"
+  ],
+  "deleted": []
+}

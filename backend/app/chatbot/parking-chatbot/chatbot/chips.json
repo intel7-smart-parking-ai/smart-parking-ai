@@ -1,0 +1,177 @@
+{
+  "chips": {
+    "empty_all": {
+      "label": "빈자리 몇 개 있어?",
+      "intent": "get_empty_spots",
+      "params": {}
+    },
+    "find_car": {
+      "label": "내 차 어디 있어?",
+      "intent": "find_my_car",
+      "params": {}
+    },
+    "fee": {
+      "label": "지금까지 요금 얼마야?",
+      "intent": "get_fee",
+      "params": {}
+    },
+    "fee_rule": {
+      "label": "요금 기준 알려줘",
+      "intent": "fee_rule",
+      "params": {}
+    },
+    "pay": {
+      "label": "미리 결제하기",
+      "intent": "pay_fee",
+      "params": {}
+    },
+    "exit_issue": {
+      "label": "출차가 안 돼요",
+      "intent": "check_exit_issue",
+      "params": {}
+    },
+    "call_admin": {
+      "label": "관리자 호출",
+      "intent": "call_admin",
+      "params": {}
+    },
+    "alert_where": {
+      "label": "경보 위치 어디야?",
+      "intent": "get_alerts",
+      "params": {}
+    },
+    "alert_near": {
+      "label": "내 차 근처야?",
+      "intent": "alert_near_my_car",
+      "params": {}
+    },
+    "evacuate": {
+      "label": "대피 안내",
+      "intent": "evacuation_guide",
+      "params": {}
+    },
+    "help": {
+      "label": "뭘 할 수 있어?",
+      "intent": "help",
+      "params": {}
+    },
+    "confirm_yes": {
+      "label": "네, 맞아요",
+      "intent": "confirm_yes",
+      "params": {}
+    },
+    "confirm_no": {
+      "label": "아니요",
+      "intent": "confirm_no",
+      "params": {}
+    },
+    "cancel_action": {
+      "label": "진행 중 요청 취소",
+      "intent": "cancel_action",
+      "params": {}
+    },
+    "call_status": {
+      "label": "내 문의 상태",
+      "intent": "call_status",
+      "params": {}
+    },
+    "change_vehicle": {
+      "label": "차량 변경",
+      "intent": "change_vehicle",
+      "params": {}
+    },
+    "destination_cancel": {
+      "label": "목적지 취소",
+      "intent": "cancel_destination",
+      "params": {}
+    },
+    "candidate_admin": {
+      "label": "아니에요 · 관리자 호출",
+      "intent": "call_admin",
+      "params": {}
+    }
+  },
+  "sets": {
+    "default": [
+      "empty_all",
+      "find_car",
+      "fee",
+      "fee_rule"
+    ],
+    "parked": [
+      "fee",
+      "pay",
+      "exit_issue",
+      "find_car"
+    ],
+    "after_get_empty_spots": [],
+    "after_find_my_car": [
+      "fee",
+      "pay",
+      "exit_issue"
+    ],
+    "after_get_fee": [
+      "pay",
+      "find_car",
+      "exit_issue"
+    ],
+    "after_fee_rule": [
+      "fee",
+      "empty_all",
+      "find_car"
+    ],
+    "after_pay_fee": [
+      "find_car",
+      "exit_issue",
+      "empty_all"
+    ],
+    "after_check_exit_issue": [
+      "pay",
+      "call_admin",
+      "fee"
+    ],
+    "after_call_admin": [
+      "find_car",
+      "fee",
+      "empty_all"
+    ],
+    "alert": [
+      "evacuate",
+      "alert_near",
+      "alert_where",
+      "call_admin"
+    ],
+    "alert_check": [
+      "alert_where",
+      "empty_all",
+      "find_car",
+      "fee"
+    ],
+    "unknown_again": [
+      "empty_all",
+      "fee",
+      "find_car",
+      "call_admin"
+    ],
+    "confirm": [
+      "confirm_yes",
+      "confirm_no"
+    ]
+  },
+  "suggestions": [
+    "빈자리 몇 개 있어?",
+    "내 차 어디 있어?",
+    "지금까지 요금 얼마야?",
+    "요금 기준 알려줘",
+    "미리 결제하기",
+    "출차가 안 돼요",
+    "차단기가 안 열려요",
+    "관리자 불러줘",
+    "경보 위치 어디야?",
+    "내 차 근처야?",
+    "대피 안내해줘",
+    "무료 시간은 몇 분이야?",
+    "30분 뒤 요금은?",
+    "진행 중 요청 취소"
+  ]
+}

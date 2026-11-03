@@ -1,0 +1,12 @@
+[
+  {
+    "lots": 3,
+    "exit_code": 0,
+    "output": "...................../workspace/scratch/dffe3ddb837b/test-deps/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.\n  from starlette.testclient import TestClient as TestClient  # noqa\n...........................................................................................................................................................\n----------------------------------------------------------------------\nRan 176 tests in 5.599s\n\nOK\n"
+  },
+  {
+    "lots": 4,
+    "exit_code": 0,
+    "output": "...................../workspace/scratch/dffe3ddb837b/test-deps/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.\n  from starlette.testclient import TestClient as TestClient  # noqa\n...........................................................................................................................................................\n----------------------------------------------------------------------\nRan 176 tests in 6.109s\n\nOK\n"
+  }
+]

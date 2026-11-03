@@ -1,0 +1,199 @@
+{
+  "note": "author-written reserved set, first evaluation after rule development",
+  "passed": 11,
+  "total": 12,
+  "results": [
+    {
+      "question": "디 구역에 빈 칸 남았나요",
+      "expected": [
+        "get_empty_spots",
+        "D",
+        "",
+        ""
+      ],
+      "actual": [
+        "get_empty_spots",
+        "D",
+        "",
+        ""
+      ],
+      "passed": true
+    },
+    {
+      "question": "D 주차장으로 갈래",
+      "expected": [
+        "set_destination",
+        "D",
+        "",
+        ""
+      ],
+      "actual": [
+        "set_destination",
+        "D",
+        "",
+        ""
+      ],
+      "passed": true
+    },
+    {
+      "question": "그럼 디 주차장은?",
+      "expected": [
+        "get_empty_spots",
+        "D",
+        "",
+        ""
+      ],
+      "actual": [
+        "get_empty_spots",
+        "D",
+        "",
+        ""
+      ],
+      "passed": true
+    },
+    {
+      "question": "C 전기차 자리 좀 볼래",
+      "expected": [
+        "get_empty_spots",
+        "C",
+        "",
+        "ev"
+      ],
+      "actual": [
+        "get_empty_spots",
+        "C",
+        "",
+        "ev"
+      ],
+      "passed": true
+    },
+    {
+      "question": "A 장애인 구역은 비었나요",
+      "expected": [
+        "get_empty_spots",
+        "A",
+        "",
+        "disabled"
+      ],
+      "actual": [
+        "get_empty_spots",
+        "A",
+        "",
+        "disabled"
+      ],
+      "passed": true
+    },
+    {
+      "question": "B 일반 자리 알려줘",
+      "expected": [
+        "get_empty_spots",
+        "B",
+        "",
+        "normal"
+      ],
+      "actual": [
+        "get_empty_spots",
+        "B",
+        "",
+        "normal"
+      ],
+      "passed": true
+    },
+    {
+      "question": "내 목적지 취소해줘",
+      "expected": [
+        "cancel_destination",
+        "",
+        "",
+        ""
+      ],
+      "actual": [
+        "cancel_destination",
+        "",
+        "",
+        ""
+      ],
+      "passed": true
+    },
+    {
+      "question": "B로 안내하지 마",
+      "expected": [
+        "cancel_destination",
+        "",
+        "",
+        ""
+      ],
+      "actual": [
+        "cancel_destination",
+        "B",
+        "",
+        ""
+      ],
+      "passed": false
+    },
+    {
+      "question": "이디야 근처 맛집",
+      "expected": [
+        "unknown",
+        "",
+        "",
+        ""
+      ],
+      "actual": [
+        "unknown",
+        "",
+        "",
+        ""
+      ],
+      "passed": true
+    },
+    {
+      "question": "디 주차장으로 가겠어요",
+      "expected": [
+        "set_destination",
+        "D",
+        "",
+        ""
+      ],
+      "actual": [
+        "set_destination",
+        "D",
+        "",
+        ""
+      ],
+      "passed": true
+    },
+    {
+      "question": "디 동 충전 자리",
+      "expected": [
+        "get_empty_spots",
+        "D",
+        "",
+        "ev"
+      ],
+      "actual": [
+        "get_empty_spots",
+        "D",
+        "",
+        "ev"
+      ],
+      "passed": true
+    },
+    {
+      "question": "씨 주차장 충전면 있어요",
+      "expected": [
+        "get_empty_spots",
+        "C",
+        "",
+        "ev"
+      ],
+      "actual": [
+        "get_empty_spots",
+        "C",
+        "",
+        "ev"
+      ],
+      "passed": true
+    }
+  ]
+}
