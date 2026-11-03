@@ -23,7 +23,7 @@ test('same-method canceled key retries once with a fresh key', async () => {
     keys.push(options.body.idempotency_key);
     return keys.length === 1 ? {status: 'canceled'} : {status: 'completed'};
   };
-  assert.equal((await submitMockPayment(invoice, 'kakao_pay', false, attempts, send)).status, 'completed');
+  assert.equal((await submitMockPayment(invoice, 'MOCK_EASY_PAY', false, attempts, send)).status, 'completed');
   assert.equal(keys.length, 2);
   assert.equal(keys[0], 'canceled-key');
   assert.notEqual(keys[1], keys[0]);
@@ -38,8 +38,8 @@ test('network failure retains a key for the retry', async () => {
     if (keys.length === 1) throw new Error('offline');
     return {status: 'completed'};
   };
-  await assert.rejects(submitMockPayment(invoice, 'naver_pay', false, attempts, send), /offline/);
-  await submitMockPayment(invoice, 'naver_pay', false, attempts, send);
+  await assert.rejects(submitMockPayment(invoice, 'MOCK_EASY_PAY', false, attempts, send), /offline/);
+  await submitMockPayment(invoice, 'MOCK_EASY_PAY', false, attempts, send);
   assert.equal(keys[0], keys[1]);
 });
 

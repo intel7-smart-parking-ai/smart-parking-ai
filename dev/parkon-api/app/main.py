@@ -61,7 +61,7 @@ def lots():
     with connect() as conn:
         result = conn.execute('SELECT * FROM parking_lots ORDER BY lot_id').fetchall()
         for lot in result:
-            lot['spaces'] = conn.execute('SELECT s.*, v.vehicle_number, v.plate_number FROM parking_spaces s LEFT JOIN demo_vehicles v USING(car_id) WHERE s.lot_id=%s ORDER BY s.space_id',(lot['lot_id'],)).fetchall()
+            lot['spaces'] = conn.execute('SELECT s.space_id,s.lot_id,s.zone,s.space_type,s.status,s.car_id, v.vehicle_number, v.plate_number FROM parking_spaces s LEFT JOIN demo_vehicles v USING(car_id) WHERE s.lot_id=%s ORDER BY s.space_id',(lot['lot_id'],)).fetchall()
             lot['camera_status'] = 'not_connected' if lot['type']=='real' else 'simulated'
             lot['updated_at'] = datetime.now(simulation.KST).isoformat() if lot['type']=='virtual' else FIXED_TIME
         return collection(result)
@@ -70,7 +70,7 @@ def lots():
 def spaces(lot_id: str):
     with connect() as conn:
         if not conn.execute('SELECT 1 FROM parking_lots WHERE lot_id=%s',(lot_id,)).fetchone(): raise APIError('주차장을 찾을 수 없습니다.','PARKING_LOT_NOT_FOUND',404)
-        return collection(conn.execute('SELECT * FROM parking_spaces WHERE lot_id=%s ORDER BY space_id',(lot_id,)).fetchall())
+        return collection(conn.execute('SELECT space_id,lot_id,zone,space_type,status,car_id FROM parking_spaces WHERE lot_id=%s ORDER BY space_id',(lot_id,)).fetchall())
 
 @app.get('/api/v1/rate-policies')
 def policies():
@@ -80,13 +80,13 @@ def policies():
 @app.get('/api/v1/sessions')
 def sessions(lot_id: str | None = None):
     with connect() as conn:
-        return collection(conn.execute('SELECT s.*, p.bay_label AS space_label, v.plate_number FROM parking_sessions s JOIN parking_spaces p ON p.space_id=s.space_id LEFT JOIN demo_vehicles v ON v.car_id=s.car_id WHERE s.exit_at IS NULL AND (%s::text IS NULL OR s.lot_id=%s) ORDER BY s.car_id',(lot_id,lot_id)).fetchall())
+        return collection(conn.execute('SELECT s.*, v.plate_number FROM parking_sessions s JOIN parking_spaces p ON p.space_id=s.space_id LEFT JOIN demo_vehicles v ON v.car_id=s.car_id WHERE s.exit_at IS NULL AND (%s::text IS NULL OR s.lot_id=%s) ORDER BY s.car_id',(lot_id,lot_id)).fetchall())
 
 @app.get('/api/v1/vehicles/{car_id}/location')
 def location(car_id: str):
     validate_sticker(car_id)
     with connect() as conn:
-        row = conn.execute("SELECT * FROM parking_sessions WHERE car_id=%s AND status='parked' AND exit_at IS NULL",(car_id,)).fetchone()
+        row = conn.execute("SELECT * FROM parking_sessions WHERE car_id=%s AND status='active' AND exit_at IS NULL",(car_id,)).fetchone()
         if not row: raise APIError('현재 주차 중인 차량을 찾지 못했습니다.','VEHICLE_NOT_FOUND',404)
         return row
 
@@ -126,7 +126,7 @@ def lookup_result(conn, rows, lookup_type):
 def search_vehicle(vehicle_number: str = Query(pattern=r'^[0-9]{4}$')):
     with connect() as conn:
         rows = conn.execute(
-            "SELECT s.*, v.vehicle_number, v.plate_number, p.bay_label AS space_label FROM parking_sessions s JOIN demo_vehicles v USING(car_id) JOIN parking_spaces p ON p.space_id=s.space_id WHERE v.vehicle_number=%s AND s.lot_id IN ('C','D') AND s.status='parked' AND s.exit_at IS NULL ORDER BY s.entry_at DESC",
+            "SELECT s.*, v.vehicle_number, v.plate_number FROM parking_sessions s JOIN demo_vehicles v USING(car_id) JOIN parking_spaces p ON p.space_id=s.space_id WHERE v.vehicle_number=%s AND s.lot_id IN ('C','D') AND s.status='active' AND s.exit_at IS NULL ORDER BY s.entry_at DESC",
             (vehicle_number,),
         ).fetchall()
         return lookup_result(conn, rows, 'plate')
@@ -143,7 +143,7 @@ def search_sticker(car_id: str):
     validate_sticker(car_id)
     with connect() as conn:
         rows = conn.execute(
-            "SELECT s.*, p.bay_label AS space_label FROM parking_sessions s JOIN parking_spaces p ON p.space_id=s.space_id WHERE s.car_id=%s AND s.lot_id IN ('A','B') AND s.status='parked' AND s.exit_at IS NULL ORDER BY s.entry_at DESC",
+            "SELECT s.* FROM parking_sessions s JOIN parking_spaces p ON p.space_id=s.space_id WHERE s.car_id=%s AND s.lot_id IN ('A','B') AND s.status='active' AND s.exit_at IS NULL ORDER BY s.entry_at DESC",
             (car_id,),
         ).fetchall()
         return lookup_result(conn, rows, 'sticker')
@@ -217,7 +217,7 @@ def revenue(month: str | None=None, date: str | None=None, lot_id: str | None=No
 @app.get('/api/v1/alerts')
 def alerts(lot_id: str | None=None,status: str | None=None):
     with connect() as conn:
-        return collection(conn.execute('SELECT a.*, p.bay_label AS space_label FROM alerts a LEFT JOIN parking_spaces p ON p.space_id=a.space_id WHERE (%s::text IS NULL OR a.lot_id=%s) AND (%s::text IS NULL OR a.status=%s) ORDER BY a.detected_at DESC,a.alert_id',(lot_id,lot_id,status,status)).fetchall())
+        return collection(conn.execute('SELECT a.* FROM alerts a LEFT JOIN parking_spaces p ON p.space_id=a.space_id WHERE (%s::text IS NULL OR a.lot_id=%s) AND (%s::text IS NULL OR a.status=%s) ORDER BY a.detected_at DESC,a.alert_id',(lot_id,lot_id,status,status)).fetchall())
 
 class AlertRequest(BaseModel):
     lot_id: str
@@ -265,7 +265,7 @@ def simulation_status(lot_id: str):
     with connect() as conn:
         simulation.virtual_lot(conn,lot_id)
         control=conn.execute('SELECT * FROM simulation_control WHERE lot_id=%s',(lot_id,)).fetchone()
-        events=conn.execute('SELECT e.*,p.bay_label FROM simulation_events e LEFT JOIN parking_spaces p ON p.space_id=e.space_id WHERE e.lot_id=%s ORDER BY event_id DESC LIMIT 12',(lot_id,)).fetchall()
+        events=conn.execute('SELECT e.* FROM simulation_events e LEFT JOIN parking_spaces p ON p.space_id=e.space_id WHERE e.lot_id=%s ORDER BY event_id DESC LIMIT 12',(lot_id,)).fetchall()
         return dict(**control,events=events,is_mock=True)
 
 @app.post('/api/v1/simulation/{lot_id}/entry')

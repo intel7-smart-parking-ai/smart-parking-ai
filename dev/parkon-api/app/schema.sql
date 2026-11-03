@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS schema_migrations(version integer PRIMARY KEY, applie
 CREATE TABLE IF NOT EXISTS parking_lots(lot_id text PRIMARY KEY, name text NOT NULL, type text NOT NULL CHECK(type IN ('real','virtual')));
 CREATE TABLE IF NOT EXISTS rate_policies(lot_id text PRIMARY KEY REFERENCES parking_lots, policy jsonb NOT NULL);
 CREATE TABLE IF NOT EXISTS parking_spaces(space_id text PRIMARY KEY, lot_id text NOT NULL REFERENCES parking_lots, zone text NOT NULL, space_type text NOT NULL, status text NOT NULL, car_id text);
-CREATE TABLE IF NOT EXISTS parking_sessions(session_id text PRIMARY KEY, lot_id text NOT NULL REFERENCES parking_lots, space_id text NOT NULL REFERENCES parking_spaces, car_id text NOT NULL, entry_at timestamptz NOT NULL, status text NOT NULL DEFAULT 'parked');
+CREATE TABLE IF NOT EXISTS parking_sessions(session_id text PRIMARY KEY, lot_id text NOT NULL REFERENCES parking_lots, space_id text NOT NULL REFERENCES parking_spaces, car_id text NOT NULL, entry_at timestamptz NOT NULL, status text NOT NULL DEFAULT 'active');
 CREATE TABLE IF NOT EXISTS mock_payments(payment_id text PRIMARY KEY, session_id text NOT NULL, lot_id text NOT NULL REFERENCES parking_lots, car_id text NOT NULL, amount_krw integer NOT NULL CHECK(amount_krw >= 0), status text NOT NULL CHECK(status IN ('completed','canceled')), idempotency_key text UNIQUE NOT NULL, created_at timestamptz NOT NULL, canceled_at timestamptz);
 CREATE UNIQUE INDEX IF NOT EXISTS one_completed_payment_per_session ON mock_payments(session_id) WHERE status='completed';
 CREATE TABLE IF NOT EXISTS alerts(alert_id text PRIMARY KEY, lot_id text NOT NULL REFERENCES parking_lots, space_id text NOT NULL REFERENCES parking_spaces, type text NOT NULL, status text NOT NULL CHECK(status IN ('active','acknowledged','resolved')), detected_at timestamptz NOT NULL, acknowledged_at timestamptz, resolved_at timestamptz);
@@ -15,7 +15,7 @@ INSERT INTO schema_migrations(version) VALUES (3) ON CONFLICT DO NOTHING;
 ALTER TABLE mock_payments ADD COLUMN IF NOT EXISTS payment_method text NOT NULL DEFAULT 'credit_card' CHECK(payment_method IN ('credit_card','naver_pay','kakao_pay'));
 INSERT INTO schema_migrations(version) VALUES (4) ON CONFLICT DO NOTHING;
 ALTER TABLE parking_lots ADD COLUMN IF NOT EXISTS layout_type text;
-ALTER TABLE parking_spaces ADD COLUMN IF NOT EXISTS bay_label text;
+-- Legacy display labels are no longer part of the API; space_id is canonical.
 INSERT INTO schema_migrations(version) VALUES (5) ON CONFLICT DO NOTHING;
 
 -- Upgrade existing demo rows without deleting payments or changing their amounts.
@@ -42,3 +42,7 @@ ALTER TABLE parking_sessions ADD COLUMN IF NOT EXISTS exit_at timestamptz;
 ALTER TABLE parking_sessions ADD COLUMN IF NOT EXISTS is_simulated boolean NOT NULL DEFAULT false;
 CREATE TABLE IF NOT EXISTS simulation_control(lot_id text PRIMARY KEY REFERENCES parking_lots,running boolean NOT NULL DEFAULT false,interval_seconds integer NOT NULL DEFAULT 8 CHECK(interval_seconds BETWEEN 3 AND 60),next_tick_at timestamptz NOT NULL DEFAULT now(),last_error text);
 CREATE TABLE IF NOT EXISTS simulation_events(event_id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,lot_id text NOT NULL REFERENCES parking_lots,action text NOT NULL CHECK(action IN ('entry','exit')),space_id text NOT NULL REFERENCES parking_spaces,car_id text NOT NULL,vehicle_number text,session_id text NOT NULL REFERENCES parking_sessions,occurred_at timestamptz NOT NULL);
+
+-- PM D-02: preserve sessions and payment references while normalizing lifecycle.
+ALTER TABLE parking_sessions ALTER COLUMN status SET DEFAULT 'active';
+UPDATE parking_sessions SET status=CASE status WHEN 'parked' THEN 'active' WHEN 'exited' THEN 'closed' ELSE status END WHERE status IN ('parked','exited');

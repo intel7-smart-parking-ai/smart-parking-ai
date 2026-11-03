@@ -1,5 +1,5 @@
 import {api} from './api.js';
-export const paymentMethodCodes={credit_card:'MOCK_CARD',naver_pay:'MOCK_EASY_PAY',kakao_pay:'MOCK_EASY_PAY',MOCK_CARD:'MOCK_CARD',MOCK_EASY_PAY:'MOCK_EASY_PAY',MOCK_ACCOUNT:'MOCK_ACCOUNT'};
+export const paymentMethodCodes={credit_card:'MOCK_CARD',MOCK_CARD:'MOCK_CARD',MOCK_EASY_PAY:'MOCK_EASY_PAY',MOCK_ACCOUNT:'MOCK_ACCOUNT'};
 export const QUOTE_TTL_MS=120000;
 export const staleQuoteCodes=['QUOTE_EXPIRED','QUOTE_MISMATCH','QUOTE_CHANGED'];
 export function isQuoteExpired(invoice,now=Date.now()){

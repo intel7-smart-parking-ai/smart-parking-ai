@@ -48,9 +48,8 @@ def initialize():
                 status = 'occupied' if car else 'unavailable' if index==1 and i==5 else 'uncertain' if (index==1 and i==6) or (index==0 and i==6) else 'empty'
                 space_type = 'ev' if i in layout['ev'] else 'accessible' if i in layout['accessible'] else 'general'
                 zone = chr(65 + i // layout['bank'])
-                bay_label = f"{zone}-{i % layout['bank'] + 1:02}"
                 # Refresh drawing metadata only; preserve occupancy, sessions and payment history.
-                conn.execute('INSERT INTO parking_spaces(space_id,lot_id,zone,space_type,status,car_id,bay_label) VALUES(%s,%s,%s,%s,%s,%s,%s) ON CONFLICT(space_id) DO UPDATE SET zone=EXCLUDED.zone,space_type=EXCLUDED.space_type,bay_label=EXCLUDED.bay_label', (sid,lot_id,zone,space_type,status,car,bay_label))
+                conn.execute('INSERT INTO parking_spaces(space_id,lot_id,zone,space_type,status,car_id) VALUES(%s,%s,%s,%s,%s,%s) ON CONFLICT(space_id) DO UPDATE SET zone=EXCLUDED.zone,space_type=EXCLUDED.space_type', (sid,lot_id,zone,space_type,status,car))
                 if car:
                     conn.execute("INSERT INTO parking_sessions(session_id,lot_id,space_id,car_id,entry_at) SELECT %s,%s,%s,%s,%s WHERE NOT EXISTS(SELECT 1 FROM parking_sessions WHERE car_id=%s AND lot_id=%s) ON CONFLICT DO NOTHING", ('s-'+car,lot_id,sid,car,'2026-11-02T12:40:00+09:00',car,lot_id))
         for pid,lot,car,amount,when in [('seed-01','A','32',1000,'2026-11-02T13:05:00+09:00'),('seed-02','B','33',1200,'2026-11-02T13:20:00+09:00'),('seed-03','C','32',2600,'2026-11-01T11:40:00+09:00'),('seed-04','D','33',3200,'2026-10-31T15:00:00+09:00')]:

@@ -3,7 +3,7 @@ import {Icon, ParkingMap as FallbackMap, statuses, types} from './components.jsx
 import './styles/layout-maps.css';
 import MallParkingMap from './MallParkingMap.jsx';
 
-const names = {basic: '기본형', angled: '사선형', loop: '일방순환형', l_shape: 'L자복합형', mall: '신세계 백화점 B1 · 대형 주차장'};
+const names = {basic: '기본형', angled: '사선형', loop: '일방순환형', l_shape: 'L자복합형', mall: '신세계백화점주차장 B1 · 대형 주차장'};
 function Arrow({x, y, rotate = 0}) {
   return <g className="pdf-road-arrow" transform={`translate(${x} ${y}) rotate(${rotate})`} aria-hidden="true"><path d="M0 28V-23M-12-9 0-23 12-9"/></g>;
 }
@@ -23,11 +23,11 @@ function Bay({space, points, x, y, vertical, labelY, carY, carX, carRotation, st
   const warned = alerts.some(a => a.lot_id === lot.lot_id && a.space_id === space.space_id && a.status !== 'resolved');
   const selected = found?.lot_id === lot.lot_id && found?.space_id === space.space_id;
   const number = lot.type === 'real' ? space.car_id : space.vehicle_number;
-  const label = `${space.bay_label} ${types[space.space_type]} ${statuses[space.status]}${space.car_id ? ' 차량 ' + (lot.type === 'real' ? space.car_id : space.plate_number || number) : ''}`;
+  const label = `${space.space_id} ${types[space.space_type]} ${statuses[space.status]}${space.car_id ? ' 차량 ' + (lot.type === 'real' ? space.car_id : space.plate_number || number) : ''}`;
   return <g className={`pdf-bay ${space.status} ${space.space_type} ${dim ? 'dim' : ''} ${selected ? 'found' : ''} ${warned ? 'warned' : ''}`} role="button" tabIndex={0} aria-label={label} onClick={() => onSpace(space)} onKeyDown={e => {if (e.key === 'Enter' || e.key === ' ') {e.preventDefault(); onSpace(space);}}}>
     <title>{label}</title><polygon className="pdf-bay-shape" points={points}/>
     {stopPath && <path className="pdf-wheel-stop" d={stopPath} aria-hidden="true"/>}
-    <text className="pdf-bay-label" x={x} y={labelY ?? y - (vertical ? 75 : 22)} textAnchor="middle">{space.bay_label}</text>
+    <text className="pdf-bay-label" x={x} y={labelY ?? y - (vertical ? 75 : 22)} textAnchor="middle">{space.space_id}</text>
     {space.car_id ? <g transform={lot.layout_type === 'mall' ? `translate(${carX ?? x} ${carY ?? y}) scale(.68) translate(${- (carX ?? x)} ${- (carY ?? y)})` : undefined}><MiniCar x={carX ?? x} y={carY ?? y + (vertical ? 2 : 11)} number={number} rotation={carRotation ?? (vertical ? 90 : 0)}/></g> : <text className="pdf-bay-status" x={x} y={carY ?? y + 12} textAnchor="middle">{statuses[space.status]}</text>}
     {space.space_type === 'ev' && <text className="pdf-bay-special" x={x} y={y + (vertical ? 68 : 42)} textAnchor="middle">⚡ 전기차</text>}
     {space.space_type === 'accessible' && <text className="pdf-bay-special" x={x} y={y + (vertical ? 68 : 42)} textAnchor="middle">♿ 장애인</text>}
@@ -85,6 +85,6 @@ export default function ParkingLayoutMap(props) {
       </svg>
     </div>
     <div className="map-legend">{Object.entries(statuses).map(([id,label]) => <span key={id}><i className={`legend-dot ${id}`}/>{label}</span>)}</div>
-    <p className="pdf-layout-note"><Icon name="info"/>{kind === 'mall' ? '신세계 백화점 B1 가상 배치 · A–D는 신세계 백화점 주차장 내부 구역입니다. 차량번호는 주차칸 확대에서 확인하세요.' : '첨부 도면 기준 · A/B는 이 주차장 내부 구역입니다.'}<br/>주차칸 선택으로 상세 조회 · 초록색 전기차 / 파란색 장애인</p>
+    <p className="pdf-layout-note"><Icon name="info"/>{kind === 'mall' ? '신세계백화점주차장 B1 가상 배치 · A–D는 신세계백화점주차장 내부 구역입니다. 차량번호는 주차칸 확대에서 확인하세요.' : '첨부 도면 기준 · A/B는 이 주차장 내부 구역입니다.'}<br/>주차칸 선택으로 상세 조회 · 초록색 전기차 / 파란색 장애인</p>
   </section>;
 }
