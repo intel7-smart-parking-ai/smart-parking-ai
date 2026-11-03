@@ -385,6 +385,14 @@
 - **세션·billing:** 세션 생성 박해준 / billing 읽기 윤명수(권장). 빠른 길 = 같은 SQLite 파일·`parking_sessions` 테이블(+`status`)에 기록 → 11/04 테이블 확정, 11/05 생성·`GET /sessions`, 11/06 billing 확인, 11/09 통합 시험
 
 ---
+### 17:13 · ✅ PR #25 병합 (진행 기록) / 병합 요청 3개 점검 — 김한별 요청
+- **#23** `KAN-17-v3-quote-id-compat`: 단독 261 passed → 병합 가능
+- **#24** `KAN-17-d5-occupancy-prototype`: 단독 270 passed → 병합 가능
+- **#26** `KAN-16-query-104-spaces` (Draft): 단독 248 passed, 실제 응답 확인(4곳 이름·104칸·차량 `10`/`20`·`01`→404·`space_type`/`vehicle_type`/`source`/`is_mock`) → 내용 OK
+- **충돌:** #23+#26 함께면 `test_v3_session_ids.py` 191줄(`/vehicles/01/location`)이 404로 KeyError → `01`→`10` 수정 필요 (그 외 294 passed)
+- **순서:** #23 → #24 → #26(main 병합 후 1줄 수정·Ready) / PR #7 닫기
+
+---
 ---
 
 ## 대기 중인 결정 (PM)
