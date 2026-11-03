@@ -249,6 +249,10 @@
 ### 15:22 · 윤명수 참고 자료 안내 — 윤명수 요청
 - **결과:** 읽을 것(DECISIONS D-02·06·09, API_CONTRACT 견적·세션·주차장 절, parking-state-engine 스킬) / 고칠 파일(schemas·payment_service·db·billing_router·테스트·API_SPECIFICATION) / 참고만(김채린 데모 서버 `quote_id` 구현, 프론트 `payments.js`, 박해준 SQLAlchemy 모델)
 
+### 15:25 · 윤명수 작업 환경 안내 — 윤명수 문의
+- **문제:** 저장소를 ZIP으로 받아 `.git`이 없음 → 커밋·push 불가
+- **안내:** `git clone` 후 `feature/KAN-28-fee-quote` 전환, Python 3.11 확인·설치(없으면 박해준 PC), venv·기존 테스트 통과 확인 → 할 일 문서 순서대로 작업 → 폴더 지정 add·push
+
 ---
 
 ## 대기 중인 결정 (PM)
