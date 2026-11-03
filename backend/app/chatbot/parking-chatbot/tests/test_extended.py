@@ -19,8 +19,8 @@ class ExtendedTests(unittest.TestCase):
             for row in csv.DictReader(f):
                 with self.subTest(question=row["question"]):
                     r = parse(row["question"])
-                    self.assertEqual((r.intent, r.params.get("lot_id", ""), r.params.get("vehicle_no", "")),
-                                     (row["intent"], row["lot_id"], row["vehicle_no"]))
+                    self.assertEqual((r.intent, r.params.get("lot_id", ""), r.params.get("car_id", "")),
+                                     (row["intent"], row["lot_id"], row["car_id"]))
 
     def test_development_set(self):
         self.check_file("questions_extended.csv")
@@ -29,7 +29,7 @@ class ExtendedTests(unittest.TestCase):
         self.check_file("questions_holdout.csv")
 
     def vehicle(self):
-        e.handle("s", text="7번 차 위치"); e.handle("s", text="네")
+        e.handle("s", text="17번 차 위치"); e.handle("s", text="네")
 
     def test_decline_admin_does_not_call(self):
         for phrase in ("관리자 필요 없어", "직원은 부르지 마", "호출하지 말고 기다려"):
@@ -47,27 +47,27 @@ class ExtendedTests(unittest.TestCase):
             result = e.handle("s", text=phrase)
             self.assertEqual(result["flow"], "idle")
             self.assertEqual(result["card"]["type"], "fee")
-        self.assertFalse(e.data.get_fee("07")["paid"])
+        self.assertFalse(e.data.get_fee("17")["paid"])
 
     def test_query_instead_of_payment_clears_quote(self):
         self.vehicle(); e.handle("s", text="결제할게요")
         self.assertEqual(e.get_session("s").flow.value, "confirm_action")
         e.handle("s", text="결제 말고 요금만 보여줘")
         e.handle("s", text="네")
-        self.assertFalse(e.data.get_fee("07")["paid"])
+        self.assertFalse(e.data.get_fee("17")["paid"])
 
     def test_soft_decline_cancels_quote(self):
         self.vehicle()
         for phrase in ("결제 말아줘", "결제 안해도 돼", "아직 정산하지 말아주세요"):
             e.handle("s", text="결제할게요")
             e.handle("s", text=phrase); e.handle("s", text="네")
-            self.assertFalse(e.data.get_fee("07")["paid"])
+            self.assertFalse(e.data.get_fee("17")["paid"])
 
     def test_natural_confirmation_completes_vehicle_query(self):
-        e.handle("s", text="7번 요금")
+        e.handle("s", text="17번 요금")
         r = e.handle("s", text="네, 맞습니다")
         self.assertEqual(r["card"]["type"], "fee")
-        self.assertEqual(r["vehicle_context"]["vehicle_no"], "07")
+        self.assertEqual(r["vehicle_context"]["car_id"], "17")
 
     def test_subscription_decline_returns_current_lookup(self):
         e.handle("s", text="B 자리 나면 알려줘")
@@ -79,4 +79,4 @@ class ExtendedTests(unittest.TestCase):
         self.vehicle(); e.handle("s", text="결제할게요")
         e.handle("s", text="영수증 이메일로 보내줘")
         e.handle("s", text="네")
-        self.assertFalse(e.data.get_fee("07")["paid"])
+        self.assertFalse(e.data.get_fee("17")["paid"])

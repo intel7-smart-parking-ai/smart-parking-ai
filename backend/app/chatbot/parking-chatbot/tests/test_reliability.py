@@ -21,7 +21,7 @@ class ReliabilityTests(unittest.TestCase):
         e.reset_all()
 
     def quote(self, sid="s"):
-        e.handle(sid, text="7번 결제")
+        e.handle(sid, text="17번 결제")
         return e.handle(sid, text="네")
 
     def close_report(self):
@@ -32,8 +32,8 @@ class ReliabilityTests(unittest.TestCase):
     def test_vehicle_confirmation_does_not_execute_payment(self):
         result = self.quote()
         self.assertEqual(result["flow"], "confirm_action")
-        self.assertFalse(e.data.get_fee("07")["paid"])
-        self.assertIn("1,500원", result["text"])
+        self.assertFalse(e.data.get_fee("17")["paid"])
+        self.assertIn("2,500원", result["text"])
 
     def test_query_and_negative_phrases_do_not_become_actions(self):
         for phrase, intent in (("결제했어?", "get_fee"), ("결제 취소", "cancel_action"),
@@ -45,20 +45,20 @@ class ReliabilityTests(unittest.TestCase):
         self.quote()
         e.handle("s", text="결제 취소")
         e.handle("s", text="네")
-        self.assertFalse(e.data.get_fee("07")["paid"])
+        self.assertFalse(e.data.get_fee("17")["paid"])
 
     def test_unrecognized_interruption_discards_action(self):
         self.quote()
         e.handle("s", text="뿌잉")
         e.handle("s", text="네")
-        self.assertFalse(e.data.get_fee("07")["paid"])
+        self.assertFalse(e.data.get_fee("17")["paid"])
 
     def test_old_confirmation_button_does_not_execute_new_action(self):
         old = self.quote()
         current = e.handle("s", chip_id="call_admin")
         result = e.handle("s", chip_id="confirm_yes", confirmation_token=old["confirmation_token"])
         self.assertEqual(len(e.admin_calls()), 1)
-        self.assertFalse(e.data.get_fee("07")["paid"])
+        self.assertFalse(e.data.get_fee("17")["paid"])
         self.assertEqual(result["confirmation_token"], current["confirmation_token"])
 
     def test_expired_confirmation_does_not_pay(self):
@@ -67,7 +67,7 @@ class ReliabilityTests(unittest.TestCase):
         with patch("chatbot.state.time.monotonic", return_value=expires + 1):
             result = e.handle("s", text="네")
         self.assertIn("확인 시간이 지나", result["text"])
-        self.assertFalse(e.data.get_fee("07")["paid"])
+        self.assertFalse(e.data.get_fee("17")["paid"])
 
     def test_parallel_retries_return_same_payment_once(self):
         quote = self.quote()
@@ -94,10 +94,10 @@ class ReliabilityTests(unittest.TestCase):
 
     def test_quote_change_requires_new_confirmation(self):
         self.quote()
-        e.data.inner.cars["07"]["entered_at"] -= timedelta(minutes=20)
+        e.data.inner.cars["17"]["entry_at"] -= timedelta(minutes=20)
         result = e.handle("s", text="네")
         self.assertEqual(result["flow"], "confirm_action")
-        self.assertFalse(e.data.get_fee("07")["paid"])
+        self.assertFalse(e.data.get_fee("17")["paid"])
 
     def test_uncertain_payment_is_not_repeated_in_another_session(self):
         self.quote()
@@ -108,12 +108,12 @@ class ReliabilityTests(unittest.TestCase):
         self.assertIn("불확실", result["text"])
 
     def test_stale_fee_cannot_prepare_payment(self):
-        e.handle("s", text="7번 결제")
-        fee = {**e.data.get_fee("07"), "stale": True}
+        e.handle("s", text="17번 결제")
+        fee = {**e.data.get_fee("17"), "stale": True}
         with patch.object(e.data, "get_fee", return_value=fee):
             result = e.handle("s", text="네")
         self.assertNotEqual(result["flow"], "confirm_action")
-        self.assertFalse(e.data.get_fee("07")["paid"])
+        self.assertFalse(e.data.get_fee("17")["paid"])
 
     def test_lost_notification_response_can_be_retried_and_acknowledged(self):
         e.data.set_alert(1, "B", 4)
@@ -129,7 +129,7 @@ class ReliabilityTests(unittest.TestCase):
         self.assertFalse(any(c["id"] == "confirm_yes" for c in notice["chips"]))
         self.assertIsNone(e.get_session("s").pending)
         e.handle("s", chip_id="confirm_yes", confirmation_token=q["confirmation_token"])
-        self.assertFalse(e.data.get_fee("07")["paid"])
+        self.assertFalse(e.data.get_fee("17")["paid"])
 
     def test_alert_receipt_count_requires_ack(self):
         e.data.set_alert(2, "A", 6)
@@ -160,12 +160,12 @@ class ReliabilityTests(unittest.TestCase):
             response = e.handle("s", chip_id="empty_all")
         self.assertTrue(response["meta"]["unavailable"])
 
-    def test_old_success_response_is_not_treated_as_fresh(self):
+    def test_old_success_response_uses_server_value(self):
+        # v2.9: 신선도 세부 규칙 제거. 일반 조회는 서버 값을 그대로 쓴다(오래된 '경보 없음'만 거절, test_v28_freshness).
         d = e.data.inner.get_empty_spots()
         d["updated_at"] = iso(now() - timedelta(hours=1))
         with patch.object(e.data.inner, "get_empty_spots", return_value=d):
-            with self.assertRaises(DataUnavailable):
-                e.data.get_empty_spots()
+            self.assertEqual(e.data.get_empty_spots()["updated_at"], d["updated_at"])
 
     def test_expired_cache_is_not_used(self):
         e.data.get_empty_spots()
@@ -218,7 +218,7 @@ class ReliabilityTests(unittest.TestCase):
     def test_unknown_payment_status_is_not_reported_as_car_missing(self):
         with patch.object(e.data.inner, "pay", return_value={"status": "backend_error"}):
             with self.assertRaises(DataUnavailable):
-                e.data.pay("07")
+                e.data.pay("17")
 
 
 class QueuePolicyTests(unittest.TestCase):

@@ -1,10 +1,10 @@
-question,intent,lot_id,vehicle_no,zone
+question,intent,lot_id,car_id,zone
 디 구역에 빈 칸 남았나요,get_empty_spots,D,,
 D 주차장으로 갈래,set_destination,D,,
 그럼 디 주차장은?,get_empty_spots,D,,
 C 전기차 자리 좀 볼래,get_empty_spots,C,,ev
-A 장애인 구역은 비었나요,get_empty_spots,A,,disabled
-B 일반 자리 알려줘,get_empty_spots,B,,normal
+A 장애인 구역은 비었나요,get_empty_spots,A,,accessible
+B 일반 자리 알려줘,get_empty_spots,B,,general
 내 목적지 취소해줘,cancel_destination,,,
 B로 안내하지 마,cancel_destination,B,,
 이디야 근처 맛집,unknown,,,

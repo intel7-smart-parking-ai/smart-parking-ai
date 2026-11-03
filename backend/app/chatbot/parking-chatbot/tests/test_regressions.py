@@ -32,38 +32,38 @@ class WorkflowTests(unittest.TestCase):
         e.reset_all()
 
     def test_vehicle_confirmation_then_fee(self):
-        self.assertIn("맞으세요", e.handle("s", text="7번 요금")["text"])
+        self.assertIn("맞으세요", e.handle("s", text="17번 요금")["text"])
         result = e.handle("s", text="네")
         self.assertEqual(result["card"]["type"], "fee")
-        self.assertEqual(result["card"]["data"]["vehicle_no"], "07")
+        self.assertEqual(result["card"]["data"]["car_id"], "17")
 
     def test_changed_topic_cancels_pending_payment(self):
-        e.handle("s", text="7번 결제")
+        e.handle("s", text="17번 결제")
         e.handle("s", text="빈자리")
         result = e.handle("s", text="네")
-        self.assertFalse(e.data.get_fee("07")["paid"])
+        self.assertFalse(e.data.get_fee("17")["paid"])
         self.assertIn("확인할 내용이 없", result["text"])
 
     def test_denied_number_can_be_corrected(self):
-        e.handle("s", text="7번 요금")
+        e.handle("s", text="17번 요금")
         e.handle("s", text="아니요")
-        e.handle("s", text="8")
+        e.handle("s", text="18")
         result = e.handle("s", text="네")
-        self.assertEqual(result["card"]["data"]["vehicle_no"], "08")
+        self.assertEqual(result["card"]["data"]["car_id"], "18")
 
     def test_payment_and_repeat(self):
-        e.handle("s", text="7번 결제")
+        e.handle("s", text="17번 결제")
         quote = e.handle("s", text="네")
         self.assertEqual(quote["flow"], "confirm_action")
         self.assertEqual(e.handle("s", text="네")["card"]["data"]["status"], "paid")
         self.assertIn("이미 결제", e.handle("s", chip_id="pay")["text"])
 
     def test_free_payment_does_not_waive_later_fees(self):
-        self.assertEqual(e.data.pay("03")["status"], "free")
-        e.data.inner.cars["03"]["entered_at"] = now() - timedelta(minutes=40)
-        d = e.data.get_fee("03")
+        self.assertEqual(e.data.pay("13")["status"], "paid")
+        e.data.inner.cars["13"]["entry_at"] = now() - timedelta(minutes=40)
+        d = e.data.get_fee("13")
         self.assertGreater(d["fee"], 0)
-        self.assertFalse(d["paid"])
+        self.assertTrue(d["paid"])
 
 
 
@@ -109,7 +109,7 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(len(reports), 2)
         self.assertEqual(reports[0]["lot_id"], "B")
         self.assertEqual(reports[0]["spot_no"], 3)
-        self.assertEqual(reports[0]["near"], ["10", "11", "12"])
+        self.assertEqual(reports[0]["near"], ["20", "21", "22"])  # B A-03의 같은 줄 양옆(A-02, A-04)
         self.assertIsNotNone(reports[1]["closed_at"])
 
     def test_report_snapshot_cannot_modify_saved_checklist(self):
@@ -129,15 +129,15 @@ class WorkflowTests(unittest.TestCase):
             self.assertIn("확인할 수 없", result["text"])
 
     def test_payment_success_survives_followup_read_failure(self):
-        e.handle("s", text="7번 결제")
+        e.handle("s", text="17번 결제")
         e.handle("s", text="네")
-        fee = e.data.get_fee("07")
+        fee = e.data.get_fee("17")
         with patch.object(e.data, "get_fee", side_effect=[fee, DataUnavailable()]):
             result = e.handle("s", text="네")
         self.assertEqual(result["card"]["data"]["status"], "paid")
 
     def test_failed_payment_confirmation_warns_about_unknown_result(self):
-        e.handle("s", text="7번 결제")
+        e.handle("s", text="17번 결제")
         e.handle("s", text="네")
         with patch.object(e.data, "pay", side_effect=DataUnavailable()):
             result = e.handle("s", text="네")
@@ -155,28 +155,28 @@ class WorkflowTests(unittest.TestCase):
 
 class ParserTests(unittest.TestCase):
     def test_natural_vehicle_location(self):
-        r = parser.parse_rules("7번 차 어디 있어?")
+        r = parser.parse_rules("17번 차 어디 있어?")
         self.assertEqual(r.intent, "find_my_car")
-        self.assertEqual(r.params["vehicle_no"], "07")
+        self.assertEqual(r.params["car_id"], "17")
 
     def test_out_of_range_korean_number_not_partial_match(self):
-        self.assertEqual(parser.parse_rules("이십오번 차 위치").params["vehicle_no"], "invalid")
+        self.assertEqual(parser.parse_rules("오번 차 위치").params["car_id"], "short")  # 한 자리는 두 자리로 다시 묻는다
 
     def test_number_in_unrecognized_sentence_does_not_switch_vehicle(self):
-        self.assertFalse(parser.parse_rules("7번 차 와이퍼 고장").vehicle_only)
+        self.assertFalse(parser.parse_rules("17번 차 와이퍼 고장").vehicle_only)
 
     def test_malformed_llm_result_is_ignored(self):
         for payload in ([1], {"intent": []}, {"intent": "get_fee", "params": [1]}):
-            with self.subTest(payload=payload), patch("chatbot.llm.classify", return_value=payload):
+            with self.subTest(payload=payload), patch("chatbot.config.LLM_ENGINE", "direct"), patch("chatbot.llm.classify", return_value=payload):
                 self.assertEqual(parser.parse("뿌잉").intent, "unknown")
 
     def test_llm_params_are_validated_and_rule_values_preserved(self):
-        with patch("chatbot.llm.classify", return_value={"intent": "get_fee", "params": {"vehicle_no": "18", "lot_id": "Z", "extra": 1}}):
-            r = parser.parse("7번 차 뿌잉")
-        self.assertEqual(r.params, {"vehicle_no": "07"})
+        with patch("chatbot.config.LLM_ENGINE", "direct"), patch("chatbot.llm.classify", return_value={"intent": "get_fee", "params": {"car_id": "18", "lot_id": "Z", "extra": 1}}):
+            r = parser.parse("17번 차 뿌잉")
+        self.assertEqual(r.params, {"car_id": "17"})
 
     def test_llm_cannot_confirm_a_pending_action(self):
-        with patch("chatbot.llm.classify", return_value={"intent": "confirm_yes"}):
+        with patch("chatbot.config.LLM_ENGINE", "direct"), patch("chatbot.llm.classify", return_value={"intent": "confirm_yes"}):
             self.assertEqual(parser.parse("뿌잉").intent, "unknown")
 
 
@@ -186,12 +186,12 @@ class CacheTests(unittest.TestCase):
         self.cache = CachedAdapter(self.backend)
 
     def test_missing_car_invalidates_old_location(self):
-        self.cache.find_car("07")
-        self.backend.exit_car("07")
-        self.assertIsNone(self.cache.find_car("07"))
+        self.cache.find_car("17")
+        self.backend.exit_car("17")
+        self.assertIsNone(self.cache.find_car("17"))
         with patch.object(self.backend, "find_car", side_effect=OSError("offline")):
             with self.assertRaises(DataUnavailable):
-                self.cache.find_car("07")
+                self.cache.find_car("17")
 
     def test_cached_values_are_isolated_and_marked_stale(self):
         first = self.cache.get_empty_spots()
@@ -199,14 +199,14 @@ class CacheTests(unittest.TestCase):
         with patch.object(self.backend, "get_empty_spots", side_effect=OSError("offline")):
             result = self.cache.get_empty_spots()
         self.assertTrue(result["stale"])
-        self.assertEqual(result["lots"]["A"]["empty"], 1)
+        self.assertEqual(result["lots"]["A"]["empty"], 5)  # 개발원 12칸 - 목업 7대
 
     def test_payment_invalidates_old_fee(self):
-        self.cache.get_fee("07")
-        self.cache.pay("07")
+        self.cache.get_fee("17")
+        self.cache.pay("17")
         with patch.object(self.backend, "get_fee", side_effect=OSError("offline")):
             with self.assertRaises(DataUnavailable):
-                self.cache.get_fee("07")
+                self.cache.get_fee("17")
 
     def test_reset_removes_old_cache(self):
         self.cache.get_empty_spots()
@@ -218,7 +218,7 @@ class CacheTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             api.set_alert(2, "A", 6)
         with self.assertRaises(ValueError):
-            api.exit_car("07")
+            api.exit_car("17")
 
 
 class DevHTTPTests(unittest.TestCase):
@@ -257,7 +257,7 @@ class DevHTTPTests(unittest.TestCase):
         self.assertEqual(self.request("", b'{"text":[]}')[0], 400)
 
     def test_invalid_alert_fields_return_400(self):
-        for body in ({"level": 5}, {"level": 2, "lot_id": "Z"}, {"level": 1, "spot_no": 9}):
+        for body in ({"level": 5}, {"level": 2, "lot_id": "Z"}, {"level": 1, "spot_no": 99}):
             with self.subTest(body=body):
                 self.assertEqual(self.request("/demo/alert", json.dumps(body).encode())[0], 400)
 

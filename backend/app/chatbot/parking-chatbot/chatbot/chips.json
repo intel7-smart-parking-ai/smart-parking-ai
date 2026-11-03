@@ -25,11 +25,6 @@
       "intent": "pay_fee",
       "params": {}
     },
-    "exit_issue": {
-      "label": "출차가 안 돼요",
-      "intent": "check_exit_issue",
-      "params": {}
-    },
     "call_admin": {
       "label": "관리자 호출",
       "intent": "call_admin",
@@ -89,6 +84,11 @@
       "label": "아니에요 · 관리자 호출",
       "intent": "call_admin",
       "params": {}
+    },
+    "unrecognized": {
+      "label": "번호 미인식 차량",
+      "intent": "help",
+      "params": {}
     }
   },
   "sets": {
@@ -101,19 +101,19 @@
     "parked": [
       "fee",
       "pay",
-      "exit_issue",
-      "find_car"
+      "find_car",
+      "call_admin"
     ],
     "after_get_empty_spots": [],
     "after_find_my_car": [
       "fee",
       "pay",
-      "exit_issue"
+      "call_admin"
     ],
     "after_get_fee": [
       "pay",
       "find_car",
-      "exit_issue"
+      "call_admin"
     ],
     "after_fee_rule": [
       "fee",
@@ -122,13 +122,8 @@
     ],
     "after_pay_fee": [
       "find_car",
-      "exit_issue",
-      "empty_all"
-    ],
-    "after_check_exit_issue": [
-      "pay",
-      "call_admin",
-      "fee"
+      "empty_all",
+      "call_admin"
     ],
     "after_call_admin": [
       "find_car",
@@ -164,13 +159,11 @@
     "지금까지 요금 얼마야?",
     "요금 기준 알려줘",
     "미리 결제하기",
-    "출차가 안 돼요",
     "차단기가 안 열려요",
     "관리자 불러줘",
     "경보 위치 어디야?",
     "내 차 근처야?",
     "대피 안내해줘",
-    "무료 시간은 몇 분이야?",
     "30분 뒤 요금은?",
     "진행 중 요청 취소"
   ]

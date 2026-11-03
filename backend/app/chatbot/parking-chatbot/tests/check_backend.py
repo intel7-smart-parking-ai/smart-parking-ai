@@ -12,7 +12,7 @@ def main():
         print(".env에서 DATA_SOURCE=api와 BACKEND_BASE_URL을 설정한 뒤 실행하세요.")
         return 2
     adapter = build_adapter()
-    vehicle = sys.argv[1] if len(sys.argv) > 1 else "07"
+    vehicle = sys.argv[1] if len(sys.argv) > 1 else "17"
     if not vehicle.isdecimal() or not 1 <= int(vehicle) <= 24:
         print("차량 번호는 01~24입니다."); return 2
     vehicle = vehicle.zfill(2)

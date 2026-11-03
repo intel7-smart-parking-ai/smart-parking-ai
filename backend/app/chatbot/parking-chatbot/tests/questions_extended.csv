@@ -1,4 +1,4 @@
-question,intent,lot_id,vehicle_no
+question,intent,lot_id,car_id
 아직 결제하지 마,cancel_action,,
 결제 말아줘,cancel_action,,
 결제 안해도 돼,cancel_action,,
@@ -14,18 +14,18 @@ question,intent,lot_id,vehicle_no
 정산 여부만 확인하고 싶어,get_fee,,
 얼마 냈는지 확인해줘,get_fee,,
 결제된 건지 알려줘,get_fee,,
-7번 주차비 확인,get_fee,,07
-０７번 요금 알려줘,get_fee,,07
-7번차 주차비,get_fee,,07
+17번 주차비 확인,get_fee,,17
+１７번 요금 알려줘,get_fee,,17
+17번차 주차비,get_fee,,17
 직원 불렀는데 확인했나요,call_status,,
 아까 호출한 거 처리됐어요?,call_status,,
 관리자 언제 오나요,call_status,,
 문의 처리 상태 좀,call_status,,
 관리자 호출됐나요,call_status,,
-정산했어요 그런데 차단기가 안 올라와요,check_exit_issue,,
-요금은 냈는데 출차가 안돼,check_exit_issue,,
-출구에서 못 나가겠어요,check_exit_issue,,
-차단기가 먹통이에요,check_exit_issue,,
+정산했어요 그런데 차단기가 안 올라와요,exit_help,,
+요금은 냈는데 출차가 안돼,exit_help,,
+출구에서 못 나가겠어요,exit_help,,
+차단기가 먹통이에요,exit_help,,
 주차 가능한 곳 있어요,get_empty_spots,,
 비어 있는 주차 공간 있나요,get_empty_spots,,
 B에 빈칸 남았나요,get_empty_spots,B,
@@ -35,8 +35,8 @@ A 주차장은 꽉 찼어요?,get_empty_spots,A,
 주차요금 계산 기준 좀,fee_rule,,
 시간당 요금 얼마인가요,fee_rule,,
 내 차가 안 보이는데요,find_my_car,,
-07번 차량 찾아주세요,find_my_car,,07
-7 번 차 위치좀,find_my_car,,07
+17번 차량 찾아주세요,find_my_car,,17
+17 번 차 위치좀,find_my_car,,17
 대기하지 않을게요,get_empty_spots,,
 대기 그만할게요,get_empty_spots,,
 자리 알림 끄고 싶어요,get_empty_spots,,

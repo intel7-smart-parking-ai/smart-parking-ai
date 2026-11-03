@@ -20,12 +20,12 @@ class StabilityTests(unittest.TestCase):
         p.start(); self.addCleanup(p.stop)
         e.reset_all()
 
-    def choose(self, no="07", sid="s"):
+    def choose(self, no="17", sid="s"):
         e.handle(sid, text=f"{no}번 차 위치")
         return e.handle(sid, text="네")
 
     def quote(self):
-        e.handle("s", text="7번 결제")
+        e.handle("s", text="17번 결제")
         return e.handle("s", text="네")
 
     def alert(self, level, lot="A", spot=6):
@@ -37,15 +37,15 @@ class StabilityTests(unittest.TestCase):
             for row in csv.DictReader(stream):
                 with self.subTest(question=row["question"]):
                     r=parser.parse_rules(row["question"])
-                    self.assertEqual((r.intent,r.params.get("lot_id",""),r.params.get("vehicle_no","")),
-                                     (row["intent"],row["lot_id"],row["vehicle_no"]))
+                    self.assertEqual((r.intent,r.params.get("lot_id",""),r.params.get("car_id","")),
+                                     (row["intent"],row["lot_id"],row["car_id"]))
 
     def test_exhausted_external_budget_does_not_send_payment(self):
         from chatbot.adapters import ApiAdapter
         token = request_deadline.set(time.monotonic()-1)
         try:
             with patch("chatbot.adapters.urllib.request.urlopen") as send:
-                with self.assertRaises(DataUnavailable): CachedAdapter(ApiAdapter("http://127.0.0.1:1")).pay("07")
+                with self.assertRaises(DataUnavailable): CachedAdapter(ApiAdapter("http://127.0.0.1:1")).pay("17")
             self.assertEqual(send.call_count,0)
         finally:
             request_deadline.reset(token)
@@ -57,7 +57,7 @@ class StabilityTests(unittest.TestCase):
         new = e.handle("s", chip_id="call_admin")["card"]["data"]
         self.assertNotEqual(old["id"], new["id"])
         self.assertEqual(new["incident_id"], a["incident_id"])
-        self.assertIn("Lv2 A 6번", new["summary"])
+        self.assertIn("Lv2 개발원주차장 A-06", new["summary"])
         self.assertEqual(incidents.active()["admin_calls"], [new["id"]])
 
     def test_escalation_refreshes_same_call_and_revision(self):
@@ -91,16 +91,16 @@ class StabilityTests(unittest.TestCase):
         reports = {x["id"]: x for x in incidents.list_public()}
         self.assertEqual(call["incident_id"], first["incident_id"])
         self.assertIn(f"보고서 #{first['incident_id']}", call["summary"])
-        self.assertIn("Lv2 A 6번", call["summary"])
+        self.assertIn("Lv2 개발원주차장 A-06", call["summary"])
         self.assertIn(call["id"], reports[first["incident_id"]]["admin_calls"])
         self.assertEqual(reports[second["incident_id"]]["admin_calls"], [])
 
     def test_call_uses_explicit_vehicle_without_changing_selected_vehicle(self):
         self.choose()
-        call = e.handle("s", text="8번 차 관리자 불러주세요")["card"]["data"]
-        self.assertEqual(call["vehicle_no"], "08")
-        self.assertIn("08번 차", call["summary"])
-        self.assertEqual(e.get_session("s").vehicle_no, "07")
+        call = e.handle("s", text="18번 차 관리자 불러주세요")["card"]["data"]
+        self.assertEqual(call["car_id"], "18")
+        self.assertIn("18번 차", call["summary"])
+        self.assertEqual(e.get_session("s").car_id, "17")
 
     def test_negations_and_questions_do_not_create_calls(self):
         for phrase in ("관리자 불러주지 마세요 제가 해볼게요", "관리자 아직 안 왔어요",
@@ -114,14 +114,14 @@ class StabilityTests(unittest.TestCase):
             r = e.handle("s", text=phrase)
             self.assertEqual(r["flow"], "idle")
             self.assertIsNone(r["confirmation_token"])
-        self.assertFalse(e.data.get_fee("07")["paid"])
+        self.assertFalse(e.data.get_fee("17")["paid"])
 
     def test_cancel_payment_then_call_is_supported_limited_compound(self):
         self.quote()
         r = e.handle("s", text="결제 취소하고 관리자 불러줘")
         self.assertEqual(r["card"]["type"], "admin_call")
         self.assertIsNone(e.get_session("s").pending)
-        self.assertFalse(e.data.get_fee("07")["paid"])
+        self.assertFalse(e.data.get_fee("17")["paid"])
 
     def test_evacuation_and_smoke_are_not_hidden_by_admin_status(self):
         self.assertEqual(parser.parse_rules("직원 부르지 말고 대피 알려줘").intent, "evacuation_guide")
@@ -130,47 +130,47 @@ class StabilityTests(unittest.TestCase):
         self.assertEqual(e.admin_calls(), [])
 
     def test_explicit_correction_resumes_with_new_vehicle(self):
-        e.handle("s", text="7번 결제")
-        r = e.handle("s", text="아니 7번 말고 8번")
-        self.assertIn("08번", r["text"])
+        e.handle("s", text="17번 결제")
+        r = e.handle("s", text="아니 17번 말고 18번")
+        self.assertIn("18번", r["text"])
         e.handle("s", text="네")
-        self.assertEqual(e.get_session("s").vehicle_no, "08")
-        self.assertFalse(e.data.get_fee("07")["paid"])
+        self.assertEqual(e.get_session("s").car_id, "18")
+        self.assertFalse(e.data.get_fee("17")["paid"])
 
     def test_correction_in_first_request_chooses_right_number(self):
-        r = e.handle("s", text="7번 말고 8번 결제")
-        self.assertIn("08번", r["text"])
+        r = e.handle("s", text="17번 말고 18번 결제")
+        self.assertIn("18번", r["text"])
 
     def test_ambiguous_vehicle_clears_old_confirmation(self):
-        e.handle("s", text="7번 결제")
-        e.handle("s", text="7번 8번 차량")
+        e.handle("s", text="17번 결제")
+        e.handle("s", text="17번 18번 차량")
         e.handle("s", text="네")
-        self.assertIsNone(e.get_session("s").vehicle_no)
-        self.assertFalse(e.data.get_fee("07")["paid"])
+        self.assertIsNone(e.get_session("s").car_id)
+        self.assertFalse(e.data.get_fee("17")["paid"])
 
     def test_unknown_correction_does_not_approve_old_vehicle(self):
-        e.handle("s", text="7번 결제")
+        e.handle("s", text="17번 결제")
         e.handle("s", text="아니 그 차 말고 다른 차")
         e.handle("s", text="네")
-        self.assertIsNone(e.get_session("s").vehicle_no)
+        self.assertIsNone(e.get_session("s").car_id)
 
     def test_replay_keeps_latest_banner_and_vehicle(self):
         self.choose()
         e.handle("s", chip_id="empty_all", request_id="lost")
-        self.alert(2); e.data.exit_car("07")
+        self.alert(2); e.data.exit_car("17")
         r = e.handle("s", chip_id="empty_all", request_id="lost")
         self.assertEqual(r["banner"]["level"], 2)
         self.assertEqual(r["vehicle_context"]["state"], "not_found")
 
     def test_replay_old_quote_does_not_hide_current_confirmation(self):
-        e.handle("s", text="7번 결제")
+        e.handle("s", text="17번 결제")
         old = e.handle("s", text="네", request_id="lost")
         e.handle("s", chip_id="change_vehicle")
-        new = e.handle("s", text="8")
+        new = e.handle("s", text="18")
         r = e.handle("s", text="네", request_id="lost")
         self.assertNotEqual(old["confirmation_token"], new["confirmation_token"])
         self.assertEqual(r["confirmation_token"], new["confirmation_token"])
-        self.assertIn("08번", r["text"])
+        self.assertIn("18번", r["text"])
 
     def test_start_discards_incomplete_payment(self):
         q = self.quote()
@@ -178,7 +178,7 @@ class StabilityTests(unittest.TestCase):
         self.assertIsNone(r["confirmation_token"])
         self.assertNotIn("confirm_yes", [x["id"] for x in r["chips"]])
         e.handle("s", chip_id="confirm_yes", confirmation_token=q["confirmation_token"])
-        self.assertFalse(e.data.get_fee("07")["paid"])
+        self.assertFalse(e.data.get_fee("17")["paid"])
 
     def test_poll_expires_confirmation_without_alert(self):
         self.quote(); e.get_session("s").pending.expires_at = time.monotonic() - 1
@@ -189,7 +189,7 @@ class StabilityTests(unittest.TestCase):
     def test_lv2_cancels_quote_even_without_poll(self):
         q = self.quote(); self.alert(2)
         r = e.handle("s", chip_id="confirm_yes", confirmation_token=q["confirmation_token"])
-        self.assertFalse(e.data.get_fee("07")["paid"])
+        self.assertFalse(e.data.get_fee("17")["paid"])
         self.assertIn("evacuate", [x["id"] for x in r["chips"]])
 
     def test_alert_during_final_fee_read_cancels_payment(self):
@@ -243,9 +243,9 @@ class StabilityTests(unittest.TestCase):
 
 
     def test_wrong_vehicle_location_and_fee_are_rejected(self):
-        for method, target in (("find_car", "07"), ("get_fee", "07")):
+        for method, target in (("find_car", "17"), ("get_fee", "17")):
             inner = getattr(e.data.inner, method)
-            with patch.object(e.data.inner, method, return_value=inner("08")):
+            with patch.object(e.data.inner, method, return_value=inner("18")):
                 with self.assertRaises(DataUnavailable):
                     getattr(e.data, method)(target)
 
@@ -270,7 +270,7 @@ class StabilityTests(unittest.TestCase):
         self.assertIn("관리자 확인", r["text"])
 
     def test_stale_admin_summary_is_labelled(self):
-        self.choose(); e.data.get_fee("07")
+        self.choose(); e.data.get_fee("17")
         with patch.object(e.data.inner, "find_car", side_effect=OSError()), patch.object(e.data.inner, "get_fee", side_effect=OSError()):
             summary = e.handle("s", chip_id="call_admin")["card"]["data"]["summary"]
         self.assertIn("마지막으로 받은 정보", summary)

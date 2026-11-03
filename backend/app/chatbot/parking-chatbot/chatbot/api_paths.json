@@ -1,8 +1,9 @@
 {
-  "occupancy": "/api/v1/parking/occupancy",
-  "location": "/api/v1/vehicles/{vehicle_no}/location",
-  "fee": "/api/v1/fees/{vehicle_no}",
-  "payment": "/api/v1/payments/mock",
+  "lots": "/api/v1/parking-lots",
+  "spaces": "/api/v1/parking-lots/{lot_id}/spaces",
+  "location": "/api/v1/vehicles/{car_id}/location",
+  "fee": "/api/v1/sessions/{session_id}/fee",
+  "payment": "/api/v1/mock-payments",
   "alerts": "/api/v1/alerts",
-  "parked": "/api/v1/vehicles/parked"
+  "sessions": "/api/v1/sessions"
 }

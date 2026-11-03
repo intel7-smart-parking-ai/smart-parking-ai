@@ -17,11 +17,11 @@ class LlmPromptTest(unittest.TestCase):
         ids = config.catalog.ids()
         self.assertIn("lot_id(" + "/".join(ids) + ")", prompt)
         self.assertIn("D", ids)
-        self.assertIn("D(D 주차장·디)", prompt)
-        self.assertIn(f"vehicle_no({config.VEHICLE_MIN:02d}~{config.VEHICLE_MAX:02d}", prompt)
+        self.assertIn("D(신세계백화점주차장·", prompt)
+        self.assertIn(f"car_id({config.VEHICLE_MIN:02d}~{config.VEHICLE_MAX:02d}", prompt)
 
     def test_prompt_follows_backend_catalog(self):
-        config.catalog.adopt({"A": {"name": "A 주차장", "total": 8}, "E": {"name": "E 주차장", "kind": "virtual", "total": 6}})
+        config.catalog.adopt({"A": {"name": "개발원주차장", "total": 8}, "E": {"name": "E 주차장", "kind": "virtual", "total": 6}})
         prompt = llm.system_prompt()
         self.assertIn("lot_id(A/E)", prompt)
         self.assertNotIn("lot_id(A/B", prompt)

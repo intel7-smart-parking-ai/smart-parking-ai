@@ -26,7 +26,7 @@ class NavigationTests(unittest.TestCase):
         with e.data.inner.lock:
             occupied={c['spot_no']for c in e.data.inner.cars.values()if c['lot_id']==lot}
             for spot in range(1,e.data.inner.capacity[lot]+1):
-                if spot not in occupied:e.data.inner.cars['test-'+lot+str(spot)]={'lot_id':lot,'spot_no':spot,'entered_at':now(),'paid_at':None}
+                if spot not in occupied:e.data.inner.cars['test-'+lot+str(spot)]={'lot_id':lot,'spot_no':spot,'entry_at':now(),'paid_at':None}
 
     def choose(self,lot='D',zone=None):
         return e.handle('s',chip_id=N.go_id(lot,zone))
@@ -36,15 +36,15 @@ class NavigationTests(unittest.TestCase):
             for row in csv.DictReader(f):
                 with self.subTest(q=row['question']):
                     r=parse_rules(row['question'])
-                    self.assertEqual((r.intent,r.params.get('lot_id',''),r.params.get('vehicle_no',''),r.params.get('zone','')),
-                                     tuple(row[k]for k in ['intent','lot_id','vehicle_no','zone']))
+                    self.assertEqual((r.intent,r.params.get('lot_id',''),r.params.get('car_id',''),r.params.get('zone','')),
+                                     tuple(row[k]for k in ['intent','lot_id','car_id','zone']))
 
     def test_four_lots_metadata_and_missing_vehicle(self):
         d=e.data.get_empty_spots()
         self.assertEqual(list(d['lots']),['A','B','C','D'])
         self.assertEqual(d['lots']['B']['empty'],0)
         self.assertEqual(d['lots']['D']['kind'],'virtual')
-        self.assertIsNone(e.data.find_car('24'))
+        self.assertIsNone(e.data.find_car('34'))
         for v in d['lots'].values():
             self.assertEqual(sum(z['total']for z in v['zones'].values()),v['total'])
             self.assertEqual(sum(z['empty']for z in v['zones'].values()),v['empty'])
@@ -53,7 +53,7 @@ class NavigationTests(unittest.TestCase):
         r=self.choose('B')
         self.assertIsNone(r['destination'])
         self.assertIn('만차',r['text'])
-        self.assertEqual([x['id']for x in r['chips']][:2],['go:C','go:D'])
+        self.assertEqual([x['id']for x in r['chips']][:2],['go:D','go:C'])  # 빈자리 많은 순(D 64칸)
 
     def test_selected_lot_full_edge_only_once(self):
         self.empty('B');self.choose('B');self.full('B')
@@ -79,7 +79,7 @@ class NavigationTests(unittest.TestCase):
         self.assertIn('call_admin',[x['id']for x in r['chips']])
 
     def test_arrival_stops_monitoring(self):
-        self.choose();e.handle('s',text='7번 차 위치');r=e.handle('s',text='네')
+        self.choose();e.handle('s',text='17번 차 위치');r=e.handle('s',text='네')
         self.assertIsNone(r['destination']);self.full('D')
         self.assertFalse(any(m['meta']['notification']=='destination'for m in e.updates('s')['messages']))
 
@@ -98,7 +98,7 @@ class NavigationTests(unittest.TestCase):
     def test_zone_context_example_and_clear_on_other_intent(self):
         e.handle('s',text='B 충전 구역 자리 있어?')
         r=e.handle('s',text='그럼 C는?');self.assertEqual((r['card']['data']['focus'],r['card']['data']['zone']),('C','ev'))
-        r=e.handle('s',text='일반 구역은?');self.assertEqual((r['card']['data']['focus'],r['card']['data']['zone']),('C','normal'))
+        r=e.handle('s',text='일반 구역은?');self.assertEqual((r['card']['data']['focus'],r['card']['data']['zone']),('C','general'))
         e.handle('s',chip_id='fee_rule');r=e.handle('s',text='그럼 D는?');self.assertIsNone(r['card']['data']['zone'])
 
     def test_context_timeout_and_unrelated_unknown(self):
@@ -108,7 +108,8 @@ class NavigationTests(unittest.TestCase):
         r=e.handle('s',text='이디야 근처');self.assertEqual(r['meta']['intent'],'unknown')
 
     def test_zone_destination_keeps_condition_and_zone_full_triggers_notice(self):
-        self.choose('D','ev');e.data.inner.cars['22']={'lot_id':'D','spot_no':7,'entered_at':now(),'paid_at':None}
+        self.choose('D','ev')
+        for i,spot in enumerate(config.catalog.zone_spots(None,'D')['ev']):e.data.inner.cars[str(60+i)]={'lot_id':'D','spot_no':spot,'entry_at':now(),'paid_at':None}
         r=e.updates('s');m=next(x for x in r['messages']if x['meta']['notification']=='destination')
         self.assertIn('go:C:ev',[c['id']for c in m['actions']]);self.assertNotIn('go:A',[c['id']for c in m['actions']])
 
@@ -130,7 +131,7 @@ class NavigationTests(unittest.TestCase):
         self.full('D');e.data.exit_car('19')
         e.data.set_alert(2,'D',5)
         r=e.handle('s',chip_id='call_admin')
-        self.assertIn('Lv2 D',r['card']['data']['summary'])
+        self.assertIn('Lv2 신세계백화점주차장',r['card']['data']['summary'])
         self.assertEqual(r['card']['data']['incident_id'],e.current_alert()['incident_id'])
 
 
@@ -148,7 +149,7 @@ class NavigationTests(unittest.TestCase):
         settings=deepcopy(config.catalog.settings)
         for size in (3,4):
             with self.subTest(size=size),tempfile.TemporaryDirectory()as directory:
-                doc=deepcopy(settings);doc['lots']=doc['lots'][:size];doc['lots'][-1]['name']='새 이름 주차장';doc['lots'][-1]['capacity']=5;doc['lots'][-1].pop('zone_layout',None)
+                doc=deepcopy(settings);doc['lots']=doc['lots'][:size];doc['lots'][-1]['name']='새 이름 주차장';doc['lots'][-1]['spaces']=doc['lots'][-1]['spaces'][:5];doc['lots'][-1].pop('zone_layout',None)
                 path=Path(directory)/'lots.json';path.write_text(json.dumps(doc,ensure_ascii=False),encoding='utf-8')
                 code="from chatbot import engine as e,config; from chatbot.parser import parse_rules; e.reset_all(); d=e.data.get_empty_spots(); assert len(d['lots'])=="+str(size)+"; assert d['lots'][config.catalog.ids()[-1]]['total']==5; assert e.handle('s',chip_id='lot_'+config.catalog.ids()[-1])['card']['type']=='empty_spots'"
                 import os
@@ -156,7 +157,7 @@ class NavigationTests(unittest.TestCase):
                 self.assertEqual(r.returncode,0,r.stderr)
 
     def test_arrival_ends_monitor_even_when_occupancy_is_unavailable(self):
-        self.choose();e.get_session('s').vehicle_no='07'
+        self.choose();e.get_session('s').car_id='17'
         with patch.object(e.data,'get_empty_spots',side_effect=DataUnavailable()):
             self.assertIsNone(e.updates('s')['destination'])
 
@@ -195,8 +196,8 @@ class NavigationTests(unittest.TestCase):
             for row in csv.DictReader(f):
                 with self.subTest(q=row['question']):
                     r=parse_rules(row['question'])
-                    self.assertEqual((r.intent,r.params.get('lot_id',''),r.params.get('vehicle_no',''),r.params.get('zone','')),
-                                     tuple(row[k]for k in ['intent','lot_id','vehicle_no','zone']))
+                    self.assertEqual((r.intent,r.params.get('lot_id',''),r.params.get('car_id',''),r.params.get('zone','')),
+                                     tuple(row[k]for k in ['intent','lot_id','car_id','zone']))
 
     def test_invalid_backend_catalog_is_not_adopted(self):
         old=deepcopy(config.catalog.settings);self.addCleanup(config.catalog.configure,old)
@@ -211,7 +212,7 @@ class NavigationTests(unittest.TestCase):
         adapter=CachedAdapter(ApiAdapter('http://127.0.0.1:1'))
         payload={'lots':{'P9':{'name':'서쪽 주차장','kind':'virtual','total':3,'empty':2}},'updated_at':iso(now())}
         alert={'level':2,'version':1,'lot_id':'P9','spot_no':3,'started_at':iso(now())}
-        car={'vehicle_no':'07','lot_id':'P9','spot_no':3,'capacity':3,'entered_at':iso(now()),'updated_at':iso(now())}
+        car={'car_id':'17','lot_id':'P9','spot_no':3,'capacity':3,'entry_at':iso(now()),'updated_at':iso(now())}
         with patch.object(adapter.inner,'get_empty_spots',return_value=payload),patch.object(adapter.inner,'get_alert',return_value=alert),patch.object(adapter.inner,'find_car',return_value=car):
             self.assertEqual(adapter.get_alert()['lot_id'],'P9')
-            self.assertEqual(adapter.find_car('07')['capacity'],3)
+            self.assertEqual(adapter.find_car('17')['capacity'],3)

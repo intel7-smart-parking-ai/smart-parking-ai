@@ -15,7 +15,7 @@ def count(item, zone=None):
 def reason(snapshot, alert, lot, zone=None):
     item = snapshot["lots"].get(lot)
     if item is None:return "주차장 정보 없음"
-    if alert.get("level",0)>=2 and alert.get("lot_id")==lot:return "경보"
+    if alert.get("level",0)>=2 and alert.get("lot_id") in (None,lot):return "경보"
     if item.get("entry_allowed") is False:return "운영 제한" + (": "+item["restriction_reason"] if item.get("restriction_reason") else "")
     if snapshot.get("stale") or alert.get("stale") or alert.get("unavailable"):return "현재 상태 확인 불가"
     n=count(item,zone)

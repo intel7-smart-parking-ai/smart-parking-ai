@@ -14,30 +14,30 @@ const{chromium}=require('playwright');const assert=require('node:assert/strict')
   await ctx.request.post(api+'/demo/reset');await p.goto(base);await p.waitForFunction(()=>!busy&&!!runtimeId);await p.evaluate(()=>clearInterval(pollTimer));
 
   // 칩 정리
-  await send('B 주차장 자리 있어?');
+  await send('부산역주차장 자리 있어?');
   let ids=await chipIds();
   assert.ok(ids.some(x=>x.startsWith('go:')),ids);assert.ok(!ids.some(x=>x.startsWith('wait')),ids);assert.ok(!ids.includes('destination_cancel'),ids);
   console.log('PASS full lot offers alternatives only (no wait chip, no destination cancel)');
 
   // 시연 순서: 목적지 D → 패널에서 D 만차 → 대안 C → 패널에서 C 운영 제한 → 대안 → 선택 차량 입차로 종료
   await send('D로 안내해 줘');
-  assert.ok((await p.locator('#destinationContext').innerText()).includes('D 주차장'));
+  assert.ok((await p.locator('#destinationContext').innerText()).includes('신세계백화점주차장'));
   await panel();await p.selectOption('#dLot','D');await p.click('#fillLot');await p.waitForTimeout(250);await closePanel();await poll();
-  const full=p.locator('.row.bot').filter({hasText:'D 주차장이 만차가 됐어요'}).last();await full.waitFor();
+  const full=p.locator('.row.bot').filter({hasText:'신세계백화점주차장이 만차가 됐어요'}).last();await full.waitFor();
   assert.ok(!(await full.locator('[data-chip^="wait"]').count()));
   await full.locator('.event-actions [data-chip="go:C"]').click();await p.waitForFunction(()=>!busy);
-  assert.ok((await p.locator('#destinationContext').innerText()).includes('C 주차장'));
+  assert.ok((await p.locator('#destinationContext').innerText()).includes('북항주차장'));
   console.log('PASS panel fill makes destination full and alternative C can be chosen');
   await panel();await p.selectOption('#dLot','C');await p.fill('#restrictReason','점검 중');await p.click('#restrictOn');await p.waitForTimeout(250);
   assert.ok((await p.locator('#demoState').innerText()).includes('C: 운영 제한 (점검 중)'));await closePanel();await poll();
-  const restricted=p.locator('.row.bot').filter({hasText:'C 주차장을 지금 이용할 수 없게 됐어요. (점검 중)'}).last();await restricted.waitFor();
+  const restricted=p.locator('.row.bot').filter({hasText:'북항주차장을 지금 이용할 수 없게 됐어요. (점검 중)'}).last();await restricted.waitFor();
   console.log('PASS panel restriction notifies with plain wording');
-  await panel();await p.click('#restrictOff');await p.fill('#enterVehicle','04');await p.selectOption('#dLot','A');
-  await send('4번 차 위치');await send('네');
+  await panel();await p.click('#restrictOff');await p.fill('#enterVehicle','14');await p.selectOption('#dLot','A');
+  await send('14번 차 위치');await send('네');
   await p.click('#enterVehicleBtn');await p.waitForTimeout(250);await closePanel();await poll();
   assert.equal(await p.locator('#destinationContext').isHidden(),true);
   console.log('PASS selected vehicle entry ends destination monitoring');
-  await send('내 이용 현황 보여줘');assert.ok((await p.locator('.row.bot').last().innerText()).includes('번 칸'));
+  await send('내 이용 현황 보여줘');assert.ok((await p.locator('.row.bot').last().innerText()).includes('14번 차는 개발원주차장 A-04'));
   console.log('PASS usage question returns car location');
 
   // 관리자 호출: 상태 버튼 없음, 중복 호출 통합, 상태 질문은 새 호출 없음
