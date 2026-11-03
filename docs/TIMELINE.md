@@ -296,6 +296,12 @@
 - **문서:** `chore/docs-lot-d-names` (`a821c27`) — API_CONTRACT 표·CLAUDE.md·DECISIONS(D-14·D-15)·api-contract 스킬
 - **반영 요청:** 김채린(라 이름·데모 64칸), 박해준(fixture 50→104칸·테스트), 서정범(`lots.json`), 시뮬레이터(가상 76칸), 윤명수(문서 이름)
 
+### 16:10 · 주차장 4곳 요금표 → 시드 패치 — 윤명수 요청
+- **요금표(윤명수):** 기본 30분·10분 단위 공통 / A 1,000·500·1만, B 2,000·700·2만, C 3,000·800·4만, D 4,000·1,000·5만 (기본·추가·일 최대)
+- **패치:** `kan28-rate-policies.patch` — `db.py` `seed_defaults`(빈 DB일 때만 주차장 4곳·요금표, 동시 첫 요청 OR IGNORE), 테스트 +8, `API_SPECIFICATION.md` 요금표
+- **검증:** 최신 main 적용 67 passed
+- **후속:** 윤명수 `feature/KAN-28-rate-policies` push·PR, PM 요금표 숫자 확인, 라 이름 확정 시 `db.py` 한 곳 수정
+
 ---
 
 ## 대기 중인 결정 (PM)
