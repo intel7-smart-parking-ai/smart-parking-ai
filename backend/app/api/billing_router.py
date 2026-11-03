@@ -12,6 +12,7 @@ from backend.app.billing.calculator import calculate_parking_fee_pure
 from backend.app.billing.db import get_db_conn
 from backend.app.billing.payment_service import (
     cancel_mock_payment,
+    create_fee_quote,
     list_mock_payments,
     now_kst_iso,
     process_mock_payment,
@@ -98,6 +99,9 @@ def get_session_fee(
     conn: sqlite3.Connection = Depends(get_db_conn),
 ) -> JSONResponse:
     code, data = _calculate_fee_helper(conn, session_id, now)
+    if code == 200:
+        # 요금 화면에 보인 금액으로 결제할 수 있도록 견적을 저장한다 (DECISIONS D-09)
+        data.update(create_fee_quote(conn, session_id, data["amount_krw"], data["target_at"]))
     return _respond(code, data)
 
 
@@ -119,7 +123,7 @@ def create_mock_payment(
 def get_mock_payments(
     lot_id: Optional[str] = Query(None, description="주차장 ID 필터"),
     status: Optional[Literal["completed", "canceled"]] = Query(None, description="결제 상태 필터"),
-    car_id: Optional[str] = Query(None, description="차량 번호 필터 (예: '01')"),
+    car_id: Optional[str] = Query(None, description="차량 번호 필터 (실물 스티커 두 자리, 예: '27')"),
     conn: sqlite3.Connection = Depends(get_db_conn),
 ) -> JSONResponse:
     return _list_response(list_mock_payments(conn, lot_id, status, car_id))

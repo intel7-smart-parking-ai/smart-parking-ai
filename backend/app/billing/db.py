@@ -53,6 +53,16 @@ CREATE TABLE IF NOT EXISTS mock_payments (
 -- 한 세션에 완료 결제는 1건만 (동시 요청 이중 결제 방지)
 CREATE UNIQUE INDEX IF NOT EXISTS ux_mock_payments_session_completed
     ON mock_payments(session_id) WHERE status = 'completed';
+-- 요금 견적: 요금 화면에 보인 금액 그대로 결제하기 위한 기록 (DECISIONS D-09)
+CREATE TABLE IF NOT EXISTS fee_quotes (
+    quote_id      TEXT PRIMARY KEY,
+    session_id    TEXT NOT NULL,
+    amount_krw    INTEGER NOT NULL,
+    calculated_at TEXT NOT NULL,              -- 요금 산출 기준 시각
+    created_at    TEXT NOT NULL,
+    expires_at    TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS ix_fee_quotes_session ON fee_quotes(session_id);
 CREATE TABLE IF NOT EXISTS audit_logs (
     log_id      TEXT PRIMARY KEY,
     actor       TEXT NOT NULL,

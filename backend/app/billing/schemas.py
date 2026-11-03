@@ -22,8 +22,8 @@ class FeeResponse(BaseModel):
   session_id: str = Field(..., description="주차 세션 ID")
   lot_id: str = Field(..., description="주차장 ID (A, B, C, D)")
   space_id: str = Field(..., description="주차면 ID (예: A-01, B-05, C-02, D-01)")
-  car_id: str = Field(..., description="차량 식별 번호 (01~50)")
-  session_status: str = Field(..., description="세션 상태 ('active' or 'exited')")
+  car_id: Optional[str] = Field(None, description="실물 차량 스티커 번호 (두 자리 '10'~'99', 미인식 null)")
+  session_status: str = Field(..., description="세션 상태 ('active' 주차 중 / 'closed' 출차 완료)")
   entry_at: str = Field(..., description="입차 일시 (ISO 8601 KST)")
   exit_at: Optional[str] = Field(None, description="출차 일시 (ISO 8601 KST)")
   calculated_at: str = Field(..., description="요금 산출 기준 일시")
@@ -33,6 +33,8 @@ class FeeResponse(BaseModel):
   is_daily_capped: bool = Field(..., description="일일 최대요금 상한 적용 여부")
   applied_policy_id: str = Field(..., description="적용된 요금 정책 ID")
   payment_status: str = Field(..., description="결제 상태 ('unpaid', 'completed', 'canceled')")
+  quote_id: str = Field(..., description="요금 견적 ID — 결제 요청에 그대로 보낸다")
+  quote_expires_at: str = Field(..., description="견적 만료 시각 (ISO 8601). 지나면 요금을 다시 조회")
 
 
 # 2. 모의 결제 스키마 (POST /api/v1/mock-payments)
@@ -41,6 +43,7 @@ class PaymentCreateRequest(BaseModel):
   model_config = ConfigDict(extra="forbid")
 
   session_id: str = Field(..., min_length=1, description="결제할 주차 세션 ID (예: 'ses_0001')")
+  quote_id: str = Field(..., min_length=1, description="요금 조회 응답의 견적 ID (이 금액으로 결제)")
   idempotency_key: str = Field(..., min_length=1, description="중복 결제 방지용 고유 멱등키 (UUID 또는 난수)")
   payment_method: str = Field("MOCK_CARD", description="모의 결제 수단 ('MOCK_CARD', 'MOCK_EASY_PAY', 'MOCK_ACCOUNT')")
 
