@@ -1,0 +1,10 @@
+import {readFile, writeFile, readdir, rm} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
+const index = await readFile('dist/index.html', 'utf8');
+const assets = (await readdir('dist/assets')).filter(name => /\.(js|css)$/.test(name)).map(name => '/assets/' + name);
+const shell = ['/index.html', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png', '/icons/maskable-512.png', '/icons/apple-touch-icon.png', ...assets];
+const template = await readFile('public/sw-template.js', 'utf8');
+const version = createHash('sha256').update(index + template + JSON.stringify(shell)).digest('hex').slice(0,12);
+await writeFile('dist/sw.js', template.replace('__CACHE_VERSION__', 'parkon-shell-' + version).replace('__SHELL_FILES__', JSON.stringify(shell)));
+await rm('dist/sw-template.js', {force: true});
+console.log('PWA shell generated:', version, shell.length, 'assets; API responses are never cached.');

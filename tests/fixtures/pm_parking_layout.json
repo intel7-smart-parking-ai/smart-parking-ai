@@ -1,0 +1,450 @@
+{
+  "basis": "2026-11-03 PM 확정 104칸·최신 사용자 확정 명칭, 테스트 전용·DB 시드 아님",
+  "virtual_plate_example": {
+    "plate_number": "17가1724",
+    "display": "1724",
+    "note": "표시 예시만 보존. 이벤트 필드·car_id 연결은 미확정"
+  },
+  "lots": [
+    {
+      "lot_id": "A",
+      "name": "개발원주차장",
+      "spaces": [
+        {
+          "space_id": "A-01",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-02",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-03",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-04",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-05",
+          "space_type": "ev"
+        },
+        {
+          "space_id": "A-06",
+          "space_type": "ev"
+        },
+        {
+          "space_id": "B-01",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-02",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-03",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-04",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-05",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-06",
+          "space_type": "accessible"
+        }
+      ]
+    },
+    {
+      "lot_id": "B",
+      "name": "부산역주차장",
+      "spaces": [
+        {
+          "space_id": "A-01",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-02",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-03",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-04",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-05",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-06",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-07",
+          "space_type": "ev"
+        },
+        {
+          "space_id": "A-08",
+          "space_type": "ev"
+        },
+        {
+          "space_id": "B-01",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-02",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-03",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-04",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-05",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-06",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-07",
+          "space_type": "accessible"
+        },
+        {
+          "space_id": "B-08",
+          "space_type": "accessible"
+        }
+      ]
+    },
+    {
+      "lot_id": "C",
+      "name": "북항주차장",
+      "spaces": [
+        {
+          "space_id": "A-01",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-02",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-03",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-04",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-05",
+          "space_type": "ev"
+        },
+        {
+          "space_id": "A-06",
+          "space_type": "ev"
+        },
+        {
+          "space_id": "B-01",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-02",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-03",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-04",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-05",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-06",
+          "space_type": "accessible"
+        }
+      ]
+    },
+    {
+      "lot_id": "D",
+      "name": "신세계백화점주차장",
+      "spaces": [
+        {
+          "space_id": "A-01",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-02",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-03",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-04",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-05",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-06",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-07",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-08",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-09",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-10",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-11",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-12",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-13",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-14",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-15",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-16",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-01",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-02",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-03",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-04",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-05",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-06",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-07",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-08",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-09",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-10",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-11",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-12",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-13",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-14",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-15",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-16",
+          "space_type": "general"
+        },
+        {
+          "space_id": "C-01",
+          "space_type": "general"
+        },
+        {
+          "space_id": "C-02",
+          "space_type": "general"
+        },
+        {
+          "space_id": "C-03",
+          "space_type": "general"
+        },
+        {
+          "space_id": "C-04",
+          "space_type": "general"
+        },
+        {
+          "space_id": "C-05",
+          "space_type": "general"
+        },
+        {
+          "space_id": "C-06",
+          "space_type": "general"
+        },
+        {
+          "space_id": "C-07",
+          "space_type": "general"
+        },
+        {
+          "space_id": "C-08",
+          "space_type": "general"
+        },
+        {
+          "space_id": "C-09",
+          "space_type": "general"
+        },
+        {
+          "space_id": "C-10",
+          "space_type": "general"
+        },
+        {
+          "space_id": "C-11",
+          "space_type": "general"
+        },
+        {
+          "space_id": "C-12",
+          "space_type": "general"
+        },
+        {
+          "space_id": "C-13",
+          "space_type": "accessible"
+        },
+        {
+          "space_id": "C-14",
+          "space_type": "accessible"
+        },
+        {
+          "space_id": "C-15",
+          "space_type": "accessible"
+        },
+        {
+          "space_id": "C-16",
+          "space_type": "accessible"
+        },
+        {
+          "space_id": "D-01",
+          "space_type": "ev"
+        },
+        {
+          "space_id": "D-02",
+          "space_type": "ev"
+        },
+        {
+          "space_id": "D-03",
+          "space_type": "ev"
+        },
+        {
+          "space_id": "D-04",
+          "space_type": "ev"
+        },
+        {
+          "space_id": "D-05",
+          "space_type": "ev"
+        },
+        {
+          "space_id": "D-06",
+          "space_type": "ev"
+        },
+        {
+          "space_id": "D-07",
+          "space_type": "ev"
+        },
+        {
+          "space_id": "D-08",
+          "space_type": "ev"
+        },
+        {
+          "space_id": "D-09",
+          "space_type": "general"
+        },
+        {
+          "space_id": "D-10",
+          "space_type": "general"
+        },
+        {
+          "space_id": "D-11",
+          "space_type": "general"
+        },
+        {
+          "space_id": "D-12",
+          "space_type": "general"
+        },
+        {
+          "space_id": "D-13",
+          "space_type": "general"
+        },
+        {
+          "space_id": "D-14",
+          "space_type": "general"
+        },
+        {
+          "space_id": "D-15",
+          "space_type": "general"
+        },
+        {
+          "space_id": "D-16",
+          "space_type": "general"
+        }
+      ]
+    }
+  ]
+}
