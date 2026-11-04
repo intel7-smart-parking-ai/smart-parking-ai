@@ -42,7 +42,7 @@ def create_app(*, token: str, clock=lambda: datetime.now(timezone.utc)):
             raise HTTPException(503, "시연 세션 저장 실패. 동일 이벤트를 재시도하세요.") from exc
 
     app = create_demo_app(token=token, clock=clock, public_reads=True, on_confirmed=sync_session,
-                          max_events=20_000)
+                          max_events=100_000)
     app.title = "ParkFlow 로컬 통합 시연"
 
     @asynccontextmanager
