@@ -7,10 +7,17 @@ from __future__ import annotations
 import sqlite3
 from typing import Any
 
-def generate_revenue_report(conn: sqlite3.Connection, month_filter: str = "ALL") -> tuple[int, dict[str, Any]]:
+def generate_revenue_report(
+    conn: sqlite3.Connection, month_filter: str = "ALL", lot_filter: str | None = None
+) -> tuple[int, dict[str, Any]]:
   cur = conn.cursor()
   cur.execute("SELECT * FROM parking_lots ORDER BY lot_id")
   lots = [dict(r) for r in cur.fetchall()]
+  # 주차장 필터: 지정하면 그 주차장 결제만 집계한다
+  if lot_filter is not None:
+    if lot_filter not in {lot["lot_id"] for lot in lots}:
+      return 404, {"error_code": "PARKING_LOT_NOT_FOUND", "message": f"주차장({lot_filter})을 찾을 수 없습니다."}
+    lots = [lot for lot in lots if lot["lot_id"] == lot_filter]
 
   cur.execute("SELECT * FROM rate_policies")
   policies = {r["lot_id"]: dict(r) for r in cur.fetchall()}
@@ -45,6 +52,8 @@ def generate_revenue_report(conn: sqlite3.Connection, month_filter: str = "ALL")
   total_canceled_count = 0
 
   for p in payments:
+    if lot_filter is not None and p["lot_id"] != lot_filter:
+      continue
     ym = p["created_at"][:7]
     ymd = p["created_at"][:10]
     amt = int(p["amount_krw"])
@@ -92,6 +101,7 @@ def generate_revenue_report(conn: sqlite3.Connection, month_filter: str = "ALL")
 
   return 200, {
       "filter_month": month_filter,
+      "lot_id": lot_filter,
       "aggregated_basis": "mock_payments.created_at",
       "summary": {
           "gross_amount_krw": total_gross,
