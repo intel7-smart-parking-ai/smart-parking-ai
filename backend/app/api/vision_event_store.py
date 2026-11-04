@@ -36,7 +36,7 @@ class InMemoryEventStore:
         self._records: dict[str, bytes] = {}
         self._lock = Lock()
 
-    def receive(self, event: VisionEvent) -> Receipt:
+    def receive(self, event: VisionEvent, *, before_record=None) -> Receipt:
         payload = canonical_payload(event)
         with self._lock:
             existing = self._records.get(event.event_id)
@@ -44,6 +44,8 @@ class InMemoryEventStore:
                 return Receipt.DUPLICATE if existing == payload else Receipt.CONFLICT
             if len(self._records) >= self._max_events:
                 return Receipt.FULL
+            if before_record is not None:
+                before_record()
             self._records[event.event_id] = payload
             return Receipt.ACCEPTED
 
