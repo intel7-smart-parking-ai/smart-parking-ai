@@ -585,6 +585,14 @@
 - 404: `GET /sessions`·`/alerts`·`/chat`
 - 팀원별 전달: 박해준(입차 매칭·`GET /sessions`·챗봇 등록), 윤명수(`status` 칸 PR·매출 `lot_id`), 김채린(시연 서버 리허설·지도 구역·모의 이벤트 표시), 서정범(v2.12 push·D-18·`rate_policies`), 우지원(코드 저장소 이전·A 12칸 점유 전송), PM(입차 매칭·포트·11/10 서버 결정, 리허설 일정)
 
+### 13:25 · 박해준 PR #40 (`--depart` 명시적 출차·재시작 없는 반복) 점검
+- main 병합 321 passed. 실측: hold → depart → hold 반복 정상(새 세션), stale 세션도 depart로 종료
+- 참고: depart 후 10초 지나면 빈칸도 `uncertain`(관측 끊김) → 화면 "확인 필요" 표시·다음 hold 시작 확인 실패 → 절차 "회차 사이 `--depart` 후 바로 `--hold`", 후속으로 12칸 전체 연속 관측 모드 제안
+- PM: #40 병합 가능
+
+### 13:30 · 윤명수 `status` 칸 + 매출 `lot_id` 필터 패치 전달
+- 두 패치를 최신 main에서 작성·검증(함께 320 passed, 필터 테스트 1개 추가) → `git apply`로 적용 안내, 브랜치 `feature/KAN-28-session-status` 한 PR
+
 ---
 ---
 
