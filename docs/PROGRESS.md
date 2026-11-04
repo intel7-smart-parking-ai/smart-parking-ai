@@ -2,9 +2,9 @@
 
 > 전체 개발 항목과 완료 여부를 한곳에서 확인한다. 상세 작업·담당 변경은 Jira(KAN)가 기준이다.
 > 체크 기준: **☑ = main 병합 완료**, ◐ = 브랜치/PR 진행 중, ☐ = 미착수. "완료"는 실행 증거 + 테스트 + PR 병합까지 끝난 상태.
-> 최종 갱신: 2026-11-04 (수) 16:45 · 전일 보고 [DAILY_2026-11-03.md](DAILY_2026-11-03.md) · 결정 사항은 [DECISIONS.md](DECISIONS.md) · 작업 이력은 [TIMELINE.md](TIMELINE.md)
+> 최종 갱신: 2026-11-04 (수) 14:20 · 전일 보고 [DAILY_2026-11-03.md](DAILY_2026-11-03.md) · 결정 사항은 [DECISIONS.md](DECISIONS.md) · 작업 이력은 [TIMELINE.md](TIMELINE.md)
 > 진행률 (모델 학습 3가지 제외): **전체 약 55%** · 기간 경과 약 28% (D3/10 오후) — 시연 서버에서 이벤트→점유→세션→요금→챗봇 결제까지 연결, 결정 D-18~D-39 확정, 카메라·ROI는 저장소 밖(V18)
-> main `1ca963e` 기준 확인(16:40): 백엔드 pytest **322 passed**, 프론트 npm test **41 passed**·build 성공 / 열린 PR #43(`GET /sessions`)·API_CONTRACT v1·경보 API 수정본 대기
+> main `1ca963e` 기준 확인(14:15): 백엔드 pytest **322 passed**, 프론트 npm test **41 passed**·build 성공 / 열린 PR #43(`GET /sessions`)·API_CONTRACT v1·경보 API 수정본 대기
 
 ## 요약
 
