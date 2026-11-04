@@ -521,6 +521,15 @@
 - 변수명 불일치: 루트 `.env.example` `LLM_API_KEY`(읽는 코드 없음) vs 챗봇 `ANTHROPIC_API_KEY`/`OPENAI_API_KEY`(`parking-chatbot/.env`) → 챗봇 방식 유지 추천
 - PM 결정 요청: ① 제공자·계정 ② 모델 ③ 비용 상한 ④ 변수명 → D-18 예정
 
+### 11:50 · ✅ main 병합 — PR #36 (점유↔세션), #37 (A 합성 시연 스크립트)
+
+### 11:55 · 박해준 PR #38 (`--hold`·`--base-url`) 점검
+- main 병합 319 passed. 실행: `--hold` 12칸이 **94초 후 503 `EXPERIMENT_STORE_FULL`로 중단** (접수함 `max_events=1000`, 1.1초마다 12건) → 10초 뒤 차 전부 사라짐. `--short`도 약 6분
+- 수정 요청: 오래된 이벤트부터 지우는 접수함(추천) 또는 시연 서버 한도 상향 + 5분 이상 유지 테스트
+
+### 11:58 · PM LLM 제안: OpenRouter + `google/gemma-4-26b-a4b-it`, `.env` 키 통일
+- 검토: 챗봇에 `openrouter` 제공자 추가 필요(OpenAI 호환, base_url만), 변수명 `OPENROUTER_API_KEY` 추천, 도구 호출 지원·3초 내 응답 실측 필요, 키별 사용 한도·시연 키 담당 지정 추천 → 변수명 확인 후 D-18 기록
+
 ---
 ---
 
