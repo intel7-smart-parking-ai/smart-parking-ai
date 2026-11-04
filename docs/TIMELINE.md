@@ -613,6 +613,11 @@
 - P1(이번 주): 입차 매칭, 챗봇 v2.13 PR·등록, 경보 API 최소 구현, `GET /sessions`, 라 지도, Docker 초안 / 다음 주 준비: 스티커 배정표·2차 수집·Geti 환경
 - 추가 기능 추천: ⭐만차 시 다른 주차장 추천, ⭐음성 입력·읽어주기, ⭐엘리베이터·출입구 가까운 빈자리, 30분 뒤 예상 요금(서버 계산), 전용 칸 위반 알림, 모의 화재 대피 안내 등
 
+### 14:05 · 서정범 PR #42 (챗봇 v2.13: 팀 서버 통합·OpenRouter D-18·`messages` 호환) 점검
+- 56파일 모두 챗봇 폴더, main 병합 322 passed, 챗봇 476/477(검사 코드 1건, v2.14 수정 예정)
+- **실연결**: `demo_main` + `include_router(chatbot_router)`, 가짜 이벤트 점유 후 대화 → 빈자리·10번 A-01·요금 1,000원·**모의 결제 완료(서버 `payment_status=completed`)**·요금표·두 자리 안내 / 모든 응답 `messages[0].text == text`
+- PM: 병합 가능. 박해준에 `demo_main` 등록 2줄 요청(`DATA_SOURCE=api`, `BACKEND_BASE_URL`), 김채린에 음성 입력 가이드 전달
+
 ---
 ---
 
