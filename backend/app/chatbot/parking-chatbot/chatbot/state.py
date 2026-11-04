@@ -25,7 +25,7 @@ class Pending:
     flow: Flow
     intent: str | None = None
     params: dict = field(default_factory=dict)
-    vehicle_no: str | None = None
+    car_id: str | None = None
     token: str = field(default_factory=lambda: uuid.uuid4().hex)
     expires_at: float = field(default_factory=lambda: time.monotonic() + 120)
 
@@ -33,7 +33,7 @@ class Pending:
 @dataclass
 class Session:
     lock: object = field(default_factory=threading.RLock, repr=False)
-    vehicle_no: str | None = None
+    car_id: str | None = None
     pending: Pending | None = None
     last_intent: str | None = None
     fail_count: int = 0
@@ -44,6 +44,7 @@ class Session:
     destination_problem: tuple | None = None
     query_context: dict = field(default_factory=dict)
     query_context_at: float = 0
+    alert_unavailable_seen: bool = False
     observed_alert: int = 0
     candidate_options: dict = field(default_factory=dict)
     candidate_expires: float = 0
@@ -54,8 +55,8 @@ class Session:
     def flow(self):
         return self.pending.flow if self.pending else Flow.IDLE
 
-    def begin(self, flow, intent=None, params=None, vehicle_no=None):
-        self.pending = Pending(flow, intent, dict(params or {}), vehicle_no)
+    def begin(self, flow, intent=None, params=None, car_id=None):
+        self.pending = Pending(flow, intent, dict(params or {}), car_id)
         return self.pending
 
     def clear(self):

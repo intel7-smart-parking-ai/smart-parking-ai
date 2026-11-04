@@ -1,0 +1,6 @@
+question,intent,lot_id,car_id,zone
+직원분 안 오셔도 될 것 같아요,cancel_action,,,
+돈은 이따 낼게요,cancel_action,,,
+돈이 두 번 빠져나간 것 같아,payment_issue,,,
+휠체어 마크 있는 칸 비었어?,get_empty_spots,,,accessible
+아직 계산은 안 할래,cancel_action,,,

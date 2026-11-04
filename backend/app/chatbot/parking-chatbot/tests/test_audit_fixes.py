@@ -187,12 +187,15 @@ class SessionAndInputTests(unittest.TestCase):
         self.assertNotIn("bad", e.SESSIONS)
 
     def test_equivalent_vehicle_numbers_cannot_duplicate_existing_car(self):
-        for number in ("7", "07", "０７", "007", " 07 "):
+        for number in ("17", "１７", " 17 "):
             with self.subTest(number=number):
                 result = e.data.enter_car("D", number)
                 self.assertFalse(result["ok"])
-                self.assertEqual(result["vehicle_no"], "07")
-        self.assertEqual(len([c for c in e.data.list_cars() if int(c["vehicle_no"]) == 7]), 1)
+                self.assertEqual(result["car_id"], "17")
+        for number in ("7", "07", "007"):  # 두 자리 규칙(D-06) 밖: 0을 채워 17로 바꾸지 않는다
+            with self.subTest(number=number), self.assertRaises(ValueError):
+                e.data.enter_car("D", number)
+        self.assertEqual(len([c for c in e.data.list_cars() if c["car_id"] == "17"]), 1)
 
     def test_invalid_or_empty_vehicle_does_not_change_occupancy(self):
         before = e.data.get_empty_spots()
@@ -249,7 +252,7 @@ class ServerParityTests(unittest.TestCase):
             self.assertEqual(self.post_both("restriction", {"lot_id": "D", "restricted": value}), (200, 200))
 
     def test_empty_number_is_rejected_but_omitted_number_is_demo(self):
-        self.assertTrue(all(400 <= s < 500 for s in self.post_both("enter", {"lot_id": "D", "vehicle_no": ""})))
+        self.assertTrue(all(400 <= s < 500 for s in self.post_both("enter", {"lot_id": "D", "car_id": ""})))
         self.assertFalse(e.data.demo_state()["demo_occupied"])
         self.assertEqual(self.post_both("enter", {"lot_id": "D"}), (200, 200))
 

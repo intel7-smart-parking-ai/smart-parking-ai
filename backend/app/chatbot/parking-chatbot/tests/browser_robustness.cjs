@@ -1,0 +1,50 @@
+const {chromium} = require('playwright');
+const assert = require('node:assert/strict');
+(async()=>{
+ const browser=await chromium.launch({headless:true, executablePath:process.env.BROWSER_EXECUTABLE, args:['--no-sandbox','--disable-dev-shm-usage','--disable-gpu']});
+ try {
+  const context=await browser.newContext({viewport:{width:360,height:800}});
+  const page=await context.newPage();
+  const errors=[]; page.on('pageerror',e=>errors.push(e.message));
+  await page.goto(process.env.TEST_BASE_URL);
+  await page.waitForFunction(()=>!busy && !!runtimeId);
+  const attack='<img src=x onerror="window.__xss=1">';
+  await page.locator('#q').fill(attack); await page.locator('#send').click();
+  await page.waitForFunction(()=>!busy);
+  assert.equal(await page.evaluate(()=>window.__xss),undefined);
+  assert.ok((await page.locator('.row.user').last().innerText()).includes(attack));
+  console.log('PASS XSS input is displayed as text');
+  let sent=0;
+  await page.route('**/api/v1/chat', async route=>{
+   if(route.request().method()!=='POST')return route.continue();
+   sent++;
+   await new Promise(resolve=>setTimeout(resolve,5000));
+   await route.continue();
+  });
+  await page.locator('#q').fill('빈자리');
+  await page.evaluate(()=>{for(let i=0;i<10;i++)document.querySelector('#send').click();});
+  await page.locator('.typing').waitFor();
+  await page.waitForFunction(()=>!busy,{},{timeout:10000});
+  assert.equal(sent,1);
+  console.log('PASS five-second request keeps loading and rapid clicks send once');
+  await page.unroute('**/api/v1/chat');
+  await page.evaluate(()=>addBot({text:'x'.repeat(2000),card:null,chips:[{id:'help',label:'긴안내'.repeat(100)}]}));
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+  assert.equal(await page.evaluate(()=>document.querySelector('#log').scrollWidth>document.querySelector('#log').clientWidth),false);
+  console.log('PASS long response and chips fit mobile width');
+  await context.setOffline(true);
+  await page.locator('#q').fill('요금'); await page.locator('#send').click();
+  await page.waitForFunction(()=>!busy,{},{timeout:10000});
+  assert.ok((await page.locator('.row.bot').last().innerText()).includes('응답을 받지 못'));
+  assert.ok((await page.locator('#connection').innerText()).includes('연결 지연'));
+  console.log('PASS disconnected backend shows error and releases input');
+  await context.setOffline(false);
+  let polls=0;
+  await page.route('**/api/v1/chat/updates?**',async route=>{polls++;await route.continue();});
+  await page.waitForTimeout(6500);
+  assert.ok(polls>=2 && polls<=4, String(polls));
+  console.log('PASS polling request count remains bounded in observed interval');
+  assert.equal(errors.length,0,errors.join('\n'));
+  console.log('PASS no JavaScript runtime errors');
+ } finally {await browser.close();}
+})().catch(e=>{console.error(e);process.exit(1);});

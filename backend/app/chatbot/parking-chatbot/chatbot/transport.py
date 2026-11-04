@@ -5,12 +5,13 @@ import socket
 import threading
 import time
 import urllib.request
+from urllib.error import HTTPError
 
 
 MAX_JSON_BYTES = 1024 * 1024
 
 
-def load_json(request, timeout, *, max_bytes=MAX_JSON_BYTES):
+def load_json(request, timeout, *, max_bytes=MAX_JSON_BYTES, with_metadata=False):
     deadline = time.monotonic() + timeout
     timers = []
     expired = threading.Event()
@@ -57,7 +58,13 @@ def load_json(request, timeout, *, max_bytes=MAX_JSON_BYTES):
     try:
         # 기존 urllib의 인증서 검증, 프록시와 redirect 동작을 유지한다.
         opener = urllib.request.build_opener(HTTP(), HTTPS())
-        with opener.open(request, timeout=remaining()) as response:
+        try:
+            response = opener.open(request, timeout=remaining())
+        except HTTPError as exc:
+            if not with_metadata:
+                raise
+            response = exc
+        with response:
             remaining()
             length = response.headers.get("Content-Length")
             if length is not None and int(length) > max_bytes:
@@ -68,7 +75,8 @@ def load_json(request, timeout, *, max_bytes=MAX_JSON_BYTES):
                 raise ValueError("응답 본문 크기 한도를 넘었습니다.")
             if length is not None and len(body) != int(length):
                 raise ValueError("응답 본문이 끝까지 수신되지 않았습니다.")
-            return json.loads(body.decode("utf-8"))
+            value = json.loads(body.decode("utf-8"))
+            return (response.status, value, dict(response.headers)) if with_metadata else value
     except (OSError, ValueError, http.client.HTTPException) as exc:
         if expired.is_set() or time.monotonic() >= deadline:
             raise TimeoutError("응답 수신 시간 한도를 넘었습니다.") from exc

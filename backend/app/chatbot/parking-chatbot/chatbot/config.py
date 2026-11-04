@@ -27,14 +27,21 @@ DATA_SOURCE = os.getenv("DATA_SOURCE", "mock")
 BACKEND_BASE_URL = os.getenv("BACKEND_BASE_URL", "http://127.0.0.1:8000")
 
 # none = LLM 없이 규칙 파서만 / anthropic / openai
+LLM_ENGINE = os.getenv("LLM_ENGINE", "langchain")
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "none")
 LLM_MODEL = os.getenv("LLM_MODEL", "")
 LLM_TIMEOUT_SEC = float(os.getenv("LLM_TIMEOUT_SEC", "3"))
 
-# 임시 요금 규칙 (EPIC 05 확정 전까지 사용하는 가짜 값)
-FREE_MINUTES = int(os.getenv("FREE_MINUTES", "30"))
-FEE_UNIT_MINUTES = int(os.getenv("FEE_UNIT_MINUTES", "10"))
-FEE_PER_UNIT = int(os.getenv("FEE_PER_UNIT", "500"))
+# billing.calculate_parking_fee_pure와 같은 목업 요금 규칙의 기본값 (API 요금은 서버 값 사용).
+# 주차장별 목업 정책은 lots.json의 rate_policy가 우선한다.
+BASE_MINUTES = int(os.getenv("BASE_MINUTES", "30"))
+BASE_FEE = int(os.getenv("BASE_FEE", "1000"))
+UNIT_MINUTES = int(os.getenv("UNIT_MINUTES", "10"))
+UNIT_FEE = int(os.getenv("UNIT_FEE", "500"))
+DAILY_CAP = int(os.getenv("DAILY_CAP", "10000"))
+for _key in ("BASE_MINUTES", "BASE_FEE", "UNIT_MINUTES", "UNIT_FEE", "DAILY_CAP"):
+    if globals()[_key] <= 0:
+        raise ValueError(f"{_key}는 양수여야 합니다.")
 
 from .catalog import load_catalog
 catalog = load_catalog()
@@ -42,6 +49,7 @@ VEHICLE_MIN, VEHICLE_MAX = catalog.settings["vehicle_min"], catalog.settings["ve
 # 초기 설정의 호환 별칭. 실행 중 명부는 catalog를 사용한다.
 LOT_IDS = catalog.ids()
 LOT_CAPACITY = {k:v["capacity"] for k,v in catalog.lots().items()}
+ASSIGNED_CAR_IDS = catalog.settings.get("assigned_car_ids")
 DESTINATION_TTL_SEC = float(os.getenv("DESTINATION_TTL_SEC", "1800"))
 QUERY_CONTEXT_TTL_SEC = float(os.getenv("QUERY_CONTEXT_TTL_SEC", "300"))
 ALERT_SHARE_SEC = float(os.getenv("ALERT_SHARE_SEC", "0.2"))
@@ -58,18 +66,18 @@ SESSION_IDLE_SEC = float(os.getenv("SESSION_IDLE_SEC", "7200"))
 MAX_SESSIONS = int(os.getenv("MAX_SESSIONS", "200"))
 BACKEND_TOKEN = os.getenv("BACKEND_TOKEN", "")
 BACKEND_TIMEOUT_SEC = float(os.getenv("BACKEND_TIMEOUT_SEC", "2"))
+# 목업 요금 견적 유효 시간(초). API 모드는 서버 quote_expires_at만 따른다.
+MOCK_QUOTE_TTL_SEC = float(os.getenv("MOCK_QUOTE_TTL_SEC", "300"))
 API_PATHS = json.loads((Path(__file__).parent / "api_paths.json").read_text(encoding="utf-8"))
 
 if DATA_SOURCE not in ("mock", "api"):
     raise ValueError("DATA_SOURCE는 mock 또는 api여야 합니다.")
-if FEE_UNIT_MINUTES <= 0 or min(FREE_MINUTES, FEE_PER_UNIT, CACHE_MAX_STALE_SEC, DATA_MAX_AGE_SEC) < 0:
-    raise ValueError("요금 단위는 양수, 요금·유효기간은 0 이상이어야 합니다.")
 if min(BACKEND_TIMEOUT_SEC, REQUEST_BUDGET_SEC, LLM_TIMEOUT_SEC) <= 0 or ALERT_SHARE_SEC < 0:
     raise ValueError("외부 조회 제한 시간은 양수, 경보 공유 시간은 0 이상이어야 합니다.")
 
 # 환경 설정 오류는 요청 중이 아니라 시작할 때 변수 이름과 함께 알린다.
 for _key in ("LLM_TIMEOUT_SEC", "BACKEND_TIMEOUT_SEC", "REQUEST_BUDGET_SEC", "SESSION_IDLE_SEC",
-             "DESTINATION_TTL_SEC", "QUERY_CONTEXT_TTL_SEC", "CALL_MERGE_SEC"):
+             "DESTINATION_TTL_SEC", "QUERY_CONTEXT_TTL_SEC", "CALL_MERGE_SEC", "MOCK_QUOTE_TTL_SEC"):
     if not math.isfinite(globals()[_key]) or globals()[_key] <= 0:
         raise ValueError(f"{_key}는 유한한 양수여야 합니다.")
 for _key in ("ALERT_SHARE_SEC", "CACHE_MAX_STALE_SEC", "DATA_MAX_AGE_SEC"):
@@ -77,3 +85,6 @@ for _key in ("ALERT_SHARE_SEC", "CACHE_MAX_STALE_SEC", "DATA_MAX_AGE_SEC"):
         raise ValueError(f"{_key}는 유한한 0 이상 값이어야 합니다.")
 if MAX_SESSIONS < 1: raise ValueError("MAX_SESSIONS는 양수여야 합니다.")
 if LLM_PROVIDER not in ("none","openai","anthropic"): raise ValueError("LLM_PROVIDER 설정 오류")
+
+if LLM_ENGINE not in ("langchain", "direct"):
+    raise ValueError("LLM_ENGINE은 langchain 또는 direct여야 합니다.")

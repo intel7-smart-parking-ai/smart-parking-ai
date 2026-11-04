@@ -1,0 +1,4 @@
+# 선택 의존성. 규칙/버튼만 쓰면 설치 불필요. Python 3.11 이상.
+langchain-core==1.7.3
+langchain-openai==1.7.3
+langchain-anthropic==1.7.7

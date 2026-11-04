@@ -125,9 +125,9 @@ class Handler(SimpleHTTPRequestHandler):
             engine.current_alert()
             return self._json(r)
         if u.path == "/api/v1/chat/demo/exit":
-            return self._json(engine.data.exit_car(str(b.get("vehicle_no", "")).zfill(2)))
+            return self._json(engine.data.exit_car(str(b.get("car_id", "")).zfill(2)))
         if u.path == "/api/v1/chat/demo/enter":
-            return self._json(engine.data.enter_car(b.get("lot_id"), b.get("vehicle_no")))
+            return self._json(engine.data.enter_car(b.get("lot_id"), b.get("car_id")))
         if u.path == "/api/v1/chat/demo/fill":
             return self._json(engine.data.fill_lot(b.get("lot_id")))
         if u.path == "/api/v1/chat/demo/clear":

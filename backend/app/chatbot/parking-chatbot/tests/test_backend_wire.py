@@ -25,18 +25,27 @@ class BackendWireTests(unittest.TestCase):
                 self.end_headers(); self.wfile.write(payload)
             def do_GET(self):
                 received.append((self.path, dict(self.headers), None))
-                if self.path == config.API_PATHS["occupancy"]:
-                    self.reply(backend.get_empty_spots())
+                if self.path == config.API_PATHS["lots"]:
+                    snapshot = backend.get_empty_spots()
+                    self.reply({"items": [{"lot_id": k, "total_spaces": v["total"], "empty_spaces": v["empty"],
+                                          "uncertain_spaces": v["uncertain"], "unavailable_spaces": 0} for k, v in snapshot["lots"].items()],
+                                "as_of": snapshot["updated_at"]})
+                elif self.path.endswith("/spaces"):
+                    self.reply({"items": []})
+                elif self.path.endswith("/location") and "/17/" in self.path:
+                    car = backend.find_car("17")
+                    self.reply({"car_id": "17", "lot_id": car["lot_id"], "space_id": car["space_id"],
+                                "session_id": "session-07", "status": "occupied", "observed_at": car["updated_at"]})
                 elif self.path == config.API_PATHS["alerts"]:
-                    self.reply(backend.get_alert())
+                    self.reply({"items": [], "as_of": backend.get_empty_spots()["updated_at"]})
                 else:
-                    self.reply({"error": "not found"}, 404)
+                    self.reply({"error": {"code": "VEHICLE_NOT_FOUND"}}, 404)
             def do_POST(self):
                 body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
                 received.append((self.path, dict(self.headers), body))
-                result = backend.pay(body["vehicle_no"], idempotency_key=self.headers.get("Idempotency-Key"),
-                                     expected_amount=body["expected_amount"], entered_at=body["entered_at"])
-                self.reply(result)
+                result = backend.pay("17", idempotency_key=body["idempotency_key"])
+                self.reply({"amount_krw": result.get("amount", backend.get_fee("17")["fee"]), "payment_id": "payment-07",
+                            "paid_at": result.get("paid_at")})
         self.server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
         self.thread.start()
@@ -57,16 +66,16 @@ class BackendWireTests(unittest.TestCase):
     def test_missing_location_404_means_none(self):
         self.assertIsNone(self.adapter.find_car("24"))
 
-    def test_payment_passes_expected_amount_visit_and_idempotency_key(self):
-        fee = self.backend.get_fee("07")
-        kwargs = {"expected_amount": fee["fee"], "entered_at": fee["entered_at"], "idempotency_key": "wire-payment"}
-        first = self.adapter.pay("07", **kwargs)
-        second = self.adapter.pay("07", **kwargs)
+    def test_payment_passes_quote_amount_visit_and_idempotency_key(self):
+        fee = self.backend.get_fee("17")
+        kwargs = {"quote_amount": fee["fee"], "entry_at": fee["entry_at"], "idempotency_key": "wire-payment", "quote_id": "quote-wire"}
+        first = self.adapter.pay("17", **kwargs)
+        second = self.adapter.pay("17", **kwargs)
         self.assertEqual(first, second)
-        path, headers, body = self.received[0]
-        self.assertEqual(headers["Idempotency-Key"], "wire-payment")
-        self.assertEqual(body["expected_amount"], fee["fee"])
-        self.assertEqual(body["entered_at"], fee["entered_at"])
+        path, headers, body = next(x for x in self.received if x[2] is not None)
+        self.assertEqual(body["idempotency_key"], "wire-payment")
+        self.assertEqual(first["amount"], fee["fee"])
+        self.assertEqual(body, {"session_id": "session-07", "quote_id": "quote-wire", "idempotency_key": "wire-payment", "payment_method": "MOCK_CARD"})
 
 
 if __name__ == "__main__":
