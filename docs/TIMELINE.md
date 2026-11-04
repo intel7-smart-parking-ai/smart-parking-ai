@@ -797,3 +797,6 @@
 - 18파일 모두 `frontend/`, main 병합 후 npm test 47 passed·team 빌드 성공. active 세션·라 4구역·uncertain 구분·관측 출처·is_mock·KST·level 2 대피+결제 차단·Vite 8003/8090 포함 → Ready 전환·병합 요청 안내
 - 11/05 오전: 경보 시연 서버 등록·LED 연결·칸 entry_at(작은 백엔드 PR) / 오후 리허설 실행 3단계 / 11/05~06: D-28 구조 정렬·main.py 통합·Docker·데모 브랜치 정리
 
+### 17:52 · PROGRESS 갱신 — 김한별 요청 (저장소 최신 반영)
+- main `5ff9242` 342 passed. 진행률 약 61%, 완료 41·진행 4·미착수 29. 챗봇 90%(PR #45 병합·OpenRouter 실측), 프론트·통합 75%(PR #52), 백엔드 인수인계 완료(PR #47)
+
