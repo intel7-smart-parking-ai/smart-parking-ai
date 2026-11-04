@@ -1,4 +1,4 @@
-"""프로젝트 공통 서버 진입점 — 업무 API는 담당자 협의 후 구현."""
+"""공통 진입점: 기존 목업 호환 및 단일 이벤트·세션·요금 통합 앱."""
 
 from __future__ import annotations
 
@@ -36,4 +36,17 @@ def create_app(*, demo_billing_connection: Callable[[], Iterator[Connection]] | 
     return application
 
 
-app = create_app()
+import os
+
+def configured_app():
+    mode=os.getenv('PARKING_MODE','demo' if os.getenv('VISION_TOKEN') else 'mock')
+    if mode=='mock':return create_app()
+    if mode not in ('demo','real'):raise ValueError('PARKING_MODE must be mock, demo or real')
+    from backend.app.runtime import create_runtime_app
+    return create_runtime_app(token=os.environ.get('VISION_TOKEN',''),mode=mode)
+
+app = configured_app()
+
+if __name__=='__main__':
+    import uvicorn
+    uvicorn.run(app,host=os.getenv('API_HOST','127.0.0.1'),port=int(os.getenv('API_PORT','8000')))
