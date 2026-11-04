@@ -449,6 +449,10 @@
 - **`main.py` 등록 불가:** 챗봇 라우터가 `parking-chatbot/`(하이픈)·`from chatbot import` 구조 → 서정범이 `backend/app/chatbot/router.py` 진입점 제공 후 박해준 등록
 - 그 밖: "입차 확인 중" 답변 준비, Windows 테스트 1건, `ev_vehicles` → 서버 `vehicle_type` 우선
 
+### 09:28 · 박해준 오늘 우선순위 (11/06 관문 기준)
+- 확인: `main.py`는 조회 목업만 등록, 수신기·점유 엔진은 실험 앱 전용, 조회 API는 고정 목업 → 이벤트가 화면에 반영 안 됨
+- ① `main.py` 등록(billing·수신기, 점유 엔진 공유, KAN-16 DB 없음 테스트 확인) ② 조회 API ↔ 점유 엔진 연결(11/06 핵심) ③ 윤명수와 `parking_sessions`+`status` 합의 ④ 입출차 세션·입차 매칭 설계, 위치 `session_id` ⑤ 필드명 공지
+
 ---
 ---
 
