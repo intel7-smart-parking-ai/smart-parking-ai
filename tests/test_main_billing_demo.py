@@ -41,7 +41,8 @@ def test_demo_billing_lifecycle(tmp_path):
             init_schema(conn)
             seed_defaults(conn)
             conn.execute(
-                "INSERT INTO parking_sessions VALUES (?, ?, ?, ?, ?, ?)",
+                "INSERT INTO parking_sessions (session_id, lot_id, space_id, car_id, entry_at, exit_at) "
+                "VALUES (?, ?, ?, ?, ?, ?)",
                 ("ses_demo", "A", "A-01", "10", "2026-11-04T09:00:00+09:00",
                  "2026-11-04T09:30:00+09:00"),
             )
