@@ -212,6 +212,8 @@ EVACUATE_NONE = "현재 경보는 없어요. 비상시에는 가장 가까운 �
 
 
 def banner(a: dict) -> dict | None:
+    if a and C.alerts_source(a) == "not_provided" and not a.get("level"):
+        return None
     if a and a.get("unavailable"):
         return {"level": max(1, a.get("level", 0)), "text": ALERT_UNAVAILABLE}
     if a and a.get("stale"):

@@ -42,6 +42,10 @@ def _hhmm(iso_str: str) -> str:
     return iso_str[11:16]
 
 
+def _confidence_text(value):
+    return "미확인" if value is None else f"{round(value * 100)}%"
+
+
 def _add(inc: dict, text: str) -> None:
     inc["timeline"].append({"at": iso(now()), "text": text})
 
@@ -138,12 +142,14 @@ def _apply_observation(alert, version, first_read, briefing_read):
             INCIDENTS.append(cur)
             _trim()
             _state["current"] = cur
-            _add(cur, f"{_report_location(alert)} {label}, 신뢰도 {round(cur['max_confidence'] * 100)}%")
+            _add(cur, f"{_report_location(alert)} {label}, 신뢰도 {_confidence_text(cur['max_confidence'])}")
         else:
             cur["revision"] += 1
             cur["max_level"] = max(cur["max_level"], level)
-            cur["max_confidence"] = max(cur["max_confidence"], alert.get("confidence", 0))
-            _add(cur, f"{label}, 신뢰도 {round(alert.get('confidence', 0) * 100)}%")
+            confidence = alert.get("confidence", 0)
+            if confidence is not None and (cur["max_confidence"] is None or confidence > cur["max_confidence"]):
+                cur["max_confidence"] = confidence
+            _add(cur, f"{label}, 신뢰도 {_confidence_text(confidence)}")
             if not cur["affected_known"]:
                 cars, known = first_read
                 if known:
@@ -279,7 +285,7 @@ def report_text(inc: dict) -> str:
         "",
         "1. 개요",
         f"  {inc['opened_at'][:10]} {_hhmm(inc['opened_at'])} {_report_location(inc)} 모의 화재(LED) 감지",
-        f"  최고 단계 {lv}, 최대 신뢰도 {round(inc['max_confidence'] * 100)}%, 종료 {end}",
+        f"  최고 단계 {lv}, 최대 신뢰도 {_confidence_text(inc['max_confidence'])}, 종료 {end}",
         "",
         "2. 경과",
         *[f"  {_hhmm(t['at'])} {t['text']}" for t in inc["timeline"]],

@@ -49,7 +49,7 @@ pre{white-space:pre-wrap;background:#F7F8FA;border:1px solid var(--line);border-
 </style>
 </head>
 <body>
-<header><h1>관리자 화면</h1><small>EPIC 06 테스트 모델 · 상황 보고서 자동 작성</small><span class="live" id="live">-</span></header>
+<header><h1>관리자 화면</h1><small>EPIC 06 테스트 모델 · 상황 보고서 자동 작성</small><span id="alertsSource" role="status"></span><span class="live" id="live">-</span></header>
 <div class="row" style="max-width:1240px;margin:8px auto;padding:0 20px"><input id="adminKey" type="password" placeholder="관리자 접근 키" autocomplete="off"><button id="connect">연결</button></div>
 <div class="wrap">
   <aside>
@@ -72,6 +72,7 @@ $("#connect").addEventListener("click",()=>{
   try{sessionStorage.setItem("adminKey",adminKey);}catch(e){}
   load();
 });
+function confidenceText(value){return value==null?"미확인":Math.round(value*100)+"%";}
 function draftKey(id){return `notes:${runtimeId}:${id}`;}
 function getDraft(id){
   if(!drafts.has(id)){
@@ -108,6 +109,8 @@ async function load(rebase=false){
     if(rebase && selected && getDraft(selected)) persistDraft(selected,{...getDraft(selected),revision:items.find(x=>x.id===selected)?.revision});
     if(!items.some(x=>x.id===selected)){ selected = items[0]?.id ?? null; notesDirty = false; }
     renderList(); if(!saving) renderDetail(); renderCalls(calls.items);
+    $("#alertsSource").textContent = inc.alerts_source === "not_provided" ? "경보 API 미구현" :
+      inc.alerts_source === "unavailable" ? "경보 상태 확인 불가" : "";
     $("#live").textContent = "자동 갱신 " + hhmm(new Date().toISOString());
   }catch(e){ $("#live").textContent = "연결 확인 필요 · " + e.message; }finally{ loading = false; }
 }
@@ -146,7 +149,7 @@ function renderDetail(force){
     $("#report").textContent=x.report;
     $("#briefing").innerHTML=renderBriefing(x);
     const counters=document.querySelectorAll("#detail .kpi b");
-    ["Lv"+x.max_level,Math.round(x.max_confidence*100)+"%",x.notified_count,x.admin_calls.length].forEach((v,i)=>{if(counters[i])counters[i].textContent=v;});
+    ["Lv"+x.max_level,confidenceText(x.max_confidence),x.notified_count,x.admin_calls.length].forEach((v,i)=>{if(counters[i])counters[i].textContent=v;});
     const status=document.querySelector("#detail .title .badge");if(status)status.outerHTML=badge(x.status);
     const near=new Set(x.near_spots || x.affected.filter(c=>c.car_id!=null&&x.near.includes(c.car_id)).map(c=>c.spot_no));
     document.querySelector("#detail .cars").innerHTML=x.affected.map(c=>`<span class="car ${near.has(c.spot_no)?"near":""}">${c.car_id==null?"번호 미인식":esc(c.car_id)+"번"} · ${esc(c.space_id || c.spot_no+"칸")}</span>`).join("")||(x.affected_known===false?"차량 목록 조회 실패 · 미확인":"없음");
@@ -163,7 +166,7 @@ function renderDetail(force){
       <div class="title"><h2>#${x.id} 모의 화재(LED) · ${esc(incidentLocation(x))}</h2>${badge(x.status)}</div>
       <div class="kpis">
         <div class="kpi"><b>Lv${x.max_level}</b><span>최고 단계</span></div>
-        <div class="kpi"><b>${Math.round(x.max_confidence*100)}%</b><span>최대 신뢰도</span></div>
+        <div class="kpi"><b>${confidenceText(x.max_confidence)}</b><span>최대 신뢰도</span></div>
         <div class="kpi"><b>${x.notified_count}</b><span>알림 수신 확인</span></div>
         <div class="kpi"><b>${x.admin_calls.length}</b><span>관리자 호출</span></div>
       </div>

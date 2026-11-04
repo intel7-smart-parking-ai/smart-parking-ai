@@ -141,7 +141,7 @@ def _validate_alert(value):
             require(lot is None or lot in config.catalog.ids(), "등록되지 않은 경보 주차장입니다.")
             require(spot is None or (lot is not None and integer(spot, 1) and spot <= config.catalog.space_count(lot)), "경보 spot_no 범위 오류")
             confidence = value.get("confidence", 0)
-            require(type(confidence) in (int, float) and math.isfinite(confidence) and 0 <= confidence <= 1,
+            require(confidence is None or (type(confidence) in (int, float) and math.isfinite(confidence) and 0 <= confidence <= 1),
                     "경보 confidence 형식 오류")
             timestamp(value.get("updated_at"))
             return
@@ -191,3 +191,10 @@ def alert_level(item):
     level = item.get("level")
     require(level is None or (type(level) is int and level in (1, 2)), "경보 레벨 오류")
     return 1 if level is None else level
+
+
+def alerts_source(alert):
+    """Describe availability without interpreting a missing API as all-clear."""
+    if alert.get("unavailable") or alert.get("stale"):
+        return "not_provided" if alert.get("http_status") == 404 and not alert.get("stale") else "unavailable"
+    return "ok"
