@@ -29,10 +29,12 @@ def local_base_url(value):
     return f"http://127.0.0.1:{url.port}"
 
 
-def run_demo(client, token, *, short=False, hold=False, depart=False, wait=sleep,
+def run_demo(client, token, *, short=False, hold=False, depart=False, keep_empty=False, wait=sleep,
              clock=lambda: datetime.now(timezone.utc), output=print):
     if hold and depart:
         raise DemoError("--hold와 --depart는 따로 실행하세요.")
+    if keep_empty and not depart:
+        raise DemoError("--keep-empty는 --depart와 함께 실행하세요.")
     selected = tuple(space for space in A_SPACES if not short or space.space_id in ("A-01", "A-02", "A-03"))
     selected_ids = {space.space_id for space in selected}
 
@@ -92,6 +94,13 @@ def run_demo(client, token, *, short=False, hold=False, depart=False, wait=sleep
                 wait(1.1)
                 send_round(False, targets=pending)
         verify("출차", "empty", None)
+        if keep_empty:
+            output("빈자리 유지 중. 같은 칸에 실물 카메라 이벤트를 보내지 마세요. "
+                   "다음 --hold 전에 Ctrl+C로 전송을 멈추세요.")
+            while True:
+                wait(1.1)
+                send_round(False)
+                verify("빈자리 유지", "empty", None, report=False)
         return
 
     verify("시작", "empty", len(A_SPACES))
@@ -112,13 +121,17 @@ def run_demo(client, token, *, short=False, hold=False, depart=False, wait=sleep
 
 
 def main():
-    parser = ArgumentParser(description="A주차장 합성 입차·출차 시연")
+    parser = ArgumentParser(description="A주차장 합성 입차·출차 시연. 같은 칸에 실물 카메라 이벤트와 함께 사용하지 마세요.")
     parser.add_argument("--short", action="store_true", help="A-01~A-03만 시연")
     modes = parser.add_mutually_exclusive_group()
     modes.add_argument("--hold", action="store_true", help="입차 후 점유 유지")
     modes.add_argument("--depart", action="store_true", help="점유 유지 중단 후 대상 칸 출차")
+    parser.add_argument("--keep-empty", action="store_true",
+                        help="--depart 후 빈자리 유지. 다음 --hold 전에 Ctrl+C로 중단")
     parser.add_argument("--base-url", default=BASE_URL, help="로컬 시연 서버 주소")
     args = parser.parse_args()
+    if args.keep_empty and not args.depart:
+        parser.error("--keep-empty는 --depart와 함께 실행하세요.")
     try:
         base_url = local_base_url(args.base_url)
     except ValueError:
@@ -128,7 +141,8 @@ def main():
         if not token.isascii() or len(token) < 16:
             raise SystemExit("시연 토큰은 ASCII 16자 이상이어야 합니다.")
         with httpx.Client(base_url=base_url, timeout=3, trust_env=False) as client:
-            run_demo(client, token, short=args.short, hold=args.hold, depart=args.depart)
+            run_demo(client, token, short=args.short, hold=args.hold, depart=args.depart,
+                     keep_empty=args.keep_empty)
     except KeyboardInterrupt:
         print("시연 이벤트 전송을 중단했습니다.")
     except httpx.RequestError:

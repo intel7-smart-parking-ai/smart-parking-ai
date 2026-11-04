@@ -136,10 +136,25 @@ def test_depart_then_repeat_without_losing_billing_history(short, monkeypatch):
                             run(depart=True, wait=advance)
                     assert {sid for sid, state, _ in sessions() if state == "active"} == active
 
-            run(depart=True, wait=advance)
+            if cycle == 0:
+                departure_started = now
+                stop_at = now + timedelta(seconds=21)
+                with pytest.raises(KeyboardInterrupt):
+                    run(depart=True, keep_empty=True, wait=hold_until_interrupt)
+                rows = client.get("/api/v1/parking-lots/A/spaces").json()["items"]
+                refreshed = [row for row in rows if row["observed_at"] is not None
+                             and datetime.fromisoformat(row["observed_at"]) == now]
+                assert len(refreshed) == count
+                assert all(row["status"] == "empty" for row in rows)
+                assert (now - departure_started).total_seconds() >= 19.4
+            else:
+                run(depart=True, wait=advance)
             closed = sessions()
             assert len(closed) == count * (cycle + 1)
             assert all(state == "closed" and exited for _, state, exited in closed)
+            if cycle == 0:
+                latest_exit = max(datetime.fromisoformat(exited) for _, _, exited in closed)
+                assert now - latest_exit >= timedelta(seconds=15)
             assert {sid: exited for sid, _, exited in closed if sid in history} == history
             history = {sid: exited for sid, _, exited in closed}
             run(depart=True, wait=advance)
