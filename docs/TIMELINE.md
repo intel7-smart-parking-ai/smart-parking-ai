@@ -444,6 +444,11 @@
 - OCR 근접 판독으로 인식률 개선 기대, 요금·챗봇·프론트 영향 작음, 가상 C·D 영향 없음
 - 추천: 11/06 일정상 2안 먼저, 입차 매칭은 공통이라 오늘 착수. PM 결정: 매칭 대기 시간(제안 30초)·`entry_at` 기준
 
+### 09:25 · ✅ PR #29 병합 확인 / 서정범 오늘 할 일 — 통합 공백 2건 발견
+- **프론트↔챗봇 응답 불일치:** `ChatPanel.jsx`는 `messages` 배열을 읽음, 챗봇 `engine.handle`은 `text`+`chips`·`card`·`confirmation_token` 반환 → 김채린·서정범 합의 필요 (프론트가 `text` 읽도록 추천)
+- **`main.py` 등록 불가:** 챗봇 라우터가 `parking-chatbot/`(하이픈)·`from chatbot import` 구조 → 서정범이 `backend/app/chatbot/router.py` 진입점 제공 후 박해준 등록
+- 그 밖: "입차 확인 중" 답변 준비, Windows 테스트 1건, `ev_vehicles` → 서버 `vehicle_type` 우선
+
 ---
 ---
 
