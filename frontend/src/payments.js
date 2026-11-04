@@ -1,3 +1,4 @@
+import {evacuationRequired} from './uiState.js';
 import {api} from './api.js';
 export const paymentMethodCodes={credit_card:'MOCK_CARD',MOCK_CARD:'MOCK_CARD',MOCK_EASY_PAY:'MOCK_EASY_PAY',MOCK_ACCOUNT:'MOCK_ACCOUNT'};
 export const QUOTE_TTL_MS=120000;
@@ -28,7 +29,10 @@ export async function submitMockPayment(invoice, method, simulateFailure, attemp
     if(isQuoteExpired(invoice)){delete attempts[sid];throw expired()}
     const body={session_id:sid,idempotency_key:attempt.key,payment_method:code};
     if(latest.quote_id)body.quote_id=latest.quote_id;
-    try {payment=await send('/mock-payments',{method:'POST',body});}
+    try {
+      if(invoice.lot_id){const alerts=await send('/alerts');if(evacuationRequired(Array.isArray(alerts)?alerts:alerts.items,invoice.lot_id))throw Object.assign(new Error('대피 경보 중에는 결제할 수 없습니다. 안전 안내를 먼저 확인해주세요.'),{code:'EVACUATION_ACTIVE'})}
+      payment=await send('/mock-payments',{method:'POST',body});
+    }
     catch(error) {
       if(staleQuoteCodes.includes(error.code)){delete attempts[sid];throw error}
       if(conflictCodes.includes(error.code)) {

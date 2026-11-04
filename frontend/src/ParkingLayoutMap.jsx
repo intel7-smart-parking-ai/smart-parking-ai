@@ -19,16 +19,16 @@ function MiniCar({x, y, number, rotation = 0}) {
   return <g transform={`translate(${x} ${y})`} aria-hidden="true"><g transform={`rotate(${rotation}) scale(1.2)`}><g className="pdf-car-wheels"><rect x="-30" y="-19" width="15" height="9" rx="3"/><rect x="16" y="-19" width="15" height="9" rx="3"/><rect x="-30" y="10" width="15" height="9" rx="3"/><rect x="16" y="10" width="15" height="9" rx="3"/></g><rect className="pdf-car-body" x="-42" y="-15" width="84" height="30" rx="12"/><rect className="pdf-car-window" x="-23" y="-12" width="46" height="24" rx="5"/></g><rect className="pdf-car-plate" x={-badgeWidth / 2} y="-22" width={badgeWidth} height="44" rx="8"/><text className="pdf-car-number" style={{fontSize:label.length > 2 ? 28 : 34}} textAnchor="middle" dominantBaseline="central" y="0">{label}</text></g>;
 }
 function Bay({space, points, x, y, vertical, labelY, carY, carX, carRotation, stopPath, filter, alerts, found, lot, onSpace}) {
-  const dim = filter !== 'all' && !(filter === 'empty' ? space.status === 'empty' : space.space_type === filter);
+  const dim = filter !== 'all' && !(filter === 'empty' ? space.status === 'empty' : filter.startsWith('source:')?space.source===filter.slice(7):space.space_type === filter);
   const warned = alerts.some(a => a.lot_id === lot.lot_id && a.space_id === space.space_id && a.status !== 'resolved');
   const selected = found?.lot_id === lot.lot_id && found?.space_id === space.space_id;
   const number = lot.type === 'real' ? space.car_id : space.vehicle_number;
-  const label = `${space.space_id} ${types[space.space_type]} ${statuses[space.status]}${space.car_id ? ' 차량 ' + (lot.type === 'real' ? space.car_id : space.plate_number || number) : ''}`;
+  const label = `${space.space_id} ${types[space.space_type]} ${statuses[space.status]}${(space.car_id||number) ? ' 차량 ' + (lot.type === 'real' ? space.car_id : space.plate_number || number) : ''}`;
   return <g className={`pdf-bay ${space.status} ${space.space_type} ${dim ? 'dim' : ''} ${selected ? 'found' : ''} ${warned ? 'warned' : ''}`} role="button" tabIndex={0} aria-label={label} onClick={() => onSpace(space)} onKeyDown={e => {if (e.key === 'Enter' || e.key === ' ') {e.preventDefault(); onSpace(space);}}}>
     <title>{label}</title><polygon className="pdf-bay-shape" points={points}/>
     {stopPath && <path className="pdf-wheel-stop" d={stopPath} aria-hidden="true"/>}
     <text className="pdf-bay-label" x={x} y={labelY ?? y - (vertical ? 75 : 22)} textAnchor="middle">{space.space_id}</text>
-    {space.car_id ? <g transform={lot.layout_type === 'mall' ? `translate(${carX ?? x} ${carY ?? y}) scale(.68) translate(${- (carX ?? x)} ${- (carY ?? y)})` : undefined}><MiniCar x={carX ?? x} y={carY ?? y + (vertical ? 2 : 11)} number={number} rotation={carRotation ?? (vertical ? 90 : 0)}/></g> : <text className="pdf-bay-status" x={x} y={carY ?? y + 12} textAnchor="middle">{statuses[space.status]}</text>}
+    {(space.car_id||number) ? <g transform={lot.layout_type === 'mall' ? `translate(${carX ?? x} ${carY ?? y}) scale(.68) translate(${- (carX ?? x)} ${- (carY ?? y)})` : undefined}><MiniCar x={carX ?? x} y={carY ?? y + (vertical ? 2 : 11)} number={number} rotation={carRotation ?? (vertical ? 90 : 0)}/></g> : <text className="pdf-bay-status" x={x} y={carY ?? y + 12} textAnchor="middle">{statuses[space.status]}</text>}
     {space.space_type === 'ev' && <text className="pdf-bay-special" x={x} y={y + (vertical ? 68 : 42)} textAnchor="middle">⚡ 전기차</text>}
     {space.space_type === 'accessible' && <text className="pdf-bay-special" x={x} y={y + (vertical ? 68 : 42)} textAnchor="middle">♿ 장애인</text>}
     {warned && <text className="pdf-warning" x={x + 30} y={y - 45}>!</text>}
