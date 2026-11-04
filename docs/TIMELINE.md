@@ -422,6 +422,15 @@
 - **결정 일치:** 경로·car_id 10~99·주차장 4곳 104칸·전용 칸·`accessible`·`quote_id`·`items`/`error.code`·대체 계산 없음
 - **판단:** 병합 가능. 참고: `ev_vehicles` 목업 하드코딩은 실서버 `vehicle_type` 우선으로 추후 정리
 
+## 2026-11-04 (수) D3
+
+### 09:10 · PR #29 독립 재검수 — 서정범 요청 ("보고서만 보고 낸 결론 아닌지")
+- **방식:** 챗봇 `docs/*_report.md`·`api_smoke.py` 대신 별도 검사 스크립트, 기준은 서버 실제 코드(`mock_queries`·`billing_router`·`payment_service`)
+- **환경:** 조회 + billing 라우터를 함께 띄운 서버(`main.py` 등록 후 모습) + billing DB에 실제 세션 주입
+- **결과:** 빈자리 4곳·104칸 일치 / 차량 위치 일치 / 요금 A 95분 4,500원·B 20분 2,000원 서버=챗봇 / `quote_id` 결제·같은 키 재반환·이미 결제 / `QUOTE_NOT_FOUND`·`QUOTE_MISMATCH`·`QUOTE_EXPIRED` → 재조회 / 견적 없으면 서버 호출 안 함 / 서버 모드에서 자체 요금 계산 없음
+- **판단:** 병합 가능 유지
+- **발견:** 위치 API `session_id`가 항상 null → 요금·결제 실연동은 박해준 세션 + `main.py` 등록 후 / `billing/schemas.py` `FeeResponse`에 옛 필드(`calculated_at`·`applied_policy_id`·`session_status`) 잔존 → 윤명수 정리 대상
+
 ---
 ---
 
