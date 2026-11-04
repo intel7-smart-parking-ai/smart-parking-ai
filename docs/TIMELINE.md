@@ -431,6 +431,10 @@
 - **판단:** 병합 가능 유지
 - **발견:** 위치 API `session_id`가 항상 null → 요금·결제 실연동은 박해준 세션 + `main.py` 등록 후 / `billing/schemas.py` `FeeResponse`에 옛 필드(`calculated_at`·`applied_policy_id`·`session_status`) 잔존 → 윤명수 정리 대상
 
+### 09:12 · 윤명수 오늘 할 일 안내 / PM #29 병합 확인 응답
+- 윤명수: ① 박해준과 `parking_sessions`(+`status`) 공용 합의 ② `FeeResponse` 스키마 실제 응답으로 정리(`fix/KAN-28-fee-schema`) ③ 견적 유효 시간 확정(김채린) ④ `main.py` 등록 후 실서버 확인
+- PM: #29 병합 가능 회신
+
 ---
 ---
 
