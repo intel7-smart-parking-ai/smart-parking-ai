@@ -10,6 +10,7 @@ from fastapi import HTTPException
 
 from backend.app.api.billing_router import billing_router
 from backend.app.api.occupancy_query_demo import create_demo_app
+from backend.app.api.session_queries import router as session_queries_router
 from backend.app.billing.db import get_db_conn, init_schema, seed_defaults
 from backend.app.database.parking_sessions import SessionError, enter, exit_session
 
@@ -76,6 +77,7 @@ def create_app(*, token: str, clock=lambda: datetime.now(timezone.utc)):
     app.router.lifespan_context = lifespan
     app.dependency_overrides[get_db_conn] = temporary_billing_connection
     app.include_router(billing_router)
+    app.include_router(session_queries_router)
     return app
 
 
