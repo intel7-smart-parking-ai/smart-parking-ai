@@ -119,7 +119,7 @@
 | `SMART_PARKING_DB_PATH` | billing·세션·경보 | SQLite 파일 경로 (Docker 볼륨) |
 | `FEE_QUOTE_TTL_SECONDS` | billing | 견적 유효 시간 (기본 300) |
 | `ALERTS_INTERNAL_TOKEN` | 경보 | 내부 경보 생성 토큰 (16자 이상) |
-| `DATA_SOURCE`, `BACKEND_BASE_URL`, `BACKEND_TOKEN` | 챗봇 | `api`·같은 서버 주소, 조회 토큰 불필요 |
+| `DATA_SOURCE`, `BACKEND_BASE_URL`, `BACKEND_TOKEN` | 챗봇 | `api`·같은 서버 주소, 조회 토큰 불필요. ⚠️ **시연 서버(8002)에 붙일 때 `BACKEND_BASE_URL=http://127.0.0.1:8002` 필수** — 없으면 기본 8000을 찾아가 조회 실패 (11/04 실측) |
 | `LLM_PROVIDER`, `LLM_MODEL`, `OPENROUTER_API_KEY` | 챗봇 | 기본 `none`(규칙만) |
 | `API_BASE_URL`, `VISION_TOKEN` | 카메라 모듈 | ☐ 예정 (D-28), 시연 서버는 지금 실행 시 토큰을 키보드로 입력 |
 | `VITE_DATA_SOURCE`, `API_PROXY_TARGET` | 프론트 | `team`, 서버 주소 |
