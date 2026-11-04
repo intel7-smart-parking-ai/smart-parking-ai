@@ -126,14 +126,14 @@ class AdminSuggestionTests(unittest.TestCase):
 
 
 class EvaluationFilenameTests(unittest.TestCase):
-    def test_glob_selects_exactly_seven_existing_question_sets(self):
+    def test_glob_selects_exactly_eight_existing_question_sets(self):
         directory=Path(__file__).parent
         files=sorted(p for p in directory.glob('questions*.csv') if p.name != 'questions_rehearsal.csv')
-        self.assertEqual(len(files),7)
+        self.assertEqual(len(files),8)
         with_rows=[]
         for file in files:
             with file.open(encoding='utf-8') as stream:with_rows.extend(csv.DictReader(stream))
-        self.assertEqual(len(with_rows),237)
+        self.assertEqual(len(with_rows),243)
         self.assertFalse((directory/'questions_llm.csv').exists())
         with (directory/'llm_eval_questions.csv').open(encoding='utf-8') as stream:
             rows=list(csv.DictReader(stream))

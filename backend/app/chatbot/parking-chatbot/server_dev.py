@@ -15,6 +15,7 @@ from urllib.parse import parse_qs, urlparse
 from chatbot import engine, incidents
 from chatbot.state import Conflict
 from chatbot.adapters import DataUnavailable
+from chatbot.contracts import alerts_source
 from chatbot.http_api import change_report
 from chatbot.access import require_admin, AccessDenied
 
@@ -92,8 +93,9 @@ class Handler(SimpleHTTPRequestHandler):
         return engine.config.catalog.public()
 
     def _incidents(self):
-        engine.current_alert()
-        return {"items": incidents.list_public(), "runtime_id": engine.RUNTIME_ID}
+        alert = engine.current_alert()
+        return {"items": incidents.list_public(), "runtime_id": engine.RUNTIME_ID,
+                "alerts_source": alerts_source(alert)}
 
     def do_POST(self):
         try:

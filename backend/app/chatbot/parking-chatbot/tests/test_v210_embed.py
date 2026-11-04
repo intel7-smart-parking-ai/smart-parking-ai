@@ -38,10 +38,13 @@ class EmbeddedConfigTests(unittest.TestCase):
     @unittest.skipUnless(importlib.util.find_spec("fastapi") and (REPO / "backend" / "__init__.py").exists(),
                          "FastAPI 미설치 또는 팀 레포 밖에서 실행")
     def test_team_main_can_include_router(self):
-        code = ("from fastapi import FastAPI; from backend.app.chatbot.router import router; "
+        code = ("from fastapi import FastAPI; from fastapi.testclient import TestClient; "
+                "from backend.app.chatbot.router import router; "
                 "app = FastAPI(); app.include_router(router); "
-                "print(sorted({r.path for r in app.routes if r.path.startswith('/api/v1/chat')})[:2])")
-        env = {**os.environ, "LLM_PROVIDER": "none", "PYTHONIOENCODING": "utf-8"}
+                "response = TestClient(app).post('/api/v1/chat', json={'session_id':'embed', 'text':'A 빈자리'}); "
+                "assert response.status_code == 200, response.text; "
+                "assert response.json()['text']; print('/api/v1/chat', response.status_code)")
+        env = {**os.environ, "DATA_SOURCE": "mock", "LLM_PROVIDER": "none", "PYTHONIOENCODING": "utf-8"}
         out = subprocess.run([sys.executable, "-c", code], cwd=REPO, env=env, capture_output=True, text=True,
                              encoding="utf-8", errors="replace", timeout=60)
         self.assertEqual(out.returncode, 0, out.stderr)

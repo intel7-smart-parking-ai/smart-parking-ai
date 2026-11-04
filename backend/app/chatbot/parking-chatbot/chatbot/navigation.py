@@ -3,6 +3,7 @@ import re
 import time
 import uuid
 from . import config
+from .contracts import alerts_source
 from .adapters import iso,now
 
 
@@ -16,7 +17,7 @@ def reason(snapshot, alert, lot, zone=None):
     if item is None:return "주차장 정보 없음"
     if alert.get("level",0)>=2 and alert.get("lot_id") in (None,lot):return "경보"
     if item.get("entry_allowed") is False:return "운영 제한" + (": "+item["restriction_reason"] if item.get("restriction_reason") else "")
-    if snapshot.get("stale") or alert.get("stale") or alert.get("unavailable"):return "현재 상태 확인 불가"
+    if snapshot.get("stale") or alert.get("stale") or (alert.get("unavailable") and alerts_source(alert) != "not_provided"):return "현재 상태 확인 불가"
     n=count(item,zone)
     if n is None:return "구역별 정보 미제공"
     return "만차" if n==0 else None

@@ -27,6 +27,7 @@ class Session:
     query_context: dict = field(default_factory=dict)
     query_context_at: float = 0
     alert_unavailable_seen: bool = False
+    alerts_source: str = "ok"
     observed_alert: int = 0
     candidate_options: dict = field(default_factory=dict)
     candidate_expires: float = 0

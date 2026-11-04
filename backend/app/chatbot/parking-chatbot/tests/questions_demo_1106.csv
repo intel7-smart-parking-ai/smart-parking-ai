@@ -1,0 +1,7 @@
+question,intent,lot_id,car_id
+A 빈자리 있어?,get_empty_spots,A,
+10번 차 어디 있어?,find_my_car,,10
+요금 얼마야?,get_fee,,
+결제해 줘,pay_fee,,
+요금표 알려줘,fee_rule,,
+7번 차 어디야?,find_my_car,,short
