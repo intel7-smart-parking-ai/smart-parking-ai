@@ -28,7 +28,8 @@ class DemoLocation(VehicleLocation):
     source: Source
 
 
-def create_demo_app(*, token: str, clock=lambda: datetime.now(timezone.utc), public_reads: bool = False, on_confirmed=None):
+def create_demo_app(*, token: str, clock=lambda: datetime.now(timezone.utc),
+                    public_reads: bool = False, on_confirmed=None, max_events: int = 1000):
     if len(token) < 16 or not token.isascii():
         raise ValueError("시연 토큰은 ASCII 16자 이상이어야 합니다.")
 
@@ -46,7 +47,7 @@ def create_demo_app(*, token: str, clock=lambda: datetime.now(timezone.utc), pub
         ]} for lot in LOT_TYPES
     ]}
     # 기존 D5 격리 시험과 같은 실험 설정을 사용한다.
-    store = OccupancyExperiment(layout=layout, on_confirmed=on_confirmed, policy=ExperimentPolicy(
+    store = OccupancyExperiment(layout=layout, on_confirmed=on_confirmed, max_events=max_events, policy=ExperimentPolicy(
         occupy_seconds=2, empty_seconds=3, max_gap_seconds=2,
         stale_seconds=10, min_confidence=.8, initial_status="empty",
     ))

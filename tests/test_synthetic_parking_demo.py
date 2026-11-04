@@ -32,15 +32,15 @@ def test_a_spaces_enter_and_exit(short, empty_during_entry):
     ]
 
 
-@pytest.mark.parametrize("short", [False, True])
-def test_hold_refreshes_occupancy_past_stale_window(short):
+@pytest.mark.parametrize(("short", "duration"), [(False, 305), (True, 15)])
+def test_hold_refreshes_occupancy_past_stale_window(short, duration):
     start = datetime(2026, 11, 6, tzinfo=timezone.utc)
     now = start
     token = "synthetic-test-token"
 
     def advance(seconds):
         nonlocal now
-        if (now - start).total_seconds() >= 15:
+        if (now - start).total_seconds() >= duration:
             raise KeyboardInterrupt
         now += timedelta(seconds=seconds)
 
@@ -52,11 +52,13 @@ def test_hold_refreshes_occupancy_past_stale_window(short):
         occupied = {row["space_id"]: row for row in rows if row["status"] == "occupied"}
         expected = ["A-01", "A-02", "A-03"] if short else [space.space_id for space in A_SPACES]
         assert set(occupied) == set(expected)
+        lot = next(row for row in client.get("/api/v1/parking-lots").json()["items"] if row["lot_id"] == "A")
+        assert lot["empty_spaces"] == 12 - len(expected)
         for number, space_id in enumerate(expected, start=10):
             row = occupied[space_id]
             assert row["car_id"] == str(number) and row["source"] == "simulation"
             assert datetime.fromisoformat(row["observed_at"]) == now
-            assert row["version"] > 10
+            assert row["version"] > (10 if short else 1000 // 12)
 
 
 def test_base_url_only_allows_local_http_with_port():
