@@ -30,10 +30,12 @@ def connect(tmp_path, monkeypatch):
         db.init_schema(conn)
         db.seed_defaults(conn)
         # This schema change is applied only to this freshly created fixture.
-        conn.execute(
-            "ALTER TABLE parking_sessions ADD COLUMN status TEXT "
-            "CHECK (status IN ('active', 'closed'))"
-        )
+        columns = {row[1] for row in conn.execute("PRAGMA table_info(parking_sessions)")}
+        if "status" not in columns:
+            conn.execute(
+                "ALTER TABLE parking_sessions ADD COLUMN status TEXT "
+                "CHECK (status IN ('active', 'closed'))"
+            )
     return open_connection
 
 
