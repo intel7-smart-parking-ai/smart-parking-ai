@@ -28,7 +28,7 @@ class DemoLocation(VehicleLocation):
     source: Source
 
 
-def create_demo_app(*, token: str, clock=lambda: datetime.now(timezone.utc)):
+def create_demo_app(*, token: str, clock=lambda: datetime.now(timezone.utc), public_reads: bool = False):
     if len(token) < 16 or not token.isascii():
         raise ValueError("시연 토큰은 ASCII 16자 이상이어야 합니다.")
 
@@ -53,7 +53,7 @@ def create_demo_app(*, token: str, clock=lambda: datetime.now(timezone.utc)):
     app = create_experiment_app(store=store, authorize=authorize)
     app.title = "D5 합성 Vision · KAN-16 조회 시연"
     router = APIRouter(prefix="/api/v1", route_class=MockRoute,
-                       dependencies=[Depends(require_access)])
+                       dependencies=[] if public_reads else [Depends(require_access)])
 
     @router.get("/parking-lots", response_model=LotList)
     def list_lots():

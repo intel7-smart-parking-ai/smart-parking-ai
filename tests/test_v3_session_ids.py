@@ -105,7 +105,8 @@ def test_id_roundtrip_fee_payment_replay_cancel(isolated, kind, sid, state):
                 assert found.session_id == sid and found.status == state
         else:
             with connect() as conn:
-                conn.execute('INSERT INTO parking_sessions VALUES (?,?,?,?,?,?)',
+                conn.execute('INSERT INTO parking_sessions '
+                             '(session_id, lot_id, space_id, car_id, entry_at, exit_at) VALUES (?,?,?,?,?,?)',
                              (sid, 'A', 'A-01', '10', ENTRY, exit_at))
         fee = client.get(f'/api/v1/sessions/{sid}/fee', params={'now': NOW})
         assert fee.status_code == 200
