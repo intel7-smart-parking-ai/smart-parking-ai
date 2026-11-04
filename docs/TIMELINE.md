@@ -629,6 +629,14 @@
 - 🟠 11/05: 경보 API(윤명수·`detected_at` 추천), 스티커 배정표(16·4·4, 6/9·뒤집힘 번호 제외), 데모 서버 유지(C+관리자 게이트웨이), C 시뮬레이터 재개(C 12칸), Docker 이름·DB 볼륨
 - 🟡 이번 주: D-19 확인, `/spaces` `entry_at`, LLM 키 담당, 11/06 챗봇 시연, API_CONTRACT 보강, Geti, 사진 전달 불필요, 모델 담당, 추가 기능 ⭐3, 리허설 일정, Jira
 
+### 14:25 · ✅ main 병합 — PR #42 (챗봇 v2.13)
+
+### 14:30 · 박해준 PR #43 (`GET /sessions`) 점검 — 병합 가능
+- main 병합 331 passed. 실측: 입차 후 active 3건 → 출차 후 active 0·closed 4(exit_at), `car_id`·`lot_id` 필터, 잘못된 값 422 팀 형식
+- 참고: 조회 422 문구가 "관측 요청"(vision-event용), `ses_demo` 입차 시각이 11/06이라 정렬 맨 위
+- 김채린: 관리자 "현재 입차 세션"을 `?status=active`로 (안 하면 출차 차량 섞임)
+- 정정: Docker 백엔드 서비스 이름은 `api` 추천 (프론트 nginx가 `http://api:8000` 사용)
+
 ---
 ---
 
