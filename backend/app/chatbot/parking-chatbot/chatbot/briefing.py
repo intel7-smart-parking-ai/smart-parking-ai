@@ -9,9 +9,13 @@ def build(alert, cars, known):
     zones = config.catalog.zone_spots(lot['capacity'], alert['lot_id']) if lot else {}
     zone = next((config.catalog.zone_name(k) for k,v in zones.items() if spot in v), '미확인')
     ev = set(config.catalog.settings.get('ev_vehicles', []))
+    def is_ev(c):
+        # 서버가 vehicle_type을 주면 그 값을 따르고, 없을 때만 lots.json 전기차 목록을 쓴다.
+        kind = c.get('vehicle_type')
+        return kind == 'ev' if kind is not None else c.get('car_id') in ev
     def vehicle(c):
         no = c.get('car_id')
-        return f"{no}번 · {'전기차' if no in ev else '전기차 목록에 없음'}" if no else '번호 미인식 · 전기차 여부 미확인'
+        return f"{no}번 · {'전기차' if is_ev(c) else '전기차 목록에 없음'}" if no else '번호 미인식 · 전기차 여부 미확인'
     def at(n):
         return next((vehicle(c) for c in cars if c['spot_no'] == n), '차량 없음') if known else '확인 불가'
     lot_id = alert['lot_id']
@@ -19,11 +23,11 @@ def build(alert, cars, known):
     nearby = ([f"{config.catalog.space_label(lot_id, n)}: {at(n)}" for n in sorted(config.catalog.neighbors(lot_id, spot))]
               if spot is not None else ['정확한 칸 확인 중 · 해당 주차장 전체 위험 범위'])
     uncertain_ev = not known or any(c.get('car_id') is None for c in cars)
-    ev_count = sum(c.get('car_id') in ev or c.get('vehicle_type') == 'ev' for c in cars) if known else None
+    ev_count = sum(is_ev(c) for c in cars) if known else None
     # 장비 참고는 화재 칸과 양옆(칸 번호 차이 1)만 본다. 근거(충전 구역, 인접 전기차)가 있으면 그것을 우선하고,
     # 근거가 없을 때만 해당 범위의 미확인(목록 실패, 번호 미인식)을 "대비 필요"로 알린다.
     near_cars = [c for c in cars if (spot is None or config.catalog.is_near(lot_id, spot, c['spot_no']))] if known else []
-    relevant = zone == config.catalog.zone_name('ev') or any(c.get('car_id') in ev or c.get('vehicle_type') == 'ev' for c in near_cars)
+    relevant = zone == config.catalog.zone_name('ev') or any(is_ev(c) for c in near_cars)
     near_unknown = not known or any(c.get('car_id') is None for c in near_cars)
     equipment = ('질식소화덮개·이동식 수조 필요 가능성 (판단은 소방)' if relevant else
                  '전기차 여부 미확인 — 대비 필요 (장비 필요성 판단은 소방)' if near_unknown else

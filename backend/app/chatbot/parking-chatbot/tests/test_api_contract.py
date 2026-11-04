@@ -24,6 +24,7 @@ class ApiContractTests(unittest.TestCase):
         self.payment_amount = 2500
         self.fee_missing = False
         self.location_state = "occupied"
+        self.location_space = "A-01"
         self.alerts = None
         owner = self
 
@@ -52,7 +53,7 @@ class ApiContractTests(unittest.TestCase):
                         "car_id": None, "status": status} for n, status in enumerate(
                             ("occupied", "empty", "uncertain", "unavailable"), 1)], "as_of": iso(now())})
                 elif self.path == "/api/v1/vehicles/11/location":
-                    self.reply({"car_id": "11", "lot_id": "A", "space_id": "A-01",
+                    self.reply({"car_id": "11", "lot_id": "A", "space_id": owner.location_space,
                         "session_id": owner.session_id, "status": owner.location_state,
                         "confidence": .8, "observed_at": iso(now())})
                 elif self.path.startswith("/api/v1/vehicles/"):

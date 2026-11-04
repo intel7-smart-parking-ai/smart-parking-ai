@@ -3,31 +3,13 @@ from __future__ import annotations
 
 import threading
 import time
-import uuid
 from collections import OrderedDict, deque
 from dataclasses import dataclass, field
-from enum import Enum
+from .session_flow import Flow as Flow, Pending as Pending
 
 
 class Conflict(ValueError):
     """이전 화면/동일 요청 키의 다른 내용 등 재조회가 필요한 충돌."""
-
-
-class Flow(str, Enum):
-    IDLE = "idle"
-    ASK_VEHICLE = "ask_vehicle"
-    CONFIRM_VEHICLE = "confirm_vehicle"
-    CONFIRM_ACTION = "confirm_action"
-
-
-@dataclass
-class Pending:
-    flow: Flow
-    intent: str | None = None
-    params: dict = field(default_factory=dict)
-    car_id: str | None = None
-    token: str = field(default_factory=lambda: uuid.uuid4().hex)
-    expires_at: float = field(default_factory=lambda: time.monotonic() + 120)
 
 
 @dataclass

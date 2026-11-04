@@ -7,7 +7,7 @@
 | 키 | 경로 | 사용 | 서버 상태(11/03) |
 | --- | --- | --- | --- |
 | lots | /api/v1/parking-lots | items의 total·empty·uncertain·unavailable_spaces, name | 목업 |
-| spaces | /api/v1/parking-lots/{lot_id}/spaces | space_id(도면 번호)·status·car_id·space_type | 목업 |
+| spaces | /api/v1/parking-lots/{lot_id}/spaces | space_id(도면 번호)·status·car_id·space_type·entry_at(선택, 시간대 포함 ISO 8601) | 목업 |
 | location | /api/v1/vehicles/{car_id}/location | 위치·session_id·vehicle_type | 목업(session_id null) |
 | fee | /api/v1/sessions/{session_id}/fee | amount_krw·target_at·rate_policy·quote_id·quote_expires_at·payment_status | 코드 있음, main.py 미등록 |
 | payment | /api/v1/mock-payments | 견적 결제 | 코드 있음, main.py 미등록 |
@@ -55,6 +55,7 @@
 
 ## 경보
 - 화재 경보 type: `mock_fire_led`, `mock_fire_led_observed`. 상태 `active/acknowledged/resolved`, `level` 1·2(없으면 Lv1로 두고 추측하지 않음).
+- 발생 시각: 팀 필드명 미결(`detected_at` 화면 사용 / `occurred_at` 챗봇 기존)이라 둘 다 받는다. 둘 다 있으면 `occurred_at` 우선, 없으면 시각 없이 안내한다(v2.13).
 - `space_id` null 허용("개발원주차장(정확한 칸 확인 중)"), `lot_id` null 허용("주차장 위치 확인 중").
 - `source`가 `simulation`/`manual`이면 "(모의 이벤트)".
 - `restricted_space_violation`(전용 칸 위반)은 화재 레벨과 섞지 않고 "위반 차량 있어?"에만 사용.

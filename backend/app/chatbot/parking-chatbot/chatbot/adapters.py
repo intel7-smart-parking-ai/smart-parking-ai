@@ -7,9 +7,8 @@ API v1이 확정되면 ApiAdapter 안의 경로·필드 이름만 고치면 된�
 from __future__ import annotations
 
 import json
-import math
-import re
 import logging
+import math
 from collections import Counter
 import threading
 import time
@@ -21,6 +20,9 @@ from contextvars import ContextVar
 from concurrent.futures import Future
 from datetime import datetime, timedelta
 
+from .diagnostics import logger, warn_periodically
+from .snapshots import freeze
+from .breaker import CircuitBreaker
 from . import config, contracts as C
 from .config import KST
 from .contracts import validate, timestamp, require
@@ -134,7 +136,7 @@ class MockAdapter:
         self.payments = {}
         self.quotes = {}
 
-    def get_empty_spots(self) -> dict:
+    def get_empty_spots(self) -> C.OccupancySnapshot:
         with self.lock:
             lots, states = {}, {}
             for lot, total in self.capacity.items():
@@ -150,7 +152,7 @@ class MockAdapter:
                              "zones":zones,**self.restrictions.get(lot,{})}  # PROVISIONAL(API v1 확정 필요)
         return {"lots": lots, "space_states": states, "updated_at": iso(now())}
 
-    def find_car(self, car_id: str) -> dict | None:
+    def find_car(self, car_id: str) -> C.VehicleLocation | None:
         with self.lock:
             car = self.cars.get(car_id)
             car = dict(car) if car else None
@@ -357,6 +359,14 @@ class MockAdapter:
 
 
 # ---------------------------------------------------------------- 팀 백엔드 호출
+def _alert_time(item):
+    """경보 발생 시각. 팀 /alerts 필드명이 미결(detected_at/occurred_at)이라 둘 다 받는다. occurred_at 우선."""
+    for key in ("occurred_at", "detected_at"):
+        if isinstance(item.get(key), str) and item[key]:
+            return item[key]
+    return None
+
+
 class ApiAdapter:
     """Team API boundary. Never falls back to locally generated parking data."""
 
@@ -366,6 +376,20 @@ class ApiAdapter:
         self._last_alert = None
         self._alert_fingerprint = None
         self._alert_version = 0
+        self._breakers = {name: CircuitBreaker() for name in ("lookup", "billing", "alerts")}
+
+    def breaker_stats(self):
+        return {name: breaker.stats() for name, breaker in self._breakers.items()}
+
+    @staticmethod
+    def _request_group(path):
+        if path == config.API_PATHS["alerts"]:
+            return "alerts"
+        fee_prefix, _, fee_suffix = config.API_PATHS["fee"].partition("{session_id}")
+        if (path in (config.API_PATHS["payment"], config.API_PATHS.get("rate_policies"))
+                or (path.startswith(fee_prefix) and path.endswith(fee_suffix))):
+            return "billing"
+        return "lookup"
 
     def reset(self):
         with self.lock:
@@ -397,17 +421,39 @@ class ApiAdapter:
         return result
 
     def _request_uncached(self, method, path, body=None):
-        req = urllib.request.Request(self.base + path,
-            data=json.dumps(body).encode("utf-8") if body is not None else None,
-            headers={**self._headers(), **({"Content-Type": "application/json"} if body is not None else {})},
-            method=method)
+        group = self._request_group(path)
+        breaker = self._breakers[group]
         try:
-            status, value, headers = load_json(req, request_timeout(config.BACKEND_TIMEOUT_SEC), with_metadata=True)
+            timeout = request_timeout(config.BACKEND_TIMEOUT_SEC)
+        except TimeoutError:
+            if method == "POST":
+                raise PaymentNotSent("결제 요청 시간 한도 초과")
+            return 0, {}, {}
+        ticket = breaker.admit(may_probe=method == "GET")
+        if ticket is None:
+            if method == "POST":
+                raise PaymentNotSent("결제 경로 일시 차단")
+            return -1, {}, {}
+        failed = False
+        try:
+            req = urllib.request.Request(self.base + path,
+                data=json.dumps(body).encode("utf-8") if body is not None else None,
+                headers={**self._headers(), **({"Content-Type": "application/json"} if body is not None else {})},
+                method=method)
+            status, value, headers = load_json(req, timeout, with_metadata=True)
+            failed = 500 <= status <= 599
+            if status in (401, 403):
+                warn_periodically(logger(__name__), ("auth", group, status),
+                                  "API authentication rejected: group=%s status=%s", group, status)
             require(isinstance(value, dict), "API 응답은 객체여야 합니다.")
             return status, value, headers
         except (OSError, ValueError) as exc:
-            logging.getLogger(__name__).warning("API unavailable: %s %s (%s)", method, path, type(exc).__name__)
+            failed = failed or isinstance(exc, OSError)
+            warn_periodically(logger(__name__), ("transport", group, type(exc)),
+                              "API transport error: %s (%s)", group, type(exc).__name__)
             return 0, {}, {}
+        finally:
+            breaker.complete(ticket, failed)
 
     @staticmethod
     def _meta(headers):
@@ -417,10 +463,12 @@ class ApiAdapter:
     def _failure(self, status, value, headers):
         error = value.get("error", {}) if isinstance(value, dict) else {}
         code = error.get("code") if isinstance(error, dict) else None
-        logging.getLogger(__name__).warning("API response: status=%s code=%s", status, code)
+        if status not in (-1, 401, 403):
+            warn_periodically(logger(__name__), ("status", status), "API response: status=%s", status)
         result = "conflict" if code == "IDEMPOTENCY_CONFLICT" else "error" if status in (400, 422) else "unavailable"
         return {"status": result, **({"unavailable": True} if result == "unavailable" else {}),
-                "error_code": code, "http_status": status, **self._meta(headers)}
+                "error_code": code, "http_status": max(status, 0),
+                **({"breaker_blocked": True} if status == -1 else {}), **self._meta(headers)}
 
     @staticmethod
     def _spot(space_id, lot_id):
@@ -432,7 +480,7 @@ class ApiAdapter:
             from .catalog import normalize_space
             label = normalize_space(space_id)
         if label is None:
-            logging.getLogger(__name__).warning("Invalid space_id: %r", space_id)
+            logger(__name__).warning("Invalid space_id")
             return None
         return config.catalog.space_index(lot_id, label) or config.catalog.register_space(lot_id, label)
 
@@ -451,17 +499,66 @@ class ApiAdapter:
             if first:
                 cls._warned_cars.add(key)
         if first:
-            logging.getLogger(__name__).warning("Rule-violating car_id from server treated as unrecognized: %r at %s", value, where)
+            logger(__name__).warning("Rule-violating car_id from server treated as unrecognized: %s", where)
         return None
 
-    def get_empty_spots(self):
+    @staticmethod
+    def _mock_row(row):
+        return row.get("is_mock") is True or row.get("source") in ("simulation", "manual")
+
+    @staticmethod
+    def _entry_at(value):
+        try:
+            return value if timestamp(value) <= now() + timedelta(seconds=5) else None
+        except (ValueError, OverflowError):
+            return None
+
+    def _space_snapshot(self, lot, total):
+        """Normalize one /spaces response once per request, retaining completeness."""
+        from .catalog import normalize_space
+
+        cache = request_gets.get()
+        key = (id(self), "space_snapshot", lot, total)
+        if cache is not None and key in cache:
+            return cache[key]
+        path = config.API_PATHS["spaces"].format(lot_id=quote(lot, safe=""))
+        status, body, headers = self._request("GET", path)
+        rows = {}
+        complete = status == 200 and isinstance(body.get("items"), list) and not body.get("next_cursor")
+        if complete:
+            for item in body["items"]:
+                if not isinstance(item, dict):
+                    complete = False
+                    continue
+                label = normalize_space(item.get("space_id"))
+                state = item.get("status")
+                if (not label or label in rows or item.get("lot_id", lot) != lot
+                        or state not in ("empty", "occupied", "uncertain", "unavailable")):
+                    complete = False
+                    continue
+                car_id = self._server_car(item.get("car_id"), f"{lot} {label}")
+                rows[label] = {
+                    "status": state, "car_id": car_id, "vehicle_type": item.get("vehicle_type"),
+                    "space_type": item.get("space_type"), "observed_at": item.get("observed_at"),
+                    "source": item.get("source"), "is_mock": self._mock_row(item),
+                    "entry_at": self._entry_at(item.get("entry_at")),
+                }
+        complete = complete and len(rows) == total
+        if complete:
+            config.catalog.adopt_spaces(lot, list(rows))
+        result = rows, complete, self._meta(headers).get("data_source") == "mock"
+        if cache is not None:
+            cache[key] = result
+        return result
+
+    def get_empty_spots(self) -> C.OccupancySnapshot:
         status, value, headers = self._request("GET", config.API_PATHS["lots"])
         if status != 200:
             return self._failure(status, value, headers)
         require(isinstance(value, dict) and isinstance(value.get("items"), list), "주차장 목록 형식 오류")
-        from .catalog import normalize_space
         lots, states = {}, {}
         unrecognized = []
+        mocked = False
         zone_keys = {z["key"] for z in config.catalog.zones()}
         for item in value["items"]:
             require(isinstance(item, dict) and isinstance(item.get("lot_id"), str)
@@ -471,32 +568,20 @@ class ApiAdapter:
             info = {"total": item["total_spaces"], "empty": item["empty_spaces"],
                     "uncertain": item.get("uncertain_spaces", 0), "unavailable": item.get("unavailable_spaces", 0),
                     "name": item.get("name") or item.get("lot_name") or config.catalog.name(lot)}
-            path = config.API_PATHS["spaces"].format(lot_id=quote(lot, safe=""))
-            sc, spaces, sh = self._request("GET", path) if request_lot.get() in (None, lot) else (0, {}, {})
-            if sc == 200 and isinstance(spaces, dict) and isinstance(spaces.get("items"), list):
-                rows = [x for x in spaces["items"] if isinstance(x, dict)]
-                labels = [normalize_space(x.get("space_id")) if isinstance(x.get("space_id"), str) else None for x in rows]
-                complete = len(rows) == len(spaces["items"]) and None not in labels and len(set(labels)) == len(labels)
-                if complete and len(labels) == info["total"]:
-                    # 서버가 준 칸 목록이 기준이다. 명부와 이름·순서가 달라도 서버를 따른다.
-                    config.catalog.adopt_spaces(lot, labels)
+            if request_lot.get() in (None, lot):
+                rows, complete, mock_header = self._space_snapshot(lot, info["total"])
+                mocked = mocked or mock_header or any(row["is_mock"] for row in rows.values())
                 counts = Counter()
                 zone_rows = {key: {"total": 0, "empty": 0, "uncertain": 0} for key in zone_keys}
-                for space, label in zip(rows, labels):
-                    if label is None:
-                        continue
-                    state = space.get("status")
-                    if not isinstance(state, str) or state not in {"empty", "occupied", "uncertain", "unavailable"}:
-                        logging.getLogger(__name__).warning("Unknown space status: %r", state)
-                        complete = False
-                        continue
+                for label, space in rows.items():
+                    state = space["status"]
                     counts[state] += 1
                     states.setdefault(lot, {})[label] = state
                     server_type = space.get("space_type")
                     configured = config.catalog.space_zone(lot, label)
                     zone = server_type if isinstance(server_type, str) and server_type in zone_keys else configured
                     if isinstance(server_type, str) and server_type in zone_keys and configured not in (None, server_type):
-                        logging.getLogger(__name__).warning("space_type differs from settings, using server: %s %s %s", lot, label, server_type)
+                        logger(__name__).warning("space_type differs from settings, using server")
                     if zone is None:
                         info["zone_partial"] = True
                     else:
@@ -504,25 +589,37 @@ class ApiAdapter:
                         row["total"] += 1
                         if state in ("empty", "uncertain"):
                             row[state] += 1
-                    car = self._server_car(space.get("car_id"), f"{lot} {label}")
+                    car = space["car_id"]
                     if state == "occupied" and car is None:
                         spot = self._spot(label, lot)
                         unrecognized.append({"car_id": None, "lot_id": lot, "spot_no": spot, "space_id": label, "session_id": None})
-                complete = complete and len(labels) == info["total"] and all(
+                complete = complete and all(
                     counts[state] == info[field] for state, field in (("empty", "empty"), ("uncertain", "uncertain"), ("unavailable", "unavailable")))
                 if complete:
                     info["zones"] = zone_rows
             lots[lot] = info
         return {"lots": lots, "space_states": states, "unrecognized": unrecognized, "as_of": value.get("as_of"),
-                "updated_at": value.get("as_of"), **self._meta(headers)}
+                "updated_at": value.get("as_of"), **self._meta(headers),
+                **({"data_source": "mock"} if mocked else {})}
 
-    def find_car(self, car_id):
+    def find_car(self, car_id) -> C.VehicleLocation | dict | None:
         path = config.API_PATHS["location"].format(car_id=quote(car_id, safe=""))
         status, value, headers = self._request("GET", path)
         if status == 404 and isinstance(value.get("error"), dict) and value["error"].get("code") == "VEHICLE_NOT_FOUND":
             return None
         if status != 200:
             return self._failure(status, value, headers)
+        provenance = self._meta(headers)
+        if self._mock_row(value):
+            provenance["data_source"] = "mock"
+        state = value.get("status")
+        if value.get("car_id") == car_id and ((isinstance(state, str) and state in C.PENDING_LOCATION_STATUSES)
+                                              or ("space_id" in value and value.get("space_id") is None)):
+            # 번호는 인식됐지만 칸 배정 전: 위치를 지어내지 않고 "입차 확인 중"으로 답한다.
+            lot = value.get("lot_id") if isinstance(value.get("lot_id"), str) and config.catalog.lot(value["lot_id"]) is not None else None
+            return {"car_id": car_id, "status": C.LOCATION_PENDING, "pending": True, "lot_id": lot,
+                    "session_id": value.get("session_id") if isinstance(value.get("session_id"), str) else None,
+                    "updated_at": value.get("observed_at"), **provenance}
         require(value.get("status") in ("occupied", "uncertain"), "위치 상태 오류")
         require(value.get("session_id") is None or (isinstance(value.get("session_id"), str) and bool(value["session_id"])), "위치 세션 형식 오류")
         timestamp(value.get("observed_at"))
@@ -534,18 +631,21 @@ class ApiAdapter:
         require(spot is not None, "위치의 칸 ID 오류")
         vehicle_type = value.get("vehicle_type")
         if vehicle_type is not None and vehicle_type not in VEHICLE_TYPES:
-            logging.getLogger(__name__).warning("Unknown vehicle_type: %r", vehicle_type)
+            logger(__name__).warning("Unknown vehicle_type")
             vehicle_type = None
         return {"car_id": car_id, "lot_id": lot, "spot_no": spot, "space_id": config.catalog.space_label(lot, spot),
                 "session_id": value.get("session_id"), "vehicle_type": vehicle_type,
                 "status": value.get("status"), "confidence": value.get("confidence"),
                 "capacity": config.catalog.space_count(lot), "entry_at": value.get("entry_at"),
-                "updated_at": value.get("observed_at"), **self._meta(headers)}
+                "updated_at": value.get("observed_at"), **provenance}
 
     def get_fee(self, car_id):
         car = self.find_car(car_id)
         if car is None or car.get("status") == "unavailable":
             return car
+        if car.get("status") == C.LOCATION_PENDING:
+            return {"status": "unavailable", "unavailable": True, "reason": "pending", **self._meta({}),
+                    **({"data_source": "mock"} if car.get("data_source") == "mock" else {})}
         session_id = car.get("session_id")
         if not isinstance(session_id, str) or not session_id:
             return {"status": "unavailable", "unavailable": True, "reason": "session", **self._meta({}),
@@ -554,8 +654,9 @@ class ApiAdapter:
         status, value, headers = self._request("GET", path)
         if status != 200:
             return self._failure(status, value, headers)
+        self._require_visit(value, car)
         if not isinstance(value.get("payment_status"), str) or value.get("payment_status") not in C.PAYMENT_STATES:
-            logging.getLogger(__name__).warning("Unknown payment status: %r", value.get("payment_status"))
+            logger(__name__).warning("Unknown payment status")
             return {"status": "unavailable", "unavailable": True, **self._meta(headers)}
         require(all(k in value for k in ("amount_krw", "duration_minutes", "entry_at")), "요금 필드 오류")
         # 실제 billing 응답 키(target_at, rate_policy, quote_id …). calculated_at·applied_policy_id·session_status는 요구하지 않는다.
@@ -596,14 +697,25 @@ class ApiAdapter:
                 policies[item["lot_id"]] = {k: item[k] for k in RATE_KEYS}
         return {"policies": policies, **self._meta(headers)}
 
+    @staticmethod
+    def _require_visit(response, car):
+        """Reject a fee or receipt explicitly referring to a different visit."""
+        for field in ("session_id", "car_id", "lot_id"):
+            if response.get(field) is not None and response[field] != car.get(field):
+                # An identity conflict is not a transient read failure. A
+                # cached quote may belong to the very visit we must reject.
+                raise DataUnavailable("요금·결제 응답의 주차 세션 또는 차량 불일치")
+
     def pay(self, car_id, *, idempotency_key=None, quote_amount=None, entry_at=None, session_id=None, quote_id=None):
         car = self.find_car(car_id)
         if car is None:
             return {"status": "not_found", "api_result": True}
+        if car.get("breaker_blocked"):
+            raise PaymentNotSent("위치 조회 경로 일시 차단")
         if car.get("status") == "unavailable" or not car.get("session_id"):
-            return {"status": "unavailable", "unavailable": True, "api_result": True}
+            raise PaymentNotSent("위치 응답에 확인 가능한 세션이 없습니다.")
         if session_id is not None and session_id != car["session_id"]:
-            return {"status": "unavailable", "unavailable": True, "api_result": True}
+            raise PaymentNotSent("결제 확인 이후 주차 세션이 변경됐습니다.")
         if not isinstance(quote_id, str) or not quote_id:
             # 서버 결제는 quote_id가 필수다. 필수 필드 없이 보내 400/422를 받지 않는다.
             return {"status": "quote_missing", "api_result": True}
@@ -617,7 +729,16 @@ class ApiAdapter:
             return {"status": C.PAYMENT_ERROR_STATUS[code], "error_code": code, "http_status": status, **self._meta(headers)}
         if status not in (200, 201):
             return self._failure(status, value, headers)
+        self._require_visit(value, car)
         require(type(value.get("amount_krw")) is int and value["amount_krw"] >= 0, "결제 응답 금액 오류")
+        # Team billing receipts include status and idempotency_key. Older fixture
+        # receipts may omit both fields, so verify the team contract when supplied.
+        if "status" in value:
+            require(value["status"] == C.PAYMENT_COMPLETED, "결제 응답 상태 오류")
+            if quote_amount is not None:
+                require(value["amount_krw"] == quote_amount, "결제 응답과 견적 금액 불일치")
+        if "idempotency_key" in value:
+            require(value["idempotency_key"] == idempotency_key, "결제 응답 멱등키 불일치")
         return {"status": "paid", "amount": value["amount_krw"], "payment_id": value.get("payment_id"),
                 "idempotent_replayed": value.get("idempotent_replayed", False),
                 "paid_at": value.get("paid_at") or value.get("created_at"), **self._meta(headers)}
@@ -641,10 +762,12 @@ class ApiAdapter:
                     spot = self._spot(candidate.get("space_id"), lot) if candidate.get("space_id") is not None else None
                     violations.append({"lot_id": lot, "spot_no": spot, "space_id": config.catalog.space_label(lot, spot) if lot else None,
                                        "space_type": candidate.get("space_type"), "car_id": self._server_car(candidate.get("car_id"), "violation"),
-                                       "occurred_at": candidate.get("occurred_at")})
+                                       "occurred_at": _alert_time(candidate)})
                 continue
             if not isinstance(kind, str) or kind not in C.FIRE_ALERT_TYPES:
-                logging.getLogger(__name__).warning("Ignored alert type: %r", kind)
+                # The standalone alarm probe has historically listened to this logger.
+                alert_log = logger(__name__) if config.EMBEDDED else logging.getLogger(__name__)
+                alert_log.warning("Ignored alert type")
                 continue
             items.append(candidate)
         active = [(C.alert_level(x), x) for x in items if C.alert_level(x)]
@@ -657,7 +780,7 @@ class ApiAdapter:
             spot = self._spot(space, lot) if space is not None and lot is not None else None
             require(space is None or spot is not None, "경보 위치 오류")
             alert.update(lot_id=lot, spot_no=spot, space_id=config.catalog.space_label(lot, spot) if lot else None,
-                         started_at=item.get("occurred_at"),
+                         started_at=_alert_time(item),
                          confidence=item.get("confidence", 0), manager_checking=item.get("status") == C.ALERT_ACKNOWLEDGED,
                          event_type=item.get("type"), source=item.get("source") if isinstance(item.get("source"), str) else None)
         age = (now() - timestamp(alert["updated_at"])).total_seconds()
@@ -674,9 +797,35 @@ class ApiAdapter:
                 self._last_alert = deepcopy(alert)
         return alert
 
-    def list_cars(self, lot_id=None):
-        # Future query: sessions?status=SESSION_ACTIVE. No session API is assumed today.
-        return {"status": "unavailable", "unavailable": True, "session_status": C.SESSION_ACTIVE}
+    def list_cars(self, lot_id=None, *, candidates=False):
+        status, body, _ = self._request("GET", config.API_PATHS["lots"])
+        require(status == 200 and isinstance(body.get("items"), list), "주차장 목록 확인 불가")
+        lots = {}
+        for row in body["items"]:
+            require(isinstance(row, dict) and isinstance(row.get("lot_id"), str)
+                    and C.SAFE_ID.fullmatch(row["lot_id"]) and C.integer(row.get("total_spaces"), 1)
+                    and row["lot_id"] not in lots, "주차장 목록 형식 오류")
+            lots[row["lot_id"]] = row["total_spaces"]
+        require(bool(lots) and (lot_id is None or lot_id in lots), "주차장 목록 확인 불가")
+        cars = []
+        for lot in ([lot_id] if lot_id else lots):
+            rows, complete, mocked = self._space_snapshot(lot, lots[lot])
+            require(complete, "주차 차량 목록 확인 불가")
+            for label, row in rows.items():
+                if row["status"] not in ("occupied", "uncertain"):
+                    continue
+                if candidates and row["car_id"] is not None:
+                    continue
+                if candidates:
+                    require(row["entry_at"] is not None, "번호 미인식 차량 입차 시각 없음")
+                spot = config.catalog.space_index(lot, label)
+                require(spot is not None, "차량 위치 확인 불가")
+                kind = row["vehicle_type"]
+                cars.append({"car_id": row["car_id"], "lot_id": lot, "spot_no": spot,
+                             "space_id": label, "vehicle_type": kind if isinstance(kind, str) and kind in VEHICLE_TYPES else None,
+                             "source": row["source"], "is_mock": mocked or row["is_mock"],
+                             **({"entry_at": row["entry_at"]} if candidates else {})})
+        return cars
 
     def exit_for(self, lot_id):
         return (config.catalog.lot(lot_id) or {}).get("exit", "지정 출구")
@@ -690,6 +839,10 @@ class ApiAdapter:
 # ---------------------------------------------------------------- 실패 대비 캐시
 class DataUnavailable(RuntimeError):
     """캐시도 없는 백엔드 조회 실패. 사용자에게 재시도를 안내한다."""
+
+
+class PaymentNotSent(DataUnavailable):
+    """Payment POST was definitely not transmitted."""
 
 
 class CachedAdapter:
@@ -711,7 +864,7 @@ class CachedAdapter:
     def _call(self, key: str, fn, *args):
         with self.lock:
             generation = self._generation_for(key)
-            shared = key == "empty" or key.startswith("car:")
+            shared = key == "empty" or key.startswith(("empty:", "car:"))
             flight_key = (key, generation)
             flight = self.inflight.get(flight_key) if shared else None
             owner = flight is None
@@ -727,10 +880,10 @@ class CachedAdapter:
             with self.lock:
                 if generation != self._generation_for(key):
                     raise DataUnavailable("조회 중 데이터가 초기화되거나 변경됐습니다. 다시 조회해 주세요.")
-            return deepcopy(value)
+            return value
         try:
             result = self._fetch(key, fn, args, generation)
-            flight.set_result(deepcopy(result))
+            flight.set_result(result)
             return result
         except BaseException as exc:
             flight.set_exception(exc)
@@ -740,13 +893,14 @@ class CachedAdapter:
                 self.inflight.pop(flight_key, None)
 
     def _fetch(self, key, fn, args, generation):
+        kind = key.partition(":")[0]
         try:
             result = fn(*args)
             if isinstance(result, dict) and result.get("status") in {"unavailable", "error", "conflict"}:
-                if key == "empty" or key.startswith("car:"):
+                if kind in ("empty", "car"):
                     raise DataUnavailable("현재 정보를 확인할 수 없어요.")
-                return result
-            validate(key.split(":", 1)[0], result)
+                return freeze(result)
+            validate(kind, result)
             if key.startswith(("car:", "fee:")) and result:
                 require(result["car_id"] == args[0], "요청 차량과 응답 차량이 다릅니다.")
             if isinstance(result, dict) and result.get("updated_at"):
@@ -758,14 +912,15 @@ class CachedAdapter:
                 if key == "alert" and result.get("level", 0) == 0 and age > config.DATA_MAX_AGE_SEC and (
                         api_result or result.get("data_source") != "mock"):
                     raise DataUnavailable("경보 정보의 갱신 시각이 너무 오래되어 '경보 없음'을 확정할 수 없습니다.")
+            result = freeze(result)
             with self.lock:
                 if generation != self._generation_for(key):
                     raise DataUnavailable("조회 중 데이터가 초기화되거나 변경됐습니다. 다시 조회해 주세요.")
-                if key == "empty" and isinstance(self.inner,ApiAdapter):
+                if kind == "empty" and isinstance(self.inner, ApiAdapter):
                     config.catalog.adopt(result["lots"])
                     self.catalog_ready = True
                 if isinstance(result, dict):
-                    self.cache[key] = deepcopy(result)
+                    self.cache[key] = result
                     self.cached_at[key] = time.monotonic()
                     while len(self.cache) > 256:
                         oldest = min(self.cached_at, key=self.cached_at.get)
@@ -780,18 +935,26 @@ class CachedAdapter:
                     raise DataUnavailable("조회 중 데이터가 변경됐습니다. 다시 조회해 주세요.") from exc
                 age = time.monotonic() - self.cached_at.get(key, float("-inf"))
                 if key in self.cache and age <= config.CACHE_MAX_STALE_SEC:
-                    return {**deepcopy(self.cache[key]), "stale": True, "cache_age_sec": round(age, 1)}
+                    return freeze({**self.cache[key], "stale": True, "cache_age_sec": round(age, 1)})
             raise DataUnavailable("백엔드 정보를 가져올 수 없습니다.") from exc
 
-    def get_empty_spots(self):
-        return self._call("empty", self.inner.get_empty_spots)
+    def _read(self, key, fn, *args):
+        result = self._call(key, fn, *args)
+        # A scoped engine request reads immutable data. Direct Python callers
+        # retain their historical ownership of an editable, detached result.
+        return result if request_gets.get() is not None else deepcopy(result)
+
+    def get_empty_spots(self) -> C.OccupancySnapshot:
+        lot = request_lot.get() if isinstance(self.inner, ApiAdapter) else None
+        key = f"empty:{lot}" if lot is not None else "empty"
+        return self._read(key, self.inner.get_empty_spots)
 
     def find_car(self, v):
         self._ensure_catalog()
-        return self._call(f"car:{v}", self.inner.find_car, v)
+        return self._read(f"car:{v}", self.inner.find_car, v)
 
     def get_fee(self, v):
-        return self._call(f"fee:{v}", self.inner.get_fee, v)
+        return self._read(f"fee:{v}", self.inner.get_fee, v)
 
     def get_rate_policies(self):
         if isinstance(self.inner, ApiAdapter):
@@ -881,10 +1044,15 @@ class CachedAdapter:
         self._ensure_catalog()
         return self._call("alert", self.inner.get_alert)
 
-    def list_cars(self, lot_id=None):
-        self._ensure_catalog()
+    def list_cars(self, lot_id=None, *, candidates=False):
+        token = request_gets.set({}) if request_gets.get() is None and isinstance(self.inner, ApiAdapter) else None
         try:
-            result = validate("cars", self.inner.list_cars(lot_id))
+            self._ensure_catalog()
+            if isinstance(self.inner, ApiAdapter):
+                result = self.inner.list_cars(lot_id, candidates=candidates)
+                result = validate("cars" if candidates else "space_cars", result)
+            else:
+                result = validate("cars", self.inner.list_cars(lot_id))
             identified = [c["car_id"] for c in result if c["car_id"] is not None]
             require(len(set(identified)) == len(identified), "중복 차량 데이터")
             require(len({(c["lot_id"],c["spot_no"]) for c in result}) == len(result), "중복 주차칸 데이터")
@@ -892,6 +1060,10 @@ class CachedAdapter:
             return result
         except (OSError, ValueError) as exc:
             raise DataUnavailable("주차 차량 목록을 확인할 수 없습니다.") from exc
+        finally:
+            if token is not None:
+                request_gets.reset(token)
+
 
     def __getattr__(self, name):
         return getattr(self.inner, name)

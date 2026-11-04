@@ -1,6 +1,6 @@
-# EPIC06 주차장 안내 챗봇 v2.9 — 차량 번호·도면 칸 번호 규칙 반영
+# EPIC06 주차장 안내 챗봇 v2.12 — 팀 저장소 연동 수정본
 
-최신 변경·검증 결과: [v2.9 변경 요약](docs/v29_change_summary.md). 팀 레포: https://github.com/intel7-smart-parking-ai/smart-parking-ai
+최신 변경·검증 결과는 [팀 저장소 연동 확인](docs/team_repo_alignment.md)과 [v2.12 변경 요약](docs/v212_change_summary.md)을 참고하세요. 팀 레포: https://github.com/intel7-smart-parking-ai/smart-parking-ai
 
 v2.5 API 계약을 유지하며 재현된 오류와 긴 답변 표시를 수정했습니다. [최신 안정성 결과](docs/robustness_report.md)를 확인하세요. [API 계약 반영 기록](docs/api_alignment_report.md)을 확인하세요. [정리 결과](docs/refactor_report.md), [챗봇 작업지침서 v2](docs/chatbot_guidelines_v2.md), [이전 결과](docs/history/integrated_v3_report.md), [기록 보관함](docs/history/README.md)을 참고하세요.
 
@@ -54,11 +54,19 @@ python server_dev.py
 python -m pip install -r requirements-llm.txt
 ```
 
-`.env.example`을 `.env`로 복사한 뒤 `LLM_ENGINE=langchain`, `LLM_PROVIDER=anthropic` 또는 `openai`, `LLM_MODEL`을 계정에서 사용 가능한 도구 호출 지원 모델 ID로 설정합니다. 해당 제공자의 `ANTHROPIC_API_KEY` 또는 `OPENAI_API_KEY`는 `.env`에만 넣습니다. 모델별 사용 가능 여부는 실제 계정에서 확인해야 합니다.
+`.env.example`을 `.env`로 복사한 뒤 `LLM_ENGINE=langchain`, `LLM_PROVIDER`, `LLM_MODEL`을 설정하고 해당 제공자의 키를 `.env`에만 넣습니다.
+
+| 제공자 | `LLM_PROVIDER` | 키 변수 | 비고 |
+|---|---|---|---|
+| OpenRouter (팀 결정 D-18) | `openrouter` | `OPENROUTER_API_KEY` | `LLM_MODEL=google/gemma-4-26b-a4b-it`. 주소는 `https://openrouter.ai/api/v1` 고정. 키마다 OpenRouter 사용 한도 설정 |
+| OpenAI | `openai` | `OPENAI_API_KEY` | |
+| Anthropic | `anthropic` | `ANTHROPIC_API_KEY` | |
+
+모델이 도구 호출을 지원해야 합니다. 실측은 키를 넣은 뒤 `python tests/run_llm_compare.py --compare`로 합니다(실제 API 비용 발생, 규칙이 못 알아듣는 문장 35개). 도구 선택 정답률과 3초 이내 응답을 보고, 부적합하면 OpenRouter 안에서 `LLM_MODEL`만 바꿔 다시 잽니다.
 
 LLM이 관리자 호출을 선택하면 “관리자를 부를까요?”와 `[관리자 호출]` 칩을 보여줍니다. 이 단계에서는 접수하지 않으며, 칩 클릭 또는 명확한 규칙 요청이 들어오면 접수합니다.
 
-서버 시작 시 모델을 백그라운드에서 준비합니다. 준비 전·미설치·키 없음·오류·3초 시간 초과 시 기존 안내로 대체합니다. Lv2에서는 LLM을 부르지 않습니다. 모델은 도구 하나와 인자만 선택하며 숫자·답변·업무 실행은 기존 엔진이 담당합니다. 동시에 최대 2개만 분류하며, 시간 초과된 작업도 실제 종료 전에는 슬롯을 점유합니다.
+첫 분류 요청에서 모델을 백그라운드로 준비합니다. 준비 전·미설치·키 없음·오류·3초 시간 초과 시 기존 안내로 대체합니다. Lv2에서는 LLM을 부르지 않습니다. 모델은 도구 하나와 인자만 선택하며 숫자·답변·업무 실행은 기존 엔진이 담당합니다. 동시에 최대 2개만 분류하며, 시간 초과된 작업도 실제 종료 전에는 슬롯을 점유합니다.
 
 `LLM_ENGINE=direct`로 기존 직접 호출 분류기에 되돌릴 수 있습니다. 새 초기화·작업 상한·실패 카운터는 LangChain 경로의 기능입니다. 관리자 권한의 `/api/v1/chat/stats` 응답 `llm` 필드 또는 `chatbot.llm_router.stats()`에서 이유별 카운터·최근 지연·준비 상태를 확인합니다. 별도 화면은 추가하지 않았습니다.
 
@@ -108,3 +116,21 @@ python tools/api_smoke.py
 - `active`/`closed` 세션 상태를 표시합니다(출차 완료 안내).
 - 제거: 출차 진단 기능(→ 현장 관리자 안내), 응답 신선도 세부 규칙(`STALE_POLICY`, "N분 전 기준" 표기). 오래된 '경보 없음' 거절·미래 시각 거절·30초 캐시 대체는 유지합니다.
 - 관리자 화면은 유지합니다.
+
+## 팀 서버(main.py)에 붙이기 (v2.10)
+
+팀 `backend/app/main.py`에 두 줄만 추가합니다.
+
+```python
+from backend.app.chatbot.router import router as chatbot_router
+app.include_router(chatbot_router)   # POST /api/v1/chat 등
+```
+
+- `backend/app/chatbot/router.py`가 이 폴더를 검색 경로에 넣고 `router`만 내보냅니다(폴더 이름의 `-` 때문에 직접 import 불가).
+- 팀 서버 안에서는 기본값이 `DATA_SOURCE=api`, `BACKEND_BASE_URL=http://127.0.0.1:8000`, 시연 경로 꺼짐(`DEMO_ENABLED=0`)입니다. 포트가 다르면 `BACKEND_BASE_URL`을 환경변수로 바꿉니다. 이 폴더의 `.env`나 환경변수 값이 있으면 그것이 우선합니다.
+- 화면 연결 필드: [챗봇 API 요청·응답 필드](docs/chat_response_fields.md).
+- 혼자 실행(`python server_dev.py`, `uvicorn server_fastapi:app`)은 그대로 모의 데이터가 기본입니다.
+- 위치 응답에서 칸이 아직 없거나(`space_id` null) 상태가 `pending`·`entering` 등이면 "N번 차는 입차 확인 중이에요"로 답하고 요금·결제를 진행하지 않습니다.
+
+
+팀 서버는 워커 1개로 실행하세요. 실행 경계와 운영 설정은 [코드 지도](docs/CODEMAP.md)에서 확인할 수 있습니다.
