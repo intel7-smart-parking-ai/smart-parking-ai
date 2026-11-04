@@ -41,7 +41,8 @@ def create_app(*, token: str, clock=lambda: datetime.now(timezone.utc)):
         except sqlite3.Error as exc:
             raise HTTPException(503, "시연 세션 저장 실패. 동일 이벤트를 재시도하세요.") from exc
 
-    app = create_demo_app(token=token, clock=clock, public_reads=True, on_confirmed=sync_session)
+    app = create_demo_app(token=token, clock=clock, public_reads=True, on_confirmed=sync_session,
+                          max_events=100_000)
     app.title = "ParkFlow 로컬 통합 시연"
 
     @asynccontextmanager
