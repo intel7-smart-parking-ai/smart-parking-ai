@@ -4,7 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from backend.app.demo_main import create_app
-from backend.app.simulation.run_parking_demo import A_SPACES, DemoError, run_demo
+from backend.app.simulation.run_parking_demo import A_SPACES, DemoError, local_base_url, run_demo
 
 
 @pytest.mark.parametrize(("short", "empty_during_entry"), [(False, 0), (True, 9)])
@@ -30,3 +30,36 @@ def test_a_spaces_enter_and_exit(short, empty_during_entry):
     assert [line.rsplit(" | ", 1)[-1] for line in output] == [
         "빈자리 12/12", f"빈자리 {empty_during_entry}/12", "빈자리 12/12",
     ]
+
+
+@pytest.mark.parametrize("short", [False, True])
+def test_hold_refreshes_occupancy_past_stale_window(short):
+    start = datetime(2026, 11, 6, tzinfo=timezone.utc)
+    now = start
+    token = "synthetic-test-token"
+
+    def advance(seconds):
+        nonlocal now
+        if (now - start).total_seconds() >= 15:
+            raise KeyboardInterrupt
+        now += timedelta(seconds=seconds)
+
+    with TestClient(create_app(token=token, clock=lambda: now)) as client:
+        with pytest.raises(KeyboardInterrupt):
+            run_demo(client, token, short=short, hold=True, wait=advance,
+                     clock=lambda: now, output=lambda _: None)
+        rows = client.get("/api/v1/parking-lots/A/spaces").json()["items"]
+        occupied = {row["space_id"]: row for row in rows if row["status"] == "occupied"}
+        expected = ["A-01", "A-02", "A-03"] if short else [space.space_id for space in A_SPACES]
+        assert set(occupied) == set(expected)
+        for number, space_id in enumerate(expected, start=10):
+            row = occupied[space_id]
+            assert row["car_id"] == str(number) and row["source"] == "simulation"
+            assert datetime.fromisoformat(row["observed_at"]) == now
+            assert row["version"] > 10
+
+
+def test_base_url_only_allows_local_http_with_port():
+    assert local_base_url("http://localhost:8012/") == "http://127.0.0.1:8012"
+    with pytest.raises(ValueError):
+        local_base_url("http://192.0.2.1:8002")
