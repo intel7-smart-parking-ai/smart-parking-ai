@@ -1,0 +1,21 @@
+Summary,Issue Type,Labels,Assignee Name (참고),Status,Priority,Due Date,Description
+공용 주차 세션 생성·종료와 점유 연결,Task,EPIC-04,박해준,Done,High,2026-11-04,"점유 확정 시 세션 입차(active), 빈칸 확정 시 출차(closed). billing과 같은 parking_sessions 사용, 위치 응답 session_id. 완료 기준: 테스트 + 시연 서버 입차→요금→결제 실측. 관련 PR #30 #33 #36"
+단일 시연 서버와 A 주차장 합성 시나리오,Task,EPIC-04,박해준,Done,High,2026-11-04,"demo_main(조회 공개·이벤트 토큰·billing), 합성 스크립트 --hold·--depart --keep-empty·--base-url, 이벤트 한도 10만. 완료 기준: 6분40초 연속·25,000건·반복 시연 실측. 관련 PR #31 #32 #34 #37 #38 #40"
+GET /sessions 세션 목록 조회,Task,EPIC-04,박해준,In Review,Medium,2026-11-05,"lot_id·car_id·status 필터, 팀 목록 형식. 완료 기준: 입차→active→출차→closed 실측. 관련 PR #43"
+칸 응답에 입차 시각 entry_at 추가 (D-21),Task,EPIC-04,박해준,To Do,Medium,2026-11-06,/parking-lots/{lot_id}/spaces 칸 항목에 entry_at(없으면 null). 완료 기준: 테스트 + 챗봇 입차 시각 안내 확인
+main.py 통합과 Docker 실행 (D-20·D-28·D-38),Task,EPIC-04,박해준,To Do,High,2026-11-09,"시연 서버 기능을 main.py 하나로, host·포트·토큰 환경변수, backend/Dockerfile, SQLite 볼륨(data/smart_parking.db). 완료 기준: uvicorn backend.app.main:app 하나로 전체 흐름, Docker 실행"
+입차 매칭 — 예비안 (D-30),Task,EPIC-04,박해준,To Do,Low,2026-11-10,근접 판독으로 전환할 때만: plate_observed(space_id null)와 새 점유 칸 연결. 대기 시간·entry_at 설정값
+경보 API — LED 모의 화재 → 목록·확인·해제 (D-29),Task,EPIC-04,윤명수(서정범),In Progress,High,2026-11-06,"GET /alerts 팀 목록 형식, acknowledge·resolve, 내부 생성 POST /api/v1/internal/alerts(토큰), source·is_mock·level. 후속: 박해준 수신기 연결, 김채린 버튼 경로. 브랜치 feature/KAN-9-alerts-api"
+견적 결제·요금표·세션 상태·매출 필터,Task,EPIC-05,윤명수,Done,High,2026-11-04,"quote_id 견적 결제(5분), 4곳 요금표, FeeResponse 정리, parking_sessions.status, 매출 lot_id 필터. 관련 PR #15 #20 #35 #41"
+챗봇 팀 서버 연동 v2.9~v2.13,Task,EPIC-06,서정범,Done,High,2026-11-04,"API 경로·차량 번호·104칸, 견적 결제, messages 호환, 시연 서버 등록 진입점. 시연 서버에서 빈자리·위치·요금·모의 결제 실측. 관련 PR #29 #42"
+OpenRouter LLM 연결 실측 (D-18),Task,EPIC-06,서정범,To Do,Medium,2026-11-07,"google/gemma-4-26b-a4b-it 도구 호출·정답률·3초 응답 측정, 부적합 시 모델 교체. 시연 PC 키는 PM(D-33)"
+시연 서버 화면 연결 (11/06 리허설),Task,EPIC-07,김채린,To Do,High,2026-11-05,"team 모드 시연 서버 연결, 관리자 세션 ?status=active, 라 주차장 4구역 지도, 모의 이벤트 표시(is_mock), 도움말 문구, vite.config.js 포트(D-25 8003·8090)"
+데모 브랜치 정리 — 프론트 변경 PR (D-37),Task,EPIC-07,김채린,To Do,Medium,2026-11-06,codex/parkon-user-admin-revenue의 main에 없는 프론트 변경을 별도 PR로
+통합 데모 Docker와 시뮬레이터 이벤트 전송 (D-28·D-38),Task,EPIC-08,김채린(박해준),To Do,Medium,2026-11-10,"compose를 api·web·admin-auth로(별도 데모 서버·PostgreSQL 제외), 가상 C/D 시뮬레이터 UI가 팀 서버로 vision-event 전송"
+카메라 허브·ROI 저장소 이전과 A 주차장 점유 이벤트 (D-36),Task,EPIC-09,우지원,To Do,High,2026-11-05,"V18 카메라·ROI 코드를 backend/app/camera·roi·configs로, A 12칸 빈 주차장 비교로 점유를 vision-event로 칸당 1초 전송, API_BASE_URL·VISION_TOKEN 설정"
+11/06 중간 점검 절차서·리허설 (D-35),Task,EPIC-09,김한별(박해준),To Do,High,2026-11-06,"demo_main → --hold → 화면·챗봇·요금·결제 → --depart --keep-empty, 회차당 20분 이내, 11/05 오후·11/06 오전"
+API 계약 문서 v1 (D-26),Task,EPIC-09,김한별(전원 검토),In Review,Medium,2026-11-05,"실제 코드 기준 v1 초안, 확인 필요 9곳 담당자 검토. 브랜치 chore/api-contract-v1"
+스티커 인쇄·부착 (D-39),Task,EPIC-09,김한별,To Do,High,2026-11-06,"기본안 24대 + 예비 13·31·77·78·87, 후보안 B 보관"
+[EPIC 01] 칸 점유 분류 데이터 수집·라벨링·학습 (D-32),Task,EPIC-01,김한별·박해준,To Do,High,2026-11-11,"ROI로 자른 칸 사진 차 있음/없음, 빈칸 같은 양, 조명·가림 포함. 안 되면 빈 주차장 비교(A안)"
+[EPIC 02] 번호 스티커·색 데이터 수집·라벨링·학습,Task,EPIC-02,우지원·김채린,To Do,High,2026-11-11,"D-30 칸 위 판독 기준, 스티커 배정표(D-39) 정답, 회전·흔들림 포함"
+[EPIC 03] LED 모의 화재 점등·소등·오탐 수집·학습,Task,EPIC-03,윤명수·서정범,To Do,High,2026-11-11,"점등·소등, 조명 조건, 빨강 계열 오탐 물체"
