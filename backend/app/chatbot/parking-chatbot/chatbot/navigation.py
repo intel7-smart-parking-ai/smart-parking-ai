@@ -1,5 +1,4 @@
 """주차장·구역 조회와 목적지 감시. PROVISIONAL(API v1 확정 필요)."""
-from copy import deepcopy
 import re
 import time
 import uuid
@@ -56,7 +55,7 @@ def go_id(lot,zone=None):return "go:"+lot+(":"+zone if zone else "")
 
 
 def card(snapshot,alert,lot=None,zone=None):
-    lots = deepcopy(snapshot["lots"])
+    lots = {key: dict(item) for key, item in snapshot["lots"].items()}
     metadata = config.catalog.lots()
     for key,item in lots.items():
         meta = metadata.get(key, {})

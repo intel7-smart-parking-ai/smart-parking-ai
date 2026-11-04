@@ -51,7 +51,7 @@ class RobustEnvironmentTests(unittest.TestCase):
                 env={**os.environ, "PYTHONIOENCODING": "utf-8"}, capture_output=True, text=True,
                 encoding="utf-8", errors="replace", timeout=10)
         self.assertNotEqual(result.returncode, 0)
-        self.assertIn("Address already in use", result.stderr)
+        self.assertIn("PORT_UNAVAILABLE", result.stderr)  # OS 무관 공통 표시
 
     @unittest.skipUnless(importlib.util.find_spec("fastapi") and importlib.util.find_spec("uvicorn"), "선택 HTTP 환경 미설치")
     def test_fastapi_fifty_concurrent_http_requests(self):

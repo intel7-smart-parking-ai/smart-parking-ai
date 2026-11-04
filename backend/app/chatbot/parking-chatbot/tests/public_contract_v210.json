@@ -1,0 +1,2126 @@
+{
+  "settings": {
+    "env": [
+      "ADMIN_TOKEN",
+      "ALERT_SHARE_SEC",
+      "BACKEND_BASE_URL",
+      "BACKEND_TIMEOUT_SEC",
+      "BACKEND_TOKEN",
+      "BASE_FEE",
+      "BASE_MINUTES",
+      "CACHE_MAX_STALE_SEC",
+      "CALL_MERGE_SEC",
+      "DAILY_CAP",
+      "DATA_MAX_AGE_SEC",
+      "DATA_SOURCE",
+      "HOST",
+      "LLM_ENGINE",
+      "LLM_MODEL",
+      "LLM_PROVIDER",
+      "LLM_TIMEOUT_SEC",
+      "MAX_SESSIONS",
+      "MOCK_QUOTE_TTL_SEC",
+      "REQUEST_BUDGET_SEC",
+      "SESSION_IDLE_SEC",
+      "UNIT_FEE",
+      "UNIT_MINUTES"
+    ],
+    "chips": [
+      "alert_near",
+      "alert_where",
+      "call_admin",
+      "call_status",
+      "cancel_action",
+      "candidate_admin",
+      "change_vehicle",
+      "confirm_no",
+      "confirm_yes",
+      "destination_cancel",
+      "empty_all",
+      "evacuate",
+      "fee",
+      "fee_rule",
+      "find_car",
+      "help",
+      "pay",
+      "unrecognized"
+    ],
+    "flow": {
+      "IDLE": "idle",
+      "ASK_VEHICLE": "ask_vehicle",
+      "CONFIRM_VEHICLE": "confirm_vehicle",
+      "CONFIRM_ACTION": "confirm_action"
+    }
+  },
+  "http": {
+    "routes": [
+      [
+        "/api/v1/chat",
+        [
+          "POST"
+        ]
+      ],
+      [
+        "/api/v1/chat/admin/calls",
+        [
+          "GET"
+        ]
+      ],
+      [
+        "/api/v1/chat/config",
+        [
+          "GET"
+        ]
+      ],
+      [
+        "/api/v1/chat/demo/alert",
+        [
+          "POST"
+        ]
+      ],
+      [
+        "/api/v1/chat/demo/cars",
+        [
+          "GET"
+        ]
+      ],
+      [
+        "/api/v1/chat/demo/clear",
+        [
+          "POST"
+        ]
+      ],
+      [
+        "/api/v1/chat/demo/enter",
+        [
+          "POST"
+        ]
+      ],
+      [
+        "/api/v1/chat/demo/exit",
+        [
+          "POST"
+        ]
+      ],
+      [
+        "/api/v1/chat/demo/fill",
+        [
+          "POST"
+        ]
+      ],
+      [
+        "/api/v1/chat/demo/reset",
+        [
+          "POST"
+        ]
+      ],
+      [
+        "/api/v1/chat/demo/restriction",
+        [
+          "POST"
+        ]
+      ],
+      [
+        "/api/v1/chat/demo/uncertain",
+        [
+          "POST"
+        ]
+      ],
+      [
+        "/api/v1/chat/demo/unrecognized",
+        [
+          "POST"
+        ]
+      ],
+      [
+        "/api/v1/chat/incidents",
+        [
+          "GET"
+        ]
+      ],
+      [
+        "/api/v1/chat/incidents/{inc_id}/check",
+        [
+          "POST"
+        ]
+      ],
+      [
+        "/api/v1/chat/incidents/{inc_id}/confirm",
+        [
+          "POST"
+        ]
+      ],
+      [
+        "/api/v1/chat/incidents/{inc_id}/notes",
+        [
+          "POST"
+        ]
+      ],
+      [
+        "/api/v1/chat/stats",
+        [
+          "GET"
+        ]
+      ],
+      [
+        "/api/v1/chat/suggest",
+        [
+          "GET"
+        ]
+      ],
+      [
+        "/api/v1/chat/updates",
+        [
+          "GET"
+        ]
+      ]
+    ],
+    "prefix": "/api/v1/chat",
+    "responses": {
+      "chat": [
+        200,
+        {
+          "text": "str",
+          "safety": "NoneType",
+          "card": {
+            "type": "str",
+            "data": {
+              "lots": {
+                "A": {
+                  "total": "int",
+                  "empty": "int",
+                  "uncertain": "int",
+                  "name": "str",
+                  "kind": "str",
+                  "zones": {
+                    "general": {
+                      "total": "int",
+                      "empty": "int",
+                      "uncertain": "int"
+                    },
+                    "ev": {
+                      "total": "int",
+                      "empty": "int",
+                      "uncertain": "int"
+                    },
+                    "accessible": {
+                      "total": "int",
+                      "empty": "int",
+                      "uncertain": "int"
+                    }
+                  },
+                  "display_empty": "int",
+                  "display_uncertain": "int",
+                  "status_reason": "NoneType"
+                },
+                "B": {
+                  "total": "int",
+                  "empty": "int",
+                  "uncertain": "int",
+                  "name": "str",
+                  "kind": "str",
+                  "zones": {
+                    "general": {
+                      "total": "int",
+                      "empty": "int",
+                      "uncertain": "int"
+                    },
+                    "ev": {
+                      "total": "int",
+                      "empty": "int",
+                      "uncertain": "int"
+                    },
+                    "accessible": {
+                      "total": "int",
+                      "empty": "int",
+                      "uncertain": "int"
+                    }
+                  },
+                  "display_empty": "int",
+                  "display_uncertain": "int",
+                  "status_reason": "str"
+                },
+                "C": {
+                  "total": "int",
+                  "empty": "int",
+                  "uncertain": "int",
+                  "name": "str",
+                  "kind": "str",
+                  "zones": {
+                    "general": {
+                      "total": "int",
+                      "empty": "int",
+                      "uncertain": "int"
+                    },
+                    "ev": {
+                      "total": "int",
+                      "empty": "int",
+                      "uncertain": "int"
+                    },
+                    "accessible": {
+                      "total": "int",
+                      "empty": "int",
+                      "uncertain": "int"
+                    }
+                  },
+                  "display_empty": "int",
+                  "display_uncertain": "int",
+                  "status_reason": "NoneType"
+                },
+                "D": {
+                  "total": "int",
+                  "empty": "int",
+                  "uncertain": "int",
+                  "name": "str",
+                  "kind": "str",
+                  "zones": {
+                    "general": {
+                      "total": "int",
+                      "empty": "int",
+                      "uncertain": "int"
+                    },
+                    "ev": {
+                      "total": "int",
+                      "empty": "int",
+                      "uncertain": "int"
+                    },
+                    "accessible": {
+                      "total": "int",
+                      "empty": "int",
+                      "uncertain": "int"
+                    }
+                  },
+                  "display_empty": "int",
+                  "display_uncertain": "int",
+                  "status_reason": "NoneType"
+                }
+              },
+              "focus": "NoneType",
+              "zone": "NoneType",
+              "zone_labels": {
+                "general": "str",
+                "ev": "str",
+                "accessible": "str"
+              },
+              "blocked_lots": []
+            }
+          },
+          "chips": [
+            {
+              "id": "str",
+              "label": "str"
+            },
+            {
+              "id": "str",
+              "label": "str"
+            },
+            {
+              "id": "str",
+              "label": "str"
+            },
+            {
+              "id": "str",
+              "label": "str"
+            }
+          ],
+          "banner": "NoneType",
+          "updated_at": "str",
+          "alert_version": "int",
+          "meta": {
+            "intent": "str",
+            "source": "str",
+            "latency_ms": "float"
+          },
+          "flow": "str",
+          "confirmation_token": "NoneType",
+          "runtime_id": "str",
+          "vehicle_context": {
+            "car_id": "NoneType",
+            "state": "str"
+          },
+          "destination": "NoneType",
+          "catalog": {
+            "lots": [
+              {
+                "lot_id": "str",
+                "name": "str",
+                "kind": "str",
+                "spaces": [
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str"
+                ],
+                "capacity": "int"
+              },
+              {
+                "lot_id": "str",
+                "name": "str",
+                "kind": "str",
+                "spaces": [
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str"
+                ],
+                "capacity": "int"
+              },
+              {
+                "lot_id": "str",
+                "name": "str",
+                "kind": "str",
+                "spaces": [
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str"
+                ],
+                "capacity": "int"
+              },
+              {
+                "lot_id": "str",
+                "name": "str",
+                "kind": "str",
+                "spaces": [
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str"
+                ],
+                "capacity": "int"
+              }
+            ],
+            "zones": [
+              {
+                "key": "str",
+                "name": "str"
+              },
+              {
+                "key": "str",
+                "name": "str"
+              },
+              {
+                "key": "str",
+                "name": "str"
+              }
+            ],
+            "source": "str"
+          },
+          "state_version": "int"
+        }
+      ],
+      "vehicle_confirmation": [
+        200,
+        {
+          "text": "str",
+          "safety": "NoneType",
+          "card": "NoneType",
+          "chips": [
+            {
+              "id": "str",
+              "label": "str",
+              "confirmation_token": "str"
+            },
+            {
+              "id": "str",
+              "label": "str",
+              "confirmation_token": "str"
+            }
+          ],
+          "banner": "NoneType",
+          "updated_at": "str",
+          "alert_version": "int",
+          "meta": {
+            "intent": "str",
+            "source": "str",
+            "latency_ms": "float"
+          },
+          "flow": "str",
+          "confirmation_token": "str",
+          "runtime_id": "str",
+          "vehicle_context": {
+            "car_id": "NoneType",
+            "state": "str"
+          },
+          "destination": "NoneType",
+          "catalog": {
+            "lots": [
+              {
+                "lot_id": "str",
+                "name": "str",
+                "kind": "str",
+                "spaces": [
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str"
+                ],
+                "capacity": "int"
+              },
+              {
+                "lot_id": "str",
+                "name": "str",
+                "kind": "str",
+                "spaces": [
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str"
+                ],
+                "capacity": "int"
+              },
+              {
+                "lot_id": "str",
+                "name": "str",
+                "kind": "str",
+                "spaces": [
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str"
+                ],
+                "capacity": "int"
+              },
+              {
+                "lot_id": "str",
+                "name": "str",
+                "kind": "str",
+                "spaces": [
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str"
+                ],
+                "capacity": "int"
+              }
+            ],
+            "zones": [
+              {
+                "key": "str",
+                "name": "str"
+              },
+              {
+                "key": "str",
+                "name": "str"
+              },
+              {
+                "key": "str",
+                "name": "str"
+              }
+            ],
+            "source": "str"
+          },
+          "state_version": "int"
+        }
+      ],
+      "payment_confirmation": [
+        200,
+        {
+          "text": "str",
+          "safety": "NoneType",
+          "card": {
+            "type": "str",
+            "data": {
+              "car_id": "str",
+              "lot_id": "str",
+              "entry_at": "str",
+              "minutes": "int",
+              "fee": "int",
+              "is_daily_capped": "bool",
+              "fee_after_30": "int",
+              "free_minutes": "int",
+              "paid": "bool",
+              "rate_policy": {
+                "base_minutes": "int",
+                "base_fee": "int",
+                "unit_minutes": "int",
+                "extra_fee": "int",
+                "daily_cap": "int"
+              },
+              "quote_id": "str",
+              "quote_expires_at": "str",
+              "updated_at": "str",
+              "journey": [
+                {
+                  "label": "str",
+                  "state": "str",
+                  "detail": "str"
+                },
+                {
+                  "label": "str",
+                  "state": "str",
+                  "detail": "str"
+                },
+                {
+                  "label": "str",
+                  "state": "str",
+                  "detail": "str"
+                },
+                {
+                  "label": "str",
+                  "state": "str",
+                  "detail": "str"
+                }
+              ]
+            }
+          },
+          "chips": [
+            {
+              "id": "str",
+              "label": "str",
+              "confirmation_token": "str"
+            },
+            {
+              "id": "str",
+              "label": "str",
+              "confirmation_token": "str"
+            }
+          ],
+          "banner": "NoneType",
+          "updated_at": "str",
+          "alert_version": "int",
+          "meta": {
+            "intent": "str",
+            "source": "str",
+            "latency_ms": "float"
+          },
+          "flow": "str",
+          "confirmation_token": "str",
+          "runtime_id": "str",
+          "vehicle_context": {
+            "car_id": "str",
+            "lot_id": "str",
+            "spot_no": "int",
+            "space_id": "str",
+            "capacity": "int",
+            "entry_at": "str",
+            "updated_at": "str",
+            "state": "str"
+          },
+          "destination": "NoneType",
+          "catalog": {
+            "lots": [
+              {
+                "lot_id": "str",
+                "name": "str",
+                "kind": "str",
+                "spaces": [
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str"
+                ],
+                "capacity": "int"
+              },
+              {
+                "lot_id": "str",
+                "name": "str",
+                "kind": "str",
+                "spaces": [
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str"
+                ],
+                "capacity": "int"
+              },
+              {
+                "lot_id": "str",
+                "name": "str",
+                "kind": "str",
+                "spaces": [
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str"
+                ],
+                "capacity": "int"
+              },
+              {
+                "lot_id": "str",
+                "name": "str",
+                "kind": "str",
+                "spaces": [
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str"
+                ],
+                "capacity": "int"
+              }
+            ],
+            "zones": [
+              {
+                "key": "str",
+                "name": "str"
+              },
+              {
+                "key": "str",
+                "name": "str"
+              },
+              {
+                "key": "str",
+                "name": "str"
+              }
+            ],
+            "source": "str"
+          },
+          "state_version": "int"
+        }
+      ],
+      "pending_location": [
+        200,
+        {
+          "text": "str",
+          "safety": "NoneType",
+          "card": "NoneType",
+          "chips": [
+            {
+              "id": "str",
+              "label": "str"
+            },
+            {
+              "id": "str",
+              "label": "str"
+            }
+          ],
+          "banner": "NoneType",
+          "updated_at": "str",
+          "alert_version": "int",
+          "meta": {
+            "intent": "str",
+            "source": "str",
+            "latency_ms": "float"
+          },
+          "flow": "str",
+          "confirmation_token": "NoneType",
+          "runtime_id": "str",
+          "vehicle_context": {
+            "car_id": "str",
+            "lot_id": "str",
+            "state": "str"
+          },
+          "destination": "NoneType",
+          "catalog": {
+            "lots": [
+              {
+                "lot_id": "str",
+                "name": "str",
+                "kind": "str",
+                "spaces": [
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str"
+                ],
+                "capacity": "int"
+              },
+              {
+                "lot_id": "str",
+                "name": "str",
+                "kind": "str",
+                "spaces": [
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str"
+                ],
+                "capacity": "int"
+              },
+              {
+                "lot_id": "str",
+                "name": "str",
+                "kind": "str",
+                "spaces": [
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str"
+                ],
+                "capacity": "int"
+              },
+              {
+                "lot_id": "str",
+                "name": "str",
+                "kind": "str",
+                "spaces": [
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str"
+                ],
+                "capacity": "int"
+              }
+            ],
+            "zones": [
+              {
+                "key": "str",
+                "name": "str"
+              },
+              {
+                "key": "str",
+                "name": "str"
+              },
+              {
+                "key": "str",
+                "name": "str"
+              }
+            ],
+            "source": "str"
+          },
+          "state_version": "int"
+        }
+      ],
+      "demo_alert": [
+        200,
+        {
+          "level": "int",
+          "version": "int",
+          "event_type": "str",
+          "lot_id": "str",
+          "spot_no": "int",
+          "space_id": "str",
+          "confidence": "float",
+          "started_at": "str"
+        }
+      ],
+      "lv2": [
+        200,
+        {
+          "text": "str",
+          "safety": {
+            "title": "str",
+            "guidance": "str",
+            "vehicle_help": "str"
+          },
+          "card": "NoneType",
+          "chips": [
+            {
+              "id": "str",
+              "label": "str"
+            },
+            {
+              "id": "str",
+              "label": "str"
+            },
+            {
+              "id": "str",
+              "label": "str"
+            },
+            {
+              "id": "str",
+              "label": "str"
+            }
+          ],
+          "banner": {
+            "level": "int",
+            "text": "str"
+          },
+          "updated_at": "str",
+          "alert_version": "int",
+          "meta": {
+            "intent": "str",
+            "source": "str",
+            "latency_ms": "float"
+          },
+          "flow": "str",
+          "confirmation_token": "str",
+          "runtime_id": "str",
+          "vehicle_context": {
+            "car_id": "NoneType",
+            "state": "str"
+          },
+          "destination": "NoneType",
+          "catalog": {
+            "lots": [
+              {
+                "lot_id": "str",
+                "name": "str",
+                "kind": "str",
+                "spaces": [
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str"
+                ],
+                "capacity": "int"
+              },
+              {
+                "lot_id": "str",
+                "name": "str",
+                "kind": "str",
+                "spaces": [
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str"
+                ],
+                "capacity": "int"
+              },
+              {
+                "lot_id": "str",
+                "name": "str",
+                "kind": "str",
+                "spaces": [
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str"
+                ],
+                "capacity": "int"
+              },
+              {
+                "lot_id": "str",
+                "name": "str",
+                "kind": "str",
+                "spaces": [
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str"
+                ],
+                "capacity": "int"
+              }
+            ],
+            "zones": [
+              {
+                "key": "str",
+                "name": "str"
+              },
+              {
+                "key": "str",
+                "name": "str"
+              },
+              {
+                "key": "str",
+                "name": "str"
+              }
+            ],
+            "source": "str"
+          },
+          "state_version": "int"
+        }
+      ],
+      "updates": [
+        200,
+        {
+          "messages": [
+            {
+              "text": "str",
+              "card": {
+                "type": "str",
+                "data": {
+                  "level": "int",
+                  "version": "int",
+                  "event_type": "str",
+                  "lot_id": "str",
+                  "spot_no": "int",
+                  "space_id": "str",
+                  "confidence": "float",
+                  "started_at": "str",
+                  "source_version": "int",
+                  "incident_id": "int",
+                  "observed_at": "str"
+                }
+              },
+              "chips": [
+                {
+                  "id": "str",
+                  "label": "str"
+                },
+                {
+                  "id": "str",
+                  "label": "str"
+                },
+                {
+                  "id": "str",
+                  "label": "str"
+                },
+                {
+                  "id": "str",
+                  "label": "str"
+                }
+              ],
+              "updated_at": "str",
+              "meta": {
+                "notification": "str",
+                "historical": "bool",
+                "incident_id": "int",
+                "alert_version": "int",
+                "alert_level": "int",
+                "lot_id": "str",
+                "spot_no": "int"
+              },
+              "event_id": "int",
+              "actions": [
+                {
+                  "id": "str",
+                  "label": "str"
+                },
+                {
+                  "id": "str",
+                  "label": "str"
+                },
+                {
+                  "id": "str",
+                  "label": "str"
+                },
+                {
+                  "id": "str",
+                  "label": "str"
+                }
+              ],
+              "banner": {
+                "level": "int",
+                "text": "str"
+              },
+              "alert_version": "int",
+              "runtime_id": "str",
+              "safety": {
+                "title": "str",
+                "guidance": "str",
+                "vehicle_help": "str"
+              }
+            }
+          ],
+          "cursor": "int",
+          "resync_required": "bool",
+          "alert_version": "int",
+          "runtime_id": "str",
+          "banner": {
+            "level": "int",
+            "text": "str"
+          },
+          "vehicle_context": {
+            "car_id": "NoneType",
+            "state": "str"
+          },
+          "destination": "NoneType",
+          "catalog": {
+            "lots": [
+              {
+                "lot_id": "str",
+                "name": "str",
+                "kind": "str",
+                "spaces": [
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str"
+                ],
+                "capacity": "int"
+              },
+              {
+                "lot_id": "str",
+                "name": "str",
+                "kind": "str",
+                "spaces": [
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str"
+                ],
+                "capacity": "int"
+              },
+              {
+                "lot_id": "str",
+                "name": "str",
+                "kind": "str",
+                "spaces": [
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str"
+                ],
+                "capacity": "int"
+              },
+              {
+                "lot_id": "str",
+                "name": "str",
+                "kind": "str",
+                "spaces": [
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str"
+                ],
+                "capacity": "int"
+              }
+            ],
+            "zones": [
+              {
+                "key": "str",
+                "name": "str"
+              },
+              {
+                "key": "str",
+                "name": "str"
+              },
+              {
+                "key": "str",
+                "name": "str"
+              }
+            ],
+            "source": "str"
+          },
+          "state_version": "int",
+          "chips": [
+            {
+              "id": "str",
+              "label": "str"
+            },
+            {
+              "id": "str",
+              "label": "str"
+            },
+            {
+              "id": "str",
+              "label": "str"
+            },
+            {
+              "id": "str",
+              "label": "str"
+            }
+          ]
+        }
+      ],
+      "suggest": [
+        200,
+        {
+          "items": [
+            "str",
+            "str",
+            "str",
+            "str"
+          ]
+        }
+      ],
+      "config": [
+        200,
+        {
+          "lots": [
+            {
+              "lot_id": "str",
+              "name": "str",
+              "kind": "str",
+              "spaces": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ],
+              "capacity": "int"
+            },
+            {
+              "lot_id": "str",
+              "name": "str",
+              "kind": "str",
+              "spaces": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ],
+              "capacity": "int"
+            },
+            {
+              "lot_id": "str",
+              "name": "str",
+              "kind": "str",
+              "spaces": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ],
+              "capacity": "int"
+            },
+            {
+              "lot_id": "str",
+              "name": "str",
+              "kind": "str",
+              "spaces": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ],
+              "capacity": "int"
+            }
+          ],
+          "zones": [
+            {
+              "key": "str",
+              "name": "str"
+            },
+            {
+              "key": "str",
+              "name": "str"
+            },
+            {
+              "key": "str",
+              "name": "str"
+            }
+          ],
+          "source": "str"
+        }
+      ],
+      "incidents": [
+        200,
+        {
+          "items": [
+            {
+              "id": "int",
+              "status": "str",
+              "revision": "int",
+              "event_type": "str",
+              "lot_id": "str",
+              "spot_no": "int",
+              "space_id": "str",
+              "opened_at": "str",
+              "closed_at": "NoneType",
+              "confirmed_at": "NoneType",
+              "max_level": "int",
+              "max_confidence": "float",
+              "affected": [
+                {
+                  "car_id": "str",
+                  "lot_id": "str",
+                  "spot_no": "int",
+                  "space_id": "str",
+                  "entry_at": "str"
+                },
+                {
+                  "car_id": "str",
+                  "lot_id": "str",
+                  "spot_no": "int",
+                  "space_id": "str",
+                  "entry_at": "str"
+                },
+                {
+                  "car_id": "str",
+                  "lot_id": "str",
+                  "spot_no": "int",
+                  "space_id": "str",
+                  "entry_at": "str"
+                },
+                {
+                  "car_id": "str",
+                  "lot_id": "str",
+                  "spot_no": "int",
+                  "space_id": "str",
+                  "entry_at": "str"
+                },
+                {
+                  "car_id": "str",
+                  "lot_id": "str",
+                  "spot_no": "int",
+                  "space_id": "str",
+                  "entry_at": "str"
+                },
+                {
+                  "car_id": "str",
+                  "lot_id": "str",
+                  "spot_no": "int",
+                  "space_id": "str",
+                  "entry_at": "str"
+                },
+                {
+                  "car_id": "str",
+                  "lot_id": "str",
+                  "spot_no": "int",
+                  "space_id": "str",
+                  "entry_at": "str"
+                }
+              ],
+              "affected_known": "bool",
+              "affected_at": "str",
+              "affected_recovered": "bool",
+              "near": [
+                "str",
+                "str"
+              ],
+              "near_spots": [
+                "int",
+                "int"
+              ],
+              "evacuation_requests": "int",
+              "near_queries": "int",
+              "admin_calls": [],
+              "checklist": [
+                {
+                  "item": "str",
+                  "done_at": "NoneType"
+                },
+                {
+                  "item": "str",
+                  "done_at": "NoneType"
+                },
+                {
+                  "item": "str",
+                  "done_at": "NoneType"
+                },
+                {
+                  "item": "str",
+                  "done_at": "NoneType"
+                },
+                {
+                  "item": "str",
+                  "done_at": "NoneType"
+                }
+              ],
+              "notes": "str",
+              "timeline": [
+                {
+                  "at": "str",
+                  "text": "str"
+                }
+              ],
+              "briefing": {
+                "location": "str",
+                "vehicle": "str",
+                "adjacent": [
+                  "str"
+                ],
+                "ev_count": "int",
+                "ev_count_text": "str",
+                "equipment": "str",
+                "exits": [
+                  "str"
+                ],
+                "facility": "str",
+                "notice": "str",
+                "updated_at": "str",
+                "text": "str"
+              },
+              "notified_count": "int",
+              "report": "str"
+            }
+          ],
+          "runtime_id": "str"
+        }
+      ],
+      "admin_calls": [
+        200,
+        {
+          "items": []
+        }
+      ],
+      "demo_cars": [
+        200,
+        {
+          "items": [
+            {
+              "car_id": "str",
+              "lot_id": "str",
+              "spot_no": "int",
+              "space_id": "str",
+              "entry_at": "str"
+            },
+            {
+              "car_id": "str",
+              "lot_id": "str",
+              "spot_no": "int",
+              "space_id": "str",
+              "entry_at": "str"
+            },
+            {
+              "car_id": "str",
+              "lot_id": "str",
+              "spot_no": "int",
+              "space_id": "str",
+              "entry_at": "str"
+            },
+            {
+              "car_id": "str",
+              "lot_id": "str",
+              "spot_no": "int",
+              "space_id": "str",
+              "entry_at": "str"
+            },
+            {
+              "car_id": "str",
+              "lot_id": "str",
+              "spot_no": "int",
+              "space_id": "str",
+              "entry_at": "str"
+            },
+            {
+              "car_id": "str",
+              "lot_id": "str",
+              "spot_no": "int",
+              "space_id": "str",
+              "entry_at": "str"
+            },
+            {
+              "car_id": "str",
+              "lot_id": "str",
+              "spot_no": "int",
+              "space_id": "str",
+              "entry_at": "str"
+            },
+            {
+              "car_id": "str",
+              "lot_id": "str",
+              "spot_no": "int",
+              "space_id": "str",
+              "entry_at": "str"
+            },
+            {
+              "car_id": "str",
+              "lot_id": "str",
+              "spot_no": "int",
+              "space_id": "str",
+              "entry_at": "str"
+            },
+            {
+              "car_id": "str",
+              "lot_id": "str",
+              "spot_no": "int",
+              "space_id": "str",
+              "entry_at": "str"
+            },
+            {
+              "car_id": "str",
+              "lot_id": "str",
+              "spot_no": "int",
+              "space_id": "str",
+              "entry_at": "str"
+            },
+            {
+              "car_id": "str",
+              "lot_id": "str",
+              "spot_no": "int",
+              "space_id": "str",
+              "entry_at": "str"
+            },
+            {
+              "car_id": "str",
+              "lot_id": "str",
+              "spot_no": "int",
+              "space_id": "str",
+              "entry_at": "str"
+            },
+            {
+              "car_id": "str",
+              "lot_id": "str",
+              "spot_no": "int",
+              "space_id": "str",
+              "entry_at": "str"
+            },
+            {
+              "car_id": "str",
+              "lot_id": "str",
+              "spot_no": "int",
+              "space_id": "str",
+              "entry_at": "str"
+            },
+            {
+              "car_id": "str",
+              "lot_id": "str",
+              "spot_no": "int",
+              "space_id": "str",
+              "entry_at": "str"
+            },
+            {
+              "car_id": "str",
+              "lot_id": "str",
+              "spot_no": "int",
+              "space_id": "str",
+              "entry_at": "str"
+            },
+            {
+              "car_id": "str",
+              "lot_id": "str",
+              "spot_no": "int",
+              "space_id": "str",
+              "entry_at": "str"
+            },
+            {
+              "car_id": "str",
+              "lot_id": "str",
+              "spot_no": "int",
+              "space_id": "str",
+              "entry_at": "str"
+            },
+            {
+              "car_id": "str",
+              "lot_id": "str",
+              "spot_no": "int",
+              "space_id": "str",
+              "entry_at": "str"
+            },
+            {
+              "car_id": "str",
+              "lot_id": "str",
+              "spot_no": "int",
+              "space_id": "str",
+              "entry_at": "str"
+            },
+            {
+              "car_id": "str",
+              "lot_id": "str",
+              "spot_no": "int",
+              "space_id": "str",
+              "entry_at": "str"
+            },
+            {
+              "car_id": "str",
+              "lot_id": "str",
+              "spot_no": "int",
+              "space_id": "str",
+              "entry_at": "str"
+            },
+            {
+              "car_id": "str",
+              "lot_id": "str",
+              "spot_no": "int",
+              "space_id": "str",
+              "entry_at": "str"
+            },
+            {
+              "car_id": "str",
+              "lot_id": "str",
+              "spot_no": "int",
+              "space_id": "str",
+              "entry_at": "str"
+            },
+            {
+              "car_id": "str",
+              "lot_id": "str",
+              "spot_no": "int",
+              "space_id": "str",
+              "entry_at": "str"
+            },
+            {
+              "car_id": "str",
+              "lot_id": "str",
+              "spot_no": "int",
+              "space_id": "str",
+              "entry_at": "str"
+            }
+          ],
+          "uncertain": {},
+          "demo_occupied": {},
+          "restrictions": {}
+        }
+      ]
+    }
+  }
+}

@@ -11,6 +11,7 @@ import threading
 from copy import deepcopy
 from functools import wraps
 
+from .retention import prune_finished, warn_if_protected
 from . import config
 from .adapters import DataUnavailable, iso, now
 from . import briefing
@@ -26,7 +27,7 @@ CHECKLIST = [
 
 _lock = threading.RLock()
 INCIDENTS: list[dict] = []
-_state = {"last_version": 0, "current": None}
+_state = {"last_version": 0, "current": None, "next_id": 1, "pruned": 0}
 
 
 def _locked(fn):
@@ -56,89 +57,115 @@ def _report_location(alert):
     return f"{config.catalog.place(alert['lot_id'], alert['spot_no'])} 부근"
 
 
-def observe(alert: dict, data) -> None:
-    """경보 정보를 읽을 때마다 호출. 버전이 바뀌었을 때만 기록한다."""
-    version = alert.get("version", 0)
-    with _lock:
-        if alert.get("stale") or version <= _state["last_version"]:
-            return (_state["current"] or {}).get("id")
-        _state["last_version"] = version
-        level = alert.get("level", 0)
-        cur = _state["current"]
+def _cars(data, lot_id):
+    try:
+        return data.list_cars(lot_id), True
+    except DataUnavailable:
+        return [], False
 
-        if level > 0:
-            fresh_cars = None
-            if cur and (cur["lot_id"], cur["spot_no"]) != (alert["lot_id"], alert["spot_no"]):
-                cur["status"] = "위치 변경 · 검토 대기"
-                cur["revision"] += 1
-                cur["closed_at"] = iso(now())
-                _add(cur, "경보 위치 변경으로 기록 종료 (실제 해제 여부는 관리자 확인 필요)")
-                cur = None
-            label = "이상 신호 확인 중 (Lv1)" if level == 1 else "경보 발령 (Lv2)"
-            if cur is None:
-                lot, spot = alert["lot_id"], alert["spot_no"]
-                try:
-                    cars = data.list_cars(lot)
-                    affected_known = True
-                except DataUnavailable:
-                    cars, affected_known = [], False
-                fresh_cars = (cars, affected_known)
-                cur = {
-                    "id": len(INCIDENTS) + 1,
-                    "status": "진행 중",
-                    "revision": 1,
-                    "event_type": alert.get("event_type", "mock_fire_led_observed"),
-                    "lot_id": lot, "spot_no": spot, "space_id": config.catalog.space_label(lot, spot),
-                    "opened_at": iso(now()), "closed_at": None, "confirmed_at": None,
-                    "max_level": level, "max_confidence": alert.get("confidence", 0),
-                    "affected": cars,
-                    "affected_known": affected_known,
-                    "affected_at": iso(now()) if affected_known else None,
-                    "affected_recovered": False,
-                    "near": [c["car_id"] for c in cars if _near(lot, spot, c["spot_no"])],
-                    "near_spots": [c["spot_no"] for c in cars if _near(lot, spot, c["spot_no"])],
-                    "notified": set(), "evacuation_requests": 0, "near_queries": 0,
-                    "admin_calls": [],
-                    "checklist": [{"item": x, "done_at": None} for x in CHECKLIST],
-                    "notes": "", "timeline": [],
-                }
-                INCIDENTS.append(cur)
-                _state["current"] = cur
-                _add(cur, f"{_report_location(alert)} {label}, 신뢰도 {round(cur['max_confidence'] * 100)}%")
-            else:
-                cur["revision"] += 1
-                cur["max_level"] = max(cur["max_level"], level)
-                cur["max_confidence"] = max(cur["max_confidence"], alert.get("confidence", 0))
-                _add(cur, f"{label}, 신뢰도 {round(alert.get('confidence', 0) * 100)}%")
-                if not cur["affected_known"]:
-                    try:
-                        cars = data.list_cars(cur["lot_id"])
-                    except DataUnavailable:
-                        pass
-                    else:
-                        fresh_cars = (cars, True)
-                        cur.update(affected=cars, affected_known=True, affected_recovered=True,
-                                   affected_at=iso(now()), near=[c["car_id"] for c in cars
-                                   if _near(cur["lot_id"], cur["spot_no"], c["spot_no"])],
-                                   near_spots=[c["spot_no"] for c in cars if _near(cur["lot_id"], cur["spot_no"], c["spot_no"])])
-                        _add(cur, "영향 차량 재조회 성공 (발생 당시 목록은 미확인)")
-            if level >= 2:
-                if fresh_cars is not None:
-                    latest_cars, latest_known = fresh_cars
-                else:
-                    try:
-                        latest_cars = data.list_cars(cur["lot_id"])
-                        latest_known = True
-                    except DataUnavailable:
-                        latest_cars, latest_known = [], False
-                cur["briefing"] = briefing.build(alert, latest_cars, latest_known)
-        elif cur is not None:
-            cur["status"] = "해제 · 검토 대기"
+
+def _trim():
+    _state["pruned"] += prune_finished(
+        INCIDENTS, config.INCIDENT_LIMIT, lambda inc: inc["status"] == "확정"
+    )
+    warn_if_protected("incidents", len(INCIDENTS), config.INCIDENT_LIMIT)
+
+
+def pruned_count():
+    with _lock:
+        return _state["pruned"]
+
+
+def observe(alert: dict, data) -> int | None:
+    """Fetch vehicles without holding the report lock, then apply the alert version."""
+    version = alert.get("version", 0)
+    level = alert.get("level", 0)
+    while True:
+        with _lock:
+            observed = _state["last_version"]
+            cur = _state["current"]
+            if alert.get("stale") or version <= observed:
+                return (cur or {}).get("id")
+            new_location = cur is None or (cur["lot_id"], cur["spot_no"]) != (alert.get("lot_id"), alert.get("spot_no"))
+            need_affected = level > 0 and (new_location or not cur["affected_known"])
+        first = _cars(data, alert.get("lot_id")) if need_affected else None
+        need_briefing = level >= 2 and (first is None or (not new_location and not first[1]))
+        latest = _cars(data, alert.get("lot_id")) if need_briefing else None
+        with _lock:
+            if observed == _state["last_version"]:
+                return _apply_observation(alert, version, first, latest)
+
+
+def _apply_observation(alert, version, first_read, briefing_read):
+    """Commit an observation and its already-fetched vehicle evidence."""
+    _state["last_version"] = version
+    level = alert.get("level", 0)
+    cur = _state["current"]
+
+    if level > 0:
+        fresh_cars = None
+        if cur and (cur["lot_id"], cur["spot_no"]) != (alert["lot_id"], alert["spot_no"]):
+            cur["status"] = "위치 변경 · 검토 대기"
             cur["revision"] += 1
             cur["closed_at"] = iso(now())
-            _add(cur, "경보 해제")
-            _state["current"] = None
-        return (_state["current"] or {}).get("id")
+            _add(cur, "경보 위치 변경으로 기록 종료 (실제 해제 여부는 관리자 확인 필요)")
+            cur = None
+        label = "이상 신호 확인 중 (Lv1)" if level == 1 else "경보 발령 (Lv2)"
+        if cur is None:
+            lot, spot = alert["lot_id"], alert["spot_no"]
+            cars, affected_known = first_read
+            fresh_cars = (cars, affected_known)
+            cur = {
+                "id": _state["next_id"],
+                "status": "진행 중",
+                "revision": 1,
+                "event_type": alert.get("event_type", "mock_fire_led_observed"),
+                "lot_id": lot, "spot_no": spot, "space_id": config.catalog.space_label(lot, spot),
+                "opened_at": iso(now()), "closed_at": None, "confirmed_at": None,
+                "max_level": level, "max_confidence": alert.get("confidence", 0),
+                "affected": cars,
+                "affected_known": affected_known,
+                "affected_at": iso(now()) if affected_known else None,
+                "affected_recovered": False,
+                "near": [c["car_id"] for c in cars if _near(lot, spot, c["spot_no"])],
+                "near_spots": [c["spot_no"] for c in cars if _near(lot, spot, c["spot_no"])],
+                "notified": set(), "evacuation_requests": 0, "near_queries": 0,
+                "admin_calls": [],
+                "checklist": [{"item": x, "done_at": None} for x in CHECKLIST],
+                "notes": "", "timeline": [],
+            }
+            _state["next_id"] += 1
+            INCIDENTS.append(cur)
+            _trim()
+            _state["current"] = cur
+            _add(cur, f"{_report_location(alert)} {label}, 신뢰도 {round(cur['max_confidence'] * 100)}%")
+        else:
+            cur["revision"] += 1
+            cur["max_level"] = max(cur["max_level"], level)
+            cur["max_confidence"] = max(cur["max_confidence"], alert.get("confidence", 0))
+            _add(cur, f"{label}, 신뢰도 {round(alert.get('confidence', 0) * 100)}%")
+            if not cur["affected_known"]:
+                cars, known = first_read
+                if known:
+                    fresh_cars = (cars, True)
+                    cur.update(affected=cars, affected_known=True, affected_recovered=True,
+                               affected_at=iso(now()), near=[c["car_id"] for c in cars
+                               if _near(cur["lot_id"], cur["spot_no"], c["spot_no"])],
+                               near_spots=[c["spot_no"] for c in cars if _near(cur["lot_id"], cur["spot_no"], c["spot_no"])])
+                    _add(cur, "영향 차량 재조회 성공 (발생 당시 목록은 미확인)")
+        if level >= 2:
+            if fresh_cars is not None:
+                latest_cars, latest_known = fresh_cars
+            else:
+                latest_cars, latest_known = briefing_read
+            cur["briefing"] = briefing.build(alert, latest_cars, latest_known)
+    elif cur is not None:
+        cur["status"] = "해제 · 검토 대기"
+        cur["revision"] += 1
+        cur["closed_at"] = iso(now())
+        _add(cur, "경보 해제")
+        _state["current"] = None
+    return (_state["current"] or {}).get("id")
 
 
 @_locked
@@ -232,7 +259,9 @@ def confirm(inc_id: int, expected_revision=None, notes=None) -> dict:
     inc["status"] = "확정"
     inc["revision"] += 1
     inc["confirmed_at"] = iso(now())
-    return public(inc)
+    result = public(inc)
+    _trim()
+    return result
 
 
 def get(inc_id: int) -> dict | None:
@@ -296,3 +325,5 @@ def reset() -> None:
         INCIDENTS.clear()
         _state["last_version"] = 0
         _state["current"] = None
+        _state["next_id"] = 1
+        _state["pruned"] = 0

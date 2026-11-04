@@ -1,8 +1,25 @@
 """외부 데이터가 엔진에 들어오기 전 최소 계약 검증. 잘못된 값을 정상 상태로 추정하지 않는다."""
 from datetime import datetime
 import math
+from typing import TypedDict
 from . import config
 from .catalog import SAFE_ID
+
+
+class OccupancySnapshot(TypedDict):
+    lots: dict[str, dict]
+    space_states: dict[str, dict[str, str]]
+    updated_at: str
+
+
+class VehicleLocation(TypedDict, total=False):
+    car_id: str
+    lot_id: str | None
+    spot_no: int
+    space_id: str | None
+    status: str
+    session_id: str | None
+    updated_at: str | None
 
 
 class ContractError(ValueError):
@@ -25,16 +42,21 @@ def timestamp(value):
     return dt
 
 
+# 번호는 인식됐지만 칸 배정 전인 위치 상태(카메라 방식 변경 대비). 서버가 정하는 값을 넓게 받는다.
+LOCATION_PENDING = "pending"
+PENDING_LOCATION_STATUSES = frozenset({"pending", "entering", "detected", "assigning", "unassigned"})
+
+
 def validate(kind, value):
     if kind in ("car", "fee") and value is None:
         return value
-    if kind == "cars":
+    if kind in ("cars", "space_cars"):
         require(isinstance(value, list), "주차 차량 목록은 배열이어야 합니다.")
         for car in value:
-            validate("car_ref", car)
+            validate("space_car_ref" if kind == "space_cars" else "car_ref", car)
         return value
     require(isinstance(value, dict), f"{kind} 응답은 객체여야 합니다.")
-    if value.get("status") in {"unavailable", "error", "conflict"}:
+    if value.get("status") in {"unavailable", "error", "conflict", "pending"}:
         return value
     if value.get("api_result") and kind in {"car", "fee", "payment"}:
         if kind == "car":
@@ -55,28 +77,11 @@ def validate(kind, value):
             if value["status"] == "paid": require(integer(value.get("amount")), "서버 결제 금액 오류")
         return value
     if kind == "empty":
-        require(isinstance(value.get("lots"), dict) and bool(value["lots"]), "lots가 필요합니다.")
-        for lot, item in value["lots"].items():
-            require(isinstance(lot, str) and isinstance(item, dict), "주차장 정보 형식 오류")
-            require(bool(SAFE_ID.fullmatch(lot)), "주차장 ID 형식 오류")
-            require(integer(item.get("total"), 1) and integer(item.get("empty")) and
-                    integer(item.get("uncertain",0)) and item["empty"] + item.get("uncertain",0) <= item["total"], "빈자리 수가 용량 범위를 벗어났습니다.")
-            # PROVISIONAL(API v1 확정 필요): zones, 운영 상태, 명부 메타데이터.
-            if "entry_allowed" in item:require(type(item["entry_allowed"]) is bool,"entry_allowed는 boolean이어야 합니다.")
-            if "restriction_reason" in item:require(isinstance(item["restriction_reason"],str),"제한 사유 형식 오류")
-            if "kind" in item:require(item["kind"] in ("real","virtual"),"실물/가상 구분 오류")
-            if "name" in item:require(isinstance(item["name"],str) and bool(item["name"]),"주차장 이름 오류")
-            if "zones" in item:
-                require(isinstance(item["zones"],dict),"zones는 객체여야 합니다.")
-                for key, zone in item["zones"].items():
-                    require(isinstance(key,str) and bool(SAFE_ID.fullmatch(key)) and isinstance(zone,dict),"구역 형식 오류")
-                    require(integer(zone.get("total")) and integer(zone.get("empty")) and integer(zone.get("uncertain",0)) and zone["empty"]+zone.get("uncertain",0)<=zone["total"],"구역 자리 수 오류")
-                require(sum(z["total"] for z in item["zones"].values())<=item["total"] and
-                        sum(z["empty"] for z in item["zones"].values())<=item["empty"] and
-                        sum(z.get("uncertain",0) for z in item["zones"].values())<=item.get("uncertain",0),"구역 집계가 전체 자리 수를 초과했습니다.")
-    elif kind in ("car", "car_ref"):
-        require((kind == "car_ref" and value.get("car_id") is None) or (isinstance(value.get("car_id"), str) and bool(value["car_id"])), "car_id 필요")
-        if value.get("car_id") is None: timestamp(value.get("entry_at"))
+        _validate_occupancy(value)
+    elif kind in ("car", "car_ref", "space_car_ref"):
+        require((kind in ("car_ref", "space_car_ref") and value.get("car_id") is None) or (isinstance(value.get("car_id"), str) and bool(value["car_id"])), "car_id 필요")
+        if kind != "space_car_ref" and value.get("car_id") is None:
+            timestamp(value.get("entry_at"))
         require(isinstance(value.get("lot_id"), str) and bool(value["lot_id"]), "lot_id 필요")
         require(value["lot_id"] in config.catalog.ids(), "등록되지 않은 주차장입니다.")
         require(integer(value.get("spot_no"), 1) and value["spot_no"] <= config.catalog.space_count(value["lot_id"]), "spot_no 범위 오류")
@@ -90,29 +95,7 @@ def validate(kind, value):
             require(integer(value.get(key)), f"{key}는 0 이상 정수여야 합니다.")
         require(type(value.get("paid")) is bool, "paid는 boolean이어야 합니다.")
     elif kind == "alert":
-        require(type(value.get("level")) is int and value["level"] in (0, 1, 2), "경보 단계 형식 오류")
-        require(integer(value.get("version")), "경보 버전 형식 오류")
-        if value["level"]:
-            if value.get("api_result"):
-                lot, spot = value.get("lot_id"), value.get("spot_no")
-                require(lot is None or lot in config.catalog.ids(), "등록되지 않은 경보 주차장입니다.")
-                require(spot is None or (lot is not None and integer(spot, 1) and spot <= config.catalog.space_count(lot)), "경보 spot_no 범위 오류")
-                confidence = value.get("confidence", 0)
-                require(type(confidence) in (int, float) and math.isfinite(confidence) and 0 <= confidence <= 1,
-                        "경보 confidence 형식 오류")
-                timestamp(value.get("updated_at"))
-                return value
-            require(isinstance(value.get("lot_id"), str), "경보 lot_id 필요")
-            require(value["lot_id"] in config.catalog.ids(), "등록되지 않은 경보 주차장입니다.")
-            require(integer(value.get("spot_no"), 1) and value["spot_no"] <= config.catalog.space_count(value["lot_id"]), "경보 spot_no 범위 오류")
-            if "started_at" in value:
-                timestamp(value["started_at"])
-        if "updated_at" in value:
-            timestamp(value["updated_at"])
-        if value["level"]:
-            confidence = value.get("confidence", 0)
-            require(type(confidence) in (int, float) and math.isfinite(confidence) and 0 <= confidence <= 1,
-                    "경보 confidence 형식 오류")
+        _validate_alert(value)
     elif kind == "payment":
         require(value.get("status") in {"paid", "free", "already_paid", "not_found", "quote_changed"} | QUOTE_STATUSES,
                 "알 수 없는 결제 결과입니다.")
@@ -123,6 +106,56 @@ def validate(kind, value):
     if kind in ("empty", "car", "fee"):
         timestamp(value.get("updated_at"))
     return value
+
+
+def _validate_occupancy(value):
+    """Validate the aggregate and per-zone counts without changing server data."""
+    require(isinstance(value.get("lots"), dict) and bool(value["lots"]), "lots가 필요합니다.")
+    for lot, item in value["lots"].items():
+        require(isinstance(lot, str) and isinstance(item, dict), "주차장 정보 형식 오류")
+        require(bool(SAFE_ID.fullmatch(lot)), "주차장 ID 형식 오류")
+        require(integer(item.get("total"), 1) and integer(item.get("empty")) and
+                integer(item.get("uncertain",0)) and item["empty"] + item.get("uncertain",0) <= item["total"], "빈자리 수가 용량 범위를 벗어났습니다.")
+        # PROVISIONAL(API v1 확정 필요): zones, 운영 상태, 명부 메타데이터.
+        if "entry_allowed" in item:require(type(item["entry_allowed"]) is bool,"entry_allowed는 boolean이어야 합니다.")
+        if "restriction_reason" in item:require(isinstance(item["restriction_reason"],str),"제한 사유 형식 오류")
+        if "kind" in item:require(item["kind"] in ("real","virtual"),"실물/가상 구분 오류")
+        if "name" in item:require(isinstance(item["name"],str) and bool(item["name"]),"주차장 이름 오류")
+        if "zones" in item:
+            require(isinstance(item["zones"],dict),"zones는 객체여야 합니다.")
+            for key, zone in item["zones"].items():
+                require(isinstance(key,str) and bool(SAFE_ID.fullmatch(key)) and isinstance(zone,dict),"구역 형식 오류")
+                require(integer(zone.get("total")) and integer(zone.get("empty")) and integer(zone.get("uncertain",0)) and zone["empty"]+zone.get("uncertain",0)<=zone["total"],"구역 자리 수 오류")
+            require(sum(z["total"] for z in item["zones"].values())<=item["total"] and
+                    sum(z["empty"] for z in item["zones"].values())<=item["empty"] and
+                    sum(z.get("uncertain",0) for z in item["zones"].values())<=item.get("uncertain",0),"구역 집계가 전체 자리 수를 초과했습니다.")
+
+
+def _validate_alert(value):
+    """Check the level, location, confidence and evidence timestamp."""
+    require(type(value.get("level")) is int and value["level"] in (0, 1, 2), "경보 단계 형식 오류")
+    require(integer(value.get("version")), "경보 버전 형식 오류")
+    if value["level"]:
+        if value.get("api_result"):
+            lot, spot = value.get("lot_id"), value.get("spot_no")
+            require(lot is None or lot in config.catalog.ids(), "등록되지 않은 경보 주차장입니다.")
+            require(spot is None or (lot is not None and integer(spot, 1) and spot <= config.catalog.space_count(lot)), "경보 spot_no 범위 오류")
+            confidence = value.get("confidence", 0)
+            require(type(confidence) in (int, float) and math.isfinite(confidence) and 0 <= confidence <= 1,
+                    "경보 confidence 형식 오류")
+            timestamp(value.get("updated_at"))
+            return
+        require(isinstance(value.get("lot_id"), str), "경보 lot_id 필요")
+        require(value["lot_id"] in config.catalog.ids(), "등록되지 않은 경보 주차장입니다.")
+        require(integer(value.get("spot_no"), 1) and value["spot_no"] <= config.catalog.space_count(value["lot_id"]), "경보 spot_no 범위 오류")
+        if "started_at" in value:
+            timestamp(value["started_at"])
+    if "updated_at" in value:
+        timestamp(value["updated_at"])
+    if value["level"]:
+        confidence = value.get("confidence", 0)
+        require(type(confidence) in (int, float) and math.isfinite(confidence) and 0 <= confidence <= 1,
+                "경보 confidence 형식 오류")
 
 
 # Team decisions live here (docs/DECISIONS.md); identifiers such as session IDs remain opaque strings.

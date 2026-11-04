@@ -152,5 +152,13 @@ class Handler(SimpleHTTPRequestHandler):
 if __name__ == "__main__":
     port = int(sys.argv[1]) if len(sys.argv) > 1 else 8080
     print(f"이용자 화면: http://127.0.0.1:{port}   관리자 화면: http://127.0.0.1:{port}/admin.html")
-    import os
-    ThreadingHTTPServer((os.getenv("HOST", "127.0.0.1"), port), Handler).serve_forever()
+    import logging
+    logging.basicConfig(level=logging.INFO)
+    engine.config.log_startup()
+    try:
+        server = ThreadingHTTPServer((engine.config.getenv("HOST", "127.0.0.1"), port), Handler)
+    except OSError as exc:
+        # OS마다 문구가 다르다(리눅스 Address already in use / Windows WinError 10048). 공통 안내를 먼저 쓴다.
+        print(f"PORT_UNAVAILABLE: {port}번 포트를 열 수 없어요(이미 사용 중일 수 있음). 다른 포트로 실행해 주세요. ({exc})", file=sys.stderr)
+        raise SystemExit(1)
+    server.serve_forever()
