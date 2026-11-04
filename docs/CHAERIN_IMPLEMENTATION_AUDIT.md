@@ -27,7 +27,10 @@
 - 프론트 Node 테스트: 47 통과. team 모드 Vite 프로덕션 빌드 및 PWA 생성 성공.
 - 백엔드 전체 pytest 최종 결과: **350 통과**, 실패 0, Starlette/httpx 사용 중단 예정 경고 1개. 인증·중복 이벤트·입출차·요금·결제·경보·재시작 복구, 확인 이벤트 저장 중단 복구, 영구 거절 이벤트 후 재시작 테스트 포함.
 - 실제 `python -m backend.app.main` 기동: 임시 포트 18082에서 health 200, 4개 주차장, chat 및 vision-events 경로 등록 확인 후 종료.
-- Docker 실행 파일이 이 PC에 없으므로 이미지 빌드·nginx 설정 검사·컨테이너 간 연결은 미실행. `deployment/check_gateway.py`는 Docker 설치 PC에서 실행할 검증 도구이며 이번 실행 결과로 주장하지 않는다.
+- **2026-11-05 Docker 실측 완료:** API 런타임·웹 프로덕션 이미지 빌드 성공. 실제 Compose api/web/admin-auth 모두 healthy, `nginx -t` 성공. 포트80 웹·관리자 로그인, 8090 게이트웨이 분리, 관리자 인증·CSRF, 카메라 Bearer 전달을 확인했다.
+- 실제 Compose에서 카메라 합성 관측→점유 안정화→세션·entry_at→요금→모의 결제·중복 방지, LED→level2 경보→결제 차단→관리자 해제, 규칙 기반 챗봇 응답, API 컨테이너 재시작 후 결제·active 세션 보존, 출차→closed, C 가상 시뮬레이터 관측·차량 조회가 통과했다. 21개 HTTP/데이터 검사 및 격리 게이트웨이 검증 성공.
+- Docker 테스트 단계는 mock 모드를 명시하고 인증 모듈이 포함된 deployment 폴더를 복사하도록 수정했다. 테스트는 별도 Compose 프로젝트·임의 자격증명·새 볼륨으로 수행하고 테스트 자원만 종료·삭제했다. 평상시 앱을 실행해 둔 상태는 아니다.
+- Linux Docker 테스트 이미지 안에서도 전체 **350 passed**, 실패 0 (Starlette/httpx 및 crypt 사용 중단 예정 경고 2개). 재실행: `docker build -f backend/Dockerfile --target test -t parking-api-test .` 후 `docker run --rm parking-api-test`. 게이트웨이 검증은 웹 이미지를 `parking-docker-web-check`로 빌드한 뒤 `python deployment/check_gateway.py parking-docker-web-check`로 실행한다.
 - 실제 카메라 모델·번호 스티커 학습·OpenRouter 키 기반 LLM·음성 품질은 이번 통합 검증 범위가 아니다. 카메라·챗봇 담당자와 리허설이 필요하다.
 - `plate_number`, `vehicle_number`, 시뮬레이터 API는 선택적 통합 확장이다. 실물 car_id에 가상 번호판을 넣지 않으며 기존 계약 필드를 변경하지 않는다. 팀 공통 계약 편입은 PM 검토 대상이다.
 

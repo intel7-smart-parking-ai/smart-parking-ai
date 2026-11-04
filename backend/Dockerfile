@@ -11,9 +11,11 @@ EXPOSE 8000
 CMD ["python", "-m", "backend.app.main"]
 
 FROM runtime AS test
+ENV PARKING_MODE=mock
 USER root
 COPY backend/requirements-test.lock /app/requirements-test.lock
 RUN pip install --no-cache-dir -r /app/requirements-test.lock
 COPY tests /app/tests
+COPY deployment /app/deployment
 USER parking
 CMD ["python", "-m", "pytest", "-q", "-p", "no:cacheprovider", "tests/"]
