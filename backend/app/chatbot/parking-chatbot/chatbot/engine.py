@@ -20,7 +20,7 @@ from pathlib import Path
 from datetime import timedelta
 
 from . import config, incidents, navigation as N, templates as T
-from .contracts import LOCATION_PENDING, timestamp
+from .contracts import LOCATION_PENDING, timestamp, alerts_source
 from .adapters import ApiAdapter, request_gets, request_lot, DataUnavailable, PaymentNotSent, build_adapter, iso, now, request_deadline, request_timeout
 from .parser import parse
 from .state import Session, Flow, Conflict
@@ -117,7 +117,8 @@ def current_alert() -> dict:
             except TimeoutError:
                 wait_limit = 0
             if not _alert_condition.wait_for(lambda: not _alert_refreshing, timeout=wait_limit):
-                return {**deepcopy(_last_alert or {"level": 0}), "version": _alert_revision, "unavailable": True}
+                return {**deepcopy(_last_alert or {"level": 0}), "version": _alert_revision,
+                        "unavailable": True, "http_status": 0}
             return deepcopy(_last_alert)
         if (config.DATA_SOURCE == "api" and _last_alert is not None
                 and time.monotonic() - _alert_fetched_at < config.ALERT_SHARE_SEC):
@@ -125,11 +126,12 @@ def current_alert() -> dict:
         _alert_refreshing = True
     # 동시에 들어온 조회는 한 결과를 공유한다. 네트워크 I/O 중 상태 잠금은 해제.
     read_token = request_gets.set({}) if request_gets.get() is None else None
+    refreshed_alert = None
     try:
         try:
             a = data.get_alert()
         except DataUnavailable:
-            a = {**(_last_alert or {"level": 0}), "version": _alert_revision, "unavailable": True}
+            a = {**(_last_alert or {"level": 0}), "version": _alert_revision, "unavailable": True, "http_status": 0}
         if a.get("stale") or a.get("unavailable"):
             a = {**a, "source_version": a.get("version", 0), "version": _alert_revision}
         else:
@@ -144,13 +146,17 @@ def current_alert() -> dict:
             if changed and _alert_revision:
                 with _alert_lock:
                     _alert_events.append({**deepcopy(a), "observed_at": iso(now())})
+        refreshed_alert = a
         return deepcopy(a)
     finally:
         if read_token is not None:
             request_gets.reset(read_token)
         with _alert_condition:
             # 예기치 않은 예외에서도 대기자를 해제한다.
-            _last_alert = deepcopy(locals().get("a", {"level": 0, "version": _alert_revision, "unavailable": True}))
+            _last_alert = deepcopy(refreshed_alert if refreshed_alert is not None else {
+                **(_last_alert or {"level": 0}), "version": _alert_revision,
+                "unavailable": True, "http_status": 0,
+            })
             _alert_fetched_at = time.monotonic()
             _alert_refreshing = False
             _alert_condition.notify_all()
@@ -196,8 +202,10 @@ def _session_request(fn):
             deadline_token = request_deadline.set(api_deadline)
             try:
                 _alert_snapshot.set(current_alert())
-                if not current_alert().get("unavailable"):
+                source = alerts_source(current_alert())
+                if source == "ok" or source != s.alerts_source:
                     s.alert_unavailable_seen = False
+                s.alerts_source = source
                 expired = s.expire() if fn.__name__ == "updates" else False
                 alert_cancelled = _apply_alert_policy(s)
                 response = fn(session_id, *args, **kwargs)
@@ -397,7 +405,7 @@ def h_get_empty_spots(s,p):
     if p.get("space_id") and not p.get("zone"):
         return _space_answer(s, p, snapshot)
     text, card, chips, updated = N.query(snapshot, alert, p)
-    if isinstance(data.inner, ApiAdapter) and alert.get("unavailable") and (not p.get("lot_id") or p["lot_id"] in snapshot["lots"]):
+    if isinstance(data.inner, ApiAdapter) and alert.get("unavailable") and alerts_source(alert) != "not_provided" and (not p.get("lot_id") or p["lot_id"] in snapshot["lots"]):
         selected = snapshot["lots"].items() if not p.get("lot_id") else [(p["lot_id"], snapshot["lots"][p["lot_id"]])]
         text = " / ".join(f"{config.catalog.name(k)} 빈자리 {N.count(v, p.get('zone')) if N.count(v, p.get('zone')) is not None else '미확인'}자리, 확인 중 {v.get('uncertain', 0)}칸" for k, v in selected)
         text += "이에요."
@@ -1004,7 +1012,9 @@ def handle(session_id: str, text=None, chip_id=None, event=None, request_id=None
         if record["fingerprint"] != fingerprint:
             raise Conflict("같은 request_id를 다른 요청에 사용할 수 없습니다.")
         saved = deepcopy(record["response"])
-        saved.update(destination=N.public(s), catalog=config.catalog.public_snapshot(), banner=T.banner(current_alert()), alert_version=current_alert().get("version", 0),
+        alert = current_alert()
+        saved.update(destination=N.public(s), catalog=config.catalog.public_snapshot(), banner=T.banner(alert), alert_version=alert.get("version", 0),
+                     safety=T.safety_card(alert) if alert.get("level", 0) >= 2 else None,
                      vehicle_context=vehicle_context(s), chips=_response_chips(s, "default"),
                      flow=s.flow.value, confirmation_token=s.pending.token if s.pending else None)
         saved["meta"]["replayed"] = True
@@ -1229,6 +1239,7 @@ def stats() -> dict:
     return {
         "llm": {"engine": config.LLM_ENGINE, **router_stats()},
         "total": n,
+        "alerts_source": alerts_source(_last_alert) if _last_alert is not None else "unavailable",
         "backend_breaker": data.inner.breaker_stats() if isinstance(data.inner, ApiAdapter) else {},
         "retention": {"admin_calls_pruned": admin_pruned, "incidents_pruned": incidents.pruned_count(),
                       "uncertain_payments": len(_uncertain_payments)},

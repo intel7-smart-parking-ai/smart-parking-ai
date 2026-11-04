@@ -119,10 +119,10 @@ class LLMEvaluationExpansionTests(unittest.TestCase):
         self.assertEqual(row['intent'],'cancel_action')
         self.assertEqual(parser.parse_rules(row['question']).params['cancel_target'],'payment')
 
-    def test_regression_glob_contains_eight_sets_and_no_llm_set(self):
+    def test_regression_glob_contains_nine_sets_and_no_llm_set(self):
         files=list(Path(__file__).parent.glob('questions*.csv'))
-        self.assertEqual(len(files),8)
-        self.assertEqual(sum(len(self.read_rows(f.name)) for f in files),242)
+        self.assertEqual(len(files),9)
+        self.assertEqual(sum(len(self.read_rows(f.name)) for f in files),248)
         self.assertNotIn('llm_eval_questions.csv',{f.name for f in files})
 
 

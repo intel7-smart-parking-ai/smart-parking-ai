@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field, StrictBool
 from . import config, engine, incidents
 from .state import Conflict
 from .adapters import DataUnavailable
+from .contracts import alerts_source
 from .http_api import change_report
 from .access import require_admin, AccessDenied
 
@@ -158,8 +159,9 @@ def admin_calls():
 @router.get("/incidents", dependencies=[Depends(privileged)])
 @_worker
 def incident_list():
-    engine.current_alert()
-    return {"items": incidents.list_public(), "runtime_id": engine.RUNTIME_ID}
+    alert = engine.current_alert()
+    return {"items": incidents.list_public(), "runtime_id": engine.RUNTIME_ID,
+            "alerts_source": alerts_source(alert)}
 
 
 @router.post("/incidents/{inc_id}/check", dependencies=[Depends(privileged)])

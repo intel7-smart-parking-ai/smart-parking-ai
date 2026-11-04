@@ -555,7 +555,8 @@ class ApiAdapter:
         status, value, headers = self._request("GET", config.API_PATHS["lots"])
         if status != 200:
             return self._failure(status, value, headers)
-        require(isinstance(value, dict) and isinstance(value.get("items"), list), "주차장 목록 형식 오류")
+        require(isinstance(value, dict) and isinstance(value.get("items"), list)
+                and not value.get("next_cursor"), "주차장 목록 형식 오류")
         lots, states = {}, {}
         unrecognized = []
         mocked = False
@@ -688,7 +689,7 @@ class ApiAdapter:
         if not path:
             return {"status": "unavailable", "unavailable": True}
         status, value, headers = self._request("GET", path)
-        if status != 200 or not isinstance(value.get("items"), list):
+        if status != 200 or not isinstance(value.get("items"), list) or value.get("next_cursor"):
             return self._failure(status, value, headers) if status != 200 else {"status": "unavailable", "unavailable": True}
         from .catalog import RATE_KEYS
         policies = {}
@@ -750,7 +751,7 @@ class ApiAdapter:
             # Preserve safety state, but provenance belongs to this failed response.
             previous.pop("data_source", None)
             return {**previous, **self._failure(status, value, headers), "status": "unavailable", "unavailable": True}
-        require(isinstance(value.get("items"), list), "경보 목록 형식 오류")
+        require(isinstance(value.get("items"), list) and not value.get("next_cursor"), "경보 목록 형식 오류")
         items, violations = [], []
         for candidate in value["items"]:
             require(isinstance(candidate, dict), "경보 항목은 객체여야 합니다.")
