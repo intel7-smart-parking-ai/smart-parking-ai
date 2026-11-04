@@ -35,7 +35,7 @@ def main():
     matched=[i for i,row in enumerate(rows,1) if parser.parse_rules(row['question']).intent!='unknown']
     if matched: raise SystemExit('규칙에서 이미 처리하는 행이 포함됨: '+str(matched))
     report={'rules':evaluate(rows,parser.parse_rules)}
-    key_name='OPENAI_API_KEY' if config.LLM_PROVIDER=='openai' else 'ANTHROPIC_API_KEY'
+    key_name=config.api_key_name(config.LLM_PROVIDER)
     if not options.compare or config.LLM_PROVIDER=='none' or not config.LLM_MODEL or not os.getenv(key_name):
         report['hybrid']={'skipped':'--compare 및 LLM_PROVIDER/LLM_MODEL/API 키 설정 필요. 실제 LLM 호출 없음.'}
     elif config.LLM_ENGINE!='langchain':

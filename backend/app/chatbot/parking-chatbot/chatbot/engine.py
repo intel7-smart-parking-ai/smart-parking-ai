@@ -17,25 +17,26 @@ from copy import deepcopy
 from functools import wraps
 from collections import Counter, deque
 from pathlib import Path
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from . import config, incidents, navigation as N, templates as T
-from .adapters import ApiAdapter, request_gets, request_lot, DataUnavailable, build_adapter, iso, now, request_deadline, request_timeout
+from .contracts import LOCATION_PENDING, timestamp
+from .adapters import ApiAdapter, request_gets, request_lot, DataUnavailable, PaymentNotSent, build_adapter, iso, now, request_deadline, request_timeout
 from .parser import parse
 from .state import Session, Flow, Conflict
 from .notifications import Notifications
+from .llm_limits import session_id as llm_session_id
+from .snapshots import freeze
+from .retention import prune_finished, warn_if_protected
+from .handlers.exit_help import h_exit_help
 
-CHIP_DATA = json.loads((Path(__file__).parent / "chips.json").read_text(encoding="utf-8"))
+CHIP_DATA = freeze(json.loads((Path(__file__).parent / "chips.json").read_text(encoding="utf-8")))
 CHIPS, SETS, SUGGESTIONS = CHIP_DATA["chips"], CHIP_DATA["sets"], CHIP_DATA["suggestions"]
 
 NEEDS_VEHICLE = {"find_my_car", "get_fee", "pay_fee", "alert_near_my_car"}
 QUOTE_RETRY_STATUSES = {"quote_expired", "quote_mismatch", "quote_not_found"}
 
 data = build_adapter()
-# 선택 라우터 준비는 별도 스레드에서 시작. 서버 시작을 지연시키지 않는다.
-if config.LLM_ENGINE == "langchain":
-    from .llm_router import warmup
-    warmup()
 _lock = threading.RLock()
 _alert_snapshot = ContextVar("alert_snapshot", default=None)
 _vehicle_snapshot = ContextVar("vehicle_snapshot", default=None)
@@ -44,6 +45,8 @@ _answer_evidence = ContextVar("answer_evidence", default=None)
 _request_session = ContextVar("request_session", default=None)
 LOG = deque(maxlen=2000)
 ADMIN_CALLS: list[dict] = []
+_admin_call_seq = 0
+_admin_calls_pruned = 0
 notifications = Notifications()
 RUNTIME_ID = uuid.uuid4().hex
 _alert_lock = threading.RLock()
@@ -55,7 +58,8 @@ _last_alert = None
 _alert_fetched_at = 0
 _alert_events = deque(maxlen=100)
 _view_revision = 0
-_payment_lock = threading.RLock()
+_payment_condition = threading.Condition()
+_payment_active = False
 _uncertain_payments = set()
 
 
@@ -120,6 +124,7 @@ def current_alert() -> dict:
             return deepcopy(_last_alert)
         _alert_refreshing = True
     # 동시에 들어온 조회는 한 결과를 공유한다. 네트워크 I/O 중 상태 잠금은 해제.
+    read_token = request_gets.set({}) if request_gets.get() is None else None
     try:
         try:
             a = data.get_alert()
@@ -141,6 +146,8 @@ def current_alert() -> dict:
                     _alert_events.append({**deepcopy(a), "observed_at": iso(now())})
         return deepcopy(a)
     finally:
+        if read_token is not None:
+            request_gets.reset(read_token)
         with _alert_condition:
             # 예기치 않은 예외에서도 대기자를 해제한다.
             _last_alert = deepcopy(locals().get("a", {"level": 0, "version": _alert_revision, "unavailable": True}))
@@ -175,7 +182,7 @@ def _session_request(fn):
             from .parser import extract_lot, extract_zone
             raw_text = kwargs.get("text", args[0] if args else None) or ""
             raw_chip = kwargs.get("chip_id", args[1] if len(args) > 1 else None)
-            chip_params = ({**CHIPS, **config.catalog.chips()}.get(raw_chip if isinstance(raw_chip, str) else None) or {}).get("params", {})
+            chip_params = ({**CHIPS, **config.catalog.chip_snapshot()}.get(raw_chip if isinstance(raw_chip, str) else None) or {}).get("params", {})
             focus = chip_params.get("lot_id") or (extract_lot(raw_text) if isinstance(raw_text, str) else None)
             zone = chip_params.get("zone") or (extract_zone(raw_text) if isinstance(raw_text, str) else None)
             lot_token = request_lot.set(focus if focus != "ambiguous" and not zone else None)
@@ -184,6 +191,7 @@ def _session_request(fn):
             vehicle_token = _vehicle_snapshot.set({})
             occupancy_token = _occupancy_snapshot.set(None)
             session_token = _request_session.set((session_id, s))
+            llm_token = llm_session_id.set(session_id)
             api_deadline = min(deadline, time.monotonic()+config.BACKEND_TIMEOUT_SEC) if isinstance(data.inner, ApiAdapter) else deadline
             deadline_token = request_deadline.set(api_deadline)
             try:
@@ -225,13 +233,14 @@ def _session_request(fn):
                 _vehicle_snapshot.reset(vehicle_token)
                 _occupancy_snapshot.reset(occupancy_token)
                 _request_session.reset(session_token)
+                llm_session_id.reset(llm_token)
                 request_deadline.reset(deadline_token)
     return wrapped
 
 
 # ------------------------------------------------------------ 응답 조립
 def _chips(chip_set) -> list[dict]:
-    definitions = {**CHIPS, **config.catalog.chips()}
+    definitions = {**CHIPS, **config.catalog.chip_snapshot()}
     active = _request_session.get()
     if active:
         for token, car in active[1].candidate_options.items():
@@ -314,8 +323,21 @@ def _respond(s: Session, text: str, card=None, chip_set="default", updated_at=No
         "runtime_id": RUNTIME_ID,
         "vehicle_context": context,
         "destination": N.public(s),
-        "catalog": config.catalog.public(),
+        "catalog": config.catalog.public_snapshot(),
     }
+
+
+def busy_response(runtime_id=None):
+    """Return the existing fallback immediately, without backend or session work."""
+    if runtime_id and runtime_id != RUNTIME_ID:
+        raise Conflict("서버가 다시 시작됐어요. 화면을 새로고침해 주세요.")
+    token = _alert_snapshot.set({**(_last_alert or {"level": 0}), "unavailable": True})
+    try:
+        response = _respond(Session(), T.REQUEST_UNAVAILABLE, meta={"unavailable": True, "busy": True})
+        response["state_version"] = _view_revision
+        return response
+    finally:
+        _alert_snapshot.reset(token)
 
 
 def _stale_note(d: dict | None) -> str:
@@ -401,25 +423,40 @@ def h_cancel_destination(s,p):
     return "목적지 안내를 종료했어요.",None,["empty_all","find_car"],None
 
 
+def _unrecognized_location(s, lot_id=None):
+    """Offer at most three anonymous candidates, outside an active Lv2 alert."""
+    if current_alert().get("level",0)>=2:
+        return "경보 중 차량 위치 확인은 관리자에게 요청해 주세요. 밖이면 들어오지 마세요. 차를 옮기려 하지 마세요.", None, "alert", None
+    s.candidate_options.clear()
+    api = isinstance(data.inner, ApiAdapter)
+    try:
+        rows = data.list_cars(lot_id, candidates=True) if api else data.list_cars()
+        cars = [c for c in rows if c.get("car_id") is None]
+        if api and not cars:
+            raise DataUnavailable("번호 미인식 차량 목록 없음")
+    except DataUnavailable:
+        return T.CAR_NOT_FOUND.format(no=s.car_id) + ("" if api else " 번호 미인식 차량 목록도 확인하지 못했어요."), None, (["unrecognized", "call_admin"] if api else ["call_admin"]), None
+    if api and any(car.get("is_mock") for car in cars):
+        _answer_evidence.set({"is_mock": True})
+    cars.sort(key=lambda c: timestamp(c['entry_at']), reverse=True)
+    if not cars: return T.CAR_NOT_FOUND.format(no=s.car_id), None, ["call_admin","change_vehicle"], None
+    s.candidate_options = {uuid.uuid4().hex:c for c in cars[:3]}
+    s.candidate_expires = time.monotonic()+120
+    if len(cars)>3:
+        return f"{s.car_id}번 차의 입차 기록이 없고, 번호 미인식 차량이 {len(cars)}대 있어요. 관리자에게 확인해 주세요.", None, ["candidate_admin"], None
+    first=cars[0]
+    entered = timestamp(first["entry_at"]).astimezone(config.KST).isoformat() if api else first["entry_at"]
+    text=f"{s.car_id}번 차의 입차 기록이 없어요.\n번호 미인식 차량이 {T.place(first['lot_id'], first['spot_no'], first.get('space_id'))}에 있어요 ({T.hhmm(entered)} 입차). 혹시 이 차인가요?"
+    return text, {"type":"unrecognized_candidates","data":{"cars":cars,"notice":"후보 위치만 안내해요. 요금·결제는 관리자 확인 후 가능해요."}}, ["candidate:"+token for token in s.candidate_options]+["candidate_admin"], None
+
+
 def h_find_my_car(s, p):
     d = _find_vehicle(s.car_id)
     _answer_evidence.set(d)
     if not d:
-        if current_alert().get("level",0)>=2:
-            return "경보 중 차량 위치 확인은 관리자에게 요청해 주세요. 밖이면 들어오지 마세요. 차를 옮기려 하지 마세요.", None, "alert", None
-        s.candidate_options.clear()
-        try: cars = [c for c in data.list_cars() if c.get("car_id") is None]
-        except DataUnavailable:
-            return T.CAR_NOT_FOUND.format(no=s.car_id) + ("" if isinstance(data.inner, ApiAdapter) else " 번호 미인식 차량 목록도 확인하지 못했어요."), None, (["unrecognized", "call_admin"] if isinstance(data.inner, ApiAdapter) else ["call_admin"]), None
-        cars.sort(key=lambda c: datetime.fromisoformat(c['entry_at']), reverse=True)
-        if not cars: return T.CAR_NOT_FOUND.format(no=s.car_id), None, ["call_admin","change_vehicle"], None
-        s.candidate_options = {uuid.uuid4().hex:c for c in cars[:3]}
-        s.candidate_expires = time.monotonic()+120
-        if len(cars)>3:
-            return f"{s.car_id}번 차의 입차 기록이 없고, 번호 미인식 차량이 {len(cars)}대 있어요. 관리자에게 확인해 주세요.", None, ["candidate_admin"], None
-        first=cars[0]
-        text=f"{s.car_id}번 차의 입차 기록이 없어요.\n번호 미인식 차량이 {T.place(first['lot_id'], first['spot_no'], first.get('space_id'))}에 있어요 ({T.hhmm(first['entry_at'])} 입차). 혹시 이 차인가요?"
-        return text, {"type":"unrecognized_candidates","data":{"cars":cars,"notice":"후보 위치만 안내해요. 요금·결제는 관리자 확인 후 가능해요."}}, ["candidate:"+token for token in s.candidate_options]+["candidate_admin"], None
+        return _unrecognized_location(s, p.get("lot_id"))
+    if d.get("status") == LOCATION_PENDING:
+        return T.car_pending(d), None, ["find_car", "call_admin"], d.get("updated_at")
     s.selected_candidate=None; s.candidate_options.clear()
     card = {"type": "car_location", "data": d}
     return T.car_location(d) + _stale_note(d), card, "after_find_my_car", d["updated_at"]
@@ -433,13 +470,19 @@ def _candidate_location(s, token):
     s.clear()
     if not car or time.monotonic()>=s.candidate_expires:
         return _respond(s,"이전 후보 안내가 만료됐어요. 내 차 위치를 다시 조회해 주세요.",chip_set=["find_car","call_admin"])
-    try: current=data.list_cars(car['lot_id'])
+    api = isinstance(data.inner, ApiAdapter)
+    try:
+        current = data.list_cars(car["lot_id"], candidates=True) if api else data.list_cars(car["lot_id"])
     except DataUnavailable:
         return _respond(s,"후보 차량의 현재 위치를 확인하지 못했어요. 관리자에게 확인해 주세요.",chip_set=["candidate_admin"])
-    if not any(c.get('car_id') is None and c['spot_no']==car['spot_no'] and c['entry_at']==car['entry_at'] for c in current):
+    space_key = "space_id" if api else "spot_no"
+    if not any(c.get("car_id") is None and c[space_key] == car[space_key]
+               and c["entry_at"] == car["entry_at"] for c in current):
         s.candidate_options.clear()
         return _respond(s,"후보 차량 정보가 바뀌었어요. 다시 조회해 주세요.",chip_set=["find_car","call_admin"])
     s.selected_candidate=deepcopy(car)
+    if api:
+        _answer_evidence.set(car)
     return _respond(s,"번호 미인식 차량의 후보 위치예요. 본인 차량인지 현장에서 확인해 주세요.\n요금·결제는 관리자 확인 후 가능해요.",
         {"type":"unrecognized_candidates","data":{"cars":[car],"notice":"차량 번호와 연결되지 않은 위치 후보입니다."}},["candidate_admin","change_vehicle"])
 
@@ -496,8 +539,17 @@ def h_pay_fee(s, p):
 
 
 def _execute_payment(s, pending):
-    with _payment_lock:
+    """Reserve the single payment slot while releasing its condition during I/O."""
+    global _payment_active
+    with _payment_condition:
+        _payment_condition.wait_for(lambda: not _payment_active)
+        _payment_active = True
+    try:
         return _execute_payment_locked(s, pending)
+    finally:
+        with _payment_condition:
+            _payment_active = False
+            _payment_condition.notify()
 
 
 def _quote_expired(pending) -> bool:
@@ -505,7 +557,7 @@ def _quote_expired(pending) -> bool:
     if not expires:
         return False
     try:
-        return now() >= datetime.fromisoformat(expires) - timedelta(seconds=5)
+        return now() >= timestamp(expires) - timedelta(seconds=5)
     except (TypeError, ValueError):
         return True
 
@@ -533,6 +585,8 @@ def _execute_payment_locked(s, pending):
         return T.fee_unavailable(d), None, ["fee", "call_admin"], None
     if d.get("stale"):
         return "최신 요금을 확인하지 못했어요. 결제는 실행하지 않았습니다.", None, "default", None
+    if isinstance(data.inner, ApiAdapter) and d.get("session_id") != pending.params.get("session_id"):
+        return T.pay({"status": "unavailable"}, pending.car_id), None, ["fee", "call_admin"], None
     if d["paid"]:
         return T.fee(d), None, "after_pay_fee", d["updated_at"]
     if not isinstance(data.inner, ApiAdapter) and (d["fee"], d["entry_at"]) != (pending.params["amount"], pending.params["entry_at"]):
@@ -540,7 +594,10 @@ def _execute_payment_locked(s, pending):
         return ("확인 중 요금 또는 입차 기록이 바뀌었어요. " + result[0], *result[1:])
     visit = (pending.car_id, d["entry_at"])
     if visit in _uncertain_payments:
-        return "이전 결제의 처리 결과가 불확실하여 추가 결제를 중지했어요. 관리자에게 확인해 주세요.", None, ["fee", "call_admin"], None
+        return T.PAYMENT_CAPACITY, None, ["fee", "call_admin"], None
+    if len(_uncertain_payments) >= config.UNCERTAIN_PAYMENT_LIMIT:
+        warn_if_protected("uncertain_payments", len(_uncertain_payments), config.UNCERTAIN_PAYMENT_LIMIT, full=True)
+        return T.PAYMENT_CAPACITY, None, ["fee", "call_admin"], None
     operation_key = pending.params["idempotency_key"] if isinstance(data.inner, ApiAdapter) else uuid.uuid5(uuid.NAMESPACE_URL, f"parking:{pending.car_id}:{d['entry_at']}:{d['fee']}").hex
     # 요금 조회 중 새 경보가 생긴 경우에도 실행 직전에 다시 확인한다.
     token = _alert_snapshot.set(None)
@@ -555,6 +612,8 @@ def _execute_payment_locked(s, pending):
         visit_args = {"session_id": pending.params.get("session_id")} if isinstance(data.inner, ApiAdapter) else {}
         r = data.pay(pending.car_id, idempotency_key=operation_key, **visit_args, quote_id=pending.params.get("quote_id"),
                      quote_amount=pending.params["amount"], entry_at=pending.params["entry_at"])
+    except PaymentNotSent:
+        return T.pay({"status": "unavailable"}, pending.car_id), None, ["fee", "call_admin"], None
     except DataUnavailable:
         _uncertain_payments.add(visit)
         return "결제 요청의 처리 결과를 확인하지 못했어요. 다시 결제하지 말고 요금 조회 또는 관리자 확인을 해 주세요.", None, ["fee", "call_admin"], None
@@ -591,11 +650,6 @@ def _execute_payment_locked(s, pending):
     return T.pay(r, pending.car_id), card, "after_pay_fee", None
 
 
-def h_exit_help(s, p):
-    """출구·차단기 문의: 진단하지 않고 현장 관리자 연결을 안내한다(차량 번호·API 조회 없음)."""
-    return T.EXIT_HELP, None, ["call_admin", "fee", "find_car"], None
-
-
 def h_violations(s, p):
     """전용 칸 위반 차량 문의. 서버 경보의 restricted_space_violation만 근거로 답한다."""
     a = current_alert()
@@ -621,7 +675,9 @@ def _admin_summary(s: Session, car_id=None) -> str:
         except DataUnavailable:
             fee = None
             parts.append("결제 상태 미확인")
-        if car:
+        if car and car.get("status") == LOCATION_PENDING:
+            parts.append(f"{car_id}번 차 · 입차 확인 중(칸 배정 전)")
+        elif car:
             parts.append(f"{car_id}번 차 · {T.place(car['lot_id'], car['spot_no'], car.get('space_id'))} · 입차 {T.hhmm(car['entry_at'])}" + _stale_note(car) + f" · 위치 기준 {car['updated_at']}")
         else:
             parts.append(f"{car_id}번 차 · 위치 미확인")
@@ -668,6 +724,8 @@ def vehicle_context(s):
         return {"car_id": s.car_id, "state": "unavailable"}
     if car is None:
         return {"car_id": s.car_id, "state": "not_found"}
+    if car.get("status") == LOCATION_PENDING:
+        return {"car_id": s.car_id, "lot_id": car.get("lot_id"), "state": "pending"}
     return {**car, "state": "stale" if car.get("stale") else "parked"}
 
 
@@ -682,6 +740,7 @@ def h_call_admin(s, p):
 
 
 def _execute_admin(s, p):
+    global _admin_call_seq, _admin_calls_pruned
     a = current_alert()
     inc_id, car_id = a.get("incident_id"), p.get("car_id") or s.car_id
     with _lock:
@@ -699,10 +758,15 @@ def _execute_admin(s, p):
             call = existing
             call.update(summary=summary, alert_level=a.get("level", 0), revision=call["revision"] + 1, updated_at=iso(now()), _last_at=time.monotonic())
         else:
-            call = {"id": len(ADMIN_CALLS) + 1, "at": iso(now()), "updated_at": iso(now()),
+            _admin_call_seq += 1
+            call = {"id": _admin_call_seq, "at": iso(now()), "updated_at": iso(now()),
                     "car_id": car_id, "incident_id": inc_id, "alert_level": a.get("level", 0),
                     "summary": summary, "status": "접수", "revision": 1, "_session": p["_sid"], "_last_at": time.monotonic()}
             ADMIN_CALLS.append(call)
+            _admin_calls_pruned += prune_finished(
+                ADMIN_CALLS, config.ADMIN_CALL_LIMIT, lambda item: item["status"] in {"완료", "해결"}
+            )
+            warn_if_protected("admin_calls", len(ADMIN_CALLS), config.ADMIN_CALL_LIMIT)
     incidents.link_admin_call(call["id"], inc_id)
     return "관리자에게 확인을 요청했어요. 차량 정보와 최근 문의를 요약해 관리자 화면에 함께 등록했어요.", {"type": "admin_call", "data": public_call(call)}, "after_call_admin", None
 
@@ -739,6 +803,8 @@ def h_alert_near(s, p):
         return (T.api_alert(a) if a.get("api_result") else T.NO_ALERT) + _stale_note(a), None, "default", None
     incidents.count("near_queries", a.get("incident_id"))
     car = _find_vehicle(s.car_id)
+    if car and car.get("status") == LOCATION_PENDING:
+        car = None  # 칸 배정 전이면 위치를 추측하지 않는다.
     return T.alert_near(a, car) + _stale_note(a if a.get("stale") else car), None, "alert", None
 
 
@@ -805,36 +871,79 @@ def _cancel_action(s: Session, params: dict) -> dict:
     return _respond(s, message)
 
 
-def _dispatch(s: Session, sid: str, intent: str, params: dict, vehicle_only: bool, confirmation_token=None) -> dict:
-    params = {**params, "_sid": sid}
-    vno = params.get("car_id")
+def _confirm_pending(s, sid, intent, expired, confirmation_token):
+    """Consume the matching confirmation before executing the selected action."""
+    pending = s.pending
+    if expired:
+        return _respond(s, "확인 시간이 지나 요청을 종료했어요. 원하는 기능을 다시 선택해 주세요.")
+    if not pending or s.flow not in (Flow.CONFIRM_VEHICLE, Flow.CONFIRM_ACTION):
+        return _respond(s, T.NOTHING_TO_CONFIRM)
+    if confirmation_token is not None and confirmation_token != pending.token:
+        return _respond(s, "이전 질문의 확인 버튼이에요. 가장 최근 질문에 답해 주세요.")
+    if intent == "confirm_no":
+        if s.flow == Flow.CONFIRM_VEHICLE:
+            s.begin(Flow.ASK_VEHICLE, pending.intent, pending.params)
+            return _respond(s, T.VEHICLE_DENIED)
+        s.clear()
+        return _respond(s, "요청을 취소했어요.")
+    s.clear()  # 일회성 확인을 먼저 소비: 재전송이 새 동작으로 이어지지 않음
+    if pending.flow == Flow.CONFIRM_VEHICLE:
+        s.car_id = pending.car_id
+        s.selected_candidate=None; s.candidate_options.clear()
+        if pending.intent:
+            return _run(s, sid, pending.intent, pending.params)
+        return _respond(s, T.VEHICLE_SET.format(no=s.car_id), chip_set="parked")
+    if pending.car_id != s.car_id:
+        return _respond(s, "차량이 변경되어 이전 요청을 취소했어요. 다시 선택해 주세요.")
+    if pending.intent == "pay_fee":
+        result = _execute_payment(s, pending)
+    elif pending.intent == "call_admin":
+        result = _execute_admin(s, pending.params)
+    else:
+        return _respond(s, "처리할 수 없는 요청이라 취소했어요.")
+    s.last_intent = pending.intent
+    return _respond(s, *result)
+
+
+def _validate_dispatch_input(s, intent, params, vno):
+    """Expire pending state and return an early reply for invalid input."""
     if params.get("lot_id")=="ambiguous":
-        s.clear();s.query_context={}
-        return _respond(s,"주차장이 여러 곳이에요. 안내받을 곳 하나를 골라 주세요.",chip_set=["lot_"+k for k in config.catalog.ids()][:4])
+        s.clear()
+        s.query_context = {}
+        return False, _respond(s,"주차장이 여러 곳이에요. 안내받을 곳 하나를 골라 주세요.",chip_set=["lot_"+k for k in config.catalog.ids()][:4])
     expired = s.expire()
     if vno == "invalid":
         s.clear()
-        return _respond(s, T.INVALID_VEHICLE, input_error=True)
+        return expired, _respond(s, T.INVALID_VEHICLE, input_error=True)
     if vno == "short":
         s.clear()
-        return _respond(s, T.SHORT_VEHICLE, input_error=True)
+        return expired, _respond(s, T.SHORT_VEHICLE, input_error=True)
     if (vno and config.DATA_SOURCE == "mock" and config.ASSIGNED_CAR_IDS is not None
             and vno not in config.ASSIGNED_CAR_IDS):
         s.clear()
-        return _respond(s, T.UNASSIGNED_VEHICLE, input_error=True)
+        return expired, _respond(s, T.UNASSIGNED_VEHICLE, input_error=True)
     if params.get("virtual_vehicle") and not vno and intent in NEEDS_VEHICLE | {"unknown"}:
         # 가상 주차장 검색 경로가 확정되기 전에는 조회하지 않는다(api_paths.json virtual_search=null).
         s.clear()
-        return _respond(s, T.VIRTUAL_VEHICLE_PENDING, chip_set=["empty_all", "find_car"], input_error=True)
+        return expired, _respond(s, T.VIRTUAL_VEHICLE_PENDING, chip_set=["empty_all", "find_car"], input_error=True)
     if vno == "missing":
         previous = s.pending
         params = {k: v for k, v in (previous.params if previous else {}).items() if k != "car_id"}
         s.car_id = None
         s.begin(Flow.ASK_VEHICLE, previous.intent if previous else None, params)
-        return _respond(s, T.ASK_DIFFERENT_VEHICLE, input_error=True)
+        return expired, _respond(s, T.ASK_DIFFERENT_VEHICLE, input_error=True)
     if vno == "ambiguous":
         s.clear()
-        return _respond(s, "차량 번호가 여러 개예요. 대상 차량 하나를 다시 알려주세요.", input_error=True)
+        return expired, _respond(s, "차량 번호가 여러 개예요. 대상 차량 하나를 다시 알려주세요.", input_error=True)
+    return expired, None
+
+
+def _dispatch(s: Session, sid: str, intent: str, params: dict, vehicle_only: bool, confirmation_token=None) -> dict:
+    params = {**params, "_sid": sid}
+    vno = params.get("car_id")
+    expired, rejected = _validate_dispatch_input(s, intent, params, vno)
+    if rejected is not None:
+        return rejected
     if intent == "pay_fee" and current_alert().get("level", 0) >= 2:
         s.clear()
         return _respond(s, "Lv2 경보로 모의 결제를 중지했어요. 대피 안내를 먼저 확인해 주세요.", chip_set="alert")
@@ -846,36 +955,7 @@ def _dispatch(s: Session, sid: str, intent: str, params: dict, vehicle_only: boo
     if intent == "cancel_action":
         return _cancel_action(s, params)
     if intent in ("confirm_yes", "confirm_no"):
-        pending = s.pending
-        if expired:
-            return _respond(s, "확인 시간이 지나 요청을 종료했어요. 원하는 기능을 다시 선택해 주세요.")
-        if not pending or s.flow not in (Flow.CONFIRM_VEHICLE, Flow.CONFIRM_ACTION):
-            return _respond(s, T.NOTHING_TO_CONFIRM)
-        if confirmation_token is not None and confirmation_token != pending.token:
-            return _respond(s, "이전 질문의 확인 버튼이에요. 가장 최근 질문에 답해 주세요.")
-        if intent == "confirm_no":
-            if s.flow == Flow.CONFIRM_VEHICLE:
-                s.begin(Flow.ASK_VEHICLE, pending.intent, pending.params)
-                return _respond(s, T.VEHICLE_DENIED)
-            s.clear()
-            return _respond(s, "요청을 취소했어요.")
-        s.clear()  # 일회성 확인을 먼저 소비: 재전송이 새 동작으로 이어지지 않음
-        if pending.flow == Flow.CONFIRM_VEHICLE:
-            s.car_id = pending.car_id
-            s.selected_candidate=None; s.candidate_options.clear()
-            if pending.intent:
-                return _run(s, sid, pending.intent, pending.params)
-            return _respond(s, T.VEHICLE_SET.format(no=s.car_id), chip_set="parked")
-        if pending.car_id != s.car_id:
-            return _respond(s, "차량이 변경되어 이전 요청을 취소했어요. 다시 선택해 주세요.")
-        if pending.intent == "pay_fee":
-            result = _execute_payment(s, pending)
-        elif pending.intent == "call_admin":
-            result = _execute_admin(s, pending.params)
-        else:
-            return _respond(s, "처리할 수 없는 요청이라 취소했어요.")
-        s.last_intent = pending.intent
-        return _respond(s, *result)
+        return _confirm_pending(s, sid, intent, expired, confirmation_token)
     if vehicle_only:
         previous = s.pending if s.flow in (Flow.ASK_VEHICLE, Flow.CONFIRM_VEHICLE) else None
         s.begin(Flow.CONFIRM_VEHICLE, previous.intent if previous else None,
@@ -924,7 +1004,7 @@ def handle(session_id: str, text=None, chip_id=None, event=None, request_id=None
         if record["fingerprint"] != fingerprint:
             raise Conflict("같은 request_id를 다른 요청에 사용할 수 없습니다.")
         saved = deepcopy(record["response"])
-        saved.update(destination=N.public(s), catalog=config.catalog.public(), banner=T.banner(current_alert()), alert_version=current_alert().get("version", 0),
+        saved.update(destination=N.public(s), catalog=config.catalog.public_snapshot(), banner=T.banner(current_alert()), alert_version=current_alert().get("version", 0),
                      vehicle_context=vehicle_context(s), chips=_response_chips(s, "default"),
                      flow=s.flow.value, confirmation_token=s.pending.token if s.pending else None)
         saved["meta"]["replayed"] = True
@@ -957,7 +1037,10 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
     if chip_id == "unrecognized":
         s.clear()
         try:
-            data.list_cars()
+            if isinstance(data.inner, ApiAdapter):
+                data.list_cars(candidates=True)
+            else:
+                data.list_cars()
         except DataUnavailable:
             return _respond(s, "번호 미인식 차량 목록을 확인하지 못했어요.", chip_set=["call_admin"])
         return _respond(s, "현재 번호 미인식 차량 목록은 관리자에게 확인해 주세요.", chip_set=["call_admin"])
@@ -966,7 +1049,7 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
         response["meta"].update(intent="find_my_car",source="chip")
         return response
     if chip_id:
-        chip = {**CHIPS,**config.catalog.chips()}.get(chip_id)
+        chip = {**CHIPS,**config.catalog.chip_snapshot()}.get(chip_id)
         if not chip:
             return _respond(s, T.UNKNOWN_FIRST)
         if chip_id in ("confirm_yes", "confirm_no") and confirmation_token is None:
@@ -996,7 +1079,7 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
             resp = _dispatch(s, session_id, intent, params, vehicle_only, confirmation_token)
     except DataUnavailable:
         s.clear()
-        resp = _respond(s, "현재 정보를 확인하지 못했어요. 요청은 자동 재시도하지 않습니다. 잠시 후 다시 조회해 주세요.", meta={"unavailable": True})
+        resp = _respond(s, T.REQUEST_UNAVAILABLE, meta={"unavailable": True})
     resp["meta"].update({"intent": intent, "source": source})
     return resp
 
@@ -1121,7 +1204,7 @@ def updates(session_id: str, since_version: int = 0, cursor: int = 0, runtime_id
     result["messages"] = _compact_alert_history(result["messages"], a)
     return {**result, "alert_version": version, "runtime_id": RUNTIME_ID,
             "resync_required": resync or history_gap or result["resync_required"],
-            "banner": T.banner(a), "vehicle_context": context, "destination":N.public(s), "catalog":config.catalog.public()}
+            "banner": T.banner(a), "vehicle_context": context, "destination":N.public(s), "catalog":config.catalog.public_snapshot()}
 
 
 # ------------------------------------------------------------ 부가 API
@@ -1140,11 +1223,15 @@ def stats() -> dict:
     from .llm_router import stats as router_stats
     with _lock:
         records = list(LOG)
+        admin_pruned = _admin_calls_pruned
     n = len(records)
     by_intent = Counter(x["intent"] for x in records)
     return {
         "llm": {"engine": config.LLM_ENGINE, **router_stats()},
         "total": n,
+        "backend_breaker": data.inner.breaker_stats() if isinstance(data.inner, ApiAdapter) else {},
+        "retention": {"admin_calls_pruned": admin_pruned, "incidents_pruned": incidents.pruned_count(),
+                      "uncertain_payments": len(_uncertain_payments)},
         "chip_rate": round(sum(x["input"] == "chip" for x in records) / n, 3) if n else 0,
         "unknown_rate": round(by_intent.get("unknown", 0) / n, 3) if n else 0,
         "avg_latency_ms": round(sum(x["latency_ms"] for x in records) / n, 1) if n else 0,
@@ -1160,6 +1247,7 @@ def admin_calls() -> list[dict]:
 
 def reset_all() -> None:
     global RUNTIME_ID, _alert_revision, _alert_fingerprint, _last_alert, _alert_fetched_at, _view_revision
+    global _admin_call_seq, _admin_calls_pruned
     acquired = []
     with _lock:
         if _session_users:
@@ -1173,7 +1261,10 @@ def reset_all() -> None:
                 if _alert_refreshing:
                     raise Conflict("경보 조회 중입니다. 잠시 후 초기화해 주세요.")
                 data.reset(); incidents.reset()
-                SESSIONS.clear(); LOG.clear(); ADMIN_CALLS.clear()
+                SESSIONS.clear()
+                LOG.clear()
+                ADMIN_CALLS.clear()
+                _admin_call_seq = _admin_calls_pruned = 0
                 notifications.reset(); _uncertain_payments.clear()
                 _alert_revision, _alert_fingerprint = 0, None
                 _last_alert, _alert_fetched_at = None, 0

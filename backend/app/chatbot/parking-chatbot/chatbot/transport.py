@@ -75,7 +75,12 @@ def load_json(request, timeout, *, max_bytes=MAX_JSON_BYTES, with_metadata=False
                 raise ValueError("응답 본문 크기 한도를 넘었습니다.")
             if length is not None and len(body) != int(length):
                 raise ValueError("응답 본문이 끝까지 수신되지 않았습니다.")
-            value = json.loads(body.decode("utf-8"))
+            try:
+                value = json.loads(body.decode("utf-8"))
+            except ValueError:
+                if not with_metadata or response.status < 400:
+                    raise
+                value = {}  # Preserve the status even when a proxy returned HTML.
             return (response.status, value, dict(response.headers)) if with_metadata else value
     except (OSError, ValueError, http.client.HTTPException) as exc:
         if expired.is_set() or time.monotonic() >= deadline:

@@ -61,6 +61,12 @@ def car_location(d: dict) -> str:
 
 
 CAR_NOT_FOUND = "{no}번 차의 입차 기록이 없어요. 번호가 맞는지 확인해 주세요."
+CAR_PENDING = "{no}번 차는 {where}입차 확인 중이에요. 자리가 확인되면 위치를 알려 드릴 수 있어요. 잠시 후 다시 물어봐 주세요."
+
+
+def car_pending(d: dict) -> str:
+    lot = d.get("lot_id")
+    return CAR_PENDING.format(no=d["car_id"], where=f"{config.catalog.name(lot)} " if lot else "")
 
 
 def fee(d: dict) -> str:
@@ -249,6 +255,8 @@ ALERT_CLEARED = "경보가 해제됐어요. 운영 재개 여부는 관리자 �
 
 
 def fee_unavailable(result):
+    if result.get("reason") == "pending":
+        return "입차 확인 중이라 아직 요금을 안내할 수 없어요. 잠시 후 다시 확인해 주세요."
     if result.get("reason") == "session" or result.get("error_code") == "SESSION_NOT_FOUND":
         return "아직 요금 정보를 확인할 수 없어요."
     if result.get("error_code") in ("VEHICLE_NOT_FOUND", "PARKING_LOT_NOT_FOUND"):
@@ -256,3 +264,8 @@ def fee_unavailable(result):
     if result.get("http_status") == 404:
         return "요금 조회 기능이 아직 연결되지 않았어요. 현재는 확인할 수 없어요."
     return "현재 요금 정보를 확인하지 못했어요. 잠시 후 다시 조회해 주세요."
+
+# Reuse the existing safe failure reply when the uncertainty registry is full.
+PAYMENT_CAPACITY = "이전 결제의 처리 결과가 불확실하여 추가 결제를 중지했어요. 관리자에게 확인해 주세요."
+
+REQUEST_UNAVAILABLE = "현재 정보를 확인하지 못했어요. 요청은 자동 재시도하지 않습니다. 잠시 후 다시 조회해 주세요."

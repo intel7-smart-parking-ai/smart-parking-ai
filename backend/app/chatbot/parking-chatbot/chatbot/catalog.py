@@ -1,12 +1,13 @@
 """설정과 백엔드의 주차장 명부. PROVISIONAL(API v1 확정 필요)."""
 from copy import deepcopy
 import json
-import logging
 import math
-import os
 from pathlib import Path
 import re
 import threading
+
+from .diagnostics import logger
+from .snapshots import freeze
 
 SAFE_ID = re.compile(r"[A-Za-z][A-Za-z0-9_-]{0,31}\Z")
 
@@ -30,6 +31,7 @@ class Catalog:
 
     def __init__(self, settings):
         self.lock = threading.RLock()
+        self.version = 0
         self.configure(settings)
 
     def configure(self, settings):
@@ -103,16 +105,73 @@ class Catalog:
             self.settings = doc
             self.reset()
 
+    @property
+    def settings(self):
+        return self._settings
+
+    @settings.setter
+    def settings(self, value):
+        self._settings = freeze(value)
+
     def reset(self):
         with self.lock:
-            self._lots = {x["lot_id"]: deepcopy(x) for x in self.settings["lots"]}
-            self.source = "settings"
+            self._configured = {row["lot_id"]: row for row in self.settings["lots"]}
+            self._zone_patterns = tuple(
+                (z["key"], re.compile(
+                    r"(?<![a-z])" + re.escape(alias) + r"(?![a-z])" if alias.isascii() else re.escape(alias), re.I
+                ))
+                for z in self.settings["zones"] for alias in z.get("aliases", [])
+            )
+            self._publish(self._configured, "settings")
+
+    @staticmethod
+    def _lot_patterns(lots):
+        patterns = []
+        for key, row in lots.items():
+            aliases = [re.compile(r"(?<![a-z0-9_])" + re.escape(key) + r"(?![a-z0-9_\-])", re.I)]
+            aliases.extend(re.compile(r"(?<![가-힣])" + re.escape(alias) + r"\s*(?:주차장|구역|동)")
+                           for alias in row.get("aliases", []))
+            if row.get("order_alias"):
+                aliases.append(re.compile(r"(?<![가-힣])" + re.escape(row["order_alias"]) + r"\s*주차장"))
+            contextual = tuple(re.compile(r"(?<![가-힣])" + re.escape(alias))
+                               for alias in row.get("loose_aliases", []))
+            name = row["name"]
+            patterns.append((key, tuple(aliases), contextual, (name, name.replace("주차장", " 주차장"))))
+        return tuple(patterns)
+
+    def _publish(self, lots, source):
+        """Publish a coherent immutable view while the writer owns the catalog lock."""
+        self._lots = freeze(lots)
+        self.source = source
+        self._spot_indices = {
+            key: {label: index for index, label in enumerate(row.get("spaces", []), 1)}
+            for key, row in {**self._configured, **lots}.items()
+        }
+        self._active_patterns = self._lot_patterns(lots)
+        self._api_patterns = self._lot_patterns({**self._configured, **lots})
+        self._public = freeze({
+            "lots": [{k: v for k, v in lot.items() if k in ("lot_id", "name", "kind", "capacity", "spaces")}
+                     for lot in lots.values()],
+            "zones": [{k: z[k] for k in ("key", "name")} for z in self.settings["zones"]],
+            "source": source,
+        })
+        self._chips = freeze(self._build_chips())
+        self.version += 1
+
+    def lot_patterns(self, api=False):
+        with self.lock:
+            return self._api_patterns if api else self._active_patterns
+
+    def zone_patterns(self):
+        with self.lock:
+            return self._zone_patterns
 
     def _settings_lot(self, key):
-        return next((x for x in self.settings["lots"] if x["lot_id"] == key), None)
+        return self._configured.get(key)
 
     def lots(self):
-        with self.lock:return deepcopy(self._lots)
+        with self.lock:
+            return self._lots
 
     def ids(self):
         with self.lock:return list(self._lots)
@@ -125,10 +184,12 @@ class Catalog:
         return matches[0] if len(matches)==1 else None
 
     def lot(self, key):
-        with self.lock:return deepcopy(self._lots.get(key))
+        with self.lock:
+            return self._lots.get(key)
 
     def zones(self):
-        with self.lock:return deepcopy(self.settings["zones"])
+        with self.lock:
+            return self.settings["zones"]
 
     def name(self, key):
         with self.lock:
@@ -153,13 +214,15 @@ class Catalog:
         """내부 순번 → 도면 번호. 모르면 None."""
         if spot is None:
             return None
-        labels = self.spaces(lot_id)
-        return labels[spot - 1] if type(spot) is int and 1 <= spot <= len(labels) else None
+        with self.lock:
+            lot = self._lots.get(lot_id) or self._settings_lot(lot_id) or {}
+            labels = lot.get("spaces", ())
+            return labels[spot - 1] if type(spot) is int and 1 <= spot <= len(labels) else None
 
     def space_index(self, lot_id, label):
         label = normalize_space(label)
-        labels = self.spaces(lot_id)
-        return labels.index(label) + 1 if label in labels else None
+        with self.lock:
+            return self._spot_indices.get(lot_id, {}).get(label)
 
     def register_space(self, lot_id, label):
         """서버가 준 칸 이름이 명부에 없으면 뒤에 추가한다(서버 기준). 순번을 돌려준다."""
@@ -170,18 +233,20 @@ class Catalog:
             lot = self._lots.get(lot_id)
             if lot is None:
                 return None
-            if label not in lot.setdefault("spaces", []):
-                lot["spaces"].append(label)
-                logging.getLogger(__name__).warning("명부에 없는 칸 이름을 서버 기준으로 추가: %s %s", lot_id, label)
-            return lot["spaces"].index(label) + 1
+            index = self._spot_indices[lot_id].get(label)
+            if index is not None:
+                return index
+            spaces = [*lot.get("spaces", []), label]
+            self._publish({**self._lots, lot_id: {**lot, "spaces": spaces}}, self.source)
+            return len(spaces)
 
     def adopt_spaces(self, lot_id, labels):
         """검증된 서버 칸 목록 전체로 실행 중 명부를 맞춘다. 칸 이름 순서도 서버를 따른다."""
         with self.lock:
             lot = self._lots.get(lot_id)
             if lot is not None and labels and lot.get("spaces") != list(labels):
-                lot["spaces"] = list(labels)
-                lot["capacity"] = len(labels)
+                row = {**lot, "spaces": list(labels), "capacity": len(labels)}
+                self._publish({**self._lots, lot_id: row}, self.source)
 
     def space_zone(self, lot_id, label):
         """도면 번호의 구역. 설정된 전용 칸 → 그 구역, 설정된 그 밖의 칸 → 잔여 구역, 명부에 없는 칸 → None."""
@@ -246,24 +311,28 @@ class Catalog:
                                  "name":v.get("name", fallback.get(key,{}).get("name",key)),
                                  "kind":v.get("kind", fallback.get(key,{}).get("kind","unknown")),
                                  "capacity":v["total"], "spaces": list(previous.get("spaces", []))}
-            if incoming != self._lots:
-                logging.getLogger(__name__).warning("주차장 명부를 백엔드 기준으로 갱신: %s",list(incoming))
-            self._lots, self.source = incoming, "backend"
+            if incoming != self._lots or self.source != "backend":
+                logger(__name__).info("주차장 명부를 백엔드 기준으로 갱신: %d", len(incoming))
+                self._publish(incoming, "backend")
+
+    def public_snapshot(self):
+        with self.lock:
+            return self._public
 
     def public(self):
-        # Project before copying: mock placements and aliases are not public fields.
-        with self.lock:
-            return {
-                "lots": [{k: deepcopy(v) for k, v in lot.items() if k in ("lot_id", "name", "kind", "capacity", "spaces")}
-                         for lot in self._lots.values()],
-                "zones": [{k: z[k] for k in ("key", "name")} for z in self.settings["zones"]],
-                "source": self.source,
-            }
+        # Existing in-process callers are allowed to edit this detached view.
+        return deepcopy(self.public_snapshot())
 
     def chips(self):
+        return deepcopy(self.chip_snapshot())
+
+    def chip_snapshot(self):
         with self.lock:
-            lots = [(lot["lot_id"], lot["name"]) for lot in self._lots.values()]
-            zones = [(z["key"], z["name"]) for z in self.settings["zones"]]
+            return self._chips
+
+    def _build_chips(self):
+        lots = [(lot["lot_id"], lot["name"]) for lot in self._lots.values()]
+        zones = [(z["key"], z["name"]) for z in self.settings["zones"]]
         result = {}
         for key, name in lots:
             result["lot_" + key] = {"label": name + "만 보기", "intent": "get_empty_spots", "params": {"lot_id": key}}
@@ -277,6 +346,6 @@ class Catalog:
 
 
 
-def load_catalog():
-    path = Path(os.getenv("PARKING_SETTINGS_PATH",Path(__file__).with_name("lots.json")))
+def load_catalog(path=None):
+    path = Path(path) if path is not None else Path(__file__).with_name("lots.json")
     return Catalog(json.loads(path.read_text(encoding="utf-8")))

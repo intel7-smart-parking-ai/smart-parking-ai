@@ -4,13 +4,13 @@ from __future__ import annotations
 from collections import Counter
 from contextvars import copy_context
 import hashlib
-import logging
-import os
 import threading
 import time
 
 from . import config
+from .diagnostics import logger
 from .adapters import request_timeout
+from . import llm_limits
 
 # 고정 개수의 실행 슬롯. 시간 초과된 작업도 실제 종료 전에는 슬롯을 반납하지 않는다.
 _MAX_INFLIGHT = 2
@@ -23,13 +23,13 @@ _initializing = False
 _failure = None
 _retry_at = 0.0
 _counts = Counter({k: 0 for k in (
-    "disabled", "not_installed", "missing_key", "timeout", "api_error",
+    "disabled", "not_installed", "missing_key", "timeout", "api_error", "rate_limited", "cache_hit",
     "no_tool_call", "invalid_intent", "invalid_params", "ok", "preparing", "busy")})
 _warned = set()
 _last_ms = 0.0
 _last_reason = None
 _inflight = 0
-_log = logging.getLogger(__name__)
+_log = logger(__name__)
 
 # 설명에는 실제 동작과 구분용 예문만 넣는다.
 _DESCRIPTIONS = {
@@ -82,7 +82,7 @@ def _settings():
     provider = config.LLM_PROVIDER
     if provider == "none":
         return None, "disabled"
-    key = os.getenv("OPENAI_API_KEY" if provider == "openai" else "ANTHROPIC_API_KEY", "")
+    key = config.api_key(provider)
     if not key or not config.LLM_MODEL:
         return None, "missing_key"
     # 비밀키 자체는 캐시 키나 통계에 보관하지 않는다.
@@ -95,6 +95,9 @@ def _create_model(settings):
     if provider == "openai":
         from langchain_openai import ChatOpenAI
         return ChatOpenAI(**kwargs)
+    if provider == "openrouter":
+        from langchain_openai import ChatOpenAI
+        return ChatOpenAI(**kwargs, base_url=config.OPENROUTER_BASE_URL, api_key=config.api_key("openrouter"))
     from langchain_anthropic import ChatAnthropic
     return ChatAnthropic(**kwargs)
 
@@ -116,7 +119,8 @@ def warmup():
             model, failure = _create_model(settings), None
         except ImportError:
             model, failure = None, "not_installed"
-        except Exception:
+        except Exception as exc:
+            _log.error("LLM prepare failed (%s)", type(exc).__name__)
             model, failure = None, "api_error"
         with _model_lock:
             _model, _failure = model, failure
@@ -131,7 +135,7 @@ def _record(reason, started):
         _counts[reason] += 1
         _last_ms = round((time.monotonic() - started) * 1000, 2)
         _last_reason = reason
-        warn = reason not in ("ok", "disabled") and reason not in _warned
+        warn = reason not in ("ok", "disabled", "cache_hit", "rate_limited") and reason not in _warned
         _warned.add(reason)
     if warn:
         _log.warning("LLM router fallback: %s", reason)  # 원문·키·SDK 오류 본문은 기록하지 않는다.
@@ -185,12 +189,19 @@ def route(text):
         failure = _failure if settings == _model_key else None
     if model is None:
         return finish(failure or "preparing")
+    key = llm_limits.limits.key(text, ("langchain", settings))
+    cached = llm_limits.limits.lookup(key)
+    if cached is not None:
+        return finish("cache_hit", cached)
     try:
         deadline = started + request_timeout(min(3.0, config.LLM_TIMEOUT_SEC))
     except TimeoutError:
         return finish("timeout")
     if not _slots.acquire(blocking=False):
         return finish("busy")
+    if not llm_limits.limits.admit(llm_limits.session_id.get()):
+        _slots.release()
+        return finish("rate_limited")
     done = threading.Event()
     result = []
     with _stats_lock:
@@ -206,6 +217,7 @@ def route(text):
             message = model.bind_tools(tool_schemas()).invoke([("system", prompt), ("human", text)])
             result.append(_decode(message))
         except Exception as exc:
+            _log.error("LLM invoke failed (%s)", type(exc).__name__)
             result.append(("timeout" if "timeout" in type(exc).__name__.lower() else "api_error", None))
         finally:
             with _stats_lock:
@@ -219,4 +231,6 @@ def route(text):
     if _settings()[0] != settings:
         return finish("invalid_params")
     reason, value = result[0]
+    if reason == "ok":
+        llm_limits.limits.save(key, value)
     return finish(reason, value)

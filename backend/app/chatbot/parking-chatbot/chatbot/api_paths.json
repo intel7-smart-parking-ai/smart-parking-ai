@@ -5,5 +5,7 @@
   "fee": "/api/v1/sessions/{session_id}/fee",
   "payment": "/api/v1/mock-payments",
   "alerts": "/api/v1/alerts",
-  "sessions": "/api/v1/sessions"
+  "sessions": "/api/v1/sessions",
+  "rate_policies": "/api/v1/rate-policies",
+  "virtual_search": null
 }

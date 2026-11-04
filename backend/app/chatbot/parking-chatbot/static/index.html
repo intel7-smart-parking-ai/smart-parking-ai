@@ -341,7 +341,7 @@ function renderBanner(b){
 function renderVehicle(c){
   if(!c) return;
   const text = !c.car_id ? "차량을 선택하면 위치·요금을 바로 확인할 수 있어요." :
-    `${c.car_id}번 차 · ` + (c.state === "parked" || c.state === "stale" ? `${place(c.lot_id,c.spot_no,c.space_id)}${c.state === "stale" ? " (마지막 정보)" : ""}` : c.state === "not_found" ? "입차 기록 없음" : "위치 갱신 지연");
+    `${c.car_id}번 차 · ` + (c.state === "parked" || c.state === "stale" ? `${place(c.lot_id,c.spot_no,c.space_id)}${c.state === "stale" ? " (마지막 정보)" : ""}` : c.state === "not_found" ? "입차 기록 없음" : c.state === "pending" ? "입차 확인 중" : "위치 갱신 지연");
   $("#vehicleContext").innerHTML = `<div>${esc(text)}</div>` + (c.car_id ? '<button data-chip="find_car">위치 보기</button><button data-chip="fee">요금 보기</button><button data-chip="change_vehicle">차량 변경</button>' : '<button data-chip="change_vehicle">차량 선택</button>');
 }
 function apply(r){ addBot(r); applyState(r); }

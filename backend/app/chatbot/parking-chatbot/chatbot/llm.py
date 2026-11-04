@@ -7,10 +7,12 @@ LLM은 문장을 {"intent": ..., "params": {...}} JSON으로 분류만 한다.
 from __future__ import annotations
 
 import json
-import os
+import time
+from types import SimpleNamespace
 import urllib.request
 
 from . import config
+from .diagnostics import logger
 from .parser import KNOWN_INTENTS
 from .adapters import request_timeout
 from .transport import load_json
@@ -45,7 +47,7 @@ def system_prompt() -> str:
 def _post_json(url: str, headers: dict, body: dict) -> dict:
     req = urllib.request.Request(url, data=json.dumps(body).encode("utf-8"),
                                  headers={"Content-Type": "application/json", **headers}, method="POST")
-    return load_json(req, request_timeout(config.LLM_TIMEOUT_SEC))
+    return load_json(req, request_timeout(min(3.0, config.LLM_TIMEOUT_SEC)))
 
 
 def _extract_json(text: str) -> dict | None:
@@ -60,26 +62,60 @@ def _extract_json(text: str) -> dict | None:
 
 def classify(text: str) -> dict | None:
     provider = config.LLM_PROVIDER
-    if provider == "none" or not config.LLM_MODEL:
+    if provider == "none" or not config.LLM_MODEL or not config.api_key(provider):
         return None
+    from . import llm_limits, llm_router
+
+    started = time.monotonic()
+    settings, reason = llm_router._settings()
+    if reason:
+        return None
+    key = llm_limits.limits.key(text, ("direct", settings))
+    cached = llm_limits.limits.lookup(key)
+    if cached is not None:
+        llm_router._record("cache_hit", started)
+        return cached
+    if not llm_router._slots.acquire(blocking=False):
+        return None
+    try:
+        request_timeout(min(3.0, config.LLM_TIMEOUT_SEC))
+        if not llm_limits.limits.admit(llm_limits.session_id.get()):
+            llm_router._record("rate_limited", started)
+            return None
+        value = _classify_provider(provider, text)
+        if isinstance(value, dict) and isinstance(value.get("intent"), str):
+            reason, verified = llm_router._decode(SimpleNamespace(
+                tool_calls=[{"name": value["intent"], "args": value.get("params") or {}}]
+            ))
+            if reason == "ok" and verified == value:
+                llm_limits.limits.save(key, verified)
+        return value
+    except TimeoutError:
+        return None
+    finally:
+        llm_router._slots.release()
+
+
+def _classify_provider(provider, text):
     try:
         if provider == "anthropic":
             data = _post_json(
                 "https://api.anthropic.com/v1/messages",
-                {"x-api-key": os.environ["ANTHROPIC_API_KEY"], "anthropic-version": "2023-06-01"},
+                {"x-api-key": config.api_key("anthropic"), "anthropic-version": "2023-06-01"},
                 {"model": config.LLM_MODEL, "max_tokens": 100, "temperature": 0,
                  "system": system_prompt(), "messages": [{"role": "user", "content": text}]},
             )
             return _extract_json(data["content"][0]["text"])
-        if provider == "openai":
-            data = _post_json(
-                "https://api.openai.com/v1/chat/completions",
-                {"Authorization": f"Bearer {os.environ['OPENAI_API_KEY']}"},
-                {"model": config.LLM_MODEL, "temperature": 0, "max_tokens": 100,
-                 "response_format": {"type": "json_object"},
-                 "messages": [{"role": "system", "content": system_prompt()}, {"role": "user", "content": text}]},
-            )
+        if provider in ("openai", "openrouter"):
+            body = {"model": config.LLM_MODEL, "temperature": 0, "max_tokens": 100,
+                    "messages": [{"role": "system", "content": system_prompt()}, {"role": "user", "content": text}]}
+            if provider == "openai":
+                # OpenRouter 모델은 json_object 지원이 모델마다 달라 넣지 않는다. 본문 JSON은 _extract_json이 찾는다.
+                body["response_format"] = {"type": "json_object"}
+            url = ("https://api.openai.com/v1" if provider == "openai" else config.OPENROUTER_BASE_URL) + "/chat/completions"
+            data = _post_json(url, {"Authorization": f"Bearer {config.api_key(provider)}"}, body)
             return _extract_json(data["choices"][0]["message"]["content"])
-    except Exception:
+    except (OSError, ValueError, KeyError, TypeError, IndexError) as exc:
+        logger(__name__).error("Direct LLM classify failed (%s)", type(exc).__name__)
         return None
     return None

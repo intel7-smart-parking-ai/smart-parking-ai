@@ -125,27 +125,14 @@ def extract_lot(text: str) -> str | None:
         replacement=extract_lot(text.rsplit("말고",1)[1])
         if replacement:return replacement
     text = mask_spaces(text)
-    found=[]
-    definitions = config.catalog.lots()
-    if config.DATA_SOURCE == "api":
-        for row in config.catalog.settings["lots"]:
-            definitions.setdefault(row["lot_id"], row)
     context = bool(_PARKING_CONTEXT.search(text))
-    for lot in definitions.values():
-        key=lot["lot_id"]
-        matched=bool(re.search(r"(?<![a-z0-9_])"+re.escape(key)+r"(?![a-z0-9_\-])",text,re.I))
-        for alias in lot.get("aliases",[]):
-            if re.search(r"(?<![가-힣])"+re.escape(alias)+r"\s*(?:주차장|구역|동)",text):
-                matched = True
-        order = lot.get("order_alias")
-        if order and re.search(r"(?<![가-힣])"+re.escape(order)+r"\s*주차장",text):
-            matched = True
-        if context:
-            for alias in sorted(lot.get("loose_aliases",[]), key=len, reverse=True):
-                if re.search(r"(?<![가-힣])"+re.escape(alias),text):
-                    matched = True
-        if matched or lot["name"] in text or lot["name"].replace("주차장", " 주차장") in text:found.append(key)
-    return found[0] if len(found)==1 else ("ambiguous" if found else None)
+    found = []
+    for key, aliases, contextual, names in config.catalog.lot_patterns(config.DATA_SOURCE == "api"):
+        if (any(pattern.search(text) for pattern in aliases)
+                or (context and any(pattern.search(text) for pattern in contextual))
+                or any(name in text for name in names)):
+            found.append(key)
+    return found[0] if len(found) == 1 else ("ambiguous" if found else None)
 
 
 def extract_space(text: str) -> str | None:
@@ -156,10 +143,9 @@ def extract_space(text: str) -> str | None:
 
 
 def extract_zone(text):
-    for z in config.catalog.zones():
-        for alias in z.get("aliases",[]):
-            rx = r"(?<![a-z])"+re.escape(alias)+r"(?![a-z])" if alias.isascii() else re.escape(alias)
-            if re.search(rx,text,re.I):return z["key"]
+    for key, pattern in config.catalog.zone_patterns():
+        if pattern.search(text):
+            return key
     return None
 
 
