@@ -37,3 +37,9 @@ def create_app(*, demo_billing_connection: Callable[[], Iterator[Connection]] | 
 
 
 app = create_app()
+
+
+import os
+if os.getenv("PARKING_RUNTIME") == "integrated":
+    from backend.app.integrated import create_app as create_integrated_app
+    app = create_integrated_app()

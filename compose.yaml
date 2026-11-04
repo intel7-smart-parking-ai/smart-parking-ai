@@ -1,0 +1,39 @@
+name: parkon-integrated
+services:
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      PARKING_RUNTIME: integrated
+      SMART_PARKING_DB_PATH: /data/smart_parking.db
+      TZ: Asia/Seoul
+    volumes:
+      - parking_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health')"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+  admin-auth:
+    image: python:3.11-slim
+    command: python -W ignore::DeprecationWarning /service/admin_auth.py
+    volumes:
+      - ./deployment/admin_auth.py:/service/admin_auth.py:ro
+      - ${ADMIN_HTPASSWD_PATH:-../.local-access/htpasswd}:/secrets/htpasswd:ro
+    restart: unless-stopped
+  web:
+    build:
+      context: ./frontend
+      target: production
+    ports:
+      - '127.0.0.1:8090:80'
+    depends_on:
+      api:
+        condition: service_healthy
+      admin-auth:
+        condition: service_started
+    restart: unless-stopped
+volumes:
+  parking_data:

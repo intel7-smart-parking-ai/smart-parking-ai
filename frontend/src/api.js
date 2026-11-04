@@ -53,7 +53,8 @@ export async function lookupVehicle(value, kind = 'sticker', source = dataSource
     if (source !== 'demo') throw new Error('팀 서버에서는 스티커 번호 10~99로 조회해주세요.');
     if (!/^\d{4}$/.test(input)) throw new Error('차량번호 뒤 4자리를 정확히 입력해주세요.');
     const result=await request('/vehicle-search?vehicle_number='+input,{},source);
-    return {...result,fee:result.fee?feeView(result.fee):null};
+    const fee=result.fee || (result.session_id?await request('/sessions/'+encodeURIComponent(result.session_id)+'/fee',{},source):null);
+    return {...result,fee:fee?feeView(fee):null};
   }
   if (/^\d$/.test(input)) throw new Error('스티커 번호는 두 자리로 입력해주세요. (10~99)');
   const number=input;
