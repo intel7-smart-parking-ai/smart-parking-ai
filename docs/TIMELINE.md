@@ -682,6 +682,13 @@
 
 ### 16:10 · PM 결정 6차 — D-37 김채린 데모 브랜치 나눠 올리기(프론트 먼저·포장 팀 서버용·데모 서버 보관), D-38 Docker `api`·`web`·`admin-auth` + DB 볼륨 한 파일
 
+### 16:20 · 경보 API 수정본 작성·전달 (윤명수·서정범)
+- `backend/app/alerts/router.py`(3팀 폴더): 팀 목록 형식·`source`·`is_mock`·`level`(모의 화재=2), billing과 같은 SQLite 요청별 연결, 공개 생성 제거 → 내부 `POST /api/v1/internal/alerts`(토큰)·`ingest_led_fire_event()`, 시간대 필수, `car_id` 10~99, 에러 `details`, 이벤트 ID 전부 기록
+- 경보 테스트 10 passed, main에 넣고 332 passed. **시연 서버 + 챗봇 실연결: 챗봇이 모의 화재 경보·대피 안내 답변** 확인
+
+### 16:30 · ✅ D-39 스티커 배정표 기본안 + 후보안 B, Jira 신규 Task 파일, API_CONTRACT v1 작성 시작(`chore/api-contract-v1`), 업무 배정 보류
+- 팀원별·기능별 공지: 여러 명 멘션 메시지 전송이 환경에서 막혀 **붙여넣기용 공지문**으로 PM에 전달 (PM이 게시)
+
 ---
 ---
 
