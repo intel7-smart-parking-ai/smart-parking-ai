@@ -530,6 +530,10 @@
 ### 11:58 · PM LLM 제안: OpenRouter + `google/gemma-4-26b-a4b-it`, `.env` 키 통일
 - 검토: 챗봇에 `openrouter` 제공자 추가 필요(OpenAI 호환, base_url만), 변수명 `OPENROUTER_API_KEY` 추천, 도구 호출 지원·3초 내 응답 실측 필요, 키별 사용 한도·시연 키 담당 지정 추천 → 변수명 확인 후 D-18 기록
 
+### 12:00 · ✅ D-18 확정 (PM "그렇게 진행") — OpenRouter + `google/gemma-4-26b-a4b-it` + `OPENROUTER_API_KEY`
+- `DECISIONS.md` D-18 추가, 미결에 경보 API·포트 표·시연 키 담당 추가
+- 루트 `.env.example` `LLM_API_KEY` → `OPENROUTER_API_KEY`, 챗봇 에이전트 설정 갱신(옛 "9번→09" 규칙도 D-06 기준으로 수정)
+
 ---
 ---
 
@@ -557,5 +561,5 @@
 | 경보 API 담당·필드명(`detected_at`/`occurred_at`) | 11/04 11:25 | ⏳ |
 | 포트 표 (8000 팀 / 8001 시연 / 8002 데모 / 8080 관리자 / 8090 챗봇 제안) | 11/04 11:25 | ⏳ |
 | `API_CONTRACT.md` 실제 코드 기준 갱신 | 11/04 11:25 | ⏳ |
-| LLM 제공자·계정·모델·비용 상한·키 변수명 | 11/04 11:40 | ⏳ |
+| LLM 제공자·계정·모델·비용 상한·키 변수명 | 11/04 11:40 | ✅ 12:00 D-18 |
 | 신규 Jira Task 생성 | 10:42~ | ⏳ |
