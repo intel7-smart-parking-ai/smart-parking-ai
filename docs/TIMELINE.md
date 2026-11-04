@@ -598,6 +598,13 @@
 - Docker 걸림돌: `127.0.0.1` 고정(`demo_main`·스크립트·챗봇 기본값) → `0.0.0.0`·서비스 이름, 토큰 `getpass` → 환경변수, SQLite 볼륨, RealSense USB는 호스트 실행 권장, 포트 표 선결
 - 순서 제안: 포트·서비스 이름(PM) → 백엔드 Dockerfile(박해준) → compose → 카메라 호스트 전송
 
+### 13:40 · 윤명수 `feature/KAN-28-session-status` push 확인 → PR 안내
+- 커밋 `8711a8e`가 검증 패치와 동일, main 병합 320 passed → PR 링크·제목·설명·Jira 전달
+
+### 13:45 · 박해준 PR #40 추가 수정(`--keep-empty`) 점검
+- main 병합 321 passed. 실측: depart --keep-empty 중 빈칸 유지(15초 시점 empty), 중단 직후 hold 정상, 중단 후 12초 방치 시 uncertain(예상)
+- 11/06 절차: hold → Ctrl+C → depart --keep-empty → Ctrl+C → 10초 안에 다음 hold. PM: Ready 후 병합 가능
+
 ---
 ---
 
