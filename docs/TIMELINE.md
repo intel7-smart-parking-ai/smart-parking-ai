@@ -593,6 +593,11 @@
 ### 13:30 · 윤명수 `status` 칸 + 매출 `lot_id` 필터 패치 전달
 - 두 패치를 최신 main에서 작성·검증(함께 320 passed, 필터 테스트 1개 추가) → `git apply`로 적용 안내, 브랜치 `feature/KAN-28-session-status` 한 PR
 
+### 13:35 · PM 공지: 모듈별 Docker 실행, 목업/실제 모드 설정 전환, 카메라는 호스트 실행 검토
+- 현황: 프론트·챗봇은 전환 설정 있음, 백엔드는 `main.py`/`demo_main.py` 파일 분리(Dockerfile 없음), 카메라 코드는 저장소 없음
+- Docker 걸림돌: `127.0.0.1` 고정(`demo_main`·스크립트·챗봇 기본값) → `0.0.0.0`·서비스 이름, 토큰 `getpass` → 환경변수, SQLite 볼륨, RealSense USB는 호스트 실행 권장, 포트 표 선결
+- 순서 제안: 포트·서비스 이름(PM) → 백엔드 Dockerfile(박해준) → compose → 카메라 호스트 전송
+
 ---
 ---
 
@@ -624,4 +629,5 @@
 | 11/10 통합 서버 (`main.py` vs `demo_main`) | 11/04 12:40 | ⏳ |
 | `/spaces` `entry_at` 필드 추가 | 11/04 12:40 | ⏳ PM+박해준 |
 | 11/06 챗봇 시연 여부 | 11/04 12:40 | ⏳ |
+| Docker compose 서비스 이름·포트 | 11/04 13:35 | ⏳ |
 | 신규 Jira Task 생성 | 10:42~ | ⏳ |
