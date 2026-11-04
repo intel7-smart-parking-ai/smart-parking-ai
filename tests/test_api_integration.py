@@ -199,6 +199,18 @@ def test_revenue_report_shape(client):
     assert lot_a["net_revenue_krw"] == 2500
 
 
+def test_revenue_report_lot_filter(client):
+    _pay(client)  # A 주차장 2,500원
+    a = client.get("/api/v1/reports/revenue", params={"lot_id": "A"}).json()
+    assert a["lot_id"] == "A" and a["summary"]["net_revenue_krw"] == 2500
+    assert [l["lot_id"] for l in a["lots"]] == ["A"]
+    b = client.get("/api/v1/reports/revenue", params={"lot_id": "B"}).json()
+    assert b["lot_id"] == "B" and b["summary"]["net_revenue_krw"] == 0 and b["daily_revenue"] == []
+    assert client.get("/api/v1/reports/revenue").json()["lot_id"] is None
+    r = client.get("/api/v1/reports/revenue", params={"lot_id": "Z"})
+    assert r.status_code == 404 and r.json()["error"]["code"] == "PARKING_LOT_NOT_FOUND"
+
+
 # ---------- 팀 공통 형식 (에러·목록) ----------
 
 def test_error_uses_team_format(client):

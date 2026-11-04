@@ -35,7 +35,8 @@ CREATE TABLE IF NOT EXISTS parking_sessions (
     space_id      TEXT,
     car_id        TEXT,                       -- 미인식이면 NULL
     entry_at      TEXT NOT NULL,
-    exit_at       TEXT
+    exit_at       TEXT,
+    status        TEXT CHECK (status IN ('active', 'closed'))  -- 주차 중 / 출차 완료 (D-02)
 );
 CREATE TABLE IF NOT EXISTS mock_payments (
     payment_id      TEXT PRIMARY KEY,
@@ -75,6 +76,12 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 
 def init_schema(conn: sqlite3.Connection) -> None:
     conn.executescript(SCHEMA)
+    # 예전 DB 파일에는 status 칸이 없다 → 한 번만 추가하고 exit_at으로 채운다
+    columns = {row[1] for row in conn.execute("PRAGMA table_info(parking_sessions)")}
+    if "status" not in columns:
+        conn.execute("ALTER TABLE parking_sessions ADD COLUMN status TEXT CHECK (status IN ('active', 'closed'))")
+        conn.execute("UPDATE parking_sessions SET status = CASE WHEN exit_at IS NULL THEN 'active' ELSE 'closed' END")
+        conn.commit()
 
 
 # 주차장 4곳 기본 데이터 (2026-11-03, 요금표는 윤명수 작성·PM 확인)
