@@ -1,8 +1,12 @@
+import sqlite3
+from contextlib import closing
 from datetime import datetime, timedelta, timezone
 
 import pytest
 from fastapi.testclient import TestClient
 
+from backend.app import demo_main
+from backend.app.database.parking_sessions import SessionError
 from backend.app.demo_main import create_app
 from backend.app.simulation.run_parking_demo import A_SPACES, DemoError, local_base_url, run_demo
 
@@ -65,3 +69,86 @@ def test_base_url_only_allows_local_http_with_port():
     assert local_base_url("http://localhost:8012/") == "http://127.0.0.1:8012"
     with pytest.raises(ValueError):
         local_base_url("http://192.0.2.1:8002")
+
+
+@pytest.mark.parametrize("short", [False, True])
+def test_depart_then_repeat_without_losing_billing_history(short, monkeypatch):
+    now = datetime.now(timezone.utc)
+    stop_at = now
+    token = "synthetic-test-token"
+    count = 3 if short else 12
+    app = create_app(token=token, clock=lambda: now)
+
+    def advance(seconds):
+        nonlocal now
+        now += timedelta(seconds=seconds)
+
+    def hold_until_interrupt(seconds):
+        if now >= stop_at:
+            raise KeyboardInterrupt
+        advance(seconds)
+
+    def sessions():
+        with closing(sqlite3.connect(app.state.billing_path)) as conn:
+            return conn.execute(
+                "SELECT session_id, status, exit_at FROM parking_sessions "
+                "WHERE session_id <> 'ses_demo' ORDER BY session_id"
+            ).fetchall()
+
+    with TestClient(app) as client:
+        def run(**options):
+            run_demo(client, token, short=short, clock=lambda: now, output=lambda _: None, **options)
+
+        history = {}
+        for cycle in range(2):
+            advance(1.1)
+            stop_at = now + timedelta(seconds=5)
+            with pytest.raises(KeyboardInterrupt):
+                run(hold=True, wait=hold_until_interrupt)
+            active = {sid for sid, state, _ in sessions() if state == "active"}
+            assert len(active) == count and not active.intersection(history)
+
+            if cycle == 0:
+                sid = client.get("/api/v1/vehicles/10/location").json()["session_id"]
+                assert sid in active
+                fee = client.get(f"/api/v1/sessions/{sid}/fee", params={"now": now.isoformat()})
+                assert fee.status_code == 200
+                payment = client.post("/api/v1/mock-payments", json={
+                    "session_id": sid, "quote_id": fee.json()["quote_id"],
+                    "idempotency_key": "repeat-demo-payment",
+                })
+                assert payment.status_code == 200
+                advance(11)
+                rows = client.get("/api/v1/parking-lots/A/spaces").json()["items"]
+                assert sum(row["status"] == "uncertain" for row in rows) == count
+                assert {sid for sid, state, _ in sessions() if state == "active"} == active
+
+                def conflict(*args, **kwargs):
+                    raise SessionError(409, "TEST_CONFLICT", "합성 충돌")
+
+                def unavailable(*args, **kwargs):
+                    raise sqlite3.OperationalError("synthetic write failure")
+
+                for failure, code in ((conflict, 409), (unavailable, 503)):
+                    with monkeypatch.context() as patch:
+                        patch.setattr(demo_main, "exit_session", failure)
+                        with pytest.raises(DemoError, match=rf"HTTP {code}.*--depart"):
+                            run(depart=True, wait=advance)
+                    assert {sid for sid, state, _ in sessions() if state == "active"} == active
+
+            run(depart=True, wait=advance)
+            closed = sessions()
+            assert len(closed) == count * (cycle + 1)
+            assert all(state == "closed" and exited for _, state, exited in closed)
+            assert {sid: exited for sid, _, exited in closed if sid in history} == history
+            history = {sid: exited for sid, _, exited in closed}
+            run(depart=True, wait=advance)
+            assert sessions() == closed
+            lots = client.get("/api/v1/parking-lots").json()["items"]
+            assert next(lot for lot in lots if lot["lot_id"] == "A")["empty_spaces"] == 12
+
+        with closing(sqlite3.connect(app.state.billing_path)) as conn:
+            assert conn.execute("SELECT payment_id FROM mock_payments").fetchall() == [
+                (payment.json()["payment_id"],),
+            ]
+            assert conn.execute("SELECT quote_id FROM fee_quotes").fetchall() == [(fee.json()["quote_id"],)]
