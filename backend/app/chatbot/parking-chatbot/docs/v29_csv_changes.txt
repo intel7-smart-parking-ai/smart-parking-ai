@@ -1,0 +1,51 @@
+tests/llm_eval_questions.csv: 출입문이 내 자동차를 통과시키지 않아|check_exit_issue|| -> 출입문이 내 자동차를 통과시키지 않아|exit_help||
+tests/llm_eval_questions.csv: 막대가 내려와 있어서 밖으로 못 움직여|check_exit_issue|| -> 막대가 내려와 있어서 밖으로 못 움직여|exit_help||
+tests/llm_eval_questions.csv: 차량 통행 막대가 계속 내려와 있어|check_exit_issue|| -> 차량 통행 막대가 계속 내려와 있어|exit_help||
+tests/llm_eval_questions.csv: 차단기 앙 열려요|check_exit_issue|| -> 차단기 앙 열려요|exit_help||
+tests/questions.csv: 7번 차 어디 주차했지|find_my_car|07| -> 17번 차 어디 주차했지|find_my_car|17|
+tests/questions.csv: 칠번 차 위치|find_my_car|07| -> 십칠번 차 위치|find_my_car|17|
+tests/questions.csv: 12번 차 주차비 얼마예요|get_fee|12| -> 22번 차 주차비 얼마예요|get_fee|22|
+tests/questions.csv: 3번 차량 금액|get_fee|03| -> 13번 차량 금액|get_fee|13|
+tests/questions.csv: 07번 정산해줘|pay_fee|07| -> 17번 정산해줘|pay_fee|17|
+tests/questions.csv: 출차가 안 돼요|check_exit_issue|| -> 출차가 안 돼요|exit_help||
+tests/questions.csv: 차단기가 안 열려요|check_exit_issue|| -> 차단기가 안 열려요|exit_help||
+tests/questions.csv: 나가려는데 출구에서 막혔어|check_exit_issue|| -> 나가려는데 출구에서 막혔어|exit_help||
+tests/questions.csv: 07|unknown|07| -> 17|unknown|17|
+tests/questions.csv: 7번 차 주차 상태|find_my_car|07| -> 17번 차 주차 상태|find_my_car|17|
+tests/questions_extended.csv: 7번 주차비 확인|get_fee|07| -> 17번 주차비 확인|get_fee|17|
+tests/questions_extended.csv: ０７번 요금 알려줘|get_fee|07| -> １７번 요금 알려줘|get_fee|17|
+tests/questions_extended.csv: 7번차 주차비|get_fee|07| -> 17번차 주차비|get_fee|17|
+tests/questions_extended.csv: 정산했어요 그런데 차단기가 안 올라와요|check_exit_issue|| -> 정산했어요 그런데 차단기가 안 올라와요|exit_help||
+tests/questions_extended.csv: 요금은 냈는데 출차가 안돼|check_exit_issue|| -> 요금은 냈는데 출차가 안돼|exit_help||
+tests/questions_extended.csv: 출구에서 못 나가겠어요|check_exit_issue|| -> 출구에서 못 나가겠어요|exit_help||
+tests/questions_extended.csv: 차단기가 먹통이에요|check_exit_issue|| -> 차단기가 먹통이에요|exit_help||
+tests/questions_extended.csv: 07번 차량 찾아주세요|find_my_car|07| -> 17번 차량 찾아주세요|find_my_car|17|
+tests/questions_extended.csv: 7 번 차 위치좀|find_my_car|07| -> 17 번 차 위치좀|find_my_car|17|
+tests/questions_holdout.csv: 7번 차 요금 좀 봐주세요|get_fee|07| -> 17번 차 요금 좀 봐주세요|get_fee|17|
+tests/questions_holdout.csv: 차단기가 안 올라가서 못 나가요|check_exit_issue|| -> 차단기가 안 올라가서 못 나가요|exit_help||
+tests/questions_holdout.csv: 출차가 안 되는데요|check_exit_issue|| -> 출차가 안 되는데요|exit_help||
+tests/questions_holdout.csv: 8번 차 위치 좀 알려주실래요|find_my_car|08| -> 18번 차 위치 좀 알려주실래요|find_my_car|18|
+tests/questions_navigation_dev.csv: A 일반 구역 자리|get_empty_spots||normal -> A 일반 구역 자리|get_empty_spots||general
+tests/questions_navigation_dev.csv: D 장애인 구역 빈자리|get_empty_spots||disabled -> D 장애인 구역 빈자리|get_empty_spots||accessible
+tests/questions_navigation_dev.csv: 일반 구역은?|get_empty_spots||normal -> 일반 구역은?|get_empty_spots||general
+tests/questions_navigation_holdout.csv: A 장애인 구역은 비었나요|get_empty_spots||disabled -> A 장애인 구역은 비었나요|get_empty_spots||accessible
+tests/questions_navigation_holdout.csv: B 일반 자리 알려줘|get_empty_spots||normal -> B 일반 자리 알려줘|get_empty_spots||general
+tests/questions_realistic.csv: 7번 차 어디 있어요?|find_my_car|07| -> 17번 차 어디 있어요?|find_my_car|17|
+tests/questions_realistic.csv: 07번차 위치 알려줘|find_my_car|07| -> 17번차 위치 알려줘|find_my_car|17|
+tests/questions_realistic.csv: 8번 차가 안 보여요|find_my_car|08| -> 18번 차가 안 보여요|find_my_car|18|
+tests/questions_realistic.csv: 7번 차 지금 얼마예요|get_fee|07| -> 17번 차 지금 얼마예요|get_fee|17|
+tests/questions_realistic.csv: 7번 차 결제할게요|pay_fee|07| -> 17번 차 결제할게요|pay_fee|17|
+tests/questions_realistic.csv: 돈 냈는데 차단기가 안 올라가요|check_exit_issue|| -> 돈 냈는데 차단기가 안 올라가요|exit_help||
+tests/questions_realistic.csv: 정산했는데 출구가 안 열려요|check_exit_issue|| -> 정산했는데 출구가 안 열려요|exit_help||
+tests/questions_realistic.csv: 결제했는데 못 나가요|check_exit_issue|| -> 결제했는데 못 나가요|exit_help||
+tests/questions_realistic.csv: 출차 안됨|check_exit_issue|| -> 출차 안됨|exit_help||
+tests/questions_realistic.csv: 차단기 안열림|check_exit_issue|| -> 차단기 안열림|exit_help||
+tests/questions_realistic.csv: 7번 차 와이퍼 고장났어요|unknown|07| -> 17번 차 와이퍼 고장났어요|unknown|17|
+tests/questions_rehearsal.csv: 휠체어 마크 있는 칸 비었어?|get_empty_spots||disabled -> 휠체어 마크 있는 칸 비었어?|get_empty_spots||accessible
+tests/questions_stability.csv: 아니 7번 말고 8번|unknown|08| -> 아니 17번 말고 18번|unknown|18|
+tests/questions_stability.csv: 차가 안 빠져요|check_exit_issue|| -> 차가 안 빠져요|exit_help||
+tests/questions_stability.csv: 7번 말고 8번 결제|pay_fee|08| -> 17번 말고 18번 결제|pay_fee|18|
+tests/questions_stability.csv: 8번 차 관리자 불러주세요|call_admin|08| -> 18번 차 관리자 불러주세요|call_admin|18|
+tests/questions_stability.csv: 7번 8번 차량|unknown|ambiguous| -> 17번 18번 차량|unknown|ambiguous|
+tests/questions_stability.csv: 7번 말고 다른 차|unknown|missing| -> 17번 말고 다른 차|unknown|missing|
+tests/questions_stability.csv: 관리자 호출 말고 7번 요금|get_fee|07| -> 관리자 호출 말고 17번 요금|get_fee|17|

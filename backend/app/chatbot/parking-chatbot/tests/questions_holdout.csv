@@ -1,16 +1,16 @@
-question,intent,lot_id,vehicle_no
+question,intent,lot_id,car_id
 B 주차장에 주차 가능할까요,get_empty_spots,B,
 혹시 빈자리 남았나요,get_empty_spots,,
 C 주차장 만차예요?,get_empty_spots,C,
-7번 차 요금 좀 봐주세요,get_fee,,07
+17번 차 요금 좀 봐주세요,get_fee,,17
 주차비만 알려주세요,get_fee,,
 현재 결제 상태를 알고 싶어요,get_fee,,
 정산은 안 할래요,cancel_action,,
 관리자 부르지 마세요,cancel_action,,
 결제 취소해 주세요,cancel_action,,
-차단기가 안 올라가서 못 나가요,check_exit_issue,,
-출차가 안 되는데요,check_exit_issue,,
-8번 차 위치 좀 알려주실래요,find_my_car,,08
+차단기가 안 올라가서 못 나가요,exit_help,,
+출차가 안 되는데요,exit_help,,
+18번 차 위치 좀 알려주실래요,find_my_car,,18
 제 차 어디 있나요,find_my_car,,
 B 주차장에 자리 생기면 알려주세요,get_empty_spots,B,
 대기 취소 부탁해요,get_empty_spots,,

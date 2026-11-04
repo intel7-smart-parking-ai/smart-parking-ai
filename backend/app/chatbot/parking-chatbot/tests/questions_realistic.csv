@@ -1,4 +1,4 @@
-question,intent,lot_id,vehicle_no
+question,intent,lot_id,car_id
 지금 주차할 데 있어요?,get_empty_spots,,
 빈자리 있나요,get_empty_spots,,
 주차할 곳 좀 알려줘,get_empty_spots,,
@@ -7,13 +7,13 @@ B주차장 남는 자리 있나요,get_empty_spots,B,
 a구역 빈칸,get_empty_spots,A,
 씨 주차장에 댈 데 있어?,get_empty_spots,C,
 그럼 B는?,get_empty_spots,B,
-7번 차 어디 있어요?,find_my_car,,07
-07번차 위치 알려줘,find_my_car,,07
+17번 차 어디 있어요?,find_my_car,,17
+17번차 위치 알려줘,find_my_car,,17
 제차가 어디있죠,find_my_car,,
 내차를 못 찾겠어요,find_my_car,,
-8번 차가 안 보여요,find_my_car,,08
+18번 차가 안 보여요,find_my_car,,18
 차 어디 뒀는지 모르겠어,find_my_car,,
-7번 차 지금 얼마예요,get_fee,,07
+17번 차 지금 얼마예요,get_fee,,17
 주차비 얼마 나왔어?,get_fee,,
 지금 나가면 얼마야,get_fee,,
 결제했는지 확인해줘,get_fee,,
@@ -25,15 +25,15 @@ a구역 빈칸,get_empty_spots,A,
 무료주차 시간 알려줘,fee_rule,,
 주차요금 어떻게 계산돼요?,fee_rule,,
 10분에 얼마예요?,fee_rule,,
-7번 차 결제할게요,pay_fee,,07
+17번 차 결제할게요,pay_fee,,17
 정산할래요,pay_fee,,
 주차비 미리 낼게요,pay_fee,,
 모의 결제 해줘,pay_fee,,
-돈 냈는데 차단기가 안 올라가요,check_exit_issue,,
-정산했는데 출구가 안 열려요,check_exit_issue,,
-결제했는데 못 나가요,check_exit_issue,,
-출차 안됨,check_exit_issue,,
-차단기 안열림,check_exit_issue,,
+돈 냈는데 차단기가 안 올라가요,exit_help,,
+정산했는데 출구가 안 열려요,exit_help,,
+결제했는데 못 나가요,exit_help,,
+출차 안됨,exit_help,,
+차단기 안열림,exit_help,,
 관리자 좀 불러주세요,call_admin,,
 직원 연결 부탁해요,call_admin,,
 사람 연결해줘,call_admin,,
@@ -66,5 +66,5 @@ B 자리 나면 알려주세요,get_empty_spots,B,
 내 차 바꿔줘,change_vehicle,,
 환불해줘,unknown,,
 오늘 비 와요?,unknown,,
-7번 차 와이퍼 고장났어요,unknown,,07
+17번 차 와이퍼 고장났어요,unknown,,17
 주차장 와이파이 비밀번호 알려줘,unknown,,

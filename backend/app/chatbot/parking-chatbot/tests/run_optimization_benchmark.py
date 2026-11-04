@@ -15,7 +15,7 @@ from chatbot.adapters import CachedAdapter,MockAdapter
 def fresh():
  e.data=CachedAdapter(MockAdapter());e.reset_all()
 results={}
-fresh();e.get_session('near').vehicle_no='07';e.data.set_alert(2,'A',6);e.current_alert()
+fresh();e.get_session('near').car_id='17';e.data.set_alert(2,'A',6);e.current_alert()
 original=e.data.inner.find_car;reads=0
 def delayed(v):
  global reads
@@ -29,7 +29,7 @@ for kind in ('location','occupancy'):
  fresh();barrier=threading.Barrier(12);lock=threading.Lock();reads=0
  for i in range(12):
   s=e.get_session('read-'+str(i))
-  if kind=='location':s.vehicle_no='07'
+  if kind=='location':s.car_id='17'
  name='find_car' if kind=='location' else 'get_empty_spots';original=getattr(e.data.inner,name)
  def delayed(*a):
   global reads

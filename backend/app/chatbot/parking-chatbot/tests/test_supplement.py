@@ -31,14 +31,14 @@ class SupplementTests(unittest.TestCase):
     def test_briefing_charge_zone_and_electric_adjacent(self):
         e.data.set_alert(2,'C',2);e.current_alert()
         b=incidents.list_public()[0]['briefing']
-        self.assertIn('18번 · 전기차',' / '.join(b['adjacent']))
+        self.assertIn('28번 · 전기차',' / '.join(b['adjacent']))
         self.assertIn('질식소화덮개',b['equipment'])
-        e.data.set_alert(2,'A',7);e.current_alert()
+        e.data.set_alert(2,'A',5);e.current_alert()  # A-05: 충전 구역(도면)
         self.assertIn('충전',incidents.list_public()[0]['briefing']['location'])
 
     def test_briefing_unknown_is_not_zero(self):
         with patch.object(e.data,'list_cars',side_effect=DataUnavailable()):
-            e.data.set_alert(2,'A',6);e.current_alert()
+            e.data.set_alert(2,'A',3);e.current_alert()  # A-03: 일반 구역
         b=incidents.list_public()[0]['briefing']
         self.assertIsNone(b['ev_count']);self.assertIn('확인 불가',b['vehicle'])
         self.assertNotIn('0대',b['ev_count_text']);self.assertIn('미확인',b['facility'])
@@ -54,24 +54,24 @@ class SupplementTests(unittest.TestCase):
         for change in ('bad_spot','duplicate_spot','bad_vehicle','duplicate_vehicle','facility','height','exits'):
             doc=deepcopy(config.catalog.settings)
             if change=='bad_spot':doc['lots'][0]['zone_layout']={'ev':[99]}
-            if change=='duplicate_spot':doc['lots'][0]['zone_layout']={'ev':[1],'disabled':[1]}
-            if change=='bad_vehicle':doc['ev_vehicles']=['99']
-            if change=='duplicate_vehicle':doc['ev_vehicles']=['03','03']
+            if change=='duplicate_spot':doc['lots'][0]['zone_layout']={'ev':['A-01'],'accessible':['A-01']}
+            if change=='bad_vehicle':doc['ev_vehicles']=['09']
+            if change=='duplicate_vehicle':doc['ev_vehicles']=['13','13']
             if change=='facility':doc['lots'][0]['facility']={'sprinkler':'no'}
             if change=='height':doc['lots'][0]['facility']={'height_limit_m':float('nan')}
             if change=='exits':doc['lots'][0]['exits']=['']
             with self.subTest(change=change),self.assertRaises(ValueError):Catalog(doc)
 
     def test_zone_layout_overrides_auto_assignment(self):
-        doc=deepcopy(config.catalog.settings);doc['lots'][0]['zone_layout']={'ev':[6],'disabled':[1]}
+        doc=deepcopy(config.catalog.settings);doc['lots'][0]['zone_layout']={'ev':['A-06'],'accessible':['A-01']}
         c=Catalog(doc)
-        self.assertEqual(c.zone_spots(8,'A')['ev'],[6])
-        self.assertEqual(c.zone_spots(8,'A')['disabled'],[1])
-        self.assertNotIn(6,c.zone_spots(8,'A')['normal'])
+        self.assertEqual(c.zone_spots(None,'A')['ev'],[6])
+        self.assertEqual(c.zone_spots(None,'A')['accessible'],[1])
+        self.assertNotIn(6,c.zone_spots(None,'A')['general'])
 
     def test_uncertain_is_excluded_from_empty_and_destination(self):
         e.data.fill_lot('D');e.data.clear_demo('D')
-        free=sorted(set(range(1,9))-e.data.inner._occupied_spots('D'))
+        free=sorted(set(range(1,e.data.inner.capacity['D']+1))-e.data.inner._occupied_spots('D'))
         for spot in free:e.data.set_uncertain('D',spot,True)
         d=e.data.get_empty_spots()['lots']['D']
         self.assertEqual(d['empty'],0);self.assertEqual(d['uncertain'],len(free))
@@ -98,7 +98,7 @@ class SupplementTests(unittest.TestCase):
 
     def suggest(self,count=1):
         for _ in range(count):self.assertTrue(e.data.enter_unrecognized('D')['ok'])
-        e.handle('s',text='24번 차 위치')
+        e.handle('s',text='34번 차 위치')
         return e.handle('s',text='네')
 
     def test_unrecognized_one_candidate_two_actions_and_no_auto_link(self):
@@ -108,13 +108,13 @@ class SupplementTests(unittest.TestCase):
         token=r['chips'][0]['id']
         selected=e.handle('s',chip_id=token)
         self.assertIn('후보 위치',selected['text'])
-        self.assertEqual(e.get_session('s').vehicle_no,'24')
+        self.assertEqual(e.get_session('s').car_id,'34')
         self.assertIsNone(e.get_session('s').pending)
 
     def test_unrecognized_candidate_cannot_pay_or_query_fees(self):
         r=self.suggest();e.handle('s',chip_id=r['chips'][0]['id'])
         with patch.object(e.data,'pay',wraps=e.data.pay)as pay,patch.object(e.data,'get_fee',wraps=e.data.get_fee)as fee:
-            for chip in ('fee','pay','exit_issue'):
+            for chip in ('fee','pay'):
                 result=e.handle('s',chip_id=chip)
                 self.assertIn('관리자 확인 후',result['text'])
                 self.assertNotEqual(result['flow'],'confirm_action')
@@ -126,13 +126,13 @@ class SupplementTests(unittest.TestCase):
         self.assertNotIn('candidate:',str(r['chips']))
         self.assertIn('candidate_admin',[c['id']for c in r['chips']])
         call=e.handle('s',chip_id='candidate_admin')
-        self.assertIn('번호 미인식 후보 확인 요청(D-',call['card']['data']['summary'])
+        self.assertIn('번호 미인식 후보 확인 요청(신세계백화점주차장 ',call['card']['data']['summary'])
 
     def test_unrecognized_latest_first_and_max_three(self):
         r=self.suggest(3)
         from datetime import timedelta
         from chatbot.adapters import now,iso
-        e.data.inner.unrecognized[0]['entered_at']=iso(now()-timedelta(minutes=10))
+        e.data.inner.unrecognized[0]['entry_at']=iso(now()-timedelta(minutes=10))
         r=e.handle('s',chip_id='find_car')
         self.assertNotEqual(r['card']['data']['cars'][0]['spot_no'],e.data.inner.unrecognized[0]['spot_no'])
         self.assertEqual(len(r['chips']),4)
@@ -147,7 +147,7 @@ class SupplementTests(unittest.TestCase):
     def test_unrecognized_candidate_admin_summary_and_report_accept_null(self):
         r=self.suggest();e.handle('s',chip_id=r['chips'][0]['id'])
         call=e.handle('s',chip_id='candidate_admin')
-        self.assertIn('번호 미인식 후보 확인 요청(D-',call['card']['data']['summary'])
+        self.assertIn('번호 미인식 후보 확인 요청(신세계백화점주차장 ',call['card']['data']['summary'])
         e.data.set_alert(2,'D',1);e.current_alert()
         report=incidents.list_public()[0]
         self.assertIn('번호 미인식',report['report'])
@@ -156,7 +156,7 @@ class SupplementTests(unittest.TestCase):
 
     def test_unrecognized_mock_filler_is_not_a_candidate(self):
         e.data.enter_car('D');e.data.fill_lot('D')
-        e.handle('s',text='24번 차 위치');r=e.handle('s',text='네')
+        e.handle('s',text='34번 차 위치');r=e.handle('s',text='네')
         self.assertIsNone(r['card']);self.assertIn('입차 기록이 없',r['text'])
 
     def test_unrecognized_candidate_is_not_shown_during_lv2(self):
@@ -175,15 +175,15 @@ class SupplementTests(unittest.TestCase):
         from chatbot.parser import parse
         catalog=Catalog(config.catalog.settings)
         catalog.adopt({'East':{'name':'동관','kind':'virtual','total':8}})
-        with patch.object(config,'catalog',catalog),patch('chatbot.llm.classify',return_value={'intent':'set_destination','params':{'lot_id':'East'}}):
+        with patch.object(config,'catalog',catalog),patch('chatbot.config.LLM_ENGINE', 'direct'),patch('chatbot.llm.classify',return_value={'intent':'set_destination','params':{'lot_id':'East'}}):
             self.assertEqual(parse('동쪽 건물로 데려다줘').params['lot_id'],'East')
 
     def test_audit_vehicle_change_preserves_number_and_requires_confirmation(self):
-        e.get_session('s').vehicle_no='07'
-        r=e.handle('s',text='8번 차로 바꿔')
-        self.assertEqual(r['flow'],'confirm_vehicle');self.assertIn('08번',r['text'])
-        self.assertIsNone(e.get_session('s').vehicle_no)
-        e.handle('s',text='네');self.assertEqual(e.get_session('s').vehicle_no,'08')
+        e.get_session('s').car_id='17'
+        r=e.handle('s',text='18번 차로 바꿔')
+        self.assertEqual(r['flow'],'confirm_vehicle');self.assertIn('18번',r['text'])
+        self.assertIsNone(e.get_session('s').car_id)
+        e.handle('s',text='네');self.assertEqual(e.get_session('s').car_id,'18')
 
     def test_audit_negative_manager_synonym_never_calls_model(self):
         with patch('chatbot.llm.classify')as classify:

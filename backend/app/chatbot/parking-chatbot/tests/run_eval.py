@@ -2,7 +2,7 @@
 
     python tests/run_eval.py
 
-정답률 = intent·lot_id·vehicle_no 가 모두 기대값과 같은 질문 수 ÷ 전체 질문 수
+정답률 = intent·lot_id·car_id 가 모두 기대값과 같은 질문 수 ÷ 전체 질문 수
 프롬프트나 규칙을 바꿀 때마다 돌려서 정답률이 떨어지지 않았는지 확인한다.
 """
 import csv
@@ -24,8 +24,8 @@ for r in rows:
     res = parse(r["question"])
     times.append((time.perf_counter() - t) * 1000)
     sources[res.source] = sources.get(res.source, 0) + 1
-    got = (res.intent, res.params.get("lot_id", ""), res.params.get("vehicle_no", ""))
-    exp = (r["intent"], r["lot_id"], r["vehicle_no"])
+    got = (res.intent, res.params.get("lot_id", ""), res.params.get("car_id", ""))
+    exp = (r["intent"], r["lot_id"], r["car_id"])
     if "zone" in r:
         got += (res.params.get("zone", ""),)
         exp += (r["zone"],)

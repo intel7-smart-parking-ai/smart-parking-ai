@@ -1,10 +1,11 @@
 {
-  "schema_note": "PROVISIONAL(API v1 확정 필요)",
-  "vehicle_min": 1,
-  "vehicle_max": 24,
+  "schema_note": "주차장·칸 구성은 레포 docs/API_CONTRACT.md(도면 확정, 2026-11-03) 기준. 요금 정책은 목업 전용이며 billing db.py DEFAULT_RATE_POLICIES와 맞춘다.",
+  "vehicle_min": 10,
+  "vehicle_max": 99,
+  "assigned_car_ids": null,
   "zones": [
     {
-      "key": "normal",
+      "key": "general",
       "name": "일반",
       "aliases": [
         "일반"
@@ -19,76 +20,102 @@
         "전기차",
         "EV"
       ],
-      "slots_per_lot": 1,
       "home": true
     },
     {
-      "key": "disabled",
+      "key": "accessible",
       "name": "장애인",
       "aliases": [
-        "장애인"
+        "장애인",
+        "휠체어"
       ],
-      "slots_per_lot": 1,
       "home": true
     }
   ],
   "lots": [
     {
       "lot_id": "A",
-      "name": "A 주차장",
+      "name": "개발원주차장",
       "kind": "real",
-      "capacity": 8,
+      "spaces": [
+        "A-01",
+        "A-02",
+        "A-03",
+        "A-04",
+        "A-05",
+        "A-06",
+        "B-01",
+        "B-02",
+        "B-03",
+        "B-04",
+        "B-05",
+        "B-06"
+      ],
       "aliases": [
+        "개발원",
+        "개발원 주차장",
         "에이"
       ],
-      "exit": "A 주차장 동쪽 출구",
+      "order_alias": "가",
+      "loose_aliases": [
+        "개발원"
+      ],
+      "exit": "개발원주차장 동쪽 출구",
       "mock_cars": [
         [
-          "01",
+          "11",
           1,
           95
         ],
         [
-          "02",
+          "12",
           2,
           40
         ],
         [
-          "03",
+          "13",
           3,
           12
         ],
         [
-          "05",
+          "15",
           5,
           150
         ],
         [
-          "06",
+          "16",
           6,
           33
         ],
         [
-          "07",
+          "17",
           7,
           58
         ],
         [
-          "08",
+          "18",
           8,
           20
         ]
       ],
       "zone_layout": {
         "ev": [
-          7
+          "A-05",
+          "A-06"
         ],
-        "disabled": [
-          8
+        "accessible": [
+          "B-06"
         ]
       },
+      "rate_policy": {
+        "base_minutes": 30,
+        "base_fee": 1000,
+        "unit_minutes": 10,
+        "extra_fee": 500,
+        "daily_cap": 10000
+      },
       "exits": [
-        "A 주차장 동쪽 출구"
+        "개발원주차장 동쪽 출구"
       ],
       "facility": {
         "underground": null,
@@ -98,66 +125,98 @@
     },
     {
       "lot_id": "B",
-      "name": "B 주차장",
+      "name": "부산역주차장",
       "kind": "real",
-      "capacity": 8,
+      "spaces": [
+        "A-01",
+        "A-02",
+        "A-03",
+        "A-04",
+        "A-05",
+        "A-06",
+        "A-07",
+        "A-08",
+        "B-01",
+        "B-02",
+        "B-03",
+        "B-04",
+        "B-05",
+        "B-06",
+        "B-07",
+        "B-08"
+      ],
       "aliases": [
+        "부산역",
+        "부산역 주차장",
         "비"
       ],
-      "exit": "B 주차장 정문 출구",
+      "order_alias": "나",
+      "loose_aliases": [
+        "부산역"
+      ],
+      "exit": "부산역주차장 정문 출구",
       "mock_full": true,
       "mock_cars": [
         [
-          "09",
+          "19",
           1,
           70
         ],
         [
-          "10",
+          "20",
           2,
           25
         ],
         [
-          "11",
+          "21",
           3,
           110
         ],
         [
-          "12",
+          "22",
           4,
           15
         ],
         [
-          "13",
+          "23",
           5,
           45
         ],
         [
-          "14",
+          "24",
           6,
           80
         ],
         [
-          "15",
+          "25",
           7,
           5
         ],
         [
-          "16",
+          "26",
           8,
           63
         ]
       ],
       "zone_layout": {
         "ev": [
-          7
+          "A-07",
+          "A-08"
         ],
-        "disabled": [
-          8
+        "accessible": [
+          "B-07",
+          "B-08"
         ]
       },
+      "rate_policy": {
+        "base_minutes": 30,
+        "base_fee": 2000,
+        "unit_minutes": 10,
+        "extra_fee": 700,
+        "daily_cap": 20000
+      },
       "exits": [
-        "B 주차장 정문 출구"
+        "부산역주차장 정문 출구"
       ],
       "facility": {
         "underground": null,
@@ -167,36 +226,63 @@
     },
     {
       "lot_id": "C",
-      "name": "C 주차장",
+      "name": "북항주차장",
       "kind": "virtual",
-      "capacity": 8,
+      "spaces": [
+        "A-01",
+        "A-02",
+        "A-03",
+        "A-04",
+        "A-05",
+        "A-06",
+        "B-01",
+        "B-02",
+        "B-03",
+        "B-04",
+        "B-05",
+        "B-06"
+      ],
       "aliases": [
+        "북항",
+        "북항 주차장",
         "씨",
         "시"
       ],
-      "exit": "C 주차장 북쪽 출구",
+      "order_alias": "다",
+      "loose_aliases": [
+        "북항"
+      ],
+      "exit": "북항주차장 북쪽 출구",
       "mock_cars": [
         [
-          "17",
+          "27",
           1,
           28
         ],
         [
-          "18",
+          "28",
           3,
           140
         ]
       ],
       "zone_layout": {
         "ev": [
-          7
+          "A-05",
+          "A-06"
         ],
-        "disabled": [
-          8
+        "accessible": [
+          "B-06"
         ]
       },
+      "rate_policy": {
+        "base_minutes": 30,
+        "base_fee": 3000,
+        "unit_minutes": 10,
+        "extra_fee": 800,
+        "daily_cap": 40000
+      },
       "exits": [
-        "C 주차장 북쪽 출구"
+        "북항주차장 북쪽 출구"
       ],
       "facility": {
         "underground": null,
@@ -206,35 +292,127 @@
     },
     {
       "lot_id": "D",
-      "name": "D 주차장",
+      "name": "신세계백화점주차장",
       "kind": "virtual",
-      "capacity": 8,
+      "spaces": [
+        "A-01",
+        "A-02",
+        "A-03",
+        "A-04",
+        "A-05",
+        "A-06",
+        "A-07",
+        "A-08",
+        "A-09",
+        "A-10",
+        "A-11",
+        "A-12",
+        "A-13",
+        "A-14",
+        "A-15",
+        "A-16",
+        "B-01",
+        "B-02",
+        "B-03",
+        "B-04",
+        "B-05",
+        "B-06",
+        "B-07",
+        "B-08",
+        "B-09",
+        "B-10",
+        "B-11",
+        "B-12",
+        "B-13",
+        "B-14",
+        "B-15",
+        "B-16",
+        "C-01",
+        "C-02",
+        "C-03",
+        "C-04",
+        "C-05",
+        "C-06",
+        "C-07",
+        "C-08",
+        "C-09",
+        "C-10",
+        "C-11",
+        "C-12",
+        "C-13",
+        "C-14",
+        "C-15",
+        "C-16",
+        "D-01",
+        "D-02",
+        "D-03",
+        "D-04",
+        "D-05",
+        "D-06",
+        "D-07",
+        "D-08",
+        "D-09",
+        "D-10",
+        "D-11",
+        "D-12",
+        "D-13",
+        "D-14",
+        "D-15",
+        "D-16"
+      ],
       "aliases": [
+        "신세계",
+        "신세계백화점",
+        "백화점",
+        "신세계 주차장",
         "디"
       ],
-      "exit": "D 주차장 출구",
+      "order_alias": "라",
+      "loose_aliases": [
+        "신세계",
+        "신세계백화점",
+        "백화점"
+      ],
+      "exit": "신세계백화점주차장 출구",
       "mock_cars": [
         [
-          "19",
+          "29",
           2,
           48
         ],
         [
-          "20",
+          "30",
           5,
           18
         ]
       ],
       "zone_layout": {
         "ev": [
-          7
+          "D-01",
+          "D-02",
+          "D-03",
+          "D-04",
+          "D-05",
+          "D-06",
+          "D-07",
+          "D-08"
         ],
-        "disabled": [
-          8
+        "accessible": [
+          "C-13",
+          "C-14",
+          "C-15",
+          "C-16"
         ]
       },
+      "rate_policy": {
+        "base_minutes": 30,
+        "base_fee": 4000,
+        "unit_minutes": 10,
+        "extra_fee": 1000,
+        "daily_cap": 50000
+      },
       "exits": [
-        "D 주차장 출구"
+        "신세계백화점주차장 출구"
       ],
       "facility": {
         "underground": null,
@@ -244,8 +422,8 @@
     }
   ],
   "ev_vehicles": [
-    "03",
-    "11",
-    "18"
+    "13",
+    "21",
+    "28"
   ]
 }

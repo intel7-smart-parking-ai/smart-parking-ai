@@ -1,4 +1,4 @@
-question,intent,lot_id,vehicle_no
+question,intent,lot_id,car_id
 관리자 불러주지 마세요 제가 해볼게요,cancel_action,,
 관리자 아직 안 왔어요,call_status,,
 관리자를 호출하면 돈이 드나요?,admin_help,,
@@ -6,15 +6,15 @@ question,intent,lot_id,vehicle_no
 결제가 안 돼요,payment_issue,,
 결제 오류 났어요,payment_issue,,
 카드 결제 돼요?,payment_help,,
-아니 7번 말고 8번,unknown,,08
+아니 17번 말고 18번,unknown,,18
 결제 취소하고 관리자 불러줘,call_admin,,
-차가 안 빠져요,check_exit_issue,,
+차가 안 빠져요,exit_help,,
 불 안 났어?,get_alerts,,
 직원 부르지 말고 대피 알려줘,evacuation_guide,,
 관리자를 불렀는데 연기가 더 나요,get_alerts,,
-7번 말고 8번 결제,pay_fee,,08
-8번 차 관리자 불러주세요,call_admin,,08
-7번 8번 차량,unknown,,ambiguous
+17번 말고 18번 결제,pay_fee,,18
+18번 차 관리자 불러주세요,call_admin,,18
+17번 18번 차량,unknown,,ambiguous
 관리자 안 부를게요,cancel_action,,
 직원은 안 불러도 돼요,cancel_action,,
 관리자 호출하지 않을게요,cancel_action,,
@@ -23,9 +23,9 @@ question,intent,lot_id,vehicle_no
 관리자 말고 요금,get_fee,,
 관리자 불러 주지 말아주세요,cancel_action,,
 결제 안 해도 나갈 수 있어요?,fee_rule,,
-7번 말고 다른 차,unknown,,missing
+17번 말고 다른 차,unknown,,missing
 관리자 호출해 주지 마세요,cancel_action,,
 직원 연결해 주지 말아줘,cancel_action,,
 직원 말고 요금만 보여줘,get_fee,,
-관리자 호출 말고 7번 요금,get_fee,,07
+관리자 호출 말고 17번 요금,get_fee,,17
 정산 안 하고 출차 가능한가요,fee_rule,,

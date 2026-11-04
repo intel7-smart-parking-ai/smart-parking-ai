@@ -31,7 +31,7 @@ class FinalCleanupTests(unittest.TestCase):
 
     # ---------------------------------------------------------- 1-A 대기 칩
     def test_no_wait_chip_when_alternatives_exist(self):
-        r = e.handle("s", text="B 주차장 자리 있어?")  # B 만차, C·D 여유
+        r = e.handle("s", text="부산역주차장 자리 있어?")  # B 만차, C·D 여유
         self.assertTrue(any(i.startswith("go:") for i in ids(r)))
         self.assertFalse(any(i.startswith("wait") for i in ids(r)))
 
@@ -42,7 +42,7 @@ class FinalCleanupTests(unittest.TestCase):
 
     def test_all_full_offers_current_lookup_and_admin(self):
         for lot in e.data.inner.capacity: e.data.fill_lot(lot)
-        r = e.handle("s", text="C 주차장 자리 있어?")
+        r = e.handle("s", text="북항주차장 자리 있어?")
         self.assertIn("empty_all", ids(r))
         self.assertIn("call_admin", ids(r))
         self.assertFalse(any(i.startswith("go:") for i in ids(r)))
@@ -67,13 +67,13 @@ class FinalCleanupTests(unittest.TestCase):
 
     # ---------------------------------------------------------- 1-B 이용 현황
     def test_usage_question_returns_location(self):
-        e.handle("s", text="7번 차 위치"); e.handle("s", text="네")
+        e.handle("s", text="17번 차 위치"); e.handle("s", text="네")
         r = e.handle("s", text="내 이용 현황 보여줘")
         self.assertEqual(r["card"]["type"], "car_location")
 
     # ---------------------------------------------------------- 목적지 취소 칩
     def test_destination_cancel_hidden_without_destination(self):
-        for text in ("B 주차장 자리 있어?", "C 주차장 자리 있어?", "B로 갈게"):
+        for text in ("부산역주차장 자리 있어?", "북항주차장 자리 있어?", "B로 갈게"):
             r = e.handle("s", text=text)
             self.assertIsNone(r["destination"])
             self.assertNotIn("destination_cancel", ids(r), text)
@@ -91,7 +91,7 @@ class FinalCleanupTests(unittest.TestCase):
         self.assertEqual(len(e.admin_calls()), 1)
 
     def test_merge_within_window_then_new_after(self):
-        e.handle("s", text="7번 차 위치"); e.handle("s", text="네")
+        e.handle("s", text="17번 차 위치"); e.handle("s", text="네")
         e.handle("s", text="관리자 불러줘")
         r = e.handle("s", text="관리자 불러줘")
         self.assertIn("이미 접수된 문의", r["text"])
@@ -102,7 +102,7 @@ class FinalCleanupTests(unittest.TestCase):
         self.assertEqual(len(e.admin_calls()), 2)
 
     def test_alert_recall_still_creates_linked_call(self):
-        e.handle("s", text="8번 차 위치"); e.handle("s", text="네")
+        e.handle("s", text="18번 차 위치"); e.handle("s", text="네")
         e.handle("s", text="관리자 불러줘")
         e.data.set_alert(2, "A", 6); e.updates("s")
         e.handle("s", text="불났어요 관리자 불러주세요")
@@ -131,20 +131,20 @@ class FinalCleanupTests(unittest.TestCase):
         self.assertEqual(e.data.enter_car("D")["reason"], "만차")
         e.data.clear_demo("D")
         self.assertEqual(e.data.get_empty_spots()["lots"]["D"]["empty"], before)
-        r = e.data.enter_car("C", "04")
+        r = e.data.enter_car("C", "14")
         self.assertTrue(r["ok"])
-        self.assertEqual(e.data.find_car("04")["lot_id"], "C")
-        self.assertEqual(e.data.enter_car("C", "04")["reason"], "이미 주차 중")
+        self.assertEqual(e.data.find_car("14")["lot_id"], "C")
+        self.assertEqual(e.data.enter_car("C", "14")["reason"], "이미 주차 중")
         # 시연용 점유는 차량 목록(영향 차량)에 섞이지 않는다
-        self.assertTrue(all(c["vehicle_no"].isdigit() for c in e.data.list_cars()))
+        self.assertTrue(all(c["car_id"].isdigit() for c in e.data.list_cars()))
 
     def test_demo_restriction_and_wording(self):
         e.data.set_restriction("C", True, "점검 중")
-        r = e.handle("s", text="C 주차장 자리 있어?")
-        self.assertIn("C 주차장은 지금 이용할 수 없어요. (점검 중)", r["text"])
+        r = e.handle("s", text="북항주차장 자리 있어?")
+        self.assertIn("북항주차장은 지금 이용할 수 없어요. (점검 중)", r["text"])
         self.assertNotIn("운영 제한:", r["text"])
         e.data.set_restriction("C", False)
-        r = e.handle("s", text="C 주차장 자리 있어?")
+        r = e.handle("s", text="북항주차장 자리 있어?")
         self.assertIn("자리 있어요", r["text"])
 
     def test_full_demo_sequence(self):
@@ -162,11 +162,11 @@ class FinalCleanupTests(unittest.TestCase):
         e.data.set_restriction("C", True, "점검 중")
         r, cur = self.ack_all("s", cur)
         notice = [m for m in r["messages"] if m.get("meta", {}).get("notification") == "destination"][0]
-        self.assertIn("C 주차장을 지금 이용할 수 없게 됐어요. (점검 중)", notice["text"])
+        self.assertIn("북항주차장을 지금 이용할 수 없게 됐어요. (점검 중)", notice["text"])
         e.data.set_restriction("C", False)
-        e.handle("s", text="4번 차 위치")  # 아직 입차 전
+        e.handle("s", text="14번 차 위치")  # 아직 입차 전
         e.handle("s", text="네")
-        e.data.enter_car("A", "04")
+        e.data.enter_car("A", "14")
         r = e.updates("s", cursor=cur)
         self.assertIsNone(r["destination"])  # 입차 확인으로 감시 종료
 
@@ -182,7 +182,7 @@ class FinalCleanupTests(unittest.TestCase):
         self.assertNotIn("서버가 관찰", texts)
         self.assertNotIn("Lv", texts)
         self.assertEqual(len(r["messages"]), 1, texts)  # 이력 + 해제를 한 메시지로
-        self.assertIn("잠시 D 주차장에 경보가 있었고 지금은 해제됐어요.", texts)
+        self.assertIn("잠시 신세계백화점주차장에 경보가 있었고 지금은 해제됐어요.", texts)
 
 
 if __name__ == "__main__":

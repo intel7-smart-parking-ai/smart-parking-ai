@@ -11,8 +11,10 @@ import threading
 from copy import deepcopy
 from functools import wraps
 
+from . import config
 from .adapters import DataUnavailable, iso, now
 from . import briefing
+from .templates import alert_location
 
 CHECKLIST = [
     "현장 확인 (카메라·육안)",
@@ -41,6 +43,17 @@ def _hhmm(iso_str: str) -> str:
 
 def _add(inc: dict, text: str) -> None:
     inc["timeline"].append({"at": iso(now()), "text": text})
+
+
+def _near(lot, spot, other):
+    """같은 줄에서 번호가 하나 차이 나는 칸(도면 번호 기준). 칸을 모르면 주차장 전체."""
+    return spot is None or config.catalog.is_near(lot, spot, other)
+
+
+def _report_location(alert):
+    if alert.get("spot_no") is None:
+        return alert_location(alert)
+    return f"{config.catalog.place(alert['lot_id'], alert['spot_no'])} 부근"
 
 
 def observe(alert: dict, data) -> None:
@@ -75,15 +88,15 @@ def observe(alert: dict, data) -> None:
                     "status": "진행 중",
                     "revision": 1,
                     "event_type": alert.get("event_type", "mock_fire_led_observed"),
-                    "lot_id": lot, "spot_no": spot,
+                    "lot_id": lot, "spot_no": spot, "space_id": config.catalog.space_label(lot, spot),
                     "opened_at": iso(now()), "closed_at": None, "confirmed_at": None,
                     "max_level": level, "max_confidence": alert.get("confidence", 0),
                     "affected": cars,
                     "affected_known": affected_known,
                     "affected_at": iso(now()) if affected_known else None,
                     "affected_recovered": False,
-                    "near": [c["vehicle_no"] for c in cars if abs(c["spot_no"] - spot) <= 1],
-                    "near_spots": [c["spot_no"] for c in cars if abs(c["spot_no"] - spot) <= 1],
+                    "near": [c["car_id"] for c in cars if _near(lot, spot, c["spot_no"])],
+                    "near_spots": [c["spot_no"] for c in cars if _near(lot, spot, c["spot_no"])],
                     "notified": set(), "evacuation_requests": 0, "near_queries": 0,
                     "admin_calls": [],
                     "checklist": [{"item": x, "done_at": None} for x in CHECKLIST],
@@ -91,7 +104,7 @@ def observe(alert: dict, data) -> None:
                 }
                 INCIDENTS.append(cur)
                 _state["current"] = cur
-                _add(cur, f"{lot} 주차장 {spot}번 칸 부근 {label}, 신뢰도 {round(cur['max_confidence'] * 100)}%")
+                _add(cur, f"{_report_location(alert)} {label}, 신뢰도 {round(cur['max_confidence'] * 100)}%")
             else:
                 cur["revision"] += 1
                 cur["max_level"] = max(cur["max_level"], level)
@@ -105,9 +118,9 @@ def observe(alert: dict, data) -> None:
                     else:
                         fresh_cars = (cars, True)
                         cur.update(affected=cars, affected_known=True, affected_recovered=True,
-                                   affected_at=iso(now()), near=[c["vehicle_no"] for c in cars
-                                   if abs(c["spot_no"] - cur["spot_no"]) <= 1],
-                                   near_spots=[c["spot_no"] for c in cars if abs(c["spot_no"]-cur["spot_no"])<=1])
+                                   affected_at=iso(now()), near=[c["car_id"] for c in cars
+                                   if _near(cur["lot_id"], cur["spot_no"], c["spot_no"])],
+                                   near_spots=[c["spot_no"] for c in cars if _near(cur["lot_id"], cur["spot_no"], c["spot_no"])])
                         _add(cur, "영향 차량 재조회 성공 (발생 당시 목록은 미확인)")
             if level >= 2:
                 if fresh_cars is not None:
@@ -236,7 +249,7 @@ def report_text(inc: dict) -> str:
         f"[모의 화재(LED) 상황 보고서 초안 #{inc['id']}] 상태: {inc['status']}",
         "",
         "1. 개요",
-        f"  {inc['opened_at'][:10]} {_hhmm(inc['opened_at'])} {inc['lot_id']} 주차장 {inc['spot_no']}번 칸 부근 모의 화재(LED) 감지",
+        f"  {inc['opened_at'][:10]} {_hhmm(inc['opened_at'])} {_report_location(inc)} 모의 화재(LED) 감지",
         f"  최고 단계 {lv}, 최대 신뢰도 {round(inc['max_confidence'] * 100)}%, 종료 {end}",
         "",
         "2. 경과",

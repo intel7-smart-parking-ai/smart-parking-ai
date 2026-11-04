@@ -28,11 +28,11 @@ class OptimizationTests(unittest.TestCase):
         original=e.data.inner.find_car
         def slow(v):time.sleep(.08);return original(v)
         with patch.object(e.data.inner,"find_car",side_effect=slow)as fetch:
-            results=self.parallel_read("find_car","07")
+            results=self.parallel_read("find_car","17")
         self.assertEqual(fetch.call_count,1)
         results[0]["spot_no"]=999
         self.assertTrue(all(r["spot_no"]==7 for r in results[1:]))
-        self.assertEqual(e.data.find_car("07")["spot_no"],7)
+        self.assertEqual(e.data.find_car("17")["spot_no"],7)
 
     def test_simultaneous_occupancy_reads_share_one_fetch(self):
         original=e.data.inner.get_empty_spots
@@ -47,19 +47,19 @@ class OptimizationTests(unittest.TestCase):
         def slow_fail(v):time.sleep(.08);raise OSError("injected outage")
         def run(_):
             barrier.wait(3)
-            try:e.data.find_car("07")
+            try:e.data.find_car("17")
             except DataUnavailable:return "unavailable"
             return "unexpected success"
         with patch.object(e.data.inner,"find_car",side_effect=slow_fail)as fetch:
             with ThreadPoolExecutor(max_workers=12)as pool:results=list(pool.map(run,range(12)))
         self.assertEqual(results,["unavailable"]*12)
         self.assertEqual(fetch.call_count,1)
-        self.assertEqual(e.data.find_car("07")["spot_no"],7)
+        self.assertEqual(e.data.find_car("17")["spot_no"],7)
 
     def test_sequential_reads_are_fresh_without_new_ttl(self):
-        first=e.data.find_car("07")
-        e.data.inner.cars["07"]["spot_no"]=4
-        second=e.data.find_car("07")
+        first=e.data.find_car("17")
+        e.data.inner.cars["17"]["spot_no"]=4
+        second=e.data.find_car("17")
         self.assertEqual((first["spot_no"],second["spot_no"]),(7,4))
 
     def delayed_mutation(self, action, mutate_other=False):
@@ -71,7 +71,7 @@ class OptimizationTests(unittest.TestCase):
             return snapshot
         with patch.object(e.data.inner,"find_car",side_effect=blocked):
             with ThreadPoolExecutor(max_workers=1)as pool:
-                result=pool.submit(e.data.find_car,"07")
+                result=pool.submit(e.data.find_car,"17")
                 try:
                     self.assertTrue(entered.wait(3));action()
                 finally:release.set()
@@ -81,21 +81,21 @@ class OptimizationTests(unittest.TestCase):
                     with self.assertRaises(DataUnavailable):result.result(3)
 
     def test_late_location_response_after_exit_cannot_restore_old_cache(self):
-        self.delayed_mutation(lambda:e.data.exit_car("07"))
-        self.assertIsNone(e.data.find_car("07"))
+        self.delayed_mutation(lambda:e.data.exit_car("17"))
+        self.assertIsNone(e.data.find_car("17"))
         self.assertNotIn("car:07",e.data.cache)
 
     def test_late_location_response_after_reset_is_discarded(self):
         self.delayed_mutation(e.data.reset)
         self.assertNotIn("car:07",e.data.cache)
-        self.assertEqual(e.data.find_car("07")["spot_no"],7)
+        self.assertEqual(e.data.find_car("17")["spot_no"],7)
 
     def test_other_vehicle_exit_does_not_fail_unrelated_location_read(self):
-        self.delayed_mutation(lambda:e.data.exit_car("08"),mutate_other=True)
+        self.delayed_mutation(lambda:e.data.exit_car("18"),mutate_other=True)
 
     def test_near_alert_and_pinned_context_use_one_location_read(self):
-        e.get_session("s").vehicle_no="07"
-        e.data.set_alert(2,"A",6)
+        e.get_session("s").car_id="17"
+        e.data.set_alert(2,"A",8)  # B-02: 17번 차(B-01)의 같은 줄 옆 칸
         with patch.object(e.data,"find_car",wraps=e.data.find_car)as fetch:
             r=e.handle("s",chip_id="alert_near")
         self.assertEqual(fetch.call_count,1)
@@ -103,7 +103,7 @@ class OptimizationTests(unittest.TestCase):
         self.assertEqual(r["vehicle_context"]["spot_no"],7)
 
     def test_location_failure_is_not_repeated_within_same_request(self):
-        e.get_session("s").vehicle_no="07";e.data.set_alert(2,"A",6)
+        e.get_session("s").car_id="17";e.data.set_alert(2,"A",6)
         with patch.object(e.data,"find_car",side_effect=DataUnavailable())as fetch:
             r=e.handle("s",chip_id="alert_near")
         self.assertEqual(fetch.call_count,1)
@@ -111,12 +111,12 @@ class OptimizationTests(unittest.TestCase):
 
 
     def test_request_local_context_is_cleared_between_sessions(self):
-        e.get_session("first").vehicle_no="07"
-        e.get_session("second").vehicle_no="08"
+        e.get_session("first").car_id="17"
+        e.get_session("second").car_id="18"
         first=e.handle("first",chip_id="find_car")
         second=e.handle("second",chip_id="find_car")
-        self.assertEqual(first["vehicle_context"]["vehicle_no"],"07")
-        self.assertEqual(second["vehicle_context"]["vehicle_no"],"08")
+        self.assertEqual(first["vehicle_context"]["car_id"],"17")
+        self.assertEqual(second["vehicle_context"]["car_id"],"18")
         self.assertIsNone(e._request_session.get())
 
     def test_registered_receipt_card_renders(self):

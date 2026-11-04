@@ -61,7 +61,7 @@ class ConfirmIn(ReportIn):
 
 
 class ExitIn(BaseModel):
-    vehicle_no: str
+    car_id: str
 
 
 def _service(fn, *args, **kwargs):
@@ -155,14 +155,14 @@ def demo_alert(body: AlertIn):
 @router.post("/demo/exit", dependencies=[Depends(privileged)])
 def demo_exit(body: ExitIn):
     try:
-        return engine.data.exit_car(body.vehicle_no.zfill(2))
+        return engine.data.exit_car(body.car_id.zfill(2))
     except ValueError as exc:
         raise HTTPException(400, str(exc)) from exc
 
 
 class EnterIn(BaseModel):
     lot_id: str
-    vehicle_no: str | None = None
+    car_id: str | None = None
 
 
 class LotIn(BaseModel):
@@ -184,7 +184,7 @@ def _demo(fn, *args):
 
 @router.post("/demo/enter", dependencies=[Depends(privileged)])
 def demo_enter(body: EnterIn):
-    return _demo(engine.data.enter_car, body.lot_id, body.vehicle_no)
+    return _demo(engine.data.enter_car, body.lot_id, body.car_id)
 
 
 @router.post("/demo/fill", dependencies=[Depends(privileged)])

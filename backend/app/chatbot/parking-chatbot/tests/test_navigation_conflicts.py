@@ -20,7 +20,7 @@ class NavigationConflictTests(unittest.TestCase):
             occupied = {c['spot_no'] for c in e.data.inner.cars.values() if c['lot_id'] == lot}
             for spot in range(1, e.data.inner.capacity[lot] + 1):
                 if spot not in occupied:
-                    e.data.inner.cars['test-'+lot+str(spot)] = {'lot_id':lot, 'spot_no':spot, 'entered_at':now(), 'paid_at':None}
+                    e.data.inner.cars['test-'+lot+str(spot)] = {'lot_id':lot, 'spot_no':spot, 'entry_at':now(), 'paid_at':None}
 
     def empty(self, lot):
         with e.data.inner.lock:
