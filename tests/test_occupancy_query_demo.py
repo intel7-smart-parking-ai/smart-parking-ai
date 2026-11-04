@@ -1,4 +1,6 @@
 import json
+import sqlite3
+from contextlib import closing
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -6,6 +8,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from backend.app.api.occupancy_query_demo import create_demo_app
+from backend.app import demo_main
 from backend.app.demo_main import create_app
 
 POST = "/api/v1/internal/vision-events"
@@ -60,7 +63,8 @@ def test_vision_to_kan16_demo(single_server):
                 assert client.post(POST, json=event, headers=auth).status_code == 200
                 assert verify("occupied", 11) == occupied
                 location = client.get(LOCATION).json()
-                assert (location["space_id"], location["session_id"]) == ("A-01", None)
+                assert location["space_id"] == "A-01"
+                assert (location["session_id"] is not None) == single_server
             if tick == 3:
                 verify("uncertain", 11)
         verify("empty", 12)
@@ -85,3 +89,70 @@ def test_single_demo_billing_and_schema():
         assert payment.status_code == 200
         assert payment.json()["amount_krw"] == fee.json()["amount_krw"]
     assert not path.exists()
+
+
+@pytest.mark.parametrize("car_id", ["10", None])
+def test_single_demo_session_lifecycle_and_retry(monkeypatch, car_id):
+    fixture = Path(__file__).parent / "fixtures" / "vision_event_sequences.json"
+    sample = json.loads(fixture.read_text("utf-8"))["normal"][0]
+    start = datetime.fromisoformat(sample["observed_at"])
+    now = [start]
+    token = "synthetic-test-token"
+    app = create_app(token=token, clock=lambda: now[0])
+
+    def fail_write(*args, **kwargs):
+        raise sqlite3.OperationalError("synthetic write failure")
+
+    with TestClient(app) as client:
+        def send(tick, *, empty=False, expected=202):
+            now[0] = start + timedelta(seconds=tick)
+            payload = sample | {"event_id": f"session-{tick}", "source": "simulation",
+                                "car_id": car_id, "observed_at": now[0].isoformat()}
+            if empty:
+                payload |= {"event_type": "space_empty_observed", "car_id": None, "bbox_xyxy": None}
+            response = client.post(POST, json=payload, headers={"Authorization": f"Bearer {token}"})
+            assert response.status_code == expected, response.text
+
+        def sessions():
+            with closing(sqlite3.connect(app.state.billing_path)) as conn:
+                return conn.execute(
+                    "SELECT session_id, car_id, status, entry_at, exit_at FROM parking_sessions "
+                    "WHERE session_id <> 'ses_demo'"
+                ).fetchall()
+
+        def status():
+            return next(row["status"] for row in client.get(SPACES).json()["items"]
+                        if row["space_id"] == "A-01")
+
+        send(0)
+        send(1)
+        with monkeypatch.context() as patch:
+            patch.setattr(demo_main, "enter", fail_write)
+            send(2, expected=503)
+            assert sessions() == [] and status() == "uncertain"
+        send(2)
+        send(2, expected=200)
+        assert status() == "occupied"
+        [(sid, stored_car, state, entry, exit_at)] = sessions()
+        assert (stored_car, state, entry, exit_at) == (
+            car_id, "active", (start + timedelta(seconds=2)).isoformat(), None,
+        )
+        location = client.get(LOCATION)
+        if car_id is None:
+            assert location.status_code == 404
+        else:
+            assert location.json()["session_id"] == sid
+        assert client.get(f"/api/v1/sessions/{sid}/fee", params={"now": entry}).status_code == 200
+        now[0] = start + timedelta(seconds=13)
+        assert status() == "uncertain" and sessions()[0][2] == "active"
+        for tick in (14, 15, 16):
+            send(tick, empty=True)
+        assert status() == "uncertain" and sessions()[0][2] == "active"
+        with monkeypatch.context() as patch:
+            patch.setattr(demo_main, "exit_session", fail_write)
+            send(17, empty=True, expected=503)
+            assert status() == "uncertain" and sessions()[0][2] == "active"
+        send(17, empty=True)
+        assert status() == "empty"
+        assert sessions() == [(sid, car_id, "closed", entry, now[0].isoformat())]
+        assert client.get(f"/api/v1/sessions/{sid}/fee").status_code == 200

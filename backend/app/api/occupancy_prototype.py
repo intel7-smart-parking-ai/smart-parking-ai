@@ -8,7 +8,7 @@ from typing import Literal
 
 from starlette.exceptions import HTTPException
 
-from backend.app.api.vision_event_store import InMemoryEventStore, Receipt
+from backend.app.api.vision_event_store import InMemoryEventStore
 
 
 @dataclass(frozen=True)
@@ -30,9 +30,10 @@ class ExperimentPolicy:
 
 
 class OccupancyExperiment(InMemoryEventStore):
-    def __init__(self, *, layout: dict, policy: ExperimentPolicy, max_events: int = 1000):
+    def __init__(self, *, layout: dict, policy: ExperimentPolicy, max_events: int = 1000, on_confirmed=None):
         super().__init__(max_events=max_events)
         self.policy = policy
+        self._on_confirmed = on_confirmed
         self._state_lock = RLock()
         self._spaces = {}
         for lot in layout['lots']:
@@ -49,41 +50,48 @@ class OccupancyExperiment(InMemoryEventStore):
         with self._state_lock:
             if key not in self._spaces:
                 raise HTTPException(422, '도면에 없는 주차칸입니다.')
-            outcome = super().receive(event)
-            if outcome is not Receipt.ACCEPTED:
-                return outcome
-            row = self._spaces[key]
-            last = row['observed_at']
-            # 지연/동시각 이벤트는 접수만 기록하고 최신 상태를 덮어쓰지 않는다.
-            if last is not None and event.observed_at <= last:
-                return outcome
-            # 번호/LED 관측은 점유 관측이 아니므로 안정화·최신 점유 시각을 갱신하지 않는다.
-            if event.event_type not in ('vehicle_observed', 'space_empty_observed'):
-                return outcome
-            candidate = row['candidate']
-            gap = (event.observed_at - last).total_seconds() if last else None
-            row.update(observed_at=event.observed_at, source=event.source,
-                       is_mock=event.source in ('simulation', 'manual'), version=row['version'] + 1)
-            if event.confidence < self.policy.min_confidence or (
-                event.event_type == 'space_empty_observed' and event.car_id is not None
-            ):
-                row.update(status='uncertain', car_id=None, vehicle_type=None, candidate=None)
-                return outcome
-            target = 'occupied' if event.event_type == 'vehicle_observed' else 'empty'
-            car = event.car_id if target == 'occupied' else None
-            observed_type = event.vehicle_type if target == 'occupied' else None
-            signature = (target, car, event.source, observed_type)
-            if (candidate is None or candidate[0] != signature or gap is None
-                    or gap > self.policy.max_gap_seconds):
-                candidate = (signature, event.observed_at)
-            elapsed = (event.observed_at - candidate[1]).total_seconds()
-            required = self.policy.occupy_seconds if target == 'occupied' else self.policy.empty_seconds
-            if elapsed >= required:
-                row.update(status=target, car_id=car, vehicle_type=observed_type)
-            else:
-                row.update(status='uncertain', car_id=None, vehicle_type=None)
-            row['candidate'] = candidate
-            return outcome
+            def apply():
+                previous = self._spaces[key]
+                row = previous.copy()
+                self._apply_observation(row, event)
+                if (self._on_confirmed is not None and row['version'] != previous['version']
+                        and row['status'] in ('occupied', 'empty')):
+                    self._on_confirmed(row, event.observed_at)
+                self._spaces[key] = row
+
+            return super().receive(event, before_record=apply)
+
+    def _apply_observation(self, row, event):
+        last = row['observed_at']
+        # 지연/동시각 이벤트는 접수만 기록하고 최신 상태를 덮어쓰지 않는다.
+        if last is not None and event.observed_at <= last:
+            return
+        # 번호/LED 관측은 점유 관측이 아니므로 안정화·최신 점유 시각을 갱신하지 않는다.
+        if event.event_type not in ('vehicle_observed', 'space_empty_observed'):
+            return
+        candidate = row['candidate']
+        gap = (event.observed_at - last).total_seconds() if last else None
+        row.update(observed_at=event.observed_at, source=event.source,
+                   is_mock=event.source in ('simulation', 'manual'), version=row['version'] + 1)
+        if event.confidence < self.policy.min_confidence or (
+            event.event_type == 'space_empty_observed' and event.car_id is not None
+        ):
+            row.update(status='uncertain', car_id=None, vehicle_type=None, candidate=None)
+            return
+        target = 'occupied' if event.event_type == 'vehicle_observed' else 'empty'
+        car = event.car_id if target == 'occupied' else None
+        observed_type = event.vehicle_type if target == 'occupied' else None
+        signature = (target, car, event.source, observed_type)
+        if (candidate is None or candidate[0] != signature or gap is None
+                or gap > self.policy.max_gap_seconds):
+            candidate = (signature, event.observed_at)
+        elapsed = (event.observed_at - candidate[1]).total_seconds()
+        required = self.policy.occupy_seconds if target == 'occupied' else self.policy.empty_seconds
+        if elapsed >= required:
+            row.update(status=target, car_id=car, vehicle_type=observed_type)
+        else:
+            row.update(status='uncertain', car_id=None, vehicle_type=None)
+        row['candidate'] = candidate
 
     def spaces(self, lot_id: str, *, as_of: datetime):
         if as_of.tzinfo is None or as_of.utcoffset() is None:
@@ -97,4 +105,6 @@ class OccupancyExperiment(InMemoryEventStore):
             timestamp = row['observed_at']
             if timestamp is not None and (as_of - timestamp).total_seconds() > self.policy.stale_seconds:
                 row.update(status='uncertain', car_id=None, vehicle_type=None)
+                row.pop('session_id', None)
+            row.pop('session_car_id', None)
         return rows
