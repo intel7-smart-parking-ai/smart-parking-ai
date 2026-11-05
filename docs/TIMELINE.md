@@ -998,3 +998,9 @@
 - main `6e23baf`: #52(12:03:27)·#56·#57 반영. #53은 `codex/ui-rehearsal`(12:03:46), #54는 `codex/backend-integration-complete`(12:03:58)로 병합됨 — base를 main으로 바꾸기 전 병합
 - main에 없는 것: `main.py` 통합·`runtime.py`·경보·`entry_at`·409·가상 검색·Docker·API_CONTRACT D-49·RUNBOOK_DEMO_HOST
 - 해결: `codex/backend-integration-complete` → main PR 하나 (main + 이 브랜치 사전 시험: 충돌 0, pytest 350, 챗봇 537 OK, 프론트 48) — PR 링크·본문 전달
+
+### 12:09~12:14 · ✅ main 병합 완료 확인 — PR #58 (`codex/backend-integration-complete` → main, #53·#54 재병합) → main `2eae627`
+- #53·#54 커밋 main 포함, `runtime.py`·`compose.yaml`·`RUNBOOK_DEMO_HOST.md` 존재
+- 테스트: pytest **350 passed**, 챗봇 **537 OK**(skip 9), 프론트 **48 passed**·team 빌드 OK
+- 실행: `demo_main`(VISION_TOKEN 환경변수) + `run_parking_demo --hold` → A 9/12·A-01 10번 `entry_at`·`/alerts` 200·챗봇 "개발원주차장에 9자리 있어요" / `main.py` demo 모드 health OK
+- 열린 PR 0개
