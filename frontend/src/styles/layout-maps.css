@@ -24,3 +24,12 @@ html:not([data-theme=dark]) .layout-mall .pdf-bay-special{fill:#267347}
 html:not([data-theme=dark]) .layout-mall .pdf-bay.accessible .pdf-bay-special{fill:#2e649e}
 html:not([data-theme=dark]) .layout-mall .pdf-bay.uncertain .pdf-bay-shape{fill:#fff0cc;stroke:#b07b11}
 html:not([data-theme=dark]) .layout-mall .pdf-bay.unavailable .pdf-bay-shape{fill:#d4d8d3;stroke-dasharray:7 4}
+
+.map-alert-banner{display:flex;flex-direction:column;gap:7px;padding:15px 18px;margin-bottom:16px;border:2px solid #dc665b;border-radius:10px;background:#fff0ed;color:#912f28;font-size:13px;line-height:1.6}.map-alert-banner span{font-size:12px}.pdf-map-panel .pdf-bay.warned .pdf-bay-shape{stroke:#d44137!important;stroke-width:3!important;stroke-dasharray:7 4;fill:#ffebe5!important}
+
+.pdf-map-panel .pdf-bay.occupied:not(.warned) .pdf-bay-shape{fill:#edf3fc!important}.pdf-map-panel .pdf-bay.occupied .pdf-bay-label{fill:#718198;font-weight:600}.bay-vehicle-card{pointer-events:none}.pdf-map-panel .pdf-bay.occupied .pdf-bay-special{font-size:11px!important}
+
+.pdf-map-panel .pdf-bay.ev:not(.warned) .pdf-bay-shape{fill:#589b72!important;stroke:#478363!important}.pdf-map-panel .pdf-bay.accessible:not(.warned) .pdf-bay-shape{fill:#377dba!important;stroke:#28659c!important}.pdf-map-panel .pdf-bay.ev .pdf-bay-label,.pdf-map-panel .pdf-bay.accessible .pdf-bay-label{fill:#fff!important}.bay-floor-symbol{pointer-events:none}
+
+/* Variant A: restrained white bays with one information row. */
+.pdf-map-panel .pdf-bay.occupied:not(.ev):not(.accessible):not(.warned) .pdf-bay-shape{fill:#fff!important}.bay-vehicle-card rect{fill:#fff;stroke:#aebdd1;stroke-width:1.5}.pdf-map-panel .pdf-bay.occupied .pdf-bay-label{font-weight:600}

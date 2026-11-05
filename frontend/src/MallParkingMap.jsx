@@ -1,7 +1,7 @@
 export default function MallParkingMap({lot,bay,Arrow,Gate}) {
  return <>
   <rect className="mall-asphalt" width="1536" height="1024"/>
-  <text className="mall-title" x="40" y="43">신세계백화점주차장 · 64면</text>
+  <text className="mall-title" x="40" y="43">신세계 백화점 주차장 · 64면</text>
   <path className="mall-outline" d="M78 995H21V68H1515V995H1475M170 995H1365"/>
   <path className="mall-centerline" d="M150 297H1420M116 490H1420M150 722H1420M768 113V872M315 955H610M945 955H1285"/>
   {[['A',119,134],['B',822,134],['C',119,570],['D',822,570]].map(([zone,left,top])=><g key={zone} className={`mall-zone mall-zone-${zone}`}>

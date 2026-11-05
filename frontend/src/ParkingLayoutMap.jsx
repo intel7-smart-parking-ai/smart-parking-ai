@@ -1,10 +1,11 @@
-import {useState} from 'react';
+import {useEffect,useState} from 'react';
+import {request} from './api.js';
 import {Icon, ParkingMap as FallbackMap, statuses, types} from './components.jsx';
 import './styles/layout-maps.css';
 import MallParkingMap from './MallParkingMap.jsx';
 import {bayGeometry} from './bayGeometry.js';
 
-const names = {basic: '기본형', angled: '사선형', loop: '일방순환형', l_shape: 'L자복합형', mall: '신세계백화점주차장 B1 · 대형 주차장'};
+const names = {basic: '기본형', angled: '사선형', loop: '일방순환형', l_shape: 'L자복합형', mall: '신세계 백화점 주차장 B1 · 대형 주차장'};
 function Arrow({x, y, rotate = 0}) {
   return <g className="pdf-road-arrow" transform={`translate(${x} ${y}) rotate(${rotate})`} aria-hidden="true"><path d="M0 28V-23M-12-9 0-23 12-9"/></g>;
 }
@@ -19,34 +20,80 @@ function MiniCar({x, y, number, rotation = 0}) {
   const badgeWidth = Math.max(64, label.length * 20 + 16);
   return <g transform={`translate(${x} ${y})`} aria-hidden="true"><g transform={`rotate(${rotation}) scale(1.2)`}><g className="pdf-car-wheels"><rect x="-30" y="-19" width="15" height="9" rx="3"/><rect x="16" y="-19" width="15" height="9" rx="3"/><rect x="-30" y="10" width="15" height="9" rx="3"/><rect x="16" y="10" width="15" height="9" rx="3"/></g><rect className="pdf-car-body" x="-42" y="-15" width="84" height="30" rx="12"/><rect className="pdf-car-window" x="-23" y="-12" width="46" height="24" rx="5"/></g><rect className="pdf-car-plate" x={-badgeWidth / 2} y="-22" width={badgeWidth} height="44" rx="8"/><text className="pdf-car-number" style={{fontSize:label.length > 2 ? 28 : 34}} textAnchor="middle" dominantBaseline="central" y="0">{label}</text></g>;
 }
-function Bay({space, points, x, y, vertical, labelY, carY, carX, carRotation, stopPath, filter, alerts, found, lot, onSpace}) {
+function Bay({space, points, x, y, vertical, labelY, carY, carX, carRotation, stopPath, filter, alerts, found, lot, onSpace, fees}) {
   const geometry = bayGeometry(points);
   const dim = filter !== 'all' && !(filter === 'empty' ? space.status === 'empty' : filter.startsWith('source:')?space.source===filter.slice(7):space.space_type === filter);
-  const warned = alerts.some(a => a.lot_id === lot.lot_id && a.space_id === space.space_id && a.status !== 'resolved');
+  const warned = alerts.some(a => a.lot_id === lot.lot_id && (!a.space_id || a.space_id === space.space_id) && a.status !== 'resolved');
   const selected = found?.lot_id === lot.lot_id && found?.space_id === space.space_id;
   const number = lot.type === 'real' ? space.car_id : space.vehicle_number;
+  const vertices=points.trim().split(/\s+/).map(point=>point.split(',').map(Number));
+  const width=Math.max(...vertices.map(point=>point[0]))-Math.min(...vertices.map(point=>point[0]));
+  const compact=width<150;
+  const cardWidth=compact?Math.min(66,width-9):Math.min(220,width-45);
+  const cardTop=geometry.labelY+(compact?16:18);
+  const plateSize=compact?10:22;
+
   const label = `${space.space_id} ${types[space.space_type]} ${statuses[space.status]}${(space.car_id||number) ? ' 차량 ' + (lot.type === 'real' ? space.car_id : space.plate_number || number) : ''}`;
   return <g className={`pdf-bay ${space.status} ${space.space_type} ${dim ? 'dim' : ''} ${selected ? 'found' : ''} ${warned ? 'warned' : ''}`} role="button" tabIndex={0} aria-label={label} onClick={() => onSpace(space)} onKeyDown={e => {if (e.key === 'Enter' || e.key === ' ') {e.preventDefault(); onSpace(space);}}}>
     <title>{label}</title><polygon className="pdf-bay-shape" points={points}/>
+    {['ev','accessible'].includes(space.space_type) && <g className="bay-floor-symbol" opacity={space.status==='occupied'?.12:.95} transform={`translate(${geometry.centerX} ${geometry.centerY+8}) scale(${geometry.floorSymbolScale})`} aria-hidden="true">
+      {space.space_type==='accessible'?<g fill="none" stroke="#fff" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round"><circle cx="-4" cy="-30" r="9" fill="#fff" stroke="none"/><path d="M-8-12V15H18L32 39M-7-1H17M-20 5A29 29 0 1 0 14 32"/></g>:<g fill="none" stroke="#fff" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"><path d="M-40 10V-5L-28-22H16L29-5H36V13H-40M-27-22-32-5H22L16-22"/><circle cx="-25" cy="13" r="9" fill="#589b72"/><circle cx="21" cy="13" r="9" fill="#589b72"/><path d="M36-4H43V-19H48M44-24V-16M51-24V-16"/><text x="0" y="44" textAnchor="middle" fill="#fff" stroke="none" fontSize="14" fontWeight="700">전기차 전용</text></g>}
+    </g>}
     {stopPath && <path className="pdf-wheel-stop" d={vertical ? geometry.stopPath : stopPath} aria-hidden="true"/>}
     <text className="pdf-bay-label" x={geometry.labelX} y={geometry.labelY} style={{fontSize:geometry.labelSize}} dominantBaseline="middle" textAnchor="middle">{space.space_id}</text>
-    {(space.car_id||number) ? <g transform={`translate(${geometry.centerX} ${geometry.centerY}) scale(${vertical ? geometry.carScale : 1})`}><MiniCar x={0} y={0} number={number} rotation={carRotation ?? (vertical ? 90 : 0)}/></g> : <text className="pdf-bay-status" x={geometry.centerX} y={geometry.centerY} style={{fontSize:geometry.statusSize}} dominantBaseline="middle" textAnchor="middle">{statuses[space.status]}</text>}
-    {space.space_type === 'ev' && <text className="pdf-bay-special" x={geometry.specialX} y={geometry.specialY} style={{fontSize:geometry.specialSize}} textAnchor="middle">⚡ 전기차</text>}
-    {space.space_type === 'accessible' && <text className="pdf-bay-special" x={geometry.specialX} y={geometry.specialY} style={{fontSize:geometry.specialSize}} textAnchor="middle">♿ 장애인</text>}
-    {warned && <text className="pdf-warning" x={x + 30} y={y - 45}>!</text>}
+    {space.status === 'occupied' && <g className="bay-vehicle-card" transform={`translate(${geometry.centerX} ${cardTop})`}>
+      <rect x={-cardWidth/2} y="0" width={cardWidth} height={compact?27:33} rx={compact?5:7} fill="#fff" stroke="#b5c5df" strokeWidth="1.5"/>
+      <text x="0" y={compact?17:23} textAnchor="middle" fontSize={plateSize} fontWeight="750" fill="#1e3352">{space.plate_number||space.vehicle_number||(space.car_id?'스티커 '+space.car_id:'번호 미제공')}</text>
+      {['ev','accessible'].includes(space.space_type)&&<rect x={-cardWidth/2} y={compact?32:40} width={cardWidth} height={compact?20:29} rx="5" fill="#fff" fillOpacity=".94" stroke="none"/>}
+      <text x="0" y={compact?46:61} textAnchor="middle" fontSize={compact?8.5:20} fontWeight="700">
+        <tspan fill="#26384c">{fees?.[space.session_id]?.duration_minutes!=null ? fees[space.session_id].duration_minutes+'분' : space.entry_at ? Math.max(0,Math.floor((Date.now()-Date.parse(space.entry_at))/60000))+'분' : '시간 미제공'}</tspan>
+        <tspan fill="#929baa"> · </tspan>
+        <tspan fill="#c93636" fontWeight="750">{Number.isFinite(fees?.[space.session_id]?.amount_krw)?fees[space.session_id].amount_krw.toLocaleString('ko-KR')+'원':'요금 미확인'}</tspan>
+      </text>
+    </g>}
+    {warned && <text className="pdf-warning" x={geometry.centerX} y={geometry.labelY} dx={50} fill="#bd2929" fontSize={22} textAnchor="middle">⚠</text>}
   </g>;
 }
 const rectangle = (x, y, w, h) => `${x},${y} ${x+w},${y} ${x+w},${y+h} ${x},${y+h}`;
 
 export default function ParkingLayoutMap(props) {
   const {lot, filter, setFilter} = props;
+  const activeAlerts=(props.alerts||[]).filter(alert=>alert.lot_id===lot.lot_id&&alert.status!=='resolved');
+  const unknownLocation=activeAlerts.some(alert=>!alert.space_id);
   const [zoomed, setZoomed] = useState(false);
+  const [preview,setPreview]=useState(null);
+  useEffect(()=>setPreview(null),[lot.lot_id]);
+  const [fees,setFees]=useState({});
+  const sessions=lot.spaces.filter(space=>space.status==='occupied'&&space.session_id).map(space=>space.session_id).sort().join(',');
+  useEffect(()=>{
+    let alive=true;
+    async function refreshFees(){
+      const values=await Promise.all(sessions.split(',').filter(Boolean).map(async id=>{
+        try{return [id,await request('/sessions/'+encodeURIComponent(id)+'/fee')]}catch{return [id,null]}
+      }));
+      if(alive)setFees(Object.fromEntries(values));
+    }
+    refreshFees();
+    const timer=setInterval(refreshFees,15000);
+    return()=>{alive=false;clearInterval(timer)};
+  },[sessions]);
+
   if (!names[lot.layout_type]) return <FallbackMap {...props}/>;
   const kind = lot.layout_type;
   const bankA = lot.spaces.filter(s => s.zone === 'A');
   const bankB = lot.spaces.filter(s => s.zone === 'B');
-  const bay = (space, geometry) => <Bay key={space.space_id} {...props} space={space} {...geometry}/>;
+  const bay = (space, geometry) => {
+    const sample=Boolean(preview)&&space.space_id===lot.spaces.find(item=>item.space_type===preview)?.space_id;
+    const displayed=sample?{...space,status:'occupied',plate_number:'123가 4567',vehicle_number:'4567',session_id:'preview-only'}:space;
+    return <Bay key={space.space_id} {...props} fees={sample?{...fees,'preview-only':{amount_krw:4500,duration_minutes:90}}:fees} space={displayed} {...geometry}/>;
+  };
   return <section className={`map-panel pdf-map-panel layout-${kind}`}>
+    {activeAlerts.length>0&&<div className="map-alert-banner" role="alert"><strong>⚠ {Math.max(...activeAlerts.map(alert=>Number(alert.level)||1))>=2?"대피 경보":"안전 경보"} · {lot.name}</strong><span>{unknownLocation?"발생 위치 미확인 · 주차장 전체 주의":activeAlerts.map(alert=>alert.space_id).join(", ")+" 경보 발생"} · 현장 안전 안내를 따라 주세요.</span></div>}
+    <div className="parking-preview-controls" role="group" aria-label="주차 표시 시연" style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:12}}>
+      {[['general','일반 칸 주차 시연'],['ev','전기차 칸 주차 시연'],['accessible','장애인 칸 주차 시연']].map(([type,title])=><button type="button" key={type} className={'button '+(preview===type?'primary':'white')} disabled={!lot.spaces.some(space=>space.space_type===type)} aria-pressed={preview===type} onClick={()=>setPreview(value=>value===type?null:type)}>{title}</button>)}
+      {preview&&<button type="button" className="button white" onClick={()=>setPreview(null)}>시연 종료</button>}
+    </div>
+    {preview&&<p role="status" className="fee-note">시연용 샘플 · 선택한 유형의 첫 번째 칸에 123가 4567 / 90분 · 4,500원을 표시합니다. 실제 주차 데이터는 변경되지 않습니다.</p>}
     <div className="map-toolbar"><div className="filter-tabs">{[['all','전체 보기'],['empty','빈자리'],['ev','전기차'],['accessible','장애인']].map(([id,label]) => <button key={id} onClick={() => setFilter(id)} className={filter === id ? 'active' : ''} aria-pressed={filter === id}>{label}</button>)}</div></div>
     <div className="pdf-map-heading"><strong>{names[kind]} <span>{lot.spaces.length}면</span></strong><button className="pdf-zoom-button" aria-pressed={zoomed} onClick={() => setZoomed(value => !value)}>{zoomed ? '전체 도면 보기' : '주차칸 확대'}</button></div>
     <div className={`pdf-map-scroll ${zoomed ? 'is-zoomed' : 'fit-map'}`} tabIndex={0} aria-label="주차장 도면, 확대 상태에서는 좌우로 이동하세요">
@@ -87,6 +134,6 @@ export default function ParkingLayoutMap(props) {
       </svg>
     </div>
     <div className="map-legend">{Object.entries(statuses).map(([id,label]) => <span key={id}><i className={`legend-dot ${id}`}/>{label}</span>)}</div>
-    <p className="pdf-layout-note"><Icon name="info"/>{kind === 'mall' ? '신세계백화점주차장 B1 가상 배치 · A–D는 신세계백화점주차장 내부 구역입니다. 차량번호는 주차칸 확대에서 확인하세요.' : '첨부 도면 기준 · A/B는 이 주차장 내부 구역입니다.'}<br/>주차칸 선택으로 상세 조회 · 초록색 전기차 / 파란색 장애인</p>
+    <p className="pdf-layout-note"><Icon name="info"/>{kind === 'mall' ? '신세계 백화점 주차장 B1 가상 배치 · A–D는 신세계 백화점 주차장 내부 구역입니다. 차량번호는 주차칸 확대에서 확인하세요.' : '첨부 도면 기준 · A/B는 이 주차장 내부 구역입니다.'}<br/>주차칸 선택으로 상세 조회 · 초록색 전기차 / 파란색 장애인</p>
   </section>;
 }

@@ -206,3 +206,38 @@ html[data-theme=light] .service-nav button{font-size:11px}
 html[data-theme=light] .panel-header p{font-size:11px;line-height:1.6}
 html[data-theme=light] .fee-body .lookup-hint{font-size:11px}
 @media(max-width:600px){html[data-theme=light] .location-title{font-size:10px}html[data-theme=light] .location-type{font-size:8px}html[data-theme=light] .location-meta{font-size:8px}html[data-theme=light] .service-nav button{font-size:10px}}
+
+.location-thumb img{width:100%;height:100%;object-fit:cover;display:block;border-radius:inherit}.location-thumb{overflow:hidden}
+
+.location-thumb:has(.development-logo){width:64px;background:#f7f7f7!important;box-shadow:none!important}.location-thumb img.development-logo{object-fit:contain;background:#f7f7f7}.location-thumb:has(.development-logo)>span{background:#34455c;color:#fff}
+.observation-panel{padding:24px!important;margin-bottom:24px;border-radius:16px!important}
+.observation-panel .panel-header{padding:0 0 20px!important;align-items:flex-start;gap:20px}
+.observation-panel .panel-header h3{font-size:24px!important;line-height:1.35;font-weight:800;letter-spacing:-.6px;color:var(--parkon-text)}
+.observation-panel .panel-header p{font-size:12px!important;line-height:1.6;margin-top:9px;color:#69788b}
+.observation-panel .panel-header label{font-size:12px;display:flex;align-items:center;gap:9px;white-space:nowrap}
+.observation-panel select{border:1px solid #dce3ed;background:#f8fafc;padding:10px 12px;border-radius:9px;color:#34455e;font-size:12px}
+.observation-panel>.fee-note{font-size:11px!important;line-height:1.8;margin:0 0 18px;padding:12px 15px;background:#f7f9fc;border-radius:9px;color:#6c7b8d}
+.observation-panel .observation-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;max-height:300px;padding:1px}
+.observation-panel .observation-item{display:block;min-height:76px;padding:13px 14px;border:1px solid #e0e6ed;background:#fbfcfd;border-radius:10px;font-size:11px;line-height:1.7;color:#67768a}
+.observation-item>b{display:block;font-size:16px;line-height:1.3;margin-bottom:5px;color:#283a52}
+.observation-panel .observation-item small{font-size:10px;color:#7e8999}
+.observation-panel .observation-item.uncertain{background:#fff8e9;border-color:#edcf94;color:#8b651e}
+.observation-panel .observation-item.uncertain>b{color:#805b18}
+@media(max-width:600px){.observation-panel{padding:18px!important}.observation-panel .panel-header{flex-direction:column}.observation-panel .panel-header h3{font-size:22px!important}.observation-panel .observation-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.found-card.with-entry-photo{display:grid;grid-template-columns:20px minmax(0,1fr) minmax(180px,.9fr) 20px;gap:14px;align-items:center}
+.entry-result-photo{margin:0!important;min-width:0;overflow:hidden;border-radius:10px;background:#e8edf3}
+.entry-result-image{position:relative}
+.entry-result-image img{display:block;width:100%;aspect-ratio:1.5;object-fit:cover}
+.entry-dynamic-plate{position:absolute;left:50%;top:70%;transform:translate(-50%,-50%);background:#f7f7f3;color:#142131!important;font-size:clamp(7px,.8vw,12px)!important;font-weight:800;padding:2px 4px;border:1px solid #7d848a;border-radius:2px;white-space:nowrap}
+.entry-result-photo figcaption{padding:7px 9px;background:#26384b;color:#fff;font-size:9px;line-height:1.5}
+@media(max-width:650px){.found-card.with-entry-photo{grid-template-columns:18px minmax(0,1fr) 18px}.entry-result-photo{grid-column:1/-1;grid-row:2}.entry-dynamic-plate{font-size:13px!important}}
+
+.found-card.with-entry-photo>.entry-result-photo{grid-column:3;grid-row:1}.found-card.with-entry-photo>button{grid-column:4;grid-row:1}@media(max-width:650px){.found-card.with-entry-photo>.entry-result-photo{grid-column:1/-1;grid-row:2}.found-card.with-entry-photo>button{grid-column:3}}
+
+.payment-method.MOCK_EASY_PAY .payment-brand{background:#e8f5ff;min-width:76px;min-height:65px;padding:4px;display:flex;align-items:center;justify-content:center;border-radius:14px}
+
+.payment-method .payment-brand,.payment-method.MOCK_EASY_PAY .payment-brand{width:70px;height:40px;min-width:70px;min-height:40px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:9px;box-sizing:border-box}
+.payment-method.MOCK_EASY_PAY .payment-brand{background:#e8f5ff}
+.payment-method.MOCK_EASY_PAY .payment-brand img{width:62px!important;height:38px!important;object-fit:contain;border-radius:7px!important}
+.payment-method>strong{margin-top:0}
+.payment-method.MOCK_EASY_PAY .payment-brand{background:transparent}

@@ -1,3 +1,4 @@
+import {formatLotName} from './uiState.js';
 import {requestId} from './requestId.js';
 import {useRef,useState} from 'react';
 import {request} from './api.js';
@@ -20,7 +21,7 @@ export default function ChatPanel({lots,alerts}){
   setBusy(true);setError('');
   try{
    const result=await request('/chat',{method:'POST',body:{session_id:session.current,...body,request_id:requestId()}},'team');
-   const answer=replyText(result);
+   const answer=formatLotName(replyText(result));
    if(!answer)throw new Error('챗봇 응답 형식을 확인해주세요.');
    setRows(old=>[...old,{who:'나',text:userLabel},{who:'주차 안내',text:answer,result,recommendations:chatRecommendations(result)}]);
    setText('');
