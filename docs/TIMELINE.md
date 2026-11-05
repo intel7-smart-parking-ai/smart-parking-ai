@@ -973,3 +973,7 @@
 
 ### 11:31 · 챗봇 데이터 중 UI로 보여 줄 것 — 김채린 요청
 - 현재 `ChatPanel`은 `messages` 글자만 표시. A(오늘): `safety`·`chips`(확인 버튼, `confirmation_token`)·`flow` / B(11/06~09): `card` 7종(`car_location` 지도 강조·`empty_spots`·`fee`·`payment`·`alert`·`admin_call`·`unrecognized_candidates`), `banner`·`vehicle_context` / C: 메인 화면 정보는 챗봇 경유 말고 공식 API(`space_type`·`/rate-policies`·`entry_at`·관리자 호출은 서정범 협의)
+
+### 11:34 · D-55 챗봇 설정집 예정 (PM) → 작성 틀 `docs/CHATBOT_SETTINGS_GUIDE.md`
+- 주차장 단위(실내/노상·높이·스프링클러 → 챗봇 `lots.json` `facility` 빈 칸), 시설 목록, 칸→시설 가까운 순위, 모의 화재 설정(위험 설명·소재·대피 출구), FAQ 근거, 일정(내용 11/09 → 변환 11/10)
+- 원칙: 시연용 가상 설정 표시(실제 장소명), 경보 중 대피 우선·"머물러도 된다" 금지, 설정에 없으면 "없음", 거리는 실측일 때만
