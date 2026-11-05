@@ -893,3 +893,5 @@
 ### 10:01 · ✅ D-49 PM 승인 — 김채린 통합 API 변경(`INTEGRATION_REVIEW_REQUEST.md`, PR #53) 진행·수정 가능
 - 요금·결제 부분은 윤명수 OK 추가 요청, `amount_krw` 덮어쓰기 제거 권장, 승인 후 API_CONTRACT 갱신 → #52→#53→#54 Ready·병합
 - PM 확인 요청: 오늘 오후 리허설 서버 `demo_main` 유지·Docker 별도 시험 여부
+
+### 10:03 · ✅ D-50 — 챗봇 관련은 챗봇 담당(서정범·윤명수)과 협의 / 오늘 리허설 서버 = `demo_main` 8002 + Docker 별도 시험, **김채린 PC에 구축**
