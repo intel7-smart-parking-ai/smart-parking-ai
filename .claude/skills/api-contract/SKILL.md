@@ -5,6 +5,13 @@ description: "스마트 주차장 공통 데이터 계약 레퍼런스: /api/v1 
 
 # API Contract v1 (요약)
 
+2026-11-05 D-49 승인 확장: PM 10:01 + 윤명수 10:05(사용자 전달).
+`docs/API_CONTRACT.md` 첫 절이 기존 미정 항목보다 우선한다. 통합 main demo/real에서
+칸 entry_at/zone/plate_number/vehicle_number/version, fee payment_blocked/payment,
+완료 결제 후 amount_krw=payment.amount_krw, 결제409 EVACUATION_ACTIVE,
+가상 GET vehicle-search 및 GET/POST simulation API를 제공한다.
+시연 demo_main과 통합 main의 제공 범위는 구분한다. 챗봇 내부는 해당 담당자 영역(D-50).
+
 원문: `docs/통합_개발운영지침서.md` 5~6장, `docs/API_CONTRACT.md`. **원문이 바뀌면 원문 우선**이며 이 스킬도 갱신한다. 계약 변경은 PM(김한별) + 박해준 협의.
 
 ## 공통 규칙

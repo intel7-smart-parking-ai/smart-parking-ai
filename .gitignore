@@ -243,3 +243,4 @@ __pycache__/
 # Claude Code harness
 _workspace/
 .claude/settings.local.json
+.local-access/
