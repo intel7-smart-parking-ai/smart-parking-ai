@@ -1,0 +1,69 @@
+name: smart-parking
+services:
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      target: runtime
+    environment:
+      PARKING_MODE: ${PARKING_MODE:-demo}
+      VISION_TOKEN: ${VISION_TOKEN:?Set VISION_TOKEN in a private .env file}
+      ALERTS_INTERNAL_TOKEN: ${ALERTS_INTERNAL_TOKEN:-}
+      SMART_PARKING_DB_PATH: /data/smart_parking.db
+      FEE_QUOTE_TTL_SECONDS: ${FEE_QUOTE_TTL_SECONDS:-300}
+      DATA_SOURCE: api
+      BACKEND_BASE_URL: http://127.0.0.1:8000
+      LLM_PROVIDER: ${LLM_PROVIDER:-none}
+      LLM_MODEL: ${LLM_MODEL:-google/gemma-4-26b-a4b-it}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      TZ: Asia/Seoul
+    volumes:
+      - parking_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=3)"]
+      interval: 5s
+      timeout: 4s
+      retries: 20
+  admin-auth:
+    image: python:3.11-slim
+    command: python -W ignore::DeprecationWarning /service/admin_auth.py
+    volumes:
+      - ./deployment/admin_auth.py:/service/admin_auth.py:ro
+      - ${ADMIN_HTPASSWD_PATH:-./.local-access/htpasswd}:/secrets/htpasswd:ro
+    read_only: true
+    user: '65534:65534'
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    restart: unless-stopped
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8090/healthz', timeout=3)"]
+      interval: 5s
+      timeout: 4s
+      retries: 10
+  web:
+    build:
+      context: ./frontend
+      target: production
+      args:
+        VITE_DATA_SOURCE: team
+    environment:
+      API_UPSTREAM: ${API_UPSTREAM:-api:8000}
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    ports:
+      - '${WEB_BIND_ADDRESS:-0.0.0.0}:${WEB_PORT:-80}:80'
+      - '127.0.0.1:8090:81'
+    depends_on:
+      api:
+        condition: service_healthy
+      admin-auth:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: [CMD, wget, -q, --spider, http://127.0.0.1/healthz]
+      interval: 5s
+      timeout: 4s
+      retries: 10
+volumes:
+  parking_data:
