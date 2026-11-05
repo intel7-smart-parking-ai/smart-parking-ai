@@ -904,3 +904,7 @@
 ### 10:08 · 김채린 최종 할 일 정리 — 김채린 요청
 - 상태: #52~#54 Ready, 마지막 push 09:43, `amount_krw` 덮어쓰기 남음, API_CONTRACT 미반영
 - ① PR 마무리(`amount_krw` 제거 권장·API_CONTRACT 반영·D-49 표기·재검증 후 #52→#53→#54 병합) ② 김채린 PC 리허설 서버(RUNBOOK) ③ 오후 리허설 ④ Docker 시험·팀 공지·브랜치 정리 / 마이크 버튼은 11/06, 챗봇 일은 서정범·윤명수
+
+### 10:12 · 챗봇 반영 사항 정리 MD — 서정범 요청 (디스코드 첨부)
+- 🔴 D-49 서버 변경 대응: 409 `EVACUATION_ACTIVE`·`payment_blocked` 처리(지금 코드 없음, 안전 1순위), `payment` 영수증, `api_paths.json` `virtual_search: null` → `/vehicle-search`, 칸 새 필드, 오류는 상태 코드·`error.code`로 분기, "경보 있어?" 문항
+- 🔴 리허설: 대본 실행 방법 `demo_main` 기준, 환경변수 3개, RUNBOOK 정렬 / 🟠 v2.15 / ⚪ D-44 / 음성: 고유어 숫자 안 함·결제는 버튼 / 🟡 동결 전 목업 번호·README·level
