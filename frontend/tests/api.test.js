@@ -6,6 +6,21 @@ const originalFetch = globalThis.fetch;
 afterEach(() => { globalThis.fetch = originalFetch; });
 const ok = data => ({ok: true, json: async () => data});
 
+test('vehicle search explains generic receiver errors without hiding specific errors', async () => {
+  for (const [status, text] of [[422, '뒤 4자리'], [404, '찾지 못했습니다'], [503, '잠시 후']]) {
+    globalThis.fetch = async () => ({ok: false, status, json: async () => ({
+      error: {code: 'HTTP_ERROR', message: '요청이 허용되지 않았습니다.'},
+    })});
+    await assert.rejects(request('/vehicle-search?vehicle_number=1234', {}, 'team'),
+      error => error.status === status && error.code === 'HTTP_ERROR' && error.message.includes(text));
+  }
+  globalThis.fetch = async () => ({ok: false, status: 404, json: async () => ({
+    error: {code: 'VEHICLE_NOT_FOUND', message: '서버의 구체적 안내'},
+  })});
+  await assert.rejects(request('/vehicle-search?vehicle_number=1234', {}, 'team'),
+    error => error.message === '서버의 구체적 안내');
+});
+
 test('default data source is the clearly labeled demo', () => assert.equal(dataSource, 'demo'));
 
 test('team response keeps IDs, states and missing dedicated bay types', async () => {
