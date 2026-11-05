@@ -3,25 +3,28 @@ import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 maplibregl.setWorkerUrl(workerUrl);
-export default function RealRecommendationMap({locations,selected,onSelect}){
+export default function RealRecommendationMap({locations,selected,onSelect,onUnavailable}){
+ const unavailable=useRef(onUnavailable);unavailable.current=onUnavailable;
  const container=useRef(null),mapRef=useRef(null),markers=useRef([]);
  const [ready,setReady]=useState(false),[error,setError]=useState(''),[retry,setRetry]=useState(0);
  useEffect(()=>{
-  let map,alive=true;setReady(false);setError('');
+  let map,alive=true,loaded=false;
+  const timer=setTimeout(()=>{if(alive&&!loaded)unavailable.current?.()},12000);
+  setReady(false);setError('');
   try{
    map=new maplibregl.Map({container:container.current,style:'https://tiles.openfreemap.org/styles/bright',center:[129.04,35.115],zoom:15.6,pitch:50,bearing:-20,canvasContextAttributes:{antialias:true}});
    mapRef.current=map;map.addControl(new maplibregl.NavigationControl({visualizePitch:true}),'top-right');
    map.addControl(new maplibregl.ScaleControl({unit:'metric'}));
-   map.on('error',()=>{if(alive)setError('지도 일부를 불러오지 못했습니다. 인터넷 연결을 확인하거나 시연용 지도를 이용하세요.')});
-   map.on('load',()=>{if(!alive)return;try{
+   map.on('error',()=>{if(alive&&!loaded)unavailable.current?.();if(alive)setError('지도 일부를 불러오지 못했습니다. 인터넷 연결을 확인하거나 시연용 지도를 이용하세요.')});
+   map.on('load',()=>{if(!alive)return;loaded=true;clearTimeout(timer);try{
     map.addSource('parking-buildings',{type:'vector',url:'https://tiles.openfreemap.org/planet'});
     const before=map.getStyle().layers.find(layer=>layer.type==='symbol'&&layer.layout?.['text-field'])?.id;
     map.addLayer({id:'parking-buildings-3d',type:'fill-extrusion',source:'parking-buildings','source-layer':'building',minzoom:14,filter:['!=',['get','hide_3d'],true],paint:{'fill-extrusion-color':'#b8c9dd','fill-extrusion-height':['coalesce',['get','render_height'],3],'fill-extrusion-base':['coalesce',['get','render_min_height'],0],'fill-extrusion-opacity':.85}},before);
     setReady(true);setError('');
    }catch{setError('건물 입체 표시에 실패했습니다. 기본 지도는 계속 이용할 수 있습니다.');setReady(true)}});
-  }catch{setError('이 브라우저에서 3D 지도를 시작하지 못했습니다. 시연용 지도를 이용하세요.')}
+  }catch{unavailable.current?.();setError('이 브라우저에서 3D 지도를 시작하지 못했습니다. 시연용 지도를 이용하세요.')}
   const observer=new ResizeObserver(()=>map?.resize());observer.observe(container.current);
-  return()=>{alive=false;observer.disconnect();markers.current.forEach(m=>m.remove());markers.current=[];map?.remove();mapRef.current=null};
+  return()=>{alive=false;clearTimeout(timer);observer.disconnect();markers.current.forEach(m=>m.remove());markers.current=[];map?.remove();mapRef.current=null};
  },[retry]);
  useEffect(()=>{
   if(!ready||!mapRef.current)return;

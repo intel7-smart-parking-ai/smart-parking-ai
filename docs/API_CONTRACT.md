@@ -253,7 +253,7 @@ LLM_PROVIDER=none. 원격 카메라를 받을 때 API_HOST=0.0.0.0, 같은 VISIO
 | `type` | `real` / `virtual` |
 | `total_spaces` · `empty_spaces` · `uncertain_spaces` · `unavailable_spaces` | 정수 |
 
-- 확인 필요: 화면 지도는 `layout_type`(`basic`/`angled`/`loop`/`mall`)을 기대하지만 응답에 없다 → 화면이 `lot_id`로 매핑하거나 서버가 추가 (김채린·박해준)
+- 화면 지도는 layout_type이 없을 때 lot_id A=basic, B=angled, C=loop, D=mall로 매핑한다. 서버 필드 추가는 별도 협의한다.
 
 ### `GET /api/v1/parking-lots/{lot_id}/spaces`
 
@@ -447,7 +447,7 @@ LLM_PROVIDER=none. 원격 카메라를 받을 때 API_HOST=0.0.0.0, 같은 VISIO
 | 5173 | 프론트 개발 서버 |
 | 80 | 프론트 Docker (nginx) |
 
-- 확인 필요: 프론트 `vite.config.js` 기본값은 아직 `/demo-api` 8002·관리자 8080이다 (김채린 변경 예정)
+- 프론트 vite.config.js 기본값은 /api → 8000, /demo-api → 8003, 관리자 프록시 → 8090이다. API_PROXY_TARGET·DEMO_API_PROXY_TARGET·ADMIN_PROXY_TARGET으로 변경할 수 있다.
 
 ### 서버·Docker (D-20·D-28·D-38)
 

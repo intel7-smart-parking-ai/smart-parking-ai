@@ -206,3 +206,27 @@ npm run dev
 ---
 
 **본 README는 2026년 11월 2일 착수 시점의 개발 계획과 초기 저장소 구조를 기준으로 작성되었습니다.** 구현 상태와 실행 방법이 바뀌면 담당자가 함께 갱신합니다.
+
+
+## 사용자 화면과 3D 지도 실행
+
+프런트엔드에서 Node.js와 npm으로 다음 명령을 실행합니다.
+
+```powershell
+cd frontend
+npm ci
+$env:VITE_DATA_SOURCE='team'
+$env:API_PROXY_TARGET='http://127.0.0.1:8000'
+npm run dev
+```
+
+기본 개발 주소는 http://localhost:5173 입니다. 통합 배포는 저장소 루트에서
+`docker compose up --build -d`로 실행하며 사용자 화면은 포트 80, 관리자는 /admin/ 입니다.
+로컬 인증 정보는 deployment/setup_local.py로 준비합니다.
+
+실제 위치 지도는 maplibre-gl 6.16.0과 OpenFreeMap 공개 타일
+(https://tiles.openfreemap.org)을 사용합니다. 라이브러리 추가는 PM 승인 대기입니다.
+실제 지도 모듈은 import()로 선택 시 지연 로딩됩니다. 시연용 3D 모형은 외부 타일을
+요청하지 않습니다. 오프라인, 지도 초기화 오류 또는 12초 로딩 초과 시 시연용 지도로
+자동 전환합니다. 주차장 목록 API는 두 모드 모두 필요하므로 로컬 서버는 실행해야 합니다.
+시연용 배치와 건물은 실제 위치·시설 형태를 재현하지 않습니다.
