@@ -824,3 +824,9 @@
 ### 08:59 · 인원별 오늘 할 일 정리 — 김한별 요청 (D-43: 기능 11/05 마감)
 - PM: D-44·챗봇 추가 기능·우지원 문서 4건 결정, 진행 기록 PR 병합, 리허설 진행 / 우지원: KAN-52 저장소 이전 → A 12칸 A안 → 8002 vision-event / 박해준: 우지원 지원, 김채린 통합 브랜치 백엔드 리뷰 / 김채린: PR #52 Ready, 통합·Docker 브랜치 PR / 서정범: v2.15 정오, 목업 차량 번호 D-39 정렬 / 윤명수: 위와 같음
 - **발견:** 김채린 `codex/backend-integration-complete`(11/04 20:35, `main.py`·`runtime.py`·경보 등록)·`codex/docker-integration-complete`(11/05 01:53, compose·`admin_auth`) push됨, PR 없음·테스트 미실행
+
+### 09:07 · ✅ main 병합 — PR #55 (11/04 일일 보고·저녁 기록·11/05 할 일) → main `4e048c8`
+
+### 09:15 · 서정범 상세 업무 정리 MD 전달 — 서정범 요청 (디스코드 첨부, 저장소 미반영)
+- 오늘: v2.15 LLM 이해율(정오) / D-44 비교표 → PM / `demo_script_1106.md` 실행 방법 갱신(PR #45 반영, `team_preview` 불필요) / 경보 연동 / `lots.json` ev `13·21·28` → D-39 정렬 / 윤명수 분담(D-41) / 오후 리허설
+- **발견:** 김채린 통합 브랜치에 409 `EVACUATION_ACTIVE`(대피 중 결제 차단)·요금 응답 `payment_blocked` 신규 → 챗봇 처리 필요. 챗봇 README 제목이 아직 v2.12
