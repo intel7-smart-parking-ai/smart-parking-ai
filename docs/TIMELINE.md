@@ -875,3 +875,13 @@
 - 답: 연결·구현·결정된 항목은 승인 없이(D-42), API 모양 변경(필드 추가·의미 변경·새 에러·새 엔드포인트·다른 담당 API 가로채기)은 PM + 담당 승인(CLAUDE.md Git 규칙, D-26)
 - PR #53·#54 승인 필요: 요금·결제 가로채기·`payment_blocked`·`payment`·`amount_krw` 덮어쓰기·409(윤명수+PM) / 칸 새 필드·`/vehicle-search`·`/simulation/{lot}`(PM) / 챗봇 공유
 - 제안: `amount_krw`는 그대로 두고 `payment.amount_krw`만 쓰면 의미 변경 없음. PR 설명에 변경 요청 블록 → 디스코드 OK 받으면 결정 기록
+
+### 09:55 · 📄 전체 진행 현황 `docs/STATUS_2026-11-05.md` — 김한별 요청 (완료·진행 중·할 일·PM 결정 대기 7건·위험)
+
+### 09:57 · 윤명수 휴대폰 시연 방법 — 고유어 숫자는 안 함, 모바일 진행
+- D-48(기본 PC + 휴대폰 장면 추가)로 정리. 안드로이드 Chrome 예외 설정 절차(미검증 → 먼저 시험), 아이폰이면 터널, 화면 마이크 버튼은 김채린 요청 필요, 휴대폰 대본 예시(결제 확인은 버튼)
+
+### 10:00 · 김채린 09:43 수정(#52~#54) 재점검 — 김채린 요청 (사진 항목 2~7)
+- 백엔드 350 passed, 프론트 48 passed, main과 충돌 0, docs는 새 파일 2개(`CHAERIN_IMPLEMENTATION_AUDIT.md`·`INTEGRATION_REVIEW_REQUEST.md`)만
+- 4 오류 안내(화면)·5 `runtime.py` 정리(120자 초과 13 → 4줄) 완료. 2 API 승인·3 리허설 서버는 윤명수·PM 대기. 7 브랜치: 열린 PR·D-37 보관 브랜치 삭제 금지
+- 혼자 가능: #52 Ready(API 변경 없음), 팀 공지, `amount_krw` 덮어쓰기 제거(승인 항목 축소) / 윤명수·PM께 `INTEGRATION_REVIEW_REQUEST.md` 검토 요청
