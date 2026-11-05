@@ -69,6 +69,7 @@
 | D-49 | 통합 API 변경 (PM 승인) | 김채린 `INTEGRATION_REVIEW_REQUEST.md`(PR #53)의 요청을 **PM 승인 — 진행·수정 가능**: 요금 응답 `payment_blocked`·`payment`, 대피 경보 중 결제 409 `EVACUATION_ACTIVE`, 칸 `entry_at`·`zone`·`plate_number`·`vehicle_number`·`version`, `GET /vehicle-search`, `/simulation/{lot}`. 요금·결제 부분은 소유자 **윤명수 OK** (10:04 구두, 10:05 디스코드 확인), 결제 후 `amount_krw` 덮어쓰기는 빼는 것 권장. 승인 후 `API_CONTRACT.md` 갱신 (10:01 PM) | 김채린·윤명수·서정범 |
 | D-50 | 챗봇 협의·리허설 서버 | ① 챗봇은 따로 진행 중 → **챗봇 관련 사항은 챗봇 담당(서정범·윤명수)과 협의** (D-41 재확인, 409 `EVACUATION_ACTIVE` 처리 등) ② **오늘 리허설 서버는 김채린 제안대로**: 시연 서버 `demo_main`(8002) 사용, Docker 통합본은 별도 시험. **리허설 서버는 김채린 PC에 구축** (10:03 PM) | 김채린·서정범·윤명수·우지원 |
 | D-51 | 구축 절차 기록 | 설정·구축·호스팅은 나중에 **다른 PC에서도 할 수 있게** 진행하면서 절차를 저장 → `docs/RUNBOOK_DEMO_HOST.md` (첫 구축 김채린 PC, 해 보면서 ☐ 칸 확인·수정) (10:05 PM) | 김채린·전원 |
+| D-52 | 데이터셋 공유 | 학습 데이터는 **PM이 만든 팀 Google Drive 폴더**에 올린다 (GitHub 금지, 규칙 8). 폴더 `cam_bulk/`(박해준)·`cam_hq/`(우지원), 파일 이름 `날짜_카메라_주차장_세션.zip` + 촬영 조건 메모. **링크는 디스코드에서만 공유 — 저장소가 공개라 문서에 적지 않음** (10:39 PM) | 전원 |
 
 ### D-39 스티커 후보안 B (기본안이 인식 시험에서 안 될 때)
 
