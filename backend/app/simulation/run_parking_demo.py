@@ -137,7 +137,8 @@ def main():
     except ValueError:
         parser.error("--base-url에 로컬 HTTP 주소와 포트를 입력하세요.")
     try:
-        token = getpass("시연 서버 토큰: ")
+        import os
+        token = os.getenv('VISION_TOKEN') or getpass("시연 서버 토큰: ")
         if not token.isascii() or len(token) < 16:
             raise SystemExit("시연 토큰은 ASCII 16자 이상이어야 합니다.")
         with httpx.Client(base_url=base_url, timeout=3, trust_env=False) as client:

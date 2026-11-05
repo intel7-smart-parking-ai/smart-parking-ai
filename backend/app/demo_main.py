@@ -14,6 +14,9 @@ from backend.app.api.session_queries import router as session_queries_router
 from backend.app.chatbot.router import router as chatbot_router
 from backend.app.billing.db import get_db_conn, init_schema, seed_defaults
 from backend.app.database.parking_sessions import SessionError, enter, exit_session
+from backend.app.api.occupancy_prototype import OccupancyExperiment
+from backend.app.api.vision_event_store import InMemoryEventStore, Receipt
+from backend.app.alerts.router import router as alerts_router, internal_router, ingest_led_fire_event, LedFireEvent, init_alerts_schema
 
 
 def create_app(*, token: str, clock=lambda: datetime.now(timezone.utc)):
@@ -33,18 +36,30 @@ def create_app(*, token: str, clock=lambda: datetime.now(timezone.utc)):
                         conn, session_id=str(uuid4()), lot_id=row["lot_id"],
                         space_id=row["space_id"], car_id=row["car_id"], entry_at=observed_at,
                     )
-                    row.update(session_id=session.session_id, session_car_id=session.car_id)
+                    row.update(session_id=session.session_id, session_car_id=session.car_id,
+                               entry_at=session.entry_at)
                 else:
                     exit_session(conn, session_id=session_id, exit_at=observed_at)
                     row.pop("session_id")
                     row.pop("session_car_id")
+                    row.pop("entry_at", None)
         except SessionError as exc:
             raise HTTPException(exc.status_code, str(exc)) from exc
         except sqlite3.Error as exc:
             raise HTTPException(503, "시연 세션 저장 실패. 동일 이벤트를 재시도하세요.") from exc
 
+    class DemoPipeline(OccupancyExperiment):
+        def receive(self, event):
+            if event.event_type != 'mock_fire_led_observed':
+                return super().receive(event)
+            def ingest():
+                with closing(sqlite3.connect(app.state.billing_path)) as conn:
+                    conn.row_factory = sqlite3.Row
+                    ingest_led_fire_event(conn, LedFireEvent(**event.model_dump()))
+            return InMemoryEventStore.receive(self, event, before_record=ingest)
+
     app = create_demo_app(token=token, clock=clock, public_reads=True, on_confirmed=sync_session,
-                          max_events=100_000)
+                          max_events=100_000, store_factory=DemoPipeline)
     app.title = "ParkFlow 로컬 통합 시연"
 
     @asynccontextmanager
@@ -53,6 +68,7 @@ def create_app(*, token: str, clock=lambda: datetime.now(timezone.utc)):
             path = Path(directory) / "billing.sqlite3"
             with closing(sqlite3.connect(path)) as conn, conn:
                 init_schema(conn)
+                init_alerts_schema(conn)
                 columns = {row[1] for row in conn.execute("PRAGMA table_info(parking_sessions)")}
                 if "status" not in columns:
                     conn.execute(
@@ -80,6 +96,8 @@ def create_app(*, token: str, clock=lambda: datetime.now(timezone.utc)):
     app.include_router(billing_router)
     app.include_router(session_queries_router)
     app.include_router(chatbot_router)
+    app.include_router(alerts_router)
+    app.include_router(internal_router)
     return app
 
 
@@ -88,4 +106,6 @@ if __name__ == "__main__":
 
     import uvicorn
 
-    uvicorn.run(create_app(token=getpass("시연 토큰: ")), host="127.0.0.1", port=8002)
+    import os
+    uvicorn.run(create_app(token=os.getenv('VISION_TOKEN') or getpass("시연 토큰: ")),
+                host=os.getenv('API_HOST','127.0.0.1'), port=int(os.getenv('API_PORT','8002')))
