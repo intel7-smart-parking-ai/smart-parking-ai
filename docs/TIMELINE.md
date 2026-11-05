@@ -931,3 +931,7 @@
 - 호스팅 구성·파일 표(`demo_main.py`·챗봇 라우터·`run_parking_demo.py`·`vite.config.js` `host 0.0.0.0`+`/api` 프록시·`frontend/public` 임시), 방화벽·플래그·핫스팟, 정리 명령, 문제 해결, 결과 기록표
 - `mic_test.html` 확장: 같은 주소 `/api/v1/chat` 있으면 챗봇 전송·버튼(칩), `flow=confirm_action`이면 자동 전송 금지
 - 실측(제 PC): Vite 5173 프록시 → demo_main 8002, `/api/v1/chat/config` 200, "A 빈자리 있어?" → "개발원주차장에 12자리 있어요", "십칠 번 차 어디 있어" → "17번 차 맞으세요?" + 버튼. 시험 후 서버 종료·`frontend/public/mic_test.html` 삭제. 휴대폰 실기기는 미시험
+
+### 10:36 · 1차 데이터셋 공유 방법 — 박해준 요청 (디스코드 용량 초과)
+- GitHub 금지(규칙 8, `datasets/` gitignore) → 팀 공유 클라우드 폴더 추천(`cam_bulk/`·`cam_hq/`, `날짜_카메라_주차장_세션.zip` + 촬영 조건 README, 디스코드엔 링크만, 팀원만 공유), 근거리는 USB·폴더 공유
+- PM 요청: 팀 공유 폴더 생성 (결정 대기)
