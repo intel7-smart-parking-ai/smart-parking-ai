@@ -1,0 +1,111 @@
+.recommend-map{margin:20px 0;padding:20px;border:1px solid #8193a644;border-radius:14px;min-width:0;color:inherit}.recommend-map-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}.recommend-map h3{margin:0;font-size:18px}.recommend-map-heading p,.recommend-note,.recommend-coordinate p{font-size:12px;line-height:1.7;opacity:.75;margin:8px 0 14px}.recommend-map button{font:inherit;cursor:pointer}.recommend-map-tabs{display:flex;gap:6px;flex-wrap:wrap}.recommend-map-tabs button,.recommend-lots button,.recommend-demo-controls button,.recommend-coordinate button,.recommend-error button{border:1px solid #8798ac66;border-radius:7px;background:transparent;color:inherit;padding:10px 13px;font-size:12px}.recommend-map-tabs button[aria-pressed=true]{background:#164fba;color:white;border-color:#164fba}.recommend-lots{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.recommend-lots button{display:flex;flex-direction:column;gap:5px;text-align:left}.recommend-lots button[aria-pressed=true]{outline:2px solid #507cd4;outline-offset:-2px}.recommend-lots button span{font-size:11px;opacity:.7}.recommend-demo{position:relative;height:390px;overflow:hidden;perspective:900px;border-radius:10px;background:radial-gradient(ellipse,#d8e7f1,#eff4f7);touch-action:none;user-select:none;cursor:grab;color:#173653}.recommend-city{position:absolute;left:50%;top:48%;width:520px;height:350px;transform-style:preserve-3d;transform:translate(-50%,-50%) scale(calc(var(--city-zoom) * .82)) rotateX(50deg) rotateZ(var(--city-angle));transform-origin:center}.recommend-roads{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0 70px,#e0e9ec 70px 98px),repeating-linear-gradient(90deg,#b4c8cb 0 80px,#e3edef 80px 105px);border:8px solid #b2c7cd;box-shadow:0 10px 0 #91a9b5,0 45px 60px #36536955}.recommend-building{position:absolute;width:58px;height:48px;transform-style:preserve-3d;pointer-events:none}.recommend-building i{position:absolute;inset:0;background:#f4f6f2;border:1px solid #9eb5c1;transform:translateZ(var(--height));box-shadow:3px 3px 0 #9cb8c5}.recommend-building b{position:absolute;top:48px;left:0;width:58px;height:var(--height);background:#99b3c1;transform-origin:top;transform:rotateX(90deg)}.recommend-building em{position:absolute;left:58px;top:0;width:var(--height);height:48px;background:#c2d0d8;transform-origin:left;transform:rotateY(-90deg)}.recommend-pin{position:absolute;transform:translateZ(105px) rotateZ(calc(-1 * var(--city-angle))) rotateX(-35deg);transform-style:preserve-3d;display:flex;flex-direction:column;align-items:center;gap:5px;border:0;background:transparent;color:#19334b;padding:0}.recommend-pin strong{background:#1c59be;color:white;border:3px solid white;box-shadow:0 8px 16px #183c6844;width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:26px}.recommend-pin span{background:white;color:#19334b;border-radius:5px;padding:5px 8px;white-space:nowrap;font-size:12px}.recommend-pin.selected strong{background:#14846c;outline:3px solid #9ce6cb}.recommend-demo-label{position:absolute;bottom:13px;left:12px;right:12px;text-align:center;font-size:11px;color:#46657a;pointer-events:none}.recommend-demo-controls{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:12px 0}.recommend-demo-controls label{display:flex;align-items:center;gap:8px;font-size:12px}.recommend-demo-controls input{width:110px;accent-color:#215dbd}.recommend-demo-controls>span{font-size:11px;opacity:.7}.recommend-real-map{height:430px;width:100%;border-radius:10px;overflow:hidden;background:#e6ebee;color:#22364c}.recommend-real-pin{background:#1556b9;color:white;border:2px solid white;border-radius:8px;padding:8px 10px;box-shadow:0 3px 12px #18354d44;font-size:12px!important;max-width:220px;white-space:normal}.recommend-coordinate{border-top:1px solid #8193a644;padding:12px 0}.recommend-coordinate summary{cursor:pointer;font-size:12px}.recommend-coordinate form{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-top:15px}.recommend-coordinate label{display:flex;flex-direction:column;gap:7px;font-size:12px;flex:1;min-width:100px}.recommend-coordinate input{width:100%;min-width:0;background:transparent;color:inherit;border:1px solid #8798ac66;border-radius:6px;padding:10px;font:inherit;font-size:16px}.recommend-map button:focus-visible{outline:3px solid #6e98e4;outline-offset:3px}.recommend-error{font-size:12px;line-height:1.8;color:#be5f3c}.recommend-error button{margin-left:12px}@media(max-width:600px){.recommend-map{padding:13px}.recommend-demo{height:330px}.recommend-city{scale:.65}.recommend-real-map{height:350px}.recommend-map-tabs{width:100%}.recommend-map-tabs button{flex:1;min-height:44px}.recommend-map-heading p{margin-bottom:5px}.recommend-lots button{min-height:50px}.recommend-demo-controls{gap:10px}}
+
+.recommend-demo{background:radial-gradient(ellipse at 50% 40%,#e4eef5,#c9d8e5);border:1px solid #ccd9e6}
+.recommend-roads{background:repeating-linear-gradient(0deg,transparent 0 70px,#657989 70px 98px),repeating-linear-gradient(90deg,#d7e2e9 0 80px,#657989 80px 105px);border:8px solid #8dabbc;box-shadow:0 12px 0 #708da0,0 45px 65px #223e5b55}
+.recommend-roads:after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0 82px,#fff8 82px 84px,transparent 84px 98px);opacity:.6;pointer-events:none}
+.recommend-building i{background:linear-gradient(135deg,#eff5f9,#c4d7e4);border:2px solid #8ba5ba;box-shadow:inset 0 0 0 7px #e4edf3}
+.recommend-building b,.recommend-building .building-back{background:repeating-linear-gradient(90deg,#36536d 0 7px,#93c1d7 7px 12px,#36536d 12px 17px);border:1px solid #658299}
+.recommend-building em,.recommend-building .building-left{background:repeating-linear-gradient(0deg,#52738c 0 7px,#b1d0df 7px 12px,#52738c 12px 17px);border:1px solid #658299}
+.recommend-building .building-back{position:absolute;top:0;left:0;width:58px;height:var(--height);transform-origin:top;transform:rotateX(90deg)}
+.recommend-building .building-left{position:absolute;left:0;top:0;width:var(--height);height:48px;transform-origin:left;transform:rotateY(-90deg)}
+.recommend-park{position:absolute;left:365px;top:242px;width:110px;height:65px;border-radius:18px;background:radial-gradient(circle at 20% 30%,#419578 0 12px,transparent 13px),radial-gradient(circle at 65% 60%,#5ba487 0 17px,transparent 18px),#afd0b8;border:5px solid #e1e9dc;transform:translateZ(2px)}
+.recommend-plaza{position:absolute;left:138px;top:180px;width:68px;height:50px;border:5px solid #e6eaf0;background:repeating-linear-gradient(90deg,#496c88 0 13px,#d4e3ed 13px 15px);transform:translateZ(2px)}
+.recommend-pin strong{box-shadow:0 8px 20px #163d6b55;background:linear-gradient(145deg,#477ddd,#194aa7)}
+.recommend-pin span{box-shadow:0 4px 12px #203e5a24;border:1px solid #dae4ee;font-weight:600}
+
+
+.recommend-city{transform:translate(-50%,-50%) scale(calc(var(--city-zoom) * .82)) rotateX(var(--city-tilt,50deg)) rotateZ(var(--city-angle))}.recommend-pin{transform:translateZ(105px) rotateZ(calc(-1 * var(--city-angle))) rotateX(calc(-1 * var(--city-tilt,50deg)))}.recommend-pin span{font-size:14px;padding:8px 12px;border-radius:9px;min-width:120px;text-align:center}.recommend-pin span small{display:block;margin-top:5px;font-size:11px;color:#63778b;font-weight:400}.recommend-demo{height:450px}@media(max-width:600px){.recommend-demo{height:380px}.recommend-pin span{font-size:15px}}
+
+.city-district{position:absolute;width:210px;height:125px;transform-style:preserve-3d;border:3px solid #e9eff4;border-radius:10px;background:#ccdce7}.campus{left:12px;top:8px;background:#d4e3d7}.station{left:285px;top:8px;background:#d6e4ed}.harbor{left:12px;top:198px;background:#b5d8e1}.shopping{left:285px;top:198px;background:#e5dce1}.district-caption{position:absolute;bottom:4px;left:5px;right:5px;text-align:center;font-size:11px;color:#334b61;transform:translateZ(3px)}.district-landmark{position:absolute;left:15px;top:10px;width:105px;height:65px;background:repeating-linear-gradient(90deg,#355e79 0 9px,#93c6da 9px 14px);border:5px solid #e5edf0;transform:translateZ(35px);box-shadow:8px 12px 0 #638392;font-size:0}.district-landmark span{display:block;color:white;font-size:9px;text-align:center;background:#25475fd9;padding:8px}.campus-garden{position:absolute;right:12px;top:15px;width:55px;height:65px;border-radius:30px;background:radial-gradient(circle,#368265 0 9px,#9ac4a7 10px 18px,#deeadb 19px);transform:translateZ(5px)}.station-roof{position:absolute;left:10px;top:8px;width:180px;height:45px;border-radius:25px 25px 5px 5px;background:repeating-linear-gradient(90deg,#e9f1f6 0 14px,#619bb9 14px 18px);border:3px solid #648da8;transform:translateZ(30px);font-size:12px;font-weight:900;color:#183d5a;text-align:center;padding-top:14px;box-shadow:0 12px 0 #708da0}.station-tracks{position:absolute;left:10px;right:10px;top:65px;height:30px;background:repeating-linear-gradient(0deg,#576570 0 2px,#a1acb4 2px 7px);border-left:12px solid #dfe5e8;transform:translateZ(3px)}.harbor-water{position:absolute;inset:5px 5px 25px 70px;background:repeating-linear-gradient(0deg,#599fb8 0 12px,#80bed0 12px 14px);border-radius:4px}.harbor-crane{position:absolute;left:70px;top:25px;width:100px;height:8px;background:#e5a74c;transform:translateZ(50px);box-shadow:0 5px 0 #b77932}.harbor-crane:before{content:'';position:absolute;left:20px;top:0;width:8px;height:65px;background:#db943c;transform-origin:top;transform:rotateX(90deg)}.harbor-crane:after{content:'';position:absolute;right:10px;width:2px;height:30px;background:#49616f;transform-origin:top;transform:rotateX(90deg)}.harbor-containers{position:absolute;left:8px;top:12px;width:45px;height:75px;background:repeating-linear-gradient(0deg,#c2634f 0 18px,#f0ba67 18px 36px,#527f9c 36px 54px);border:2px solid #dae4e9;transform:translateZ(15px);box-shadow:5px 7px 0 #607c8a}.shopping-building{position:absolute;left:20px;top:10px;width:165px;height:60px;background:linear-gradient(110deg,#eee7db,#b9a78f);border:4px solid #f5efe5;transform:translateZ(40px);box-shadow:0 15px 0 #857b79;text-align:center;padding:12px 0;color:#3e3540}.shopping-building strong{font-size:16px;letter-spacing:2px}.shopping-building span{display:block;font-size:7px;letter-spacing:2px;margin-top:4px}.shopping-plaza{position:absolute;left:28px;bottom:23px;width:150px;height:28px;background:radial-gradient(circle,#78b6c9 0 10px,#f0e8df 11px 17px,#c7b9af 18px);transform:translateZ(3px)}
+
+/* Roofs connect to the ground through full-height walls. */
+.district-landmark,.station-roof,.shopping-building{transform-style:preserve-3d;box-shadow:none;overflow:visible}
+.district-landmark:before,.station-roof:before,.shopping-building:before{content:'';position:absolute;left:-4px;right:-4px;top:100%;transform-origin:top;transform:rotateX(-90deg);border:1px solid #647b8b;box-sizing:border-box}
+.district-landmark:after,.station-roof:after,.shopping-building:after{content:'';position:absolute;left:100%;top:-4px;bottom:-4px;transform-origin:left;transform:rotateY(90deg);border:1px solid #647b8b;box-sizing:border-box}
+.district-landmark:before{height:35px;background:repeating-linear-gradient(90deg,#355e79 0 12px,#9ac8db 12px 20px,#42677f 20px 24px)}
+.district-landmark:after{width:35px;background:#547d92}
+.station-roof:before{height:30px;background:repeating-linear-gradient(90deg,#e0e7eb 0 16px,#406b87 16px 31px,#d1dce3 31px 35px)}
+.station-roof:after{width:30px;background:#829aa9}
+.shopping-building:before{height:40px;background:repeating-linear-gradient(90deg,#b6a895 0 24px,#536878 24px 37px,#dbd1c4 37px 42px)}
+.shopping-building:after{width:40px;background:#9b8f81}
+.district-landmark span{position:absolute;left:3px;right:3px;top:100%;transform-origin:top;transform:rotateX(-90deg) translateZ(1px);font-size:7px;padding:5px;background:#25475f}
+.shopping-building strong{position:absolute;top:100%;left:0;right:0;transform-origin:top;transform:rotateX(-90deg) translateZ(2px);font-size:12px;line-height:25px;background:#d5c9b9;color:#3e3540}
+.shopping-building span{color:#5a5360}
+.harbor-containers{box-shadow:0 3px 0 #607c8a;transform:translateZ(3px)}
+
+/* Every landmark is a closed box: roof plus four independently rendered walls. */
+.district-landmark{--wall-height:35px}
+.station-roof{--wall-height:30px;border-radius:4px}
+.shopping-building{--wall-height:40px}
+.landmark-wall-back{position:absolute;left:-4px;right:-4px;top:-4px;height:var(--wall-height);transform-origin:top;transform:rotateX(-90deg);background:repeating-linear-gradient(90deg,#738d9e 0 14px,#b7d1de 14px 23px,#738d9e 23px 27px);border:1px solid #607989;box-sizing:border-box;text-decoration:none}
+.landmark-wall-left{position:absolute;left:-4px;top:-4px;bottom:-4px;width:var(--wall-height);transform-origin:left;transform:rotateY(90deg);background:repeating-linear-gradient(0deg,#55778d 0 12px,#adc9d9 12px 20px,#55778d 20px 24px);border:1px solid #607989;box-sizing:border-box;text-decoration:none}
+.shopping-building .landmark-wall-back{background:repeating-linear-gradient(90deg,#b6a895 0 24px,#536878 24px 37px,#dbd1c4 37px 42px)}
+.shopping-building .landmark-wall-left{background:#9b8f81}
+
+.harbor{background:#b1cad4;overflow:visible}
+.harbor-water{inset:0 0 0 68px;overflow:hidden;border-radius:0 8px 8px 0;background:repeating-linear-gradient(170deg,transparent 0 14px,#b8e8ef66 15px 17px,transparent 18px 31px),linear-gradient(135deg,#48a6c0,#176b9d);border:1px solid #418ba9}
+.harbor-sea-name{position:absolute;right:7px;bottom:7px;color:#e1f7ff;font-size:11px;font-weight:800;letter-spacing:1px}
+.harbor-quay{position:absolute;left:54px;top:0;width:18px;height:125px;background:repeating-linear-gradient(0deg,#e9c36b 0 9px,#5b6c76 9px 18px);border-right:4px solid #e3e7e6;transform:translateZ(2px)}
+.harbor-ship{position:absolute;right:16px;top:27px;width:69px;height:24px;background:#f1f5f4;border-bottom:7px solid #334c66;border-radius:8px 22px 22px 8px;transform:rotate(-15deg);box-shadow:0 5px 0 #c9eef566}
+.harbor-ship:before{content:'';position:absolute;left:12px;top:3px;width:24px;height:9px;background:repeating-linear-gradient(90deg,#d47b58 0 7px,#f4c579 7px 14px)}
+.harbor-breakwater{position:absolute;right:0;top:7px;width:72px;height:7px;background:#c4d2d7;border-bottom:2px solid #7c929e;transform:rotate(8deg)}
+.harbor .district-caption{left:0;right:auto;bottom:3px;width:65px;font-size:9px;background:#ecf2f3d9;padding:3px}
+
+/* Low-rise context occupies the streets between the four landmark districts. */
+.neighborhood-building{width:34px;height:28px;transform:translateZ(1px)}
+.neighborhood-building i{background:#e0e5e8;border:1px solid #a9b6c0;box-shadow:inset 0 0 0 5px #eef1f3}
+.neighborhood-building b{top:28px;width:34px;background:repeating-linear-gradient(90deg,#96a8b4 0 6px,#d0dce3 6px 10px)}
+.neighborhood-building em{left:34px;height:28px;background:#aebbc5}
+.neighborhood-building .building-back{width:34px;background:#a3b2bd}
+.neighborhood-building .building-left{height:28px;background:#aebbc5}
+.city-connector{position:absolute;background:#657789;border:3px solid #e0e6eb;transform:translateZ(1px);pointer-events:none}
+.city-connector.horizontal{left:0;top:171px;width:520px;height:23px;border-left:0;border-right:0}
+.city-connector.vertical{left:263px;top:0;width:20px;height:350px;border-top:0;border-bottom:0}
+.city-connector:after{content:'';position:absolute;inset:8px 0;background:repeating-linear-gradient(90deg,#f4eac0 0 12px,transparent 12px 24px)}
+.city-connector.vertical:after{inset:0 7px;background:repeating-linear-gradient(0deg,#f4eac0 0 12px,transparent 12px 24px)}
+
+/* Buildings share the street grid without occupying an entire district each. */
+.city-district{border:0;border-radius:2px;background:transparent}
+.campus{width:165px;height:118px;left:22px;top:14px}
+.station{width:205px;height:118px;left:295px;top:10px}
+.shopping{width:178px;height:118px;left:320px;top:211px}
+.harbor{width:140px;height:134px;left:8px;top:208px;background:#b1cad4}
+.campus .district-landmark{width:95px;height:52px;--wall-height:35px}
+.campus .district-landmark:before{height:35px}
+.campus .campus-garden{right:0;width:42px;height:54px}
+.shopping-building{width:143px;height:54px;left:12px;top:7px}
+.shopping-plaza{width:142px;left:12px;bottom:20px}
+.station-roof{width:178px;height:39px;top:14px}
+.station-tracks{top:64px;height:25px;background:repeating-linear-gradient(0deg,#586976 0 2px,#bdc7cd 2px 6px)}
+.district-caption{font-size:9px;color:#5b6c7b;font-weight:500}
+.recommend-park{left:170px;top:215px;width:40px;height:96px;border-radius:6px;border-width:3px}
+.recommend-plaza{left:170px;top:44px;width:38px;height:61px;border-width:3px}
+.city-tree{position:absolute;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#8eb79a,#4f8567);border:1px solid #6b9777;transform:translateZ(9px);box-shadow:3px 6px 0 #365c3f25;pointer-events:none}
+.neighborhood-building i{box-shadow:inset 0 0 0 4px #e7ecef}
+.recommend-pin strong{width:35px;height:35px;font-size:22px;border-radius:10px}
+.recommend-pin span{font-size:13px;padding:7px 10px;min-width:115px}
+.recommend-roads{border-width:5px;background:repeating-linear-gradient(0deg,transparent 0 70px,#71818e 70px 98px),repeating-linear-gradient(90deg,#cbd9df 0 80px,#71818e 80px 105px)}
+
+/* Offset landmarks along the streets instead of four equal quadrants. */
+.campus{left:18px;top:27px;width:155px;transform:rotateZ(-8deg)}
+.station{left:304px;top:-5px;transform:rotateZ(5deg)}
+.shopping{left:289px;top:198px;transform:rotateZ(-6deg)}
+.harbor{left:-6px;top:225px;width:153px;transform:rotateZ(7deg)}
+.recommend-park{left:174px;top:230px;height:83px;transform:translateZ(2px) rotateZ(-7deg)}
+.recommend-plaza{left:183px;top:56px;transform:translateZ(2px) rotateZ(-8deg)}
+.city-connector.horizontal{top:177px;transform:translateZ(1px) rotateZ(-4deg)}
+.city-connector.vertical{left:266px;transform:translateZ(1px) rotateZ(8deg)}
+
+/* Harbor follows a continuous waterfront edge with a paved quay. */
+.harbor{left:-18px;top:215px;width:183px;height:146px;background:#bec8c9;transform:rotateZ(0deg);border:0;border-radius:0}
+.harbor-water{inset:0 0 0 87px;border:0;border-left:4px solid #8f9e9e;border-radius:0;background:repeating-linear-gradient(173deg,transparent 0 17px,#b4dce52b 18px 19px,transparent 20px 38px),linear-gradient(100deg,#4e9bad,#367e99);box-shadow:inset 6px 0 12px #234e6533}
+.harbor-quay{left:66px;top:0;width:25px;height:146px;border-right:3px solid #d8d6c9;background:repeating-linear-gradient(0deg,#505c60 0 3px,transparent 3px 28px),#a7afb0;transform:translateZ(1px)}
+.harbor-containers{left:10px;top:13px;width:42px;height:74px;background:repeating-linear-gradient(0deg,#8d6558 0 12px,#bec7c5 12px 16px,#627f8b 16px 28px,#bec7c5 28px 32px,#b19b65 32px 44px,#bec7c5 44px 48px);border:1px solid #a0aaad;transform:translateZ(3px);box-shadow:2px 2px 0 #7e8f94}
+.harbor-crane{left:56px;top:40px;width:59px;height:3px;background:#718994;transform:translateZ(22px);box-shadow:none}
+.harbor-crane:before{left:12px;width:3px;height:22px;background:#647a85;transform:rotateX(-90deg)}
+.harbor-crane:after{right:7px;width:1px;height:15px;transform:rotateX(-90deg)}
+.harbor-ship{left:11px;right:auto;top:53px;width:51px;height:17px;border-bottom:4px solid #435765;border-radius:4px 14px 14px 4px;background:#e3e9e8;transform:rotate(90deg);box-shadow:2px 3px 0 #b6d9df33}
+.harbor-ship:before{left:8px;top:2px;width:22px;height:7px;background:repeating-linear-gradient(90deg,#8d6558 0 5px,#b4a477 5px 10px)}
+.harbor-breakwater{right:-6px;top:10px;width:48px;height:4px;background:#a9b4b6;border-bottom:1px solid #7a949e;transform:rotate(0)}
+.harbor-sea-name{right:5px;bottom:14px;font-size:9px;letter-spacing:0;color:#d8ebef}
+.harbor .district-caption{left:5px;bottom:7px;width:72px;font-size:8px;background:#dbe1df;padding:4px}

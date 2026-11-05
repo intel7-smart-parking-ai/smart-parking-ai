@@ -1,3 +1,4 @@
+import {ParkingExtras, AdminCalls} from './ParkingExtras.jsx';
 import ObservationPanel from './ObservationPanel.jsx';
 import {evacuationRequired,currentKSTMonth,formatKST} from './uiState.js';
 import SessionHistoryPanel from './SessionHistoryPanel.jsx';
@@ -5,6 +6,7 @@ import SimulationPanel from './SimulationPanel.jsx';
 import ChatPanel from './ChatPanel.jsx';
 import RevenuePanel from './RevenuePanel.jsx';
 import MobileParkingApp from './MobileParkingApp.jsx';
+import ParkingWelcome from './ParkingWelcome.jsx';
 import ParkingLayoutMap from './ParkingLayoutMap.jsx';
 import {submitMockPayment,isQuoteExpired,staleQuoteCodes} from './payments.js';
 import PaymentChooser, {paymentMethods} from './PaymentChooser.jsx';
@@ -13,11 +15,11 @@ import {api,loadLots,dataSource,lookupVehicle,pollInterval} from './api.js';
 const isDemo=dataSource==='demo';
 import {Icon,Badge,Detail,Search,money,time} from './components.jsx';
 const seedFilters={kind:'month',period:currentKSTMonth(),lot_id:''};
-export default function App(){const mode=new URLSearchParams(window.location.search).get('app');const appMode=mode==='1'||mode==='user'||(mode!=='0'&&(window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true));return window.location.pathname.startsWith('/admin/')?<Dashboard admin/>:appMode?<MobileParkingApp/>:<Dashboard/>}
+export default function App(){const [started,setStarted]=useState(()=>new URLSearchParams(window.location.search).get('screen')==='map');const mode=new URLSearchParams(window.location.search).get('app');const appMode=mode==='1'||mode==='user'||(mode!=='0'&&(window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true));return window.location.pathname.startsWith('/admin/')?<Dashboard admin/>:appMode?<MobileParkingApp/>:started?<Dashboard/>:<ParkingWelcome onStart={(lot,page)=>{const url=new URL(window.location.href);url.searchParams.set('lot',lot);url.searchParams.set('screen','map');url.searchParams.set('page',page||'parking');window.history.replaceState(null,'',url);setStarted(true)}}/>}
 function Dashboard({admin=false}){
  const [theme,setTheme]=useState(()=>localStorage.getItem('parkon-react-theme')||'light');
  const mode=admin?'admin':'user';
- const [page,setPage]=useState(()=>admin&&new URLSearchParams(window.location.search).get('page')==='revenue'?'revenue':'parking'),[lotId,setLotId]=useState(()=>{const id=new URLSearchParams(window.location.search).get('lot');return ['A','B','C','D'].includes(id)?id:'A'}),[filter,setFilter]=useState('all');
+ const [page,setPage]=useState(()=>admin&&new URLSearchParams(window.location.search).get('page')==='revenue'?'revenue':!admin&&['parking','find','fee','chat'].includes(new URLSearchParams(window.location.search).get('page'))?new URLSearchParams(window.location.search).get('page'):'parking'),[lotId,setLotId]=useState(()=>{const id=new URLSearchParams(window.location.search).get('lot');return ['A','B','C','D'].includes(id)?id:'A'}),[filter,setFilter]=useState('all');
  useEffect(()=>{if(admin){const url=new URL(window.location.href);url.searchParams.set('lot',lotId);window.history.replaceState(null,'',url)}},[admin,lotId]);
  const [data,setData]=useState({lots:[],policies:[],payments:[],alerts:[],sessions:[],report:null});
  const [reportFilters,setReportFilters]=useState(seedFilters),[paymentFilters,setPaymentFilters]=useState({lot_id:'',status:''}),[alertFilters,setAlertFilters]=useState({lot_id:'',status:''});
@@ -81,11 +83,12 @@ function Dashboard({admin=false}){
  {activeAlerts.some(a=>a.lot_id===lotId)&&<button className="safety-banner" onClick={()=>navigate('alerts')}><Icon name="bell"/>{lot.name} · {evacuationRequired(data.alerts,lotId)?'레벨 2 대피 안내 · 결제 중단':'모의 화재 경보 · 위치와 상태 확인'}<Icon name="arrow"/></button>}
  {mode==='admin'&&page==='parking'&&<ObservationPanel lot={lot} filter={filter} setFilter={setFilter}/>}
  {page==='parking'&&mode==='admin'&&(lot.simulation_enabled||lot.capabilities?.simulation)&&lot.type==='virtual'&&<SimulationPanel key={lot.lot_id} lot={lot} onRefresh={refresh}/>}
+ {page==='parking'&&<ParkingExtras lot={lot} lots={data.lots} alerts={data.alerts} onSelect={setLotId}/>}
  {page==='parking'&&<div className="parking-workspace"><ParkingLayoutMap key={lot.lot_id} lot={lot} filter={filter} setFilter={setFilter} alerts={data.alerts} found={invoice} onSpace={setSpace}/><aside className="right-column"><section className="occupancy-panel"><div className="section-kicker">PARKING STATUS<span>현황</span></div><div className="occupancy-ring" style={{'--percent':`${occupied/lot.spaces.length*100}%`}}><div><strong>{Math.round(occupied/lot.spaces.length*100)}<small>%</small></strong><span>현재 점유율</span></div></div><div className="status-numbers">{[['empty','빈자리'],['occupied','주차 중'],['uncertain','확인 필요'],['unavailable','확인 불가']].map(([id,label])=><div key={id}><i className={`legend-dot ${id}`}/><span>{label}</span><b>{lot.spaces.filter(s=>s.status===id).length}</b></div>)}</div></section><article className="panel quick-find"><div className="card-heading"><h3>내 차 빠르게 찾기</h3><Icon name="search"/></div><p>실물은 스티커, 가상은 차량번호로 조회하세요.</p>{search}{found}<button className="button white full quick-fee-link" onClick={()=>navigate('fee')}>요금 확인 · 모의 결제</button></article>{mode==='admin'&&<article className="panel"><h3>LED 모의 화재 경보</h3><p className="muted">실제 카메라 연결 전 시연입니다.</p><button className="button danger full" disabled={busy} onClick={fire}>LED 경보 시연</button></article>}</aside></div>}
- {page==='chat'&&<ChatPanel/>}
+ {page==='chat'&&<ChatPanel lots={data.lots} alerts={data.alerts}/>}
  {page==='find'&&<section className="search-page"><article className="panel search-large"><span className="large-symbol"><Icon name="car"/></span><h2>주차장에 맞는 번호로 내 차 찾기</h2><p>실물 1·2번은 스티커 번호, 가상 3·4번은 차량번호 뒤 4자리로 조회하세요.</p>{search}{found}{invoice&&<button className="button primary full quick-fee-link" onClick={()=>navigate('fee')}>요금 확인하기</button>}</article><div className="search-side"><span className="eyebrow">FIND YOUR CAR</span><h2>실물은 스티커로,<br/>가상은 차량번호로.</h2><p className="muted">모든 주차 정보는 같은 서버 API를 사용합니다.</p></div></section>}
  {page==='fee'&&<FeePanel key={invoice?.session_id||'empty'} {...{data,invoice,search,found,busy,error,pay,navigate}}/>}
- {page==='payments'&&<><PaymentsPanel {...{data,mode,busy,cancel,lotName,paymentFilters,setPaymentFilters}}/>{mode==='admin'&&<SessionHistoryPanel lots={data.lots}/>}</>}
+ {page==='payments'&&<><PaymentsPanel {...{data,mode,busy,cancel,lotName,paymentFilters,setPaymentFilters}}/>{mode==='admin'&&<><SessionHistoryPanel lots={data.lots}/><AdminCalls/></>}</>}
  {page==='revenue'&&mode==='admin'&&!data.featureErrors?.revenue&&<RevenuePanel report={data.report} lots={data.lots} filters={reportFilters} onFilter={setReportFilters} loading={loading}/>}
  {page==='alerts'&&<AlertsPanel {...{data:{...data,alerts:data.alertRows||[]},mode,busy,fire,alertAction,lotName,alertFilters,setAlertFilters}}/>}
  <footer><span><i/> DOCKER DEMO<b>실제 청구·화재 감지 없음</b></span><span>{isDemo?'React + FastAPI + SQLite · 모의 운영':'React + 팀 FastAPI · 합성 예시 조회'}</span></footer></main></div>

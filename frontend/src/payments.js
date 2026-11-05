@@ -1,3 +1,4 @@
+import {requestId} from './requestId.js';
 import {evacuationRequired} from './uiState.js';
 import {api} from './api.js';
 export const paymentMethodCodes={credit_card:'MOCK_CARD',MOCK_CARD:'MOCK_CARD',MOCK_EASY_PAY:'MOCK_EASY_PAY',MOCK_ACCOUNT:'MOCK_ACCOUNT'};
@@ -23,7 +24,7 @@ export async function submitMockPayment(invoice, method, simulateFailure, attemp
   if (completed(latest)) return receipt(latest);
   if(Number.isInteger(invoice.fee?.amount_krw)&&Number.isInteger(latest.amount_krw)&&invoice.fee.amount_krw!==latest.amount_krw){delete attempts[sid];throw Object.assign(new Error('조회 후 요금이 변경되었습니다. 차량을 다시 조회해주세요.'),{code:'QUOTE_CHANGED'})}
   let attempt=attempts[sid];
-  if (!attempt||attempt.method!==code) attempt=attempts[sid]={key:crypto.randomUUID(),method:code};
+  if (!attempt||attempt.method!==code) attempt=attempts[sid]={key:requestId(),method:code};
   for(let retry=0;retry<2;retry++) {
     let payment;
     if(isQuoteExpired(invoice)){delete attempts[sid];throw expired()}
@@ -44,7 +45,7 @@ export async function submitMockPayment(invoice, method, simulateFailure, attemp
     }
     if(payment.status==='completed') return payment;
     if(payment.status!=='canceled') throw new Error('결제가 완료되지 않았습니다. 서버 상태를 확인해주세요.');
-    attempt=attempts[sid]={key:crypto.randomUUID(),method:code};
+    attempt=attempts[sid]={key:requestId(),method:code};
   }
   throw new Error('취소된 결제의 재시도를 처리하지 못했습니다. 다시 조회해주세요.');
 }

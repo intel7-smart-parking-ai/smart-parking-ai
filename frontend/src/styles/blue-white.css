@@ -1,0 +1,208 @@
+/* Variant C: white workspace with pale-blue navigation; semantic status colors stay separate. */
+:root{--parkon-primary:#1554d1;--parkon-primary-hover:#1044b3;--parkon-page:#fff;--parkon-surface:#fff;--parkon-tint:#e8f0ff;--parkon-border:#dce5f2;--parkon-text:#15243d;--parkon-secondary:#62748e}
+html[data-theme=light]{--bg:var(--parkon-page);--panel:var(--parkon-surface);--ink:var(--parkon-text);--muted:var(--parkon-secondary);--faint:#8393aa;--line:var(--parkon-border);--lime:var(--parkon-primary)}
+html[data-theme=light] body{background:var(--parkon-page);color:var(--parkon-text)}
+html[data-theme=light] :is(button,a,input,select,textarea):focus-visible{outline-color:#6a98f1}
+html[data-theme=light] .app-header{background:#ffffffed;border-color:var(--parkon-border)}
+html[data-theme=light] :is(.brand-symbol,.brand b,.brand b span){color:var(--parkon-primary)}
+html[data-theme=light] .brand b{font-style:normal;font-weight:800}
+html[data-theme=light] .brand b span{font-weight:800}
+html[data-theme=light] .brand i{color:#7f91ac;border-color:var(--parkon-border)}
+html[data-theme=light] .theme-switch{background:#edf2fc;border-color:var(--parkon-border)}
+html[data-theme=light] .theme-switch button{color:var(--parkon-secondary)}
+html[data-theme=light] .theme-switch .selected{background:#fff;color:var(--parkon-primary);box-shadow:0 1px 4px #23427912}
+html[data-theme=light] :is(.mobile-app-entry,.refresh-button,.button.white){background:#fff;color:#345381;border-color:var(--parkon-border)}
+html[data-theme=light] .refresh-button:hover{color:var(--parkon-primary);border-color:#9ebcf4}
+html[data-theme=light] .icon-rail{background:#eaf1ff;border-color:var(--parkon-border)}
+html[data-theme=light] .rail-button{color:#7290bd}
+html[data-theme=light] .rail-button:hover{background:#dce9ff;color:var(--parkon-primary)}
+html[data-theme=light] .rail-button.active{background:#cdddff;color:#1049ba;box-shadow:none}
+html[data-theme=light] .rail-bottom{color:#8d9fba}
+html[data-theme=light] .locations{background:#f0f5ff;border-color:var(--parkon-border)}
+html[data-theme=light] :is(.locations-heading,.location-title,.location-total strong){color:var(--parkon-text)}
+html[data-theme=light] :is(.locations-heading b,.locations-caption,.location-type,.location.selected .location-type,.location-meta,.location-foot,.location-total>span,.location-total>div,.location-total strong small){color:var(--parkon-secondary)}
+html[data-theme=light] .location{background:#fff;border-color:var(--parkon-border);color:var(--parkon-text)}
+html[data-theme=light] .location:hover{background:#f8fbff;border-color:#acc6f6}
+html[data-theme=light] .location.selected{background:#eaf1ff;border-color:#8bb0f5;box-shadow:0 3px 12px #1554d10a}
+html[data-theme=light] .location.selected:after{border-left-color:#8bb0f5}
+html[data-theme=light] :is(.location-progress,.selected .location-progress){background:#e1e9f7}
+html[data-theme=light] :is(.location-progress>i,.selected .location-progress>i){background:#6f9ce9}
+html[data-theme=light] :is(.selected .location-meta>span,.selected .location-meta b){color:#315b9e}
+html[data-theme=light] .location-meta b{color:#26744b}
+html[data-theme=light] .location-total{border-color:var(--parkon-border)}
+html[data-theme=light] .location-thumb{background:linear-gradient(145deg,#749ac5,#314d78);box-shadow:inset 0 0 15px #18335925}
+html[data-theme=light] .location-thumb>.icon{color:#e0edff}
+html[data-theme=light] :is(.breadcrumbs,.last-sync,.fee-note,.section-kicker,.section-kicker>span,.panel-header p,.muted,.sample-hint,.quick-find>p,.layout-note,.pdf-layout-note,.lookup-hint){color:var(--parkon-secondary)}
+html[data-theme=light] .service-nav{border-color:var(--parkon-border)}
+html[data-theme=light] .service-nav button{color:var(--parkon-secondary)}
+html[data-theme=light] .service-nav button.selected{background:var(--parkon-tint);color:var(--parkon-primary)}
+html[data-theme=light] :is(.map-panel,.panel,.occupancy-panel,.right-column>.panel,.search-large,.revenue-heading){background:#fff;border-color:var(--parkon-border)}
+html[data-theme=light] :is(.filter-tabs button,.lookup-tabs){background:#f7faff;border-color:var(--parkon-border);color:var(--parkon-secondary)}
+html[data-theme=light] :is(.filter-tabs button.active,.lookup-tabs button.active,.lookup-tabs button.selected,.button.primary){background:var(--parkon-primary);border-color:var(--parkon-primary);color:#fff}
+html[data-theme=light] .button.primary:hover{background:var(--parkon-primary-hover)}
+html[data-theme=light] .button.white:hover{background:#edf3ff;color:var(--parkon-primary)}
+html[data-theme=light] :is(.search-input,.search-input input,.search-form>input){background:#f8fbff;border-color:var(--parkon-border);color:var(--parkon-text)}
+html[data-theme=light] .search-input .icon{color:#8499b7}
+html[data-theme=light] :is(.lookup-tabs button,.sample-hint button){color:#44618b}
+html[data-theme=light] .sample-hint button{background:#eaf1ff}
+html[data-theme=light] :is(.occupancy-ring strong,.status-numbers b,.card-heading h3,.session-detail b,.session-detail strong,.revenue-heading strong,.revenue-row>strong,.empty-state h3){color:var(--parkon-text)}
+html[data-theme=light] .occupancy-ring{background:conic-gradient(var(--parkon-primary) 0 var(--percent),#e7eefb var(--percent) 100%)}
+html[data-theme=light] .occupancy-ring:before{background:#fff}
+html[data-theme=light] :is(.occupancy-ring>div span,.occupancy-ring strong small,.status-numbers>div,.session-detail span,.session-detail small,.revenue-heading>div>span,.revenue-heading p,.revenue-row b,.alert-row p,.empty-state p,.failure-toggle){color:var(--parkon-secondary)}
+html[data-theme=light] .legend-dot.empty{background:#2c9a63}
+html[data-theme=light] .legend-dot.occupied{background:#8d9aab}
+html[data-theme=light] .legend-dot.uncertain{background:#dca529}
+html[data-theme=light] .legend-dot.unavailable{background:#a9b5c5}
+html[data-theme=light] .map-legend{color:var(--parkon-secondary);border-color:var(--parkon-border)}
+html[data-theme=light] :is(.pdf-map-panel .pdf-road,.pdf-map-panel .mall-asphalt){fill:#edf2f8}
+html[data-theme=light] :is(.pdf-map-panel .pdf-boundary,.pdf-map-panel .mall-outline){stroke:#a2b2c9}
+html[data-theme=light] .pdf-map-panel .pdf-bay:not(.ev):not(.accessible):not(.uncertain):not(.unavailable) .pdf-bay-shape{fill:#fff;stroke:#b2c1d5}
+html[data-theme=light] .pdf-map-panel .pdf-bay.occupied:not(.ev):not(.accessible) .pdf-bay-shape{fill:#dfe6ef}
+html[data-theme=light] :is(.pdf-map-panel .pdf-bay-label,.pdf-map-panel .mall-title){fill:#263b58}
+html[data-theme=light] .pdf-map-panel .pdf-bay.empty .pdf-bay-status{fill:#2c7b52}
+html[data-theme=light] .pdf-map-panel .pdf-road-arrow path{stroke:#7b91ae}
+html[data-theme=light] .pdf-map-panel .pdf-lane-divider{stroke:#afbed1}
+html[data-theme=light] .pdf-map-panel .pdf-bay.found .pdf-bay-shape{stroke:#1554d1}
+html[data-theme=light] .pdf-map-panel .pdf-bay:hover .pdf-bay-shape,html[data-theme=light] .pdf-map-panel .pdf-bay:focus .pdf-bay-shape{stroke:#4279df}
+html[data-theme=light] .pdf-zoom-button{color:#315d9e;border-color:#b6cbef;background:#f6f9ff}
+html[data-theme=light] .pdf-zoom-button[aria-pressed=true]{color:#fff;background:var(--parkon-primary);border-color:var(--parkon-primary)}
+html[data-theme=light] :is(.large-symbol,.stat-icon,.step>span,.empty-state>span){background:#eaf1ff;color:var(--parkon-primary);border-color:var(--parkon-border)}
+html[data-theme=light] :is(.eyebrow,.step h3,.text-button,.mini-icon){color:#315d9e}
+html[data-theme=light] :is(.step p,.search-large>p,.search-large .fee-note){color:var(--parkon-secondary)}
+html[data-theme=light] :is(.session-detail,.session-detail>div,.availability-row,.alert-row,dl>div){border-color:var(--parkon-border)}
+html[data-theme=light] .found-card{background:#edf4ff;border-color:#b6ccf2}
+html[data-theme=light] :is(.found-icon,.found-card button,.found-card strong){color:var(--parkon-primary)}
+html[data-theme=light] .found-card div>span{color:#5876a1}
+html[data-theme=light] th{background:#edf3fd;border-color:var(--parkon-border);color:#5a7398}
+html[data-theme=light] td{color:#4b6485;border-color:var(--parkon-border)}
+html[data-theme=light] td b{color:var(--parkon-text)}
+html[data-theme=light] .bar-track{background:#e9effa}
+html[data-theme=light] .bar-track>span{background:#5b8ee5}
+html[data-theme=light] .chart-note{background:#f3f7ff;color:#60799f;border-color:var(--parkon-border)}
+html[data-theme=light] :is(footer,.empty-state){color:#7d90ad;border-color:var(--parkon-border)}
+html[data-theme=light] footer b{color:#5d789e}
+html[data-theme=light] dialog{background:#fff;border-color:var(--parkon-border);color:var(--parkon-text);box-shadow:0 20px 90px #23477930}
+html[data-theme=light] dialog::backdrop{background:#172c4a66}
+html[data-theme=light] :is(.dialog-header button,dialog>p,dt){color:var(--parkon-secondary)}
+html[data-theme=light] dd{color:var(--parkon-text)}
+html[data-theme=light] #toast{background:#183d80;color:#fff}
+html[data-theme=light] .recommend-map{border-color:var(--parkon-border);background:#fff}
+html[data-theme=light] .recommend-map-tabs button[aria-pressed=true]{background:var(--parkon-primary);border-color:var(--parkon-primary)}
+/* Welcome uses the same palette independently of the dashboard's dark-mode preference. */
+.kiosk-welcome{background:var(--parkon-page);color:var(--parkon-text)}
+.kiosk-welcome .kiosk-header>a,.kiosk-welcome .kiosk-header>a span{color:var(--parkon-primary)}
+.kiosk-welcome .kiosk-payment{background:var(--parkon-primary)}
+.kiosk-welcome .kiosk-payment:hover{background:var(--parkon-primary-hover)}
+.kiosk-welcome .kiosk-secondary{background:#eaf0fb;color:#21467e}
+.kiosk-welcome .kiosk-languages button[aria-pressed=true]{background:var(--parkon-tint);color:var(--parkon-primary);border-color:#c4d8fc}
+.kiosk-welcome .kiosk-lot-choice select{background:#fff;border-color:var(--parkon-border);color:var(--parkon-text)}
+.kiosk-welcome .kiosk-intro h1{color:var(--parkon-text)}
+.kiosk-welcome .kiosk-description{color:var(--parkon-secondary);border-color:var(--parkon-primary)}
+/* Match the installed mobile experience as well. */
+.mobile-parking-app{background:var(--parkon-page);color:var(--parkon-text)}
+.mobile-parking-app .mobile-app-header{background:#fffffff5;border-color:var(--parkon-border)}
+.mobile-parking-app .mobile-app-header>a,.mobile-parking-app .mobile-app-header b span{color:var(--parkon-primary)}
+.mobile-parking-app :is(.app-install-button,.app-switch-web){background:#edf3ff;color:#315b98;border-color:#c8daf7}
+.mobile-parking-app .app-home-hero{background:#174cbb}
+.mobile-parking-app .app-home-hero strong{color:#fff}
+.mobile-parking-app .app-home-hero :is(p,b,div>span){color:#d4e4ff}
+.mobile-parking-app :is(.app-lot-card,.app-search-card,.map-panel){background:#fff;border-color:var(--parkon-border)}
+.mobile-parking-app .app-lot-number{background:#e7efff;color:#315fae}
+.mobile-parking-app .app-lot-progress{background:#e6edfa}
+.mobile-parking-app .app-lot-progress i{background:#739fea}
+.mobile-parking-app :is(.app-lot-name>small,.app-data-note,.app-intro,.app-connection,.app-section-heading>span,.lookup-hint){color:var(--parkon-secondary)}
+.mobile-parking-app :is(.app-primary,.search-form>.button,.app-lot-switch button.selected,.filter-tabs button.active,.lookup-tabs button.active){background:var(--parkon-primary);border-color:var(--parkon-primary);color:#fff}
+.mobile-parking-app .app-lot-switch button{background:#fff;border-color:var(--parkon-border);color:#41618d}
+.mobile-parking-app .app-lot-switch button.selected small{color:#d9e7ff}
+.mobile-parking-app :is(.app-example,.app-help-card){background:#eaf1ff;color:#3c608f}
+.mobile-parking-app .mobile-bottom-nav{background:#fffffff5;border-color:var(--parkon-border)}
+.mobile-parking-app .mobile-bottom-nav button.selected{color:var(--parkon-primary)}
+.mobile-parking-app .mobile-bottom-nav button.selected .icon{background:#e7efff;box-shadow:0 0 0 5px #e7efff}
+@media(max-width:800px){html[data-theme=light] .icon-rail{background:#f4f8fff5;border-color:var(--parkon-border)}html[data-theme=light] .locations{border-color:var(--parkon-border)}}
+html[data-theme=light] :is(.operation-intro h2,.policy-row strong,.report-scope b,.operation-stats strong){color:var(--parkon-text)}
+html[data-theme=light] :is(.operation-intro p,.policy-panel>p,.flow-note p,.policy-row>span,.operation-stats article>span,.operation-stats small,.report-scope,.operation-footnote,.table-sub){color:var(--parkon-secondary)}
+html[data-theme=light] :is(.operation-filters,.flow-note,.policy-panel){background:#f7faff;border-color:var(--parkon-border)}
+html[data-theme=light] .operation-filters :is(input,select){background:#fff;color:var(--parkon-text);border-color:var(--parkon-border)}
+html[data-theme=light] .policy-row,html[data-theme=light] .fee-main .panel-header{border-color:var(--parkon-border)}
+html[data-theme=light] .payment-chooser{background:#f6f9ff;border-color:#c4d6f4}
+html[data-theme=light] .payment-chooser-heading>span{color:var(--parkon-secondary)}
+html[data-theme=light] .payment-method{background:#fff;border-color:var(--parkon-border)}
+html[data-theme=light] .payment-method.selected{border-color:var(--parkon-primary);box-shadow:0 0 0 2px #1554d115}
+html[data-theme=light] .payment-method input{accent-color:var(--parkon-primary)}
+html[data-theme=light] :is(.payment-method-check,.payment-choice-total strong){color:var(--parkon-primary)}
+html[data-theme=light] .payment-choice-total{border-color:var(--parkon-border)}
+.mobile-parking-app .lookup-tabs button.selected{background:var(--parkon-primary);color:#fff}
+.mobile-parking-app .app-result-plate{background:#fff;color:var(--parkon-text);border-color:var(--parkon-border)}
+
+/* Calm contemporary finish: neutral canvas, restrained cobalt actions. */
+:root{--parkon-primary:#315fce;--parkon-primary-hover:#254fb8;--parkon-tint:#edf2ff;--parkon-border:#e4e8ee;--parkon-text:#202a39;--parkon-secondary:#697584}
+html[data-theme=light]{--faint:#939da9}
+html[data-theme=light] .app-header{background:#ffffffed;backdrop-filter:blur(14px)}
+html[data-theme=light] .icon-rail{background:#f7f8fa}
+html[data-theme=light] .rail-button{color:#758292;border-radius:12px}
+html[data-theme=light] .rail-button:hover{background:#e9eef7;color:var(--parkon-primary)}
+html[data-theme=light] .rail-button.active{background:#e8eeff;color:var(--parkon-primary)}
+html[data-theme=light] .locations{background:#f7f8fa}
+html[data-theme=light] .location{border-radius:12px;box-shadow:0 1px 2px #15233b07}
+html[data-theme=light] .location:hover{background:#fff;border-color:#afc0e4;box-shadow:0 5px 16px #15233b0a}
+html[data-theme=light] .location.selected{background:#fff;border-color:#7998dc;box-shadow:0 0 0 2px #315fce12,0 5px 16px #15233b09}
+html[data-theme=light] .location.selected:after{border-left-color:#7998dc}
+html[data-theme=light] :is(.location-progress,.selected .location-progress){background:#e8ebf0}
+html[data-theme=light] :is(.location-progress>i,.selected .location-progress>i){background:#718dc8}
+html[data-theme=light] .location-thumb{background:linear-gradient(145deg,#8794a8,#38465c)}
+html[data-theme=light] .theme-switch{background:#f4f5f7}
+html[data-theme=light] .service-nav{gap:4px}
+html[data-theme=light] .service-nav button{border-radius:9px}
+html[data-theme=light] .service-nav button:hover{background:#f3f5f8;color:var(--parkon-text)}
+html[data-theme=light] .service-nav button.selected{background:#edf2ff;color:var(--parkon-primary);font-weight:700}
+html[data-theme=light] :is(.map-panel,.panel,.occupancy-panel,.right-column>.panel,.search-large,.revenue-heading){border-radius:13px;box-shadow:0 2px 12px #1f2c3b07}
+html[data-theme=light] :is(.filter-tabs button,.lookup-tabs){background:#f6f7f9}
+html[data-theme=light] :is(.search-input,.search-input input,.search-form>input){background:#f8f9fb}
+html[data-theme=light] .search-input:focus-within{border-color:#7696dd;box-shadow:0 0 0 3px #315fce16}
+html[data-theme=light] .sample-hint button{background:#f0f2f5;color:#526274}
+html[data-theme=light] .found-card{background:#f4f7fd;border-color:#dce5f5;border-radius:11px}
+html[data-theme=light] :is(.large-symbol,.stat-icon,.step>span,.empty-state>span){background:#eef2fb}
+html[data-theme=light] :is(.eyebrow,.step h3,.text-button,.mini-icon){color:#42609b}
+html[data-theme=light] .occupancy-ring{background:conic-gradient(var(--parkon-primary) 0 var(--percent),#eceff3 var(--percent) 100%)}
+html[data-theme=light] :is(.pdf-map-panel .pdf-road,.pdf-map-panel .mall-asphalt){fill:#eef0f3}
+html[data-theme=light] .pdf-zoom-button{background:#fff;border-color:var(--parkon-border);color:#53657d}
+html[data-theme=light] .payment-chooser{background:#f8f9fb;border-color:var(--parkon-border);border-radius:11px}
+html[data-theme=light] .payment-method{border-radius:10px}
+html[data-theme=light] .payment-method.selected{box-shadow:0 0 0 3px #315fce12}
+html[data-theme=light] :is(.operation-filters,.flow-note,.policy-panel){background:#f8f9fb;border-color:var(--parkon-border);border-radius:11px}
+html[data-theme=light] :is(.operation-filters input,.operation-filters select){border-radius:8px}
+html[data-theme=light] :is(th,.chart-note){background:#f7f8fa;color:#657386}
+html[data-theme=light] .bar-track{background:#eceff4}
+html[data-theme=light] .bar-track>span{background:#7190d4}
+html[data-theme=light] .refresh-button:hover{border-color:#a6b9e5}
+html[data-theme=light] .button.white:hover{background:#f4f6fa;color:var(--parkon-primary)}
+html[data-theme=light] #toast{background:#263d6a}
+.kiosk-welcome:before{background:linear-gradient(145deg,#f7f8fa,#eceff5);opacity:.8}
+.kiosk-welcome .kiosk-eyebrow{color:#697c9f}
+.kiosk-welcome .kiosk-payment{background:#315fce;border-radius:18px;box-shadow:0 12px 30px #315fce1c}
+.kiosk-welcome .kiosk-payment:hover{background:#254fb8;box-shadow:0 17px 34px #315fce2b}
+.kiosk-welcome .kiosk-payment-arrow{color:var(--parkon-primary)}
+.kiosk-welcome .kiosk-secondary{background:#f4f6f8;color:#29384b;border:1px solid var(--parkon-border);border-radius:16px}
+.kiosk-welcome .kiosk-secondary:hover{background:#edf1f6;border-color:#cdd7e7}
+.kiosk-welcome .kiosk-languages button[aria-pressed=true]{background:#edf2ff;border-color:#d7e1f8}
+.kiosk-welcome .kiosk-lot-choice select{border-radius:10px;background:#fbfcfd}
+.kiosk-welcome .kiosk-description{border-color:#8aa2d5}
+.mobile-parking-app :is(.app-install-button,.app-switch-web){background:#f4f6f8;color:#52647e;border-color:var(--parkon-border)}
+.mobile-parking-app .app-home-hero{background:#315fce}
+.mobile-parking-app .app-lot-number{background:#edf2ff;color:var(--parkon-primary)}
+.mobile-parking-app .app-lot-progress{background:#e9edf2}
+.mobile-parking-app .app-lot-progress i{background:#819bd3}
+.mobile-parking-app :is(.app-example,.app-help-card){background:#f4f6f9;color:#53647b}
+.mobile-parking-app .mobile-bottom-nav button.selected .icon{background:#edf2ff;box-shadow:0 0 0 5px #edf2ff}
+@media(max-width:800px){html[data-theme=light] .icon-rail{background:#fafbfcf5}}
+/* Readable labels keep the cleaner palette usable on kiosk sized displays. */
+html[data-theme=light] .locations-heading{font-size:12px}
+html[data-theme=light] .locations-caption{font-size:10px;line-height:1.5}
+html[data-theme=light] .location-title{font-size:11px}
+html[data-theme=light] .location-type{font-size:9px}
+html[data-theme=light] .location-meta{font-size:9px}
+html[data-theme=light] :is(.breadcrumbs,.section-kicker,.last-sync){font-size:10px}
+html[data-theme=light] .service-nav button{font-size:11px}
+html[data-theme=light] .panel-header p{font-size:11px;line-height:1.6}
+html[data-theme=light] .fee-body .lookup-hint{font-size:11px}
+@media(max-width:600px){html[data-theme=light] .location-title{font-size:10px}html[data-theme=light] .location-type{font-size:8px}html[data-theme=light] .location-meta{font-size:8px}html[data-theme=light] .service-nav button{font-size:10px}}

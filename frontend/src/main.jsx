@@ -6,6 +6,7 @@ import './styles/dark.css';
 import './styles/themes.css';
 import './styles/operations.css';
 import './styles/react.css';
+import './styles/blue-white.css';
 createRoot(document.getElementById('root')).render(<React.StrictMode><App/></React.StrictMode>);
 
 registerPwa();
