@@ -117,7 +117,7 @@ docker compose ps                       # api·web·admin-auth 모두 healthy �
 | 기능 | 방법 |
 | --- | --- |
 | 조회·결제 | 같은 와이파이에서 `http://<서버 PC IP>:<화면 포트>` (방화벽에 화면 포트 허용) |
-| 음성 (안드로이드) | Chrome `chrome://flags/#unsafely-treat-insecure-origin-as-secure`에 `http://<서버 PC IP>:<포트>` 등록 → Enabled → 재시작 (☐ 미검증, 11/06 시험) |
+| 음성 (안드로이드) | Chrome `chrome://flags/#unsafely-treat-insecure-origin-as-secure` → "Insecure origins treated as secure" 설명 아래 입력칸에 `http://<서버 PC IP>:5173`(개발 화면) 또는 `http://<서버 PC IP>`(Docker) — `http://`·포트 포함, 끝 `/` 없이, 여러 개는 쉼표 → 드롭다운 Enabled → Relaunch (☐ 미검증, 11/06 시험). PC IP가 바뀌면 다시 입력 |
 | 음성 (아이폰) | HTTPS 터널 `cloudflared tunnel --url http://localhost:80` — 시연 시간만, 관리자 8090은 열지 않기 |
 
 - 화면 마이크 버튼이 들어간 뒤에만 음성 가능. 결제 확인은 화면 버튼으로

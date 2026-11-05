@@ -908,3 +908,5 @@
 ### 10:12 · 챗봇 반영 사항 정리 MD — 서정범 요청 (디스코드 첨부)
 - 🔴 D-49 서버 변경 대응: 409 `EVACUATION_ACTIVE`·`payment_blocked` 처리(지금 코드 없음, 안전 1순위), `payment` 영수증, `api_paths.json` `virtual_search: null` → `/vehicle-search`, 칸 새 필드, 오류는 상태 코드·`error.code`로 분기, "경보 있어?" 문항
 - 🔴 리허설: 대본 실행 방법 `demo_main` 기준, 환경변수 3개, RUNBOOK 정렬 / 🟠 v2.15 / ⚪ D-44 / 음성: 고유어 숫자 안 함·결제는 버튼 / 🟡 동결 전 목업 번호·README·level
+
+### 10:13 · Chrome 플래그 입력 위치 안내 — 윤명수 요청 (RUNBOOK 7장 반영)
