@@ -1004,3 +1004,8 @@
 - 테스트: pytest **350 passed**, 챗봇 **537 OK**(skip 9), 프론트 **48 passed**·team 빌드 OK
 - 실행: `demo_main`(VISION_TOKEN 환경변수) + `run_parking_demo --hold` → A 9/12·A-01 10번 `entry_at`·`/alerts` 200·챗봇 "개발원주차장에 9자리 있어요" / `main.py` demo 모드 health OK
 - 열린 PR 0개
+
+### 12:34 · 음성인식 엔진 방식 문서 검토 — PM 공유(윤명수 태그)
+- 문서: 단기 브라우저 유지, 정식은 휴대폰 VAD → PC Whisper → 챗봇, faster-whisper·외부 STT는 측정 후, 결제는 버튼만
+- 검토: 방향 타당(VAD/STT 분리, 측정 우선). 보완 — Whisper도 휴대폰 녹음은 secure context 필요(HTTPS 문제 동일), STT는 P2·다음 주 LED 일정·동결 고려, 음성 업로드 API·폴더·무거운 라이브러리·가중치(Git 금지)는 승인 필요, 서버 측 음성 승인 차단은 `/chat`에 `input_mode` 필드 필요(챗봇 API 변경), 시험 문장 D-54 혼동 쌍 추가, 로컬 처리 = 개인정보 장점
+- 제안(PM 결정 대기, D-56 예정): 11/06 PC 브라우저 / ~11/09 윤명수 PC Whisper 실험·비교 측정 / 11/10 최종 방식 결정
