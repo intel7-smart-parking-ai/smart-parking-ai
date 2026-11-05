@@ -1,4 +1,71 @@
-# API 계약 v1 (2026-11-04, main 코드 기준)
+# API 계약 v1 (2026-11-05, D-49 통합 확장 포함)
+
+## D-49 승인된 통합 확장 (PR #53)
+
+승인: PM 2026-11-05 10:01, 윤명수 10:05 (김채린 전달 승인 기록).
+이 절은 #53의 `main.py` demo/real 통합 모드에 적용한다. 아래 11/04 기록과
+충돌하면 이 절이 우선한다. 아직 main 병합 완료를 뜻하지 않는다.
+`demo_main` 8002는 기존 시연 앱이며 동일 기능 전체를 제공한다고 가정하지 않는다.
+
+### 주차칸 GET `/api/v1/parking-lots/{lot_id}/spaces`
+
+| 필드 | 타입 / 의미 |
+| --- | --- |
+| `entry_at` | ISO 8601 타임존 포함 문자열 또는 null. 활성 입차 시각. uncertain에서도 활성 세션 입차 시각 보존 |
+| `zone` | 문자열 또는 null. space_id의 `-` 앞부분. 주차장 ID와 별개 |
+| `plate_number` | 문자열 또는 null. 가상 C/D 전체 번호판. 실물 car_id와 별개 |
+| `vehicle_number` | 문자열 또는 null. 가상 번호판 뒤 4자리, 선행 0 보존 |
+| `version` | 정수. 엔진에서 채택한 새 점유 관측의 버전. 초기 0, 새 관측 반영 시 증가. 관측 없이 시간 경과만으로 stale이 된 경우 증가를 보장하지 않음 |
+
+필드 추가는 하위호환이며 미관측 값은 null 가능. 실물 스티커 car_id는 기존 10~99 유지.
+`demo_main`에서는 가상 번호판/zone이 null일 수 있다.
+
+### 요금 GET `/api/v1/sessions/{session_id}/fee`
+
+- `payment_blocked`: boolean. 같은 주차장의 level>=2 미해제 경보가 있으면 true.
+- `payment`: 완료 결제 영수증 객체 또는 null. payment_id/session_id/amount_krw/status/
+  payment_method/idempotency_key/created_at 등 기존 결제 행 필드를 반환한다.
+- **D-49 채택: 완료 결제가 있으면 최상위 `amount_krw`는 완료 결제 금액이다.**
+  `payment.amount_krw`와 같다. 미결제는 기존 서버 견적 금액이며 계산은 billing이 수행한다.
+  fee_breakdown은 기존 요금 계산 결과이므로 완료 영수증 금액 표시에는 사용하지 않는다.
+- UI는 완료 결제 영수증이 있으면 이를 표시하고 재결제하지 않는다.
+
+### 모의 결제 POST `/api/v1/mock-payments`
+
+미해제 level>=2 경보 중 결제 요청은 409:
+
+```json
+{"error":{"code":"EVACUATION_ACTIVE","message":"대피 단계의 모의 화재 경보 중에는 결제할 수 없습니다.","details":[]}}
+```
+
+자동 결제 재시도 금지. 경보 검사와 결제 호출은 같은 동기화 잠금 안에서 처리한다.
+챗봇의 409 처리/안내는 서정범·윤명수 담당이며 UI 통합자가 변경하지 않는다(D-50).
+
+### 가상 차량 GET `/api/v1/vehicle-search?vehicle_number=1724`
+
+C/D occupied 칸에서 뒤 4자리 문자열로 단일 차량 조회. 반환은 칸 정보에
+lot_id/session_id/entry_at/plate_number/vehicle_number/lookup_type=plate를 포함한다.
+요금은 별도 fee API를 조회한다. 형식 오류 422, 단일 일치 없음(없음/중복) 404.
+기존 수신기 HTTP_ERROR가 구체적 문구를 일반화할 수 있어 UI는 상태별 안내를 제공한다.
+
+### 가상 제어 `/api/v1/simulation/{lot}` (demo 모드, C/D만)
+
+- GET: lot_id/running/interval_seconds/next_tick/last_error/events(최근 최대30개).
+- POST `/{action}`: entry/exit/start/stop. body는 선택적으로 space_id,
+  vehicle_number(4자리 문자열), interval_seconds(3~60, 기본8).
+- entry/exit 응답은 event_id/lot_id/space_id/action/vehicle_number/session_id/occurred_at
+  (안정화 대기 시 일부 식별자는 없을 수 있음), start/stop은 GET과 같은 제어 상태.
+- 사용할 수 없는 lot/real 모드는 403. 안정화 시간 초과는 503(같은 상태 재조회).
+- Docker는 인증된 관리자 `/admin-api/team/v1/simulation/...` 경유만 허용.
+  내부 시뮬레이터는 vision-events 관측을 보내며 점유·세션 직접 기록 금지.
+
+### D-50·D-51 리허설 / 네트워크
+
+김채린 PC의 `demo_main:8002`, DATA_SOURCE=api, BACKEND_BASE_URL=http://127.0.0.1:8002,
+LLM_PROVIDER=none. 원격 카메라를 받을 때 API_HOST=0.0.0.0, 같은 VISION_TOKEN과 시각 동기화.
+다른 PC는 **서버의 LAN IP**로 접속한다. 127.0.0.1은 각 PC 자신이다.
+웹 Docker는 80, 관리자 /admin/login, 8090 게이트웨이는 서버 로컬 전용.
+자세한 절차/확인 기록은 [RUNBOOK_DEMO_HOST.md](RUNBOOK_DEMO_HOST.md).
 
 > 이 문서는 **새 규칙을 만들지 않는다.** 11/04 main(`1ca963e`) 코드와 결정(D-01~D-38, [DECISIONS.md](DECISIONS.md))을 받아써서 한 곳에 모은 것이다 (D-26).
 > 코드와 이 문서가 다르면 **코드가 기준**이고, 다른 점은 담당자가 고친 뒤 이 문서를 맞춘다. "확인 필요"는 담당자 검토 항목이다.
