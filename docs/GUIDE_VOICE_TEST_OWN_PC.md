@@ -4,7 +4,7 @@
 > 작성: 2026-11-05. 제 PC에서 전체 흐름 실측 완료 — 개발 화면(5173) 프록시 → 시연 서버(8002) 챗봇: "A 빈자리 있어?" → "개발원주차장에 12자리 있어요", "십칠 번 차 어디 있어" → "17번 차 맞으세요?" + 버튼
 > 휴대폰 실기기 시험은 아직 안 함 (이 문서로 처음 시험)
 > 함께 쓰는 파일 (디스코드 첨부): `mic_test.html`(시험 페이지), `serve_mic_test.ps1`(설치 없는 간이 서버)
-> 다른 PC 구축 전체 절차는 [RUNBOOK_DEMO_HOST.md](RUNBOOK_DEMO_HOST.md)
+> 다른 PC 구축 전체 절차는 [RUNBOOK_ANY_PC.md](RUNBOOK_ANY_PC.md) (김채린 PC 기준 절차는 `RUNBOOK_DEMO_HOST.md`)
 
 ---
 

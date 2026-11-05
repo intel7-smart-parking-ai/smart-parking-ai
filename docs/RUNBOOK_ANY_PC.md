@@ -1,6 +1,7 @@
-# 시연·리허설 서버 구축 절차 (다른 PC에서 그대로 따라 하기)
+# 시연·리허설 서버 구축 절차 — 다른 PC용 일반 안내
 
 > 목적: 리허설·시연 서버를 **어느 PC에서든 같은 방법으로** 다시 구축한다 (PM 요청 11/05 10:05, D-51).
+> **김채린 PC에서 실제 확인한 절차는 `docs/RUNBOOK_DEMO_HOST.md`(김채린 작성, PR #54)가 기준**이다. 이 문서는 다른 PC·휴대폰·문제 해결용 보조 안내다 (파일 이름 충돌로 11/05 12:00 이름 변경).
 > 작성 시작: 2026-11-05, 첫 구축 PC = 김채린 PC (D-50). **☐ 표시는 실제 구축하면서 확인·수정할 칸**이다. 해 보고 다르면 고치고, 막힌 점은 9장에 적는다.
 > 기준: main `4e048c8` + PR #52·#53·#54 (D-49 승인). 함께 볼 문서: [SETUP.md](SETUP.md)(개발 환경), `docs/CHAERIN_IMPLEMENTATION_AUDIT.md`·`docs/INTEGRATION_REVIEW_REQUEST.md`(PR #53·#54), [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md)
 
