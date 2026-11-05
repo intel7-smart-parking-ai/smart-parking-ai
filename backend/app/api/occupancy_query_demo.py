@@ -18,6 +18,11 @@ Source = Literal["vision", "simulation", "manual"]
 class DemoSpace(SpaceResponse):
     source: Source | None = None
     is_mock: bool | None = None
+    session_id: str | None = None
+    entry_at: str | None = None
+    zone: str | None = None
+    vehicle_number: str | None = None
+    plate_number: str | None = None
 
 
 class DemoSpaceList(SpaceList):
@@ -29,7 +34,8 @@ class DemoLocation(VehicleLocation):
 
 
 def create_demo_app(*, token: str, clock=lambda: datetime.now(timezone.utc),
-                    public_reads: bool = False, on_confirmed=None, max_events: int = 1000):
+                    public_reads: bool = False, on_confirmed=None, max_events: int = 1000,
+                    store_factory=OccupancyExperiment, enrich_space=None):
     if len(token) < 16 or not token.isascii():
         raise ValueError("시연 토큰은 ASCII 16자 이상이어야 합니다.")
 
@@ -47,12 +53,13 @@ def create_demo_app(*, token: str, clock=lambda: datetime.now(timezone.utc),
         ]} for lot in LOT_TYPES
     ]}
     # 기존 D5 격리 시험과 같은 실험 설정을 사용한다.
-    store = OccupancyExperiment(layout=layout, on_confirmed=on_confirmed, max_events=max_events, policy=ExperimentPolicy(
+    store = store_factory(layout=layout, on_confirmed=on_confirmed, max_events=max_events, policy=ExperimentPolicy(
         occupy_seconds=2, empty_seconds=3, max_gap_seconds=2,
         stale_seconds=10, min_confidence=.8, initial_status="empty",
     ))
     app = create_experiment_app(store=store, authorize=authorize)
     app.title = "D5 합성 Vision · KAN-16 조회 시연"
+    app.state.occupancy_store = store
     router = APIRouter(prefix="/api/v1", route_class=MockRoute,
                        dependencies=[] if public_reads else [Depends(require_access)])
 
@@ -77,6 +84,8 @@ def create_demo_app(*, token: str, clock=lambda: datetime.now(timezone.utc),
         now = clock()
         items = []
         for row in store.spaces(lot_id, as_of=now):
+            if enrich_space is not None:
+                row = enrich_space(row)
             observed = row["observed_at"]
             items.append(DemoSpace(**(row | {
                 "observed_at": observed.isoformat() if observed is not None else None,
