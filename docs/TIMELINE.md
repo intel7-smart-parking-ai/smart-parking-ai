@@ -993,3 +993,8 @@
 - 충돌 해결: 진행 기록의 `RUNBOOK_DEMO_HOST.md`가 #54의 같은 이름 파일(김채린 실측 절차)과 충돌 → 제 쪽을 `RUNBOOK_ANY_PC.md`로 변경, 김채린 문서를 기준으로
 - 참고: #53 결제 후 `amount_krw`=결제 금액 유지·계약 명시(윤명수 OK) → DECISIONS D-49 갱신
 - 추천 순서 #52 → #53 → #54(각각 base main 변경) → #56 → 진행 기록 PR
+
+### 12:04~12:10 · ⚠️ 병합 후 점검 — #53·#54가 main 미반영 (김한별 요청 "병합완료 테스트")
+- main `6e23baf`: #52(12:03:27)·#56·#57 반영. #53은 `codex/ui-rehearsal`(12:03:46), #54는 `codex/backend-integration-complete`(12:03:58)로 병합됨 — base를 main으로 바꾸기 전 병합
+- main에 없는 것: `main.py` 통합·`runtime.py`·경보·`entry_at`·409·가상 검색·Docker·API_CONTRACT D-49·RUNBOOK_DEMO_HOST
+- 해결: `codex/backend-integration-complete` → main PR 하나 (main + 이 브랜치 사전 시험: 충돌 0, pytest 350, 챗봇 537 OK, 프론트 48) — PR 링크·본문 전달
