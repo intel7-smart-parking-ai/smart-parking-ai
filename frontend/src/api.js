@@ -26,7 +26,20 @@ export async function request(path, options = {}, source = dataSource) {
     let data;
     try {data = await response.json();} catch {data = {};}
     if (!response.ok) {
-      const error = new Error(data.error?.message || data.message || (typeof data.detail === 'string' ? data.detail : response.status === 404 || response.status === 501 ? '서버에 아직 연결되지 않은 기능입니다.' : 'API 요청을 처리하지 못했습니다.'));
+      let message = data.error?.message || data.message || (typeof data.detail === 'string' ? data.detail : null);
+      // The receiver can replace route details with HTTP_ERROR. Explain this
+      // lookup's status locally while preserving specific server error codes.
+      if (path.split('?')[0] === '/vehicle-search' &&
+          (!data.error?.code || ['HTTP_ERROR', 'VALIDATION_ERROR'].includes(data.error.code))) {
+        const guidance = {
+          400: '차량번호 뒤 4자리를 정확히 입력해주세요.',
+          422: '차량번호 뒤 4자리를 정확히 입력해주세요.',
+          404: '일치하는 차량을 찾지 못했습니다. 번호와 현재 주차 상태를 확인해주세요.',
+          503: '차량 조회 서버가 일시적으로 응답하지 않습니다. 잠시 후 다시 조회해주세요.',
+        };
+        message = guidance[response.status] || message;
+      }
+      const error = new Error(message || (response.status === 404 || response.status === 501 ? '서버에 아직 연결되지 않은 기능입니다.' : 'API 요청을 처리하지 못했습니다.'));
       error.code = data.error?.code || data.error_code || data.code; error.status = response.status; throw error;
     }
     return data;
