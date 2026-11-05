@@ -3,7 +3,7 @@ import sys
 import time
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from chatbot import config
+from chatbot import config, parser
 from chatbot.adapters import DataUnavailable, build_adapter
 
 
@@ -13,8 +13,8 @@ def main():
         return 2
     adapter = build_adapter()
     vehicle = sys.argv[1] if len(sys.argv) > 1 else "17"
-    if not vehicle.isdecimal() or not 1 <= int(vehicle) <= 24:
-        print("차량 번호는 01~24입니다."); return 2
+    if parser.normalize_car_id(vehicle) is None:
+        print("차량 번호는 두 자리 10~99입니다."); return 2
     vehicle = vehicle.zfill(2)
     checks = [("빈자리", adapter.get_empty_spots), ("경보", adapter.get_alert),
               ("차량 위치", lambda: adapter.find_car(vehicle)), ("요금", lambda: adapter.get_fee(vehicle)),
@@ -24,7 +24,7 @@ def main():
         started = time.perf_counter()
         try:
             result = fn()
-            if isinstance(result, dict) and result.get("stale"):
+            if isinstance(result, dict) and (result.get("stale") or result.get("unavailable") or result.get("status") in {"unavailable", "error", "conflict"}):
                 raise DataUnavailable()
             print(f"PASS {name}: {round((time.perf_counter()-started)*1000)}ms" + (" (차량 기록 없음)" if result is None else ""))
         except DataUnavailable:

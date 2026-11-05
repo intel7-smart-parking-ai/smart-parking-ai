@@ -30,26 +30,26 @@ class RealisticTests(unittest.TestCase):
 
     def test_fee_asks_vehicle_then_continues(self):
         self.assertEqual(self.say("주차비 얼마 나왔어?")["flow"], "ask_vehicle")
-        self.say("17번이요")
+        self.say("33번이요")
         result = self.say("맞아요")
         self.assertEqual(result["card"]["type"], "fee")
-        self.assertEqual(result["card"]["data"]["car_id"], "17")
+        self.assertEqual(result["card"]["data"]["car_id"], "33")
 
     def test_correct_vehicle_in_same_turn(self):
-        self.say("17번 요금")
-        self.say("아니 18번이에요")
+        self.say("33번 요금")
+        self.say("아니 43번이에요")
         result = self.say("네")
-        self.assertEqual(result["card"]["data"]["car_id"], "18")
+        self.assertEqual(result["card"]["data"]["car_id"], "43")
         self.assertEqual(result["card"]["type"], "fee")
 
     def test_paid_but_cannot_exit_goes_to_site_admin(self):
         # v2.9: 출차 진단 제거. 출구 문제는 진단 없이 현장 관리자 연결 안내.
-        self.say("17번 차 위치"); self.say("네")
+        self.say("33번 차 위치"); self.say("네")
         result = self.say("결제했는데 못 나가요")
         self.assertIsNone(result["card"])
         self.assertIn("현장 관리자", result["text"])
         self.assertIn("call_admin", [c["id"] for c in result["chips"]])
-        self.assertFalse(e.data.get_fee("17")["paid"])
+        self.assertFalse(e.data.get_fee("33")["paid"])
 
     def test_dont_call_does_not_register(self):
         self.say("관리자 부르지 말아줘")
@@ -60,14 +60,14 @@ class RealisticTests(unittest.TestCase):
         self.assertEqual(e.admin_calls(), [])
 
     def test_payment_cancel_then_yes_does_not_pay(self):
-        self.say("17번 결제할게요"); self.say("네")
+        self.say("33번 결제할게요"); self.say("네")
         self.say("결제하지 마세요"); self.say("네")
-        self.assertFalse(e.data.get_fee("17")["paid"])
+        self.assertFalse(e.data.get_fee("33")["paid"])
 
     def test_payment_then_different_query_does_not_pay(self):
-        self.say("17번 결제할게요"); self.say("네")
+        self.say("33번 결제할게요"); self.say("네")
         self.say("그럼 B는?"); self.say("네")
-        self.assertFalse(e.data.get_fee("17")["paid"])
+        self.assertFalse(e.data.get_fee("33")["paid"])
 
     def test_subscription_question_preserves_followup_lot_context(self):
         self.say("B 자리 나면 알려주세요")
@@ -81,9 +81,9 @@ class RealisticTests(unittest.TestCase):
         self.assertEqual(len(e.admin_calls()), 1)
 
     def test_unknown_question_does_not_change_vehicle(self):
-        self.say("17번 차 위치"); self.say("네")
-        self.say("18번 차 와이퍼 고장났어요")
-        self.assertEqual(e.get_session("realistic").car_id, "17")
+        self.say("33번 차 위치"); self.say("네")
+        self.say("43번 차 와이퍼 고장났어요")
+        self.assertEqual(e.get_session("realistic").car_id, "33")
 
     def test_emergency_call_is_immediate_without_vehicle(self):
         e.data.set_alert(2, "A", 6)

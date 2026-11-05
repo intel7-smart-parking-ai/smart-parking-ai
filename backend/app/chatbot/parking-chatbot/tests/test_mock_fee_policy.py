@@ -25,11 +25,11 @@ class MockFeePolicyTests(unittest.TestCase):
             adapter = MockAdapter()
             for seconds, minutes, amount in ((0,1,1000),(1800,30,1000),(1801,31,1500),(86400,1440,10000),(86401,1441,11000)):
                 with self.subTest(seconds=seconds):
-                    car = adapter.cars['17']
+                    car = adapter.cars['33']
                     car.update(entry_at=fixed-timedelta(seconds=seconds), paid_at=None)
-                    d = adapter.get_fee('17')
+                    d = adapter.get_fee('33')
                     self.assertEqual((d['minutes'],d['fee']), (minutes,amount))
-                    self.assertEqual(adapter.pay('17', quote_amount=amount)['amount'],amount)
+                    self.assertEqual(adapter.pay('33', quote_amount=amount)['amount'],amount)
                     self.assertEqual('하루 최대 요금이 적용됐어요' in T.fee(d), d['is_daily_capped'])
 
     def test_all_fee_settings_positive_and_environment_overridable(self):

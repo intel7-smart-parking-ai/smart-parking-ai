@@ -101,6 +101,9 @@ def fee_rule(policies: dict | None = None, lot_id: str | None = None) -> str:
     if lot_id:
         policy = policies.get(lot_id)
         return f"{config.catalog.name(lot_id)}: {policy_text(policy)}이에요." if policy else "해당 주차장의 요금 정책을 확인할 수 없어요."
+    if len({p["base_minutes"] for p in policies.values()}) > 1:
+        return "주차장마다 요금이 달라요. " + " / ".join(
+            f"{config.catalog.name(k)} 기본 {p['base_minutes']}분 {won(p['base_fee'])}" for k,p in policies.items()) + "."
     lines = [f"{config.catalog.name(k)} 기본 {won(p['base_fee'])}" for k, p in policies.items()]
     return "주차장마다 요금이 달라요. " + " / ".join(lines) + " (기본 " + str(next(iter(policies.values()))["base_minutes"]) + "분)."
 

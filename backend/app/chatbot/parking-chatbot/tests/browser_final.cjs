@@ -37,7 +37,7 @@ const{chromium}=require('playwright');const assert=require('node:assert/strict')
   await p.click('#enterVehicleBtn');await p.waitForTimeout(250);await closePanel();await poll();
   assert.equal(await p.locator('#destinationContext').isHidden(),true);
   console.log('PASS selected vehicle entry ends destination monitoring');
-  await send('내 이용 현황 보여줘');assert.ok((await p.locator('.row.bot').last().innerText()).includes('14번 차는 개발원주차장 A-04'));
+  await send('내 이용 현황 보여줘');assert.ok((await p.locator('.row.bot').last().innerText()).includes('14번 차(장애인 차량)는 개발원주차장 A-04'));
   console.log('PASS usage question returns car location');
 
   // 관리자 호출: 상태 버튼 없음, 중복 호출 통합, 상태 질문은 새 호출 없음

@@ -36,7 +36,7 @@ class AlarmV28Tests(unittest.TestCase):
         self.assertIn('주차장 위치 확인 중', self.f.ask('경보')['text'])
         a = {**e.current_alert(), 'level': 2}
         self.assertEqual(N.reason({'lots': {'B': {'empty': 1}}}, a, 'B'), '경보')
-        cars = [{'car_id': '13', 'spot_no': 6}]
+        cars = [{'car_id': '23', 'spot_no': 6}]
         b = briefing.build(a, cars, True)
         self.assertNotIn('None번', b['text'])
         self.assertIn('필요 가능성', b['equipment'])

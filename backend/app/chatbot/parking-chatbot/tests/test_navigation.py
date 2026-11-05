@@ -44,7 +44,7 @@ class NavigationTests(unittest.TestCase):
         self.assertEqual(list(d['lots']),['A','B','C','D'])
         self.assertEqual(d['lots']['B']['empty'],0)
         self.assertEqual(d['lots']['D']['kind'],'virtual')
-        self.assertIsNone(e.data.find_car('34'))
+        self.assertIsNone(e.data.find_car('99'))
         for v in d['lots'].values():
             self.assertEqual(sum(z['total']for z in v['zones'].values()),v['total'])
             self.assertEqual(sum(z['empty']for z in v['zones'].values()),v['empty'])
@@ -79,7 +79,7 @@ class NavigationTests(unittest.TestCase):
         self.assertIn('call_admin',[x['id']for x in r['chips']])
 
     def test_arrival_stops_monitoring(self):
-        self.choose();e.handle('s',text='17번 차 위치');r=e.handle('s',text='네')
+        self.choose();e.handle('s',text='33번 차 위치');r=e.handle('s',text='네')
         self.assertIsNone(r['destination']);self.full('D')
         self.assertFalse(any(m['meta']['notification']=='destination'for m in e.updates('s')['messages']))
 
@@ -128,7 +128,7 @@ class NavigationTests(unittest.TestCase):
         self.assertNotIn('go:D',[c['id']for c in r['chips']])
 
     def test_d_wait_alert_incident_and_admin_summary(self):
-        self.full('D');e.data.exit_car('19')
+        self.full('D');e.data.exit_car('44')
         e.data.set_alert(2,'D',5)
         r=e.handle('s',chip_id='call_admin')
         self.assertIn('Lv2 신세계백화점주차장',r['card']['data']['summary'])
@@ -157,7 +157,7 @@ class NavigationTests(unittest.TestCase):
                 self.assertEqual(r.returncode,0,r.stderr)
 
     def test_arrival_ends_monitor_even_when_occupancy_is_unavailable(self):
-        self.choose();e.get_session('s').car_id='17'
+        self.choose();e.get_session('s').car_id='33'
         with patch.object(e.data,'get_empty_spots',side_effect=DataUnavailable()):
             self.assertIsNone(e.updates('s')['destination'])
 
@@ -212,7 +212,7 @@ class NavigationTests(unittest.TestCase):
         adapter=CachedAdapter(ApiAdapter('http://127.0.0.1:1'))
         payload={'lots':{'P9':{'name':'서쪽 주차장','kind':'virtual','total':3,'empty':2}},'updated_at':iso(now())}
         alert={'level':2,'version':1,'lot_id':'P9','spot_no':3,'started_at':iso(now())}
-        car={'car_id':'17','lot_id':'P9','spot_no':3,'capacity':3,'entry_at':iso(now()),'updated_at':iso(now())}
+        car={'car_id':'33','lot_id':'P9','spot_no':3,'capacity':3,'entry_at':iso(now()),'updated_at':iso(now())}
         with patch.object(adapter.inner,'get_empty_spots',return_value=payload),patch.object(adapter.inner,'get_alert',return_value=alert),patch.object(adapter.inner,'find_car',return_value=car):
             self.assertEqual(adapter.get_alert()['lot_id'],'P9')
-            self.assertEqual(adapter.find_car('17')['capacity'],3)
+            self.assertEqual(adapter.find_car('33')['capacity'],3)

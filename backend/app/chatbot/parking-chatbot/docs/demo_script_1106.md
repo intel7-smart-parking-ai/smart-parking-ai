@@ -1,10 +1,14 @@
 # 11/06 챗봇 시연 대본
 
-시연 서버의 합성 차량 상태를 조회한다. 카메라 인식 결과와 구분해 설명하고, LLM 키 없이 규칙 질문으로 진행한다. 경보 API가 404일 때 경보가 없다고 단정하지 않는다.
+시연 서버의 합성 차량 상태를 조회한다. 카메라 인식 결과와 구분해 설명하고, LLM 키 없이 규칙 질문으로 진행한다. 경보 API가 404일 때 경보가 없다고 단정하지 않는다. D-50/D-51에 따라 기본 리허설 서버는 김채린 PC의 demo_main(8002), 화면은 5173이다. 구축 절차는 팀 레포 docs/RUNBOOK_DEMO_HOST.md 3~4장을 따른다.
+
+환경을 구분한다: main `4e048c8`은 경보 API 미등록, 통합 브랜치 `f30cd77`은 등록 상태다. D-49 승인이 main 병합 완료를 의미하지 않는다. 최신 대조표와 후속 순서는 [레포 반영 계획](repo_alignment_plan_1105.md)을 참고한다.
 
 ## 시작 준비 · PowerShell
 
-레포 루트에서 가상환경을 활성화하고 팀 의존성을 설치한다. 박해준님 등록 전에는 챗봇 폴더의 미리 실행 팩토리를 쓴다. 아래 토큰 자리는 두 터미널에서 같은 ASCII 16자 이상 문자열로 정한다.
+**DATA_SOURCE=api와 BACKEND_BASE_URL=http://127.0.0.1:8002를 먼저 설정한다. 누락하면 다른 서버(기본 8000)를 조회할 수 있다.**
+
+레포 루트에서 팀 가상환경을 사용한다. 11/05 확인한 main `4e048c8`에는 PR #45의 챗봇 등록이 있으므로 `demo_main`을 직접 실행한다. 시연 토큰은 두 터미널에서 같은 ASCII 16자 이상 문자열을 입력한다. 실제 키·토큰을 문서나 Git에 저장하지 않는다.
 
 터미널 1.
 
@@ -12,28 +16,39 @@
 $env:LLM_PROVIDER = "none"
 $env:DATA_SOURCE = "api"
 $env:BACKEND_BASE_URL = "http://127.0.0.1:8002"
-$env:PREVIEW_DEMO_TOKEN = "<시연용 ASCII 16자 이상 토큰>"
-python -m uvicorn backend.app.chatbot.team_preview:create_demo_app --factory --host 127.0.0.1 --port 8002 --workers 1
+.\.venv\Scripts\python.exe -m backend.app.demo_main
 ```
 
-`demo_main`에 등록된 후에는 같은 환경에서 팀 실행 방법을 따른다. 창을 닫지 않는다. 터미널 2에서 같은 토큰을 입력한다.
+`시연 토큰:` 프롬프트에 입력하고 서버 창을 유지한다. 터미널 2에서 같은 토큰을 입력한다.
 
 ```powershell
-python -m backend.app.simulation.run_parking_demo --base-url http://127.0.0.1:8002 --short --hold
+.\.venv\Scripts\python.exe -m backend.app.simulation.run_parking_demo --base-url http://127.0.0.1:8002 --short --hold
 ```
 
 ‘점유 유지 중’이 나오면 A-01·A-02·A-03에 10·11·12번이 서 있다. 이 터미널을 유지해야 관측이 오래돼 확인 중 상태로 바뀌지 않는다. 김채린님과 연결한 ChatPanel에서 같은 대화 세션으로 진행한다. 사용자 화면의 프록시 대상은 8002에 맞춰 확인한다. 포트 8002의 시연 앱 자체는 프런트 정적 파일을 제공하지 않는다.
 
 | 순서 | 입력 | 기대 답 요지 | 보여 줄 포인트 |
 |---|---|---|---|
-| ① | A 빈자리 있어? | 개발원주차장 빈자리 9칸, 시연용 데이터 표시. 경보 API 미구현 안내는 처음 한 번 | 서버의 합성 점유 상태와 빈자리 수가 일치 |
+| ① | A 빈자리 있어? | 개발원주차장 빈자리 9칸, 시연용 데이터 표시. 경보 API가 없는 환경에서만 미구현 안내 | 서버의 합성 점유 상태와 빈자리 수가 일치 |
 | ② | 10번 차 어디 있어? → 네 | 10번 차 확인 후 개발원주차장 A-01 | 다른 차량 번호로 바로 조회하지 않고 확인받음 |
 | ③ | 요금 얼마야? | 서버 계산 요금과 견적 카드 | 챗봇이 금액을 계산하거나 생성하지 않음 |
-| ④ | 결제해 줘 → 화면 확인 버튼 또는 네 | 금액 확인 후 모의 결제 영수증. 출구 개방은 현장 확인 | 차량·견적·결제 확인을 거침. 실제 청구 없음 |
+| ④ | 결제해 줘 → 화면 확인 버튼 | 금액 확인 후 모의 결제 영수증. 출구 개방은 현장 확인 | 차량·견적·결제 확인을 거침. 실제 청구 없음. 음성 “네” 자동 전송 금지 |
 | ⑤ | 요금표 알려줘 | 주차장별 서버 요금 정책 | 팀 billing API 연결 |
 | ⑥ | 7번 차 어디야? | 스티커 번호는 두 자리로 안내 | 한 자리 번호를 임의로 07로 바꾸지 않음 |
 
-새로 주차한 직후에는 기본 요금이 나올 수 있다. 금액을 미리 바꾸거나 입차 시각을 소급해 넣지 않는다. 서버가 보여 준 금액을 기준으로 설명한다. 음성 입력을 사용한다면 ‘네’를 인식하자마자 자동 전송하지 않고 화면의 명시적 전송·확인 절차를 따른다.
+새로 주차한 직후에는 기본 요금이 나올 수 있다. 금액을 미리 바꾸거나 입차 시각을 소급해 넣지 않는다. 서버가 보여 준 금액을 기준으로 설명한다. 텍스트로 입력한 확인은 기존대로 지원한다. 음성 입력에서 confirm_action 중 ‘네’를 인식하자마자 자동 전송하지 않고 화면 버튼으로 결제를 확인한다. 이 구분은 화면 담당과 함께 확인하며, 이번 문서 변경으로 마이크 제어가 구현된 것은 아니다.
+
+## 추가 확인 · 경보와 음성
+
+기본 자동 리허설 6문항은 유지한다. 아래는 경보 API가 등록된 통합/병합 후 서버에서 추가로 수행할 시나리오다.
+
+1. 미결제 차량이 남아 있는 회차에서 “경보 있어?”를 입력하고 실제 /api/v1/alerts 상태와 대조한다.
+2. demo 모드의 모의 경보 버튼 또는 /api/v1/demo/alerts로 해당 주차장에 모의 경보를 만든다. 실운영 모드에서는 시연 경보를 만들지 않는다.
+3. “경보 있어?”에 모의 화재·대피·재진입 금지·차량 이동 금지 안내가 표시되는지 확인한다.
+4. 같은 주차장의 미결제 차량으로 “결제해 줘”를 입력한다. 결제 확인/실행 버튼 없이 대피 안내가 나와야 한다. 이미 확인 중이던 결제도 서버 payment_blocked 또는 409 EVACUATION_ACTIVE를 우회하지 않아야 한다.
+5. ChatPanel에서 safety와 칩이 실제 표시되는지 확인하고 회차 종료 후 서버를 재시작한다. 현장 화면 확인은 별도 기록한다.
+
+음성은 D-48에 따라 선택 사항이다. 서버 시연 차량 10번이면 “십 번 차 어디 있어?” 또는 “10번 차 어디 있어?”를 사용한다. “열일곱” 같은 고유어 숫자 지원은 추가하지 않는다. D-39 실물 차량을 사용할 때는 실제 주차한 배정 번호로 말한다. 휴대폰 마이크·HTTPS·네트워크 설정은 팀 RUNBOOK을 따르며 이번에 현장 검증하지 않았다.
 
 ## 실패 대비와 다음 회차
 
@@ -51,7 +66,7 @@ python -m backend.app.simulation.run_parking_demo --base-url http://127.0.0.1:80
 
 ```powershell
 # 먼저 기존 --hold를 Ctrl+C로 종료
-python -m backend.app.simulation.run_parking_demo --base-url http://127.0.0.1:8002 --short --depart
+.\.venv\Scripts\python.exe -m backend.app.simulation.run_parking_demo --base-url http://127.0.0.1:8002 --short --depart
 python -m backend.app.simulation.run_parking_demo --base-url http://127.0.0.1:8002 --short --hold
 ```
 
@@ -61,7 +76,7 @@ python -m backend.app.simulation.run_parking_demo --base-url http://127.0.0.1:80
 
 ```powershell
 $env:PYTHONIOENCODING = "utf-8"
-python backend/app/chatbot/parking-chatbot/tools/rehearsal_1106.py
+.\.venv\Scripts\python.exe backend/app/chatbot/parking-chatbot/tools/rehearsal_1106.py
 ```
 
 차량 세 대를 세우고 점유 관측을 유지하면서 위 여섯 질문과 두 번의 ‘네’를 HTTP로 보낸다. 답 전문과 PASS/FAIL을 출력한다. 모두 통과하면 `PASS 11/06 리허설 6/6`, 실패하면 종료 코드 1이다. 팀 레포나 HTTP 의존성이 없으면 한 줄 안내 후 종료한다.

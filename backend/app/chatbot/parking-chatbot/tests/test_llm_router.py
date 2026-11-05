@@ -164,11 +164,11 @@ class RouterTests(unittest.TestCase):
         self.ready(Model(message('pay_fee')))
         got = e.handle('s',text='뿌잉')
         self.assertEqual(got['flow'],'ask_vehicle')
-        e.handle('s',text='17'); got=e.handle('s',text='네')
+        e.handle('s',text='33'); got=e.handle('s',text='네')
         self.assertEqual(got['flow'],'confirm_action')
-        self.assertFalse(e.data.get_fee('17')['paid'])
+        self.assertFalse(e.data.get_fee('33')['paid'])
         e.handle('s',chip_id='confirm_yes',confirmation_token=got['confirmation_token'])
-        self.assertTrue(e.data.get_fee('17')['paid'])
+        self.assertTrue(e.data.get_fee('33')['paid'])
 
     def test_admin_tool_registers_once_after_call_chip(self):
         self.ready(Model(message('call_admin')))

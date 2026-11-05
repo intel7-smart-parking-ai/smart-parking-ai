@@ -43,7 +43,7 @@ class RobustInputTests(unittest.TestCase):
         for text, expected in cases.items():
             with self.subTest(text=text):
                 e.reset_all()
-                e.get_session("input").car_id = "17"
+                e.get_session("input").car_id = "33"
                 answer = e.handle("input", text=text)
                 self.assertIsNone(answer["card"])
                 self.assertIsNone(e.get_session("input").pending)
@@ -63,7 +63,7 @@ class RobustInputTests(unittest.TestCase):
         for text in NEGATIVES:
             with self.subTest(text=text):
                 e.reset_all()
-                e.get_session("input").car_id = "17"
+                e.get_session("input").car_id = "33"
                 with patch.object(e.data.inner, "pay", wraps=e.data.inner.pay) as pay:
                     answer = e.handle("input", text=text)
                     assert_safe(answer, {"negative": True, "new_payments": pay.call_count, "new_calls": len(e.admin_calls())})

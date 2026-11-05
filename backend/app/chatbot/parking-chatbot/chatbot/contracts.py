@@ -179,6 +179,7 @@ PAYMENT_ERROR_STATUS = {
     "PAYMENT_CONFLICT": "payment_conflict",
     "INVALID_PAYMENT_STATE": "invalid_state",
     "IDEMPOTENCY_CONFLICT": "conflict",
+    "EVACUATION_ACTIVE": "conflict",
 }
 
 

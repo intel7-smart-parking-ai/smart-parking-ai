@@ -32,9 +32,9 @@ class BackendWireTests(unittest.TestCase):
                                 "as_of": snapshot["updated_at"]})
                 elif self.path.endswith("/spaces"):
                     self.reply({"items": []})
-                elif self.path.endswith("/location") and "/17/" in self.path:
-                    car = backend.find_car("17")
-                    self.reply({"car_id": "17", "lot_id": car["lot_id"], "space_id": car["space_id"],
+                elif self.path.endswith("/location") and "/33/" in self.path:
+                    car = backend.find_car("33")
+                    self.reply({"car_id": "33", "lot_id": car["lot_id"], "space_id": car["space_id"],
                                 "session_id": "session-07", "status": "occupied", "observed_at": car["updated_at"]})
                 elif self.path == config.API_PATHS["alerts"]:
                     self.reply({"items": [], "as_of": backend.get_empty_spots()["updated_at"]})
@@ -43,8 +43,8 @@ class BackendWireTests(unittest.TestCase):
             def do_POST(self):
                 body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
                 received.append((self.path, dict(self.headers), body))
-                result = backend.pay("17", idempotency_key=body["idempotency_key"])
-                self.reply({"amount_krw": result.get("amount", backend.get_fee("17")["fee"]), "payment_id": "payment-07",
+                result = backend.pay("33", idempotency_key=body["idempotency_key"])
+                self.reply({"amount_krw": result.get("amount", backend.get_fee("33")["fee"]), "payment_id": "payment-07",
                             "paid_at": result.get("paid_at")})
         self.server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
@@ -67,10 +67,10 @@ class BackendWireTests(unittest.TestCase):
         self.assertIsNone(self.adapter.find_car("24"))
 
     def test_payment_passes_quote_amount_visit_and_idempotency_key(self):
-        fee = self.backend.get_fee("17")
+        fee = self.backend.get_fee("33")
         kwargs = {"quote_amount": fee["fee"], "entry_at": fee["entry_at"], "idempotency_key": "wire-payment", "quote_id": "quote-wire"}
-        first = self.adapter.pay("17", **kwargs)
-        second = self.adapter.pay("17", **kwargs)
+        first = self.adapter.pay("33", **kwargs)
+        second = self.adapter.pay("33", **kwargs)
         self.assertEqual(first, second)
         path, headers, body = next(x for x in self.received if x[2] is not None)
         self.assertEqual(body["idempotency_key"], "wire-payment")

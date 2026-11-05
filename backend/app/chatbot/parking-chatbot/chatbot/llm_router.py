@@ -33,28 +33,28 @@ _log = logger(__name__)
 
 # 설명에는 실제 동작과 구분용 예문만 넣는다.
 _DESCRIPTIONS = {
-    "get_empty_spots": "확정 빈자리 조회와 전체 비교·추천. 예: 주차할 공간을 찾아줘.",
-    "set_destination": "목적지 선택, 예약은 아님. 예: B로 갈게.",
-    "cancel_destination": "목적지 안내 취소. 예: 목적지를 지워줘.",
-    "find_my_car": "차량의 주차 위치 조회. 예: 내 자동차 어디 뒀더라.",
-    "get_fee": "차량 요금·결제 여부 조회, 결제 실행 아님. 예: 지금 얼마를 내야 해?",
-    "fee_rule": "일반 요금 규칙 질문. 예: 10분에 얼마야?",
-    "pay_fee": "사용자가 명시한 모의 결제 요청, 엔진의 금액 확인 단계로 연결. 예: 미리 결제할게.",
-    "payment_help": "결제 수단 질문, 실행 아님. 예: 현금도 돼?",
-    "payment_issue": "결제 오류 문의, 새 결제 아님. 예: 결제 실패했어.",
-    "exit_help": "출구·차단기 문제 문의. 진단하지 않고 현장 관리자 연결을 안내. 예: 차단기가 안 열려.",
-    "call_admin": "명시적인 관리자 호출 요청, 즉시 접수됨. 예: 직원 보내줘.",
-    "call_status": "기존 문의 접수 확인, 새 호출 아님. 예: 내 문의 들어갔어?",
-    "admin_help": "관리자 이용방법·비용 질문, 호출 아님. 예: 직원 부르면 비용이 드나요?",
-    "get_alerts": "현재 모의 화재 경보 조회. 예: 경보 상황이 어때?",
-    "get_violations": "전기차·장애인 전용 칸 위반(일반차 주차) 문의. 서버 위반 경보로만 답함. 예: 불법 주차한 차 있어?",
-    "evacuation_guide": "사람의 대피 안내. 예: 어디로 피해야 해?",
-    "alert_near_my_car": "차량 근처 경보 조회, 차량 이동 지시 아님. 예: 내 차 근처야?",
-    "change_vehicle": "차량 번호 변경 확인. 예: 19번 차로 바꿔.",
-    "cancel_action": "미완료 요청 취소·부정, 환불 아님. 예: 결제하지 마.",
-    "help": "지원하는 기능 안내. 예: 뭘 할 수 있어?",
-    "thanks": "감사 인사. 예: 고마워.",
-    "unknown": "주차장과 무관하거나 의도가 불명확함. 예: 오늘 날씨 어때?",
+    "get_empty_spots": "확정 빈자리·수용 여유를 조회하고 주차장이나 전용 구역을 비교합니다(예: 승용차를 댈 여유 공간을 비교하고 싶습니다). 위치 선택이나 예약을 실행하지 않습니다.",
+    "set_destination": "이동할 주차장을 목적지로 선택하려는 뜻입니다(예: 이번 방문의 도착 대상으로 개발원주차장을 선택합니다). 빈자리 조회와 구분하며 자리를 예약하지 않습니다.",
+    "cancel_destination": "정해 둔 목적지나 이동 안내만 끝내려는 뜻입니다(예: 지정해 놓은 방문 대상 표식을 없애 주세요). 결제 확인 등 다른 미완료 요청 취소와 구분하며 결제를 환불하지 않습니다.",
+    "find_my_car": "자동차를 세워 둔 곳이나 보관 위치를 찾는 조회입니다(예: 제 승용차가 세워진 구역을 조회하고 싶습니다). 없는 위치를 만들거나 차량 이동을 실행하지 않습니다.",
+    "get_fee": "주차비·사용료·정산 금액·청구 내역과 결제 여부를 조회합니다(예: 대금이 어떻게 산출됐는지 자료를 보여 주세요). 사용자가 납부를 원하면 결제 요청으로 구분하며 조회만으로 결제하지 않습니다.",
+    "fee_rule": "기본 요금·시간별 과금 방식·무료 시간·상한 같은 일반 규칙의 질문입니다(예: 시간대별 부과 방식과 상한 기준을 설명해 주세요). 특정 차량의 현재 청구액 조회나 결제는 아닙니다.",
+    "pay_fee": "사용자가 청구액을 결제·계산·정산하거나 대금을 치르겠다는 명시적 요청입니다(예: 청구서를 확인했으니 모의 납부 절차를 시작하겠습니다). 조회만 원하면 요금 조회로 구분하며 차량·견적·금액 확인 없이 결제하지 않습니다.",
+    "payment_help": "카드·현금·간편승인 등 사용할 수납 수단과 이용 방법의 질문입니다(예: 이용할 수 있는 수납 방식을 소개해 주세요). 승인 거절·오류·중복 청구는 결제 문제로 구분하고 실제 납부를 실행하지 않습니다.",
+    "payment_issue": "승인 거절·결제 오류·중복 청구·납부 후 이상에 대한 문의입니다(예: 승인 과정에서 거부 통지가 나왔습니다). 수단 이용 가능 여부와 구분하며 새 결제나 자동 환불을 하지 않습니다.",
+    "exit_help": "출구·차단기·통행 막대나 바가 자동차를 통과시키지 못하는 문제입니다(예: 차량 통행 봉이 올라오지 않으니 조치를 알려 주세요). 장치를 진단하거나 열지 않고 현장 지원 방법을 안내합니다.",
+    "call_admin": "현장 인력이 오거나 상담을 연결해 달라는 명시적 요청입니다(예: 관리자가 지금 이쪽에 와 주기를 요청합니다). 인력 존재·방법·비용 질문은 관리자 문의로 구분하며 도구 선택만으로 접수하지 않습니다.",
+    "call_status": "이미 남긴 문의·지원 요청의 접수와 처리 경과를 확인합니다(예: 예전에 등록한 현장 요청의 접수 번호를 확인합니다). 새 사람 호출이나 추가 접수가 아닙니다.",
+    "admin_help": "직원·관리자·근무자가 있는지 또는 연락 방법·이용 조건·비용을 묻습니다(예: 상담 담당자에게 연락할 수단과 이용 조건이 궁금합니다). 실제 방문·연결 요청은 관리자 호출로 구분하며 문의만으로 사람을 부르지 않습니다.",
+    "get_alerts": "현재 모의 화재 표시등과 경보 위치·확인·해제 상태를 조회합니다(예: 붉은 표시등에 따른 모의 상황을 조회합니다). 실제 화재를 판정하거나 경보를 만들고 해제하지 않습니다.",
+    "get_violations": "전기차·장애인 전용 구역의 자격과 다른 자동차 점유를 조회합니다(예: 지정 이용 자격과 다른 자동차가 주차했는지 확인합니다). 서버가 제공한 위반 경보만 사용하며 화재 경보와 섞거나 위반을 추측하지 않습니다.",
+    "evacuation_guide": "사람이 위험 범위에서 벗어날 통로와 대피 방법의 질문입니다(예: 사람이 건물 밖으로 벗어날 경로를 알려 주세요). 자동차를 회수하거나 옮기도록 지시하지 않습니다.",
+    "alert_near_my_car": "선택한 자동차 주변의 모의 경보와 위험 범위를 조회합니다(예: 지정한 자동차 주변에 모의 상황이 있는지 살펴 주세요). 자동차 위치 찾기와 구분하며 안전을 단정하거나 이동을 권하지 않습니다.",
+    "change_vehicle": "대화에 선택된 자동차 식별 번호를 다른 번호로 정정하려는 뜻입니다(예: 저장된 자동차 식별 대상을 42번으로 정정합니다). 사용자가 말하지 않은 번호를 만들지 않고 새 대상을 확인받습니다.",
+    "cancel_action": "미완료 확인·요청을 중단하거나 실행하지 말라는 뜻입니다(예: 아직 끝나지 않은 부탁을 중단해 주세요). 이동 목적지 안내 종료는 별도 취소로 구분하며 완료된 결제를 환불하지 않습니다.",
+    "help": "지원하는 기능과 이용 범위에 대한 안내 또는 실행을 원하지 않는 단순 문의입니다(예: 제공되는 주차 서비스의 범위를 소개해 주세요). 주차와 무관한 주제는 모름으로 구분하며 사람 호출이나 결제를 실행하지 않습니다.",
+    "thanks": "정보를 받은 뒤의 감사나 고마움을 나타냅니다(예: 설명을 듣고 궁금증이 풀려서 고맙습니다). 새 업무 요청을 만들거나 접수하지 않습니다.",
+    "unknown": "주차 서비스와 무관하거나 하나의 의도를 정하기 어려운 발화입니다(예: 우주선의 항법 원리를 설명해 주세요). 기능 이용 질문은 도움말로 구분하며 빈 인자를 만들어 다른 도구를 고르지 않습니다.",
 }
 _VEHICLE = {"find_my_car", "get_fee", "alert_near_my_car", "change_vehicle"}
 _LOT = {"get_empty_spots", "set_destination", "get_alerts"}
@@ -94,12 +94,12 @@ def _create_model(settings):
     kwargs = dict(model=model, temperature=0, max_tokens=200, timeout=timeout, max_retries=0)
     if provider == "openai":
         from langchain_openai import ChatOpenAI
-        return ChatOpenAI(**kwargs)
+        return ChatOpenAI(**kwargs, api_key=config.api_key("openai"))
     if provider == "openrouter":
         from langchain_openai import ChatOpenAI
         return ChatOpenAI(**kwargs, base_url=config.OPENROUTER_BASE_URL, api_key=config.api_key("openrouter"))
     from langchain_anthropic import ChatAnthropic
-    return ChatAnthropic(**kwargs)
+    return ChatAnthropic(**kwargs, api_key=config.api_key("anthropic"))
 
 
 def warmup():
@@ -189,7 +189,8 @@ def route(text):
         failure = _failure if settings == _model_key else None
     if model is None:
         return finish(failure or "preparing")
-    key = llm_limits.limits.key(text, ("langchain", settings))
+    example_mode = config.LLM_FEWSHOT
+    key = llm_limits.limits.key(text, ("langchain", settings, example_mode))
     cached = llm_limits.limits.lookup(key)
     if cached is not None:
         return finish("cache_hit", cached)
@@ -214,7 +215,12 @@ def route(text):
                 "JSON 한 줄만 출력한다.", "허용된 도구 하나만 선택한다.")
             prompt += "\nJSON 본문 대신 도구 하나만 선택한다. 확인 승인은 선택할 수 없다."
             # bind_tools와 호출도 제한 시간에 포함. 모델에 업무 처리 함수를 넘기지 않는다.
-            message = model.bind_tools(tool_schemas()).invoke([("system", prompt), ("human", text)])
+            messages = [("system", prompt)]
+            if example_mode:
+                from .llm_examples import messages as example_messages
+                messages.extend(example_messages())
+            messages.append(("human", text))
+            message = model.bind_tools(tool_schemas()).invoke(messages)
             result.append(_decode(message))
         except Exception as exc:
             _log.error("LLM invoke failed (%s)", type(exc).__name__)
@@ -228,7 +234,7 @@ def route(text):
     if not done.wait(max(0, deadline - time.monotonic())) or time.monotonic() > deadline:
         return finish("timeout")
     # 작업 중 설정이 바뀐 결과는 새 설정으로 오인하지 않는다.
-    if _settings()[0] != settings:
+    if _settings()[0] != settings or config.LLM_FEWSHOT != example_mode:
         return finish("invalid_params")
     reason, value = result[0]
     if reason == "ok":

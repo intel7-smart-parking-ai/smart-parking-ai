@@ -16,7 +16,7 @@ const {chromium}=require('playwright');const assert=require('node:assert/strict'
   assert.equal((await(await ctx.request.get(api+'/admin/calls')).json()).items.length,0);
   assert.ok((await p.locator('.row.bot').last().innerText()).includes('새 관리자 호출은 하지 않을게요'));
   console.log('PASS admin refusal creates no receipt and renders refusal notice');
-  await say('17번 결제');const quote=await say('네');assert.equal(quote.flow,'confirm_action');
+  await say('33번 결제');const quote=await say('네');assert.equal(quote.flow,'confirm_action');
   const later=await say('돈은 이따 낼게요');assert.equal(later.flow,'idle');assert.equal(later.confirmation_token,null);
   assert.equal(await p.locator('#chips [data-chip="confirm_yes"]').count(),0);
   await say('네');const fee=await say('요금 얼마야?');assert.equal(fee.card.data.paid,false);

@@ -69,13 +69,13 @@ class AdminSuggestionTests(unittest.TestCase):
         self.assertEqual(got['text'],T.NOTHING_TO_CONFIRM)
 
     def test_suggestion_cancels_old_payment_confirmation(self):
-        e.handle('s',text='17번 결제')
+        e.handle('s',text='33번 결제')
         quote=e.handle('s',text='네')
         self.assertEqual(quote['flow'],'confirm_action')
         got=self.suggest()
         self.assertEqual(got['flow'],'idle')
         e.handle('s',chip_id='confirm_yes',confirmation_token=quote['confirmation_token'])
-        self.assertFalse(e.data.get_fee('17')['paid'])
+        self.assertFalse(e.data.get_fee('33')['paid'])
         self.assertEqual(e.admin_calls(),[])
 
     def test_cancel_after_suggestion_has_no_call(self):
@@ -92,7 +92,7 @@ class AdminSuggestionTests(unittest.TestCase):
 
     def test_replayed_suggestion_does_not_hide_new_payment_confirmation(self):
         self.suggest(request_id='suggestion')
-        e.handle('s',text='17번 결제')
+        e.handle('s',text='33번 결제')
         quote=e.handle('s',text='네')
         got=self.suggest(request_id='suggestion')
         self.assertEqual(got['confirmation_token'],quote['confirmation_token'])
@@ -100,7 +100,7 @@ class AdminSuggestionTests(unittest.TestCase):
         self.assertEqual(e.admin_calls(),[])
 
     def test_suggestion_has_appropriate_chips_for_selected_vehicle_and_lv1(self):
-        for sid,selected,level in (('normal',None,0),('parked','17',0),('warning','17',1)):
+        for sid,selected,level in (('normal',None,0),('parked','33',0),('warning','33',1)):
             with self.subTest(sid=sid):
                 e.get_session(sid).car_id=selected
                 e.data.set_alert(level,'A',6)

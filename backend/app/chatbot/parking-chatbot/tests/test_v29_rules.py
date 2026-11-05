@@ -65,8 +65,8 @@ class MockV29Tests(unittest.TestCase):
                 self.assertIsNone(e.get_session(text).pending)
 
     def test_location_uses_lot_name_and_drawing_number(self):
-        self.assertIn("17번 차는 개발원주차장 B-01에 있어요", ask("s", "17번 차 어디 있어?")["text"])
-        self.assertEqual(ask("t", "17번 차 어디 있어?")["card"]["data"]["space_id"], "B-01")
+        self.assertIn("33번 차는 개발원주차장 B-01에 있어요", ask("s", "33번 차 어디 있어?")["text"])
+        self.assertEqual(ask("t", "33번 차 어디 있어?")["card"]["data"]["space_id"], "B-01")
 
     def test_space_question_needs_lot_and_answers_state(self):
         r = ask("s", "B-06 비었어?")
@@ -134,7 +134,7 @@ class MockV29Tests(unittest.TestCase):
     def test_cache_fallback_still_marks_last_value(self):
         e.data.get_empty_spots()
         with patch.object(e.data.inner, "find_car", wraps=e.data.inner.find_car):
-            ask("c", "17번 차 어디 있어?")
+            ask("c", "33번 차 어디 있어?")
         with patch.object(e.data.inner, "find_car", side_effect=OSError("offline")):
             r = e.handle("c", chip_id="find_car")
         self.assertIn("마지막으로 받은 정보예요. 갱신 중", r["text"])

@@ -59,7 +59,7 @@ class RehearsalRuleTests(unittest.TestCase):
                 self.assertEqual((got.intent,got.params.get('cancel_target')),('cancel_action','payment'))
 
     def test_postponement_cancels_pending_payment_and_old_confirmation(self):
-        e.handle('s',text='17번 결제')
+        e.handle('s',text='33번 결제')
         quote=e.handle('s',text='네')
         self.assertEqual(quote['flow'],'confirm_action')
         with patch.object(e.data,'pay',wraps=e.data.pay) as pay:
@@ -68,7 +68,7 @@ class RehearsalRuleTests(unittest.TestCase):
             e.handle('s',chip_id='confirm_yes',confirmation_token=quote['confirmation_token'])
             e.handle('s',text='네')
             pay.assert_not_called()
-        self.assertFalse(e.data.get_fee('17')['paid'])
+        self.assertFalse(e.data.get_fee('33')['paid'])
 
     def test_immediate_payment_and_later_exit_are_not_postponed(self):
         for text in ('돈 지금 낼게요','지금 결제할게요','이따가 나갈 건데 지금 결제할게요'):
