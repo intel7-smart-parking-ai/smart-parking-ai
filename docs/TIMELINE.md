@@ -980,3 +980,6 @@
 
 ### 11:43 · 서정범 AI 없이 14시까지 할 일 — 서정범 요청 (GPT 사용 불가)
 - 대본 표시 수정(main/통합 브랜치, D-54 번호, 휴대폰 장면) → 테스트 직접 실행·PR 설명 기록 → 협의(윤명수 분담·김채린 리허설 코드·ChatPanel safety/chips·PM D-44) → 오후 준비(safety 위치 `engine.py` `_server_payment_blocked`/`_respond`, DATA-01 `_space_snapshot`, 목업 11번 ev). 결제·안전 로직 직접 수정은 14시 이후
+
+### 11:46 · 서정범 자료 조사 키워드 추천 — 서정범 요청
+- LED 모의 화재(HSV 빨강 2범위·blob·N프레임 연속·오탐·노출) 우선 / 챗봇(tool calling grounding·OpenRouter 비교·의도 평가·확인 흐름·폴백·멱등) / 음성(Web Speech API·secure context) / 설정집(지하주차장 화재 대피·전기차 화재, 시연용 설정으로만) / 유사 서비스·디지털 약자 UX
