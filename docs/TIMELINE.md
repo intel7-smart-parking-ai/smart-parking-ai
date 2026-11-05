@@ -970,3 +970,6 @@
 
 ### 11:22 · ✅ D-54 최종 30대 스티커 배정표 (D-39 대체) — EV 11·23·42·57·85 / 장애인 14·32·49·55·77 / 일반 20, 지금 교체 1개(전기차 28 → 23), 예비 없음
 - LABELING_SPEC 허용 번호 갱신. 챗봇 목업 영향: 11이 일반 → 전기차 (서정범 변경 요청)
+
+### 11:31 · 챗봇 데이터 중 UI로 보여 줄 것 — 김채린 요청
+- 현재 `ChatPanel`은 `messages` 글자만 표시. A(오늘): `safety`·`chips`(확인 버튼, `confirmation_token`)·`flow` / B(11/06~09): `card` 7종(`car_location` 지도 강조·`empty_spots`·`fee`·`payment`·`alert`·`admin_call`·`unrecognized_candidates`), `banner`·`vehicle_context` / C: 메인 화면 정보는 챗봇 경유 말고 공식 API(`space_type`·`/rate-policies`·`entry_at`·관리자 호출은 서정범 협의)
