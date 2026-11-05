@@ -861,3 +861,8 @@
 - 다른 담당 폴더 변경 없음, 비밀값 없음, 어제 할 일 17개 반영
 - 남은 것: ① 3개 Ready(#52→#53→#54, base 변경 후 재검증) ② API 변경 승인 — 요금·결제 경로 가로채기(`payment_blocked`·`payment`·결제 후 `amount_krw`·409 `EVACUATION_ACTIVE`) 윤명수 확인, 챗봇 공유, 칸 새 필드(`plate_number`·`vehicle_number`·`zone`·`version`)·`/vehicle-search`·`/simulation/{lot}` PM 검토 → API_CONTRACT ③ 오늘 리허설 서버(demo_main 추천, Docker 따로 시험) ④ `HTTP_ERROR` 공통 처리로 안내 문구 손실 ⑤ `runtime.py` 가독성(200자 넘는 줄 13개) ⑥ `httpx` 추가 공지 ⑦ 브랜치 정리
 - 참고: 로컬 `.venv`에 SQLAlchemy 없어 수집 오류 → `requirements-dev.txt` 재설치 후 통과
+
+### 09:43 · 고유어 숫자·시연 기기 방향 — 서정범 요청
+- 고유어 숫자: LLM 프롬프트 대신 `parser.py` 규칙(기존 `KO_NUM`·`RE_KO_CAR`에 고유어 사전 추가) 추천 — 11/06 대본이 `LLM_PROVIDER=none`이라 프롬프트는 효과 없음. 줄어든 형태(열한·열두·스무·스물한) 포함, "번/차" 앞에서만 변환(열어·열 시 제외), 한 자리씩 읽기는 2글자·`십` 없을 때만
+- 시연 기기: 11/06은 PC `localhost` 마이크, 휴대폰은 LAN http로 조회만(마이크만 막힘). 휴대폰 마이크 필요 시 터널(PM 결정) — Docker 80번에 카메라 수신 경로가 같이 있어 통째로 노출 주의, 관리자 8090 비공개
+- 분담 추천: 서정범 = 숫자 규칙(v2.15와 같은 파일) / 윤명수 = 테스트 문장·실제 발화 확인·시연 기기 PM 확인·터널 조사
