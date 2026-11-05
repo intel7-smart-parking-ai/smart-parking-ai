@@ -1,3 +1,4 @@
+import {normalizeLot} from './uiState.js';
 // Build-time selection; URL parameters cannot switch to another backend.
 export const dataSource = import.meta.env?.VITE_DATA_SOURCE || 'demo';
 if (!['demo', 'team'].includes(dataSource)) throw new Error('VITE_DATA_SOURCE는 demo 또는 team이어야 합니다.');
@@ -25,7 +26,20 @@ export async function request(path, options = {}, source = dataSource) {
     let data;
     try {data = await response.json();} catch {data = {};}
     if (!response.ok) {
-      const error = new Error(data.error?.message || data.message || (typeof data.detail === 'string' ? data.detail : response.status === 404 || response.status === 501 ? '서버에 아직 연결되지 않은 기능입니다.' : 'API 요청을 처리하지 못했습니다.'));
+      let message = data.error?.message || data.message || (typeof data.detail === 'string' ? data.detail : null);
+      // The receiver can replace route details with HTTP_ERROR. Explain this
+      // lookup's status locally while preserving specific server error codes.
+      if (path.split('?')[0] === '/vehicle-search' &&
+          (!data.error?.code || ['HTTP_ERROR', 'VALIDATION_ERROR'].includes(data.error.code))) {
+        const guidance = {
+          400: '차량번호 뒤 4자리를 정확히 입력해주세요.',
+          422: '차량번호 뒤 4자리를 정확히 입력해주세요.',
+          404: '일치하는 차량을 찾지 못했습니다. 번호와 현재 주차 상태를 확인해주세요.',
+          503: '차량 조회 서버가 일시적으로 응답하지 않습니다. 잠시 후 다시 조회해주세요.',
+        };
+        message = guidance[response.status] || message;
+      }
+      const error = new Error(message || (response.status === 404 || response.status === 501 ? '서버에 아직 연결되지 않은 기능입니다.' : 'API 요청을 처리하지 못했습니다.'));
       error.code = data.error?.code || data.error_code || data.code; error.status = response.status; throw error;
     }
     return data;
@@ -40,20 +54,19 @@ export async function api(path, options) {
 }
 export async function loadLots(source = dataSource) {
   const result = await request('/parking-lots', {}, source);
-  if (source === 'demo') return listItems(result);
+  if (source === 'demo') return listItems(result).map(lot=>normalizeLot(lot,lot.spaces||[],result.as_of));
   return Promise.all(listItems(result).map(async lot => {
     const response = await request(`/parking-lots/${encodeURIComponent(lot.lot_id)}/spaces`, {}, source);
-    const spaces = listItems(response), split = Math.ceil(spaces.length / 2);
-    return {...lot, updated_at:response.as_of, spaces:spaces.map((space,index)=>({...space,lot_id:lot.lot_id,zone:index<split?'A':'B',space_type:space.space_type||'unknown'}))};
+    return normalizeLot(lot,listItems(response),response.as_of);
   }));
 }
 export async function lookupVehicle(value, kind = 'sticker', source = dataSource) {
   const input = value.trim();
   if (kind === 'plate') {
-    if (source !== 'demo') throw new Error('팀 서버에서는 스티커 번호 10~99로 조회해주세요.');
     if (!/^\d{4}$/.test(input)) throw new Error('차량번호 뒤 4자리를 정확히 입력해주세요.');
     const result=await request('/vehicle-search?vehicle_number='+input,{},source);
-    return {...result,fee:result.fee?feeView(result.fee):null};
+    const fee=result.fee||(result.session_id?await request('/sessions/'+encodeURIComponent(result.session_id)+'/fee',{},source):null);
+    return {...result,fee:fee?feeView(fee):null};
   }
   if (/^\d$/.test(input)) throw new Error('스티커 번호는 두 자리로 입력해주세요. (10~99)');
   const number=input;

@@ -6,6 +6,21 @@ const originalFetch = globalThis.fetch;
 afterEach(() => { globalThis.fetch = originalFetch; });
 const ok = data => ({ok: true, json: async () => data});
 
+test('vehicle search explains generic receiver errors without hiding specific errors', async () => {
+  for (const [status, text] of [[422, '뒤 4자리'], [404, '찾지 못했습니다'], [503, '잠시 후']]) {
+    globalThis.fetch = async () => ({ok: false, status, json: async () => ({
+      error: {code: 'HTTP_ERROR', message: '요청이 허용되지 않았습니다.'},
+    })});
+    await assert.rejects(request('/vehicle-search?vehicle_number=1234', {}, 'team'),
+      error => error.status === status && error.code === 'HTTP_ERROR' && error.message.includes(text));
+  }
+  globalThis.fetch = async () => ({ok: false, status: 404, json: async () => ({
+    error: {code: 'VEHICLE_NOT_FOUND', message: '서버의 구체적 안내'},
+  })});
+  await assert.rejects(request('/vehicle-search?vehicle_number=1234', {}, 'team'),
+    error => error.message === '서버의 구체적 안내');
+});
+
 test('default data source is the clearly labeled demo', () => assert.equal(dataSource, 'demo'));
 
 test('team response keeps IDs, states and missing dedicated bay types', async () => {
@@ -93,8 +108,9 @@ test('sticker lookup gets server fee without calculating a price',async()=>{
  const calls=[];globalThis.fetch=async path=>{calls.push(path);return ok(path.includes('/location')?{car_id:'99',session_id:'ses_99'}:{session_id:'ses_99',amount_krw:7531,payment_status:'completed',fee_breakdown:{base_fee_krw:1000,extra_units:2,extra_fee_krw:6531}})};
  const result=await lookupVehicle('99','sticker','team');assert.equal(result.fee.amount_krw,7531);assert.equal(result.fee.payment_status,'completed');assert.deepEqual(calls,['/api/v1/vehicles/99/location','/api/v1/sessions/ses_99/fee']);
 });
-test('team source does not expose demo four-digit search',async()=>{
- globalThis.fetch=()=>{throw new Error('must not send')};await assert.rejects(lookupVehicle('1234','plate','team'),/10~99/);
+test('team virtual lookup uses same server and fetches its fee',async()=>{
+ const calls=[];globalThis.fetch=async path=>{calls.push(path);return ok(path.includes('vehicle-search')?{session_id:'virtual-session',vehicle_number:'1234',car_id:null}:{amount_krw:3000,quote_id:'quote'})};
+ const found=await lookupVehicle('1234','plate','team');assert.equal(found.car_id,null);assert.equal(found.fee.amount_krw,3000);assert.deepEqual(calls,['/api/v1/vehicle-search?vehicle_number=1234','/api/v1/sessions/virtual-session/fee']);
 });
 test('demo lot collection unwraps the common list envelope',async()=>{
  globalThis.fetch=async()=>ok({items:[{lot_id:'A',spaces:[]}],next_cursor:null,as_of:'2026-11-03T00:00:00Z'});
