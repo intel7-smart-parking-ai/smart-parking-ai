@@ -855,3 +855,9 @@
 ### 09:25 · 음성 입력 가이드(`voice_input_guide_for_frontend.md`) 설명 — 윤명수 요청
 - 화면만 수정(브라우저 `SpeechRecognition` → 기존 `/chat` `text`), 결제 확인 단계 자동 전송 금지, 완료 기준 8개, AI 전달문 포함
 - 챗봇 담당 몫으로 남은 것: 고유어 숫자(`열일곱`→17) 지원, 시연 접속 방식(PC localhost vs 휴대폰 HTTPS) PM 확인
+
+### 09:34 · 김채린 PR #52·#53·#54 (이어진 Draft) 점검 — 김채린 요청 "더 할 것"
+- 최신 main(`4e048c8`)과 합쳐 충돌 0, pytest **350 passed**, npm test 47·team 빌드 성공. 통합 `main.py` demo 모드 실행: health·4곳 104칸·칸 `entry_at`·챗봇 답변·챗봇의 `/alerts` 조회 200
+- 다른 담당 폴더 변경 없음, 비밀값 없음, 어제 할 일 17개 반영
+- 남은 것: ① 3개 Ready(#52→#53→#54, base 변경 후 재검증) ② API 변경 승인 — 요금·결제 경로 가로채기(`payment_blocked`·`payment`·결제 후 `amount_krw`·409 `EVACUATION_ACTIVE`) 윤명수 확인, 챗봇 공유, 칸 새 필드(`plate_number`·`vehicle_number`·`zone`·`version`)·`/vehicle-search`·`/simulation/{lot}` PM 검토 → API_CONTRACT ③ 오늘 리허설 서버(demo_main 추천, Docker 따로 시험) ④ `HTTP_ERROR` 공통 처리로 안내 문구 손실 ⑤ `runtime.py` 가독성(200자 넘는 줄 13개) ⑥ `httpx` 추가 공지 ⑦ 브랜치 정리
+- 참고: 로컬 `.venv`에 SQLAlchemy 없어 수집 오류 → `requirements-dev.txt` 재설치 후 통과
