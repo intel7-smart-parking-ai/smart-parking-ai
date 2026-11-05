@@ -138,6 +138,7 @@ docker compose ps                       # api·web·admin-auth 모두 healthy �
 | pytest 수집 오류 `No module named 'sqlalchemy'` | 예전 가상환경 | 2장 재설치 |
 | 다른 PC 카메라가 연결 안 됨 | `127.0.0.1` 고정 또는 방화벽 | 5장 `API_HOST`·방화벽 |
 | 잠시 뒤 칸이 `uncertain` | 이벤트가 2초 넘게 끊김 | `--hold` 창 유지, 카메라 전송 간격 확인 |
+| `New-NetFirewallRule : 액세스가 거부되었습니다` | 관리자 권한 없음 | PowerShell을 "관리자 권한으로 실행". 공용 PC라 권한이 없으면 리허설 서버 PC(관리자 가능)에서 하거나, `cloudflared tunnel --url http://localhost:5173`(방화벽 규칙·플래그 불필요, 시험 때만) |
 | Git Bash `curl`로 한글 보내면 400 | 콘솔 인코딩 | PowerShell·브라우저·Python으로 시험 |
 | 휴대폰 마이크 안 켜짐 | http 주소 | 7장 |
 | 휴대폰에서 `http://<PC IP>:5173`이 안 열림 | ① 화면(`npm run dev`) 미실행 ② 휴대폰이 모바일 데이터·다른 와이파이 ③ PC 방화벽(공용 네트워크면 기본 차단) ④ 기관 와이파이의 기기 간 접속 차단(AP 격리, `10.10.x.x`) | PC에서 같은 주소 먼저 열기 → 같은 와이파이 → `New-NetFirewallRule ... -LocalPort 5173` → 안 되면 휴대폰 핫스팟에 PC 연결(IP 바뀜, 플래그 주소도 변경) |
