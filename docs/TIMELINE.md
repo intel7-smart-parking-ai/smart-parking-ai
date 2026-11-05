@@ -950,3 +950,7 @@
 
 ### 11:05 · 서정범 보완 사항 상세 MD 전달 — 서정범 요청 (디스코드 첨부)
 - 1 결제 차단 응답 `safety` null(원인: 요청 시작 시 경보 스냅샷, 결제 중 서버가 경보 판정) → 서버 차단 근거로 `safety_card` 채우기 추천 / 2 대본 main·통합 표시(오늘) / 3 DATA-01 동결 전 필수(카메라 PC 시계 빠를 때) / 4 영수증 `payment` / 5 `/vehicle-search`(상태 코드 분기) / 6 DNS-01 기록만
+
+### 11:13~11:20 · 라벨링 기준 확인 — 김한별 요청 → `docs/LABELING_SPEC.md` 초안
+- 기존 `AI데이터셋_수집계획.md`·vision-pipeline 스킬은 수량·세션 분할은 있으나 **옛 기준**(전체 화면 차량 bbox, 색·차종 없음, unusable 없음, 카메라=주차장)
+- 초안: 최종 목표(vision-event 필드) 역산 → 점유 3클래스(`occupied`/`empty`/`unusable`), 번호+색(D-39 29개 허용·번호-색 일치 검수·`unreadable`), LED(on/off/distractor), `placement` 칸 예비(D-46), 공통 manifest, 세션 단위 분할·test=`cam_hq`, Drive 폴더 구조, 도구, PM 확인 6건
