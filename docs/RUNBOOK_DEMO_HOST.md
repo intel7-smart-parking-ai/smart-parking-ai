@@ -114,7 +114,7 @@ demo_main과 통합 main의 서버측 결제 차단 제공 범위는 다르다.
 | 시각/회차 | 서버/화면 | 현상 | 조치/담당 | 재확인 |
 | --- | --- | --- | --- | --- |
 | 11/05 준비 | 원격 URL | 다른PC의127.0.0.1에 접속 | 서버IP10.10.21.32 사용 | 8002/5173 호스트 LAN주소200, 원격PC 미실측 |
-| 11/05 준비 | Docker LAN80 | localhost만200, LAN IP는timeout | 관리자 방화벽 규칙 적용 필요. OS 접근거부 | 미해결, 대체5173 안내 |
+| 11/05 준비 | Docker LAN80 | Docker80 예약으로 Windows LAN 리스너가 없음 | Docker를127.0.0.1:18080으로 이동, Windows80→18080 전달 | localhost·LAN 웹/로그인200 |
 | 11/05 준비 | 문서 | 전달받은 RUNBOOK이 main에 없음 | 이 문서 신규 추가 | 팀 원본과 추후 대조 |
 
 ## 10. 실제 실행 기록
@@ -126,8 +126,8 @@ demo_main과 통합 main의 서버측 결제 차단 제공 범위는 다르다.
 | Python 의존성·npm ci | 설치 완료 |
 | 프론트·백엔드 회귀 | Windows pytest350 passed(경고2), 프론트48 passed, team build 성공 |
 | demo_main8002 + hold + 화면5173 | 실행 중. 빈자리9/12, 10=A-01, 로그인·관리자active3건·요금·모의결제/영수증 확인 |
-| 웹80·관리자 로그인·LAN IP | localhost80 및 /admin/login 200. LAN8002/5173 200. LAN80 시간초과(미해결) |
-| 방화벽 허용 | 관리자 권한 부족. RunAs 시도 후에도 규칙 없음. 관리자 실행/다른PC 재검증 필요 |
+| 웹80·관리자 로그인·LAN IP | localhost80·LAN80·LAN /admin/login 모두200. Windows localhost 전달 우회 적용. LAN8002/5173도200. 다른PC 실측은 대기 |
+| 방화벽 허용 | 관리자 작업으로 TCP80 LocalSubnet 허용. Windows0.0.0.0:80→127.0.0.1:18080 포트 전달 적용 |
 | Docker 통합 api 별도 시험 | 3서비스healthy. 별도API 입차→출차→LED→결제409→해제→결제·D49금액 일치·재시작 결제보존 통과 |
 | 팀 실물 카메라·챗봇·20분 리허설 | 담당자와 현장 확인 대기 |
 
@@ -136,3 +136,24 @@ demo_main과 통합 main의 서버측 결제 차단 제공 범위는 다르다.
 각 터미널 Ctrl+C (background 실행 시 work/rehearsal-processes.json의 해당 프로세스만 종료).
 포트80의 API_UPSTREAM을 바꿨다면 `.env`에서 원래 값으로 복구하고 web 재생성.
 토큰/관리자 비밀번호는 로컬 파일만 보존. API 계약/실행 문서는 PR #53, Docker 배포는 #54.
+
+## Windows Docker Desktop LAN80 우회 (이 PC 적용 완료)
+
+직접0.0.0.0:80 매핑에서 localhost만 되고 LAN80이 응답하지 않을 때만 사용한다.
+로컬 .env에 WEB_BIND_ADDRESS=127.0.0.1, WEB_PORT=18080을 지정한 뒤:
+
+```powershell
+docker compose up -d --force-recreate --no-deps web
+# 관리자 PowerShell
+.\deployment\enable_lan_access.ps1 -DockerLocalhostRelay
+```
+
+Windows0.0.0.0:80 → Docker127.0.0.1:18080 → nginx 경로다. 사용자/관리자 URL은
+그대로 포트80이며 인증은 nginx/admin-auth에서 유지한다. IP Helper 재시작 중 기존
+Windows 포트 전달은 잠깐 끊길 수 있다. 방화벽은 LocalSubnet에만 허용한다.
+복구는 관리자 터미널에서 아래 매핑만 삭제하고 .env의 WEB_PORT=80,
+WEB_BIND_ADDRESS=0.0.0.0으로 되돌려 web을 재생성한다. 다른 매핑은 삭제하지 않는다.
+
+```powershell
+netsh interface portproxy delete v4tov4 listenaddress=0.0.0.0 listenport=80
+```
