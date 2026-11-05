@@ -925,3 +925,9 @@
 
 ### 10:33 · frontend 받는 법 + 설치 없는 시험 서버 `serve_mic_test.ps1` 전달 — 윤명수 요청
 - ZIP/clone 안내, 단 Node 없음 → 마이크 시험은 PowerShell `HttpListener` 서버(8765, 관리자 필요, UTF-8 BOM으로 PS 5.1 한글 확인)로. 로컬 응답 200·404 확인
+
+### 10:31~10:45 · 휴대폰 음성 → 챗봇 본인 PC 시험 안내 — PM 요청 (외부 접속 설정 + 호스팅 코드 전부) → `docs/GUIDE_VOICE_TEST_OWN_PC.md`
+- 단계: A 음성만(설치 없음, `serve_mic_test.ps1` 8765) / B 음성 → 챗봇(Python·Node·Git 설치, 5173 프록시 → 8002) / C 휴대폰 실제 화면
+- 호스팅 구성·파일 표(`demo_main.py`·챗봇 라우터·`run_parking_demo.py`·`vite.config.js` `host 0.0.0.0`+`/api` 프록시·`frontend/public` 임시), 방화벽·플래그·핫스팟, 정리 명령, 문제 해결, 결과 기록표
+- `mic_test.html` 확장: 같은 주소 `/api/v1/chat` 있으면 챗봇 전송·버튼(칩), `flow=confirm_action`이면 자동 전송 금지
+- 실측(제 PC): Vite 5173 프록시 → demo_main 8002, `/api/v1/chat/config` 200, "A 빈자리 있어?" → "개발원주차장에 12자리 있어요", "십칠 번 차 어디 있어" → "17번 차 맞으세요?" + 버튼. 시험 후 서버 종료·`frontend/public/mic_test.html` 삭제. 휴대폰 실기기는 미시험
