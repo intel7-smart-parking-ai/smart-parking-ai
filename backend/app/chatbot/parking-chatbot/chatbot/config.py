@@ -182,3 +182,7 @@ if LLM_MAX_PER_DAY < 0:
     raise ValueError("LLM_MAX_PER_DAY는 0 이상의 정수여야 합니다.")
 if not math.isfinite(LLM_ROUTE_CACHE_SEC) or LLM_ROUTE_CACHE_SEC < 0:
     raise ValueError("LLM_ROUTE_CACHE_SEC는 유한한 0 이상 값이어야 합니다.")
+
+# Optional classifier examples; rehearsal behavior remains unchanged by default.
+LLM_FEWSHOT = getenv("LLM_FEWSHOT", "0") == "1"
+FALLBACK_HINTS = getenv("FALLBACK_HINTS", "0") == "1"

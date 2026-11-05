@@ -8,7 +8,7 @@ const assert=require('node:assert/strict');
  try{
   await ctx.request.post(api+'/demo/reset');await p.goto(base);await p.waitForFunction(()=>!busy&&runtimeId);
   await p.evaluate(()=>clearInterval(pollTimer));await p.click('#panelBtn');await p.evaluate(()=>refreshPanel());
-  await p.selectOption('#exitCar','17');
+  await p.selectOption('#exitCar','33');
   async function delayedRefresh(){
    let release,started;const gate=new Promise(r=>release=r),ready=new Promise(r=>started=r);
    await p.route('**/api/v1/chat/demo/cars',async route=>{
@@ -17,24 +17,24 @@ const assert=require('node:assert/strict');
    const task=p.evaluate(()=>refreshPanel());await ready;return {release,task};
   }
   let pending=await delayedRefresh();pending.release();await pending.task;
-  assert.equal(await p.locator('#exitCar').inputValue(),'17');
+  assert.equal(await p.locator('#exitCar').inputValue(),'33');
   console.log('PASS delayed refresh preserves selected vehicle');
 
-  pending=await delayedRefresh();await p.selectOption('#exitCar','18');pending.release();await pending.task;
-  assert.equal(await p.locator('#exitCar').inputValue(),'18');
+  pending=await delayedRefresh();await p.selectOption('#exitCar','43');pending.release();await pending.task;
+  assert.equal(await p.locator('#exitCar').inputValue(),'43');
   console.log('PASS selection made during refresh is preserved');
 
-  await p.selectOption('#exitCar','17');await p.click('#exitBtn');
-  await p.waitForFunction(()=>!document.querySelector('#exitCar option[value="17"]'));
+  await p.selectOption('#exitCar','33');await p.click('#exitBtn');
+  await p.waitForFunction(()=>!document.querySelector('#exitCar option[value="33"]'));
   const cars=(await (await ctx.request.get(api+'/demo/cars')).json()).items;
-  assert.ok(cars.some(c=>c.car_id==='11'));assert.ok(!cars.some(c=>c.car_id==='17'));
+  assert.ok(cars.some(c=>c.car_id==='11'));assert.ok(!cars.some(c=>c.car_id==='33'));
   assert.equal(await p.locator('#exitCar').inputValue(),'');assert.equal(await p.locator('#exitBtn').isDisabled(),true);
   console.log('PASS exit removes only selected car and requires new selection');
 
-  await p.selectOption('#exitCar','18');pending=await delayedRefresh();
-  await ctx.request.post(api+'/demo/exit',{data:{car_id:'18'}});await p.evaluate(()=>refreshPanel());
+  await p.selectOption('#exitCar','43');pending=await delayedRefresh();
+  await ctx.request.post(api+'/demo/exit',{data:{car_id:'43'}});await p.evaluate(()=>refreshPanel());
   pending.release();await pending.task;
-  assert.equal(await p.locator('#exitCar option[value="18"]').count(),0);
+  assert.equal(await p.locator('#exitCar option[value="43"]').count(),0);
   assert.equal(await p.locator('#exitCar').inputValue(),'');assert.equal(await p.locator('#exitBtn').isDisabled(),true);
   console.log('PASS old response cannot restore removed car or overwrite newer list');
 

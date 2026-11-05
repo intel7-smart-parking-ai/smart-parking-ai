@@ -67,7 +67,7 @@ class FinalCleanupTests(unittest.TestCase):
 
     # ---------------------------------------------------------- 1-B 이용 현황
     def test_usage_question_returns_location(self):
-        e.handle("s", text="17번 차 위치"); e.handle("s", text="네")
+        e.handle("s", text="33번 차 위치"); e.handle("s", text="네")
         r = e.handle("s", text="내 이용 현황 보여줘")
         self.assertEqual(r["card"]["type"], "car_location")
 
@@ -91,7 +91,7 @@ class FinalCleanupTests(unittest.TestCase):
         self.assertEqual(len(e.admin_calls()), 1)
 
     def test_merge_within_window_then_new_after(self):
-        e.handle("s", text="17번 차 위치"); e.handle("s", text="네")
+        e.handle("s", text="33번 차 위치"); e.handle("s", text="네")
         e.handle("s", text="관리자 불러줘")
         r = e.handle("s", text="관리자 불러줘")
         self.assertIn("이미 접수된 문의", r["text"])
@@ -102,7 +102,7 @@ class FinalCleanupTests(unittest.TestCase):
         self.assertEqual(len(e.admin_calls()), 2)
 
     def test_alert_recall_still_creates_linked_call(self):
-        e.handle("s", text="18번 차 위치"); e.handle("s", text="네")
+        e.handle("s", text="43번 차 위치"); e.handle("s", text="네")
         e.handle("s", text="관리자 불러줘")
         e.data.set_alert(2, "A", 6); e.updates("s")
         e.handle("s", text="불났어요 관리자 불러주세요")

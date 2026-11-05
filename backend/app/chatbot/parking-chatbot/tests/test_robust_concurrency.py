@@ -24,7 +24,7 @@ class RobustConcurrencyTests(unittest.TestCase):
     def test_twenty_users_fifty_questions_are_isolated(self):
         def user(index):
             sid = "user"+str(index)
-            number = "17" if index % 2 else "18"
+            number = "33" if index % 2 else "43"
             e.get_session(sid).car_id = number
             for i in range(50):
                 answer = e.handle(sid, text="내 차 위치" if i % 2 else "요금")
@@ -36,7 +36,7 @@ class RobustConcurrencyTests(unittest.TestCase):
                 future.result(10)
 
     def test_ten_payment_confirmations_and_admin_clicks_make_one_each(self):
-        e.get_session("p").car_id = "17"
+        e.get_session("p").car_id = "33"
         quote = e.handle("p", text="결제")
         with patch.object(e.data.inner, "pay", wraps=e.data.inner.pay) as pay:
             with ThreadPoolExecutor(max_workers=10) as pool:
@@ -73,7 +73,7 @@ class RobustConcurrencyTests(unittest.TestCase):
                 times = []
                 for i in range(2000):
                     before = time.perf_counter()
-                    assert_safe(e.handle("soak", text=("A 빈자리", "17번 위치", "요금", "고마워")[i % 4]))
+                    assert_safe(e.handle("soak", text=("A 빈자리", "33번 위치", "요금", "고마워")[i % 4]))
                     times.append((time.perf_counter()-before)*1000)
                 latency.append(sorted(times)[int(len(times)*.95)])
                 gc.collect()

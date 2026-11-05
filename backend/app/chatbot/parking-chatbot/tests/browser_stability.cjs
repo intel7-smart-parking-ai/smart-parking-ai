@@ -58,7 +58,7 @@ const assert=require('node:assert/strict');
   assert.equal(await p.locator('#banner').innerText(),before);
   console.log('PASS lower state version cannot roll back UI');
   await p.close();await reset();p=await user();
-  await p.evaluate(()=>send({text:'17번 결제'}));await p.evaluate(()=>send({text:'네'}));
+  await p.evaluate(()=>send({text:'33번 결제'}));await p.evaluate(()=>send({text:'네'}));
   assert.equal(await p.locator('#chips [data-chip="confirm_yes"]').count(),1);
   await p.reload();await p.waitForFunction(()=>!busy&&!!runtimeId);await p.evaluate(()=>clearInterval(pollTimer));
   assert.equal(await p.locator('#chips [data-chip="confirm_yes"]').count(),0);

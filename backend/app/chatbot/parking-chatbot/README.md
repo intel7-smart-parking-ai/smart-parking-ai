@@ -1,6 +1,6 @@
-# EPIC06 주차장 안내 챗봇 v2.12 — 팀 저장소 연동 수정본
+# EPIC06 주차장 안내 챗봇 v2.15.5 — 현재 명세에 맞춘 검증 기준
 
-최신 변경·검증 결과는 [팀 저장소 연동 확인](docs/team_repo_alignment.md)과 [v2.12 변경 요약](docs/v212_change_summary.md)을 참고하세요. 팀 레포: https://github.com/intel7-smart-parking-ai/smart-parking-ai
+최신 기준은 [구현·검증 원칙](docs/validation_policy.md)과 [v2.15.5 변경 요약](docs/v2155_change_summary.md), 목업 배정은 [D-39 대응표](docs/d39_mock_migration.md), 실행은 [11/06 대본](docs/demo_script_1106.md)을 참고하세요. 팀 레포: https://github.com/intel7-smart-parking-ai/smart-parking-ai
 
 v2.5 API 계약을 유지하며 재현된 오류와 긴 답변 표시를 수정했습니다. [최신 안정성 결과](docs/robustness_report.md)를 확인하세요. [API 계약 반영 기록](docs/api_alignment_report.md)을 확인하세요. [정리 결과](docs/refactor_report.md), [챗봇 작업지침서 v2](docs/chatbot_guidelines_v2.md), [이전 결과](docs/history/integrated_v3_report.md), [기록 보관함](docs/history/README.md)을 참고하세요.
 
@@ -83,14 +83,14 @@ python tests/run_llm_compare.py --compare
 
 ```bash
 python -m unittest discover -s tests
-python tests/run_eval.py tests/questions.csv tests/questions_extended.csv tests/questions_holdout.csv tests/questions_realistic.csv tests/questions_stability.csv tests/questions_navigation_dev.csv tests/questions_navigation_holdout.csv tests/questions_rehearsal.csv
+python tests/run_eval.py tests/questions.csv tests/questions_extended.csv tests/questions_holdout.csv tests/questions_realistic.csv tests/questions_stability.csv tests/questions_navigation_dev.csv tests/questions_navigation_holdout.csv tests/questions_rehearsal.csv tests/questions_demo_1106.csv
 python tests/run_optimization_soak.py
 python tests/run_browser_checks.py browser_supplement.cjs
 ```
 
 FastAPI/httpx가 없으면 해당 검사는 건너뜁니다. 브라우저 검사는 Node·Playwright·Chromium이 필요하며 필요 시 `BROWSER_EXECUTABLE`을 지정합니다. 이번 정리 전후 결과는 `docs/refactor_report.md`에 있습니다. 과거 단계별 원시 기록은 `docs/history/`에 있습니다.
 
-상태는 단일 프로세스 메모리에 저장되며 재시작 복원은 없습니다. 실제 팀 API·DB·카메라·차단기·유료 LLM·Windows 실행은 이번 로컬 검증 범위 밖입니다. 과거 문서는 변경 이력이며 현재 범위는 위 가이드라인과 결과 보고서가 기준입니다.
+상태는 단일 프로세스 메모리에 저장되며 재시작 복원은 없습니다. v2.15.4에서 격리된 최신 팀 서버의 HTTP 연결·리허설을 확인했으며, 현장 API·DB·카메라·차단기·유료 LLM·Windows 실행은 별도 미검증 범위입니다. 과거 문서는 변경 이력이며 현재 작업은 [구현·검증 원칙](docs/validation_policy.md)과 최신 변경 요약을 따릅니다.
 
 ## 팀 API 연결 확인
 
@@ -134,3 +134,5 @@ app.include_router(chatbot_router)   # POST /api/v1/chat 등
 
 
 팀 서버는 워커 1개로 실행하세요. 실행 경계와 운영 설정은 [코드 지도](docs/CODEMAP.md)에서 확인할 수 있습니다.
+
+BACKEND_BASE_URL은 숫자 IP(예: http://127.0.0.1:8002) 권장, Docker에서는 서비스 이름 사용 가능.

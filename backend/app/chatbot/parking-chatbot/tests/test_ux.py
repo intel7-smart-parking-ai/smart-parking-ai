@@ -14,26 +14,26 @@ class UXTests(unittest.TestCase):
         e.reset_all()
 
     def test_context_recovers_after_exit_and_failure(self):
-        e.handle("s", text="17번 차 위치"); r = e.handle("s", text="네")
+        e.handle("s", text="33번 차 위치"); r = e.handle("s", text="네")
         self.assertEqual(r["vehicle_context"]["spot_no"], 7)
-        e.data.exit_car("17")
+        e.data.exit_car("33")
         self.assertEqual(e.updates("s")["vehicle_context"]["state"], "not_found")
         with patch.object(e.data, "find_car", side_effect=DataUnavailable()):
             self.assertEqual(e.updates("s")["vehicle_context"]["state"], "unavailable")
 
     def test_position_card_and_context_share_one_read(self):
-        e.handle("s", text="17번 차 위치")
+        e.handle("s", text="33번 차 위치")
         with patch.object(e.data, "find_car", wraps=e.data.find_car) as read:
             r = e.handle("s", text="네")
         self.assertEqual(read.call_count, 1)
         self.assertEqual(r["card"]["data"]["spot_no"], r["vehicle_context"]["spot_no"])
 
     def test_change_vehicle_cancels_payment(self):
-        e.handle("s", text="17번 결제"); e.handle("s", text="네")
+        e.handle("s", text="33번 결제"); e.handle("s", text="네")
         r = e.handle("s", chip_id="change_vehicle")
         self.assertIsNone(r["vehicle_context"]["car_id"])
         e.handle("s", text="네")
-        self.assertFalse(e.data.get_fee("17")["paid"])
+        self.assertFalse(e.data.get_fee("33")["paid"])
 
     def test_immediate_call_during_every_alert_level(self):
         for level in (0, 1, 2):
@@ -55,7 +55,7 @@ class UXTests(unittest.TestCase):
 
 
     def test_call_does_not_depend_on_backend_success(self):
-        e.get_session("s").car_id = "17"
+        e.get_session("s").car_id = "33"
         with patch.object(e.data, "find_car", side_effect=DataUnavailable()):
             r = e.handle("s", chip_id="call_admin")
         self.assertEqual(r["card"]["type"], "admin_call")

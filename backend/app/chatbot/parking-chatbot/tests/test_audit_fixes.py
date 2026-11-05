@@ -187,15 +187,15 @@ class SessionAndInputTests(unittest.TestCase):
         self.assertNotIn("bad", e.SESSIONS)
 
     def test_equivalent_vehicle_numbers_cannot_duplicate_existing_car(self):
-        for number in ("17", "１７", " 17 "):
+        for number in ("33", "３３", " 33 "):
             with self.subTest(number=number):
                 result = e.data.enter_car("D", number)
                 self.assertFalse(result["ok"])
-                self.assertEqual(result["car_id"], "17")
+                self.assertEqual(result["car_id"], "33")
         for number in ("7", "07", "007"):  # 두 자리 규칙(D-06) 밖: 0을 채워 17로 바꾸지 않는다
             with self.subTest(number=number), self.assertRaises(ValueError):
                 e.data.enter_car("D", number)
-        self.assertEqual(len([c for c in e.data.list_cars() if c["car_id"] == "17"]), 1)
+        self.assertEqual(len([c for c in e.data.list_cars() if c["car_id"] == "33"]), 1)
 
     def test_invalid_or_empty_vehicle_does_not_change_occupancy(self):
         before = e.data.get_empty_spots()

@@ -91,6 +91,10 @@ class PublicContractTests(unittest.TestCase):
     def test_http_contract(self):
         actual = http_contract()
         expected = self.expected["http"]
+        # D-39 removes eight fabricated filler IDs, while preserving every item field/type.
+        # Keep the public contract file immutable; cardinality is pinned independently
+        # by test_v2154_d39 rather than keeping obsolete mock vehicles in the API.
+        expected["responses"]["demo_cars"][1]["items"] = expected["responses"]["demo_cars"][1]["items"][:19]
         self.assertEqual(actual["routes"], expected["routes"])
         self.assertEqual(actual["prefix"], expected["prefix"])
         for key, value in expected["responses"].items():

@@ -32,36 +32,36 @@ class WorkflowTests(unittest.TestCase):
         e.reset_all()
 
     def test_vehicle_confirmation_then_fee(self):
-        self.assertIn("맞으세요", e.handle("s", text="17번 요금")["text"])
+        self.assertIn("맞으세요", e.handle("s", text="33번 요금")["text"])
         result = e.handle("s", text="네")
         self.assertEqual(result["card"]["type"], "fee")
-        self.assertEqual(result["card"]["data"]["car_id"], "17")
+        self.assertEqual(result["card"]["data"]["car_id"], "33")
 
     def test_changed_topic_cancels_pending_payment(self):
-        e.handle("s", text="17번 결제")
+        e.handle("s", text="33번 결제")
         e.handle("s", text="빈자리")
         result = e.handle("s", text="네")
-        self.assertFalse(e.data.get_fee("17")["paid"])
+        self.assertFalse(e.data.get_fee("33")["paid"])
         self.assertIn("확인할 내용이 없", result["text"])
 
     def test_denied_number_can_be_corrected(self):
-        e.handle("s", text="17번 요금")
+        e.handle("s", text="33번 요금")
         e.handle("s", text="아니요")
-        e.handle("s", text="18")
+        e.handle("s", text="43")
         result = e.handle("s", text="네")
-        self.assertEqual(result["card"]["data"]["car_id"], "18")
+        self.assertEqual(result["card"]["data"]["car_id"], "43")
 
     def test_payment_and_repeat(self):
-        e.handle("s", text="17번 결제")
+        e.handle("s", text="33번 결제")
         quote = e.handle("s", text="네")
         self.assertEqual(quote["flow"], "confirm_action")
         self.assertEqual(e.handle("s", text="네")["card"]["data"]["status"], "paid")
         self.assertIn("이미 결제", e.handle("s", chip_id="pay")["text"])
 
     def test_free_payment_does_not_waive_later_fees(self):
-        self.assertEqual(e.data.pay("13")["status"], "paid")
-        e.data.inner.cars["13"]["entry_at"] = now() - timedelta(minutes=40)
-        d = e.data.get_fee("13")
+        self.assertEqual(e.data.pay("23")["status"], "paid")
+        e.data.inner.cars["23"]["entry_at"] = now() - timedelta(minutes=40)
+        d = e.data.get_fee("23")
         self.assertGreater(d["fee"], 0)
         self.assertTrue(d["paid"])
 
@@ -109,7 +109,7 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(len(reports), 2)
         self.assertEqual(reports[0]["lot_id"], "B")
         self.assertEqual(reports[0]["spot_no"], 3)
-        self.assertEqual(reports[0]["near"], ["20", "21", "22"])  # B A-03의 같은 줄 양옆(A-02, A-04)
+        self.assertEqual(reports[0]["near"], ["20", "42", "22"])  # B A-03의 같은 줄 양옆(A-02, A-04)
         self.assertIsNotNone(reports[1]["closed_at"])
 
     def test_report_snapshot_cannot_modify_saved_checklist(self):
@@ -129,15 +129,15 @@ class WorkflowTests(unittest.TestCase):
             self.assertIn("확인할 수 없", result["text"])
 
     def test_payment_success_survives_followup_read_failure(self):
-        e.handle("s", text="17번 결제")
+        e.handle("s", text="33번 결제")
         e.handle("s", text="네")
-        fee = e.data.get_fee("17")
+        fee = e.data.get_fee("33")
         with patch.object(e.data, "get_fee", side_effect=[fee, DataUnavailable()]):
             result = e.handle("s", text="네")
         self.assertEqual(result["card"]["data"]["status"], "paid")
 
     def test_failed_payment_confirmation_warns_about_unknown_result(self):
-        e.handle("s", text="17번 결제")
+        e.handle("s", text="33번 결제")
         e.handle("s", text="네")
         with patch.object(e.data, "pay", side_effect=DataUnavailable()):
             result = e.handle("s", text="네")
@@ -186,12 +186,12 @@ class CacheTests(unittest.TestCase):
         self.cache = CachedAdapter(self.backend)
 
     def test_missing_car_invalidates_old_location(self):
-        self.cache.find_car("17")
-        self.backend.exit_car("17")
-        self.assertIsNone(self.cache.find_car("17"))
+        self.cache.find_car("33")
+        self.backend.exit_car("33")
+        self.assertIsNone(self.cache.find_car("33"))
         with patch.object(self.backend, "find_car", side_effect=OSError("offline")):
             with self.assertRaises(DataUnavailable):
-                self.cache.find_car("17")
+                self.cache.find_car("33")
 
     def test_cached_values_are_isolated_and_marked_stale(self):
         first = self.cache.get_empty_spots()
@@ -202,11 +202,11 @@ class CacheTests(unittest.TestCase):
         self.assertEqual(result["lots"]["A"]["empty"], 5)  # 개발원 12칸 - 목업 7대
 
     def test_payment_invalidates_old_fee(self):
-        self.cache.get_fee("17")
-        self.cache.pay("17")
+        self.cache.get_fee("33")
+        self.cache.pay("33")
         with patch.object(self.backend, "get_fee", side_effect=OSError("offline")):
             with self.assertRaises(DataUnavailable):
-                self.cache.get_fee("17")
+                self.cache.get_fee("33")
 
     def test_reset_removes_old_cache(self):
         self.cache.get_empty_spots()
@@ -218,7 +218,7 @@ class CacheTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             api.set_alert(2, "A", 6)
         with self.assertRaises(ValueError):
-            api.exit_car("17")
+            api.exit_car("33")
 
 
 class DevHTTPTests(unittest.TestCase):

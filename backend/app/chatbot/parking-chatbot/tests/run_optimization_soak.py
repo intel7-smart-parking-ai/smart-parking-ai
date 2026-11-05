@@ -6,13 +6,13 @@ import random
 import sys
 import threading
 sys.path.insert(0,str(Path(__file__).resolve().parent.parent))
-from chatbot import engine as e,incidents
+from chatbot import config,engine as e,incidents
 from chatbot.adapters import CachedAdapter,MockAdapter
 
 e.data=CachedAdapter(MockAdapter());e.reset_all()
 users=30;iterations=80;barrier=threading.Barrier(users+1)
 chips=['empty_all','find_car','fee','alert_near','call_admin','call_status','help']
-for i in range(users):e.get_session('soak-'+str(i)).car_id='17' if i%2==0 else '18'
+for i in range(users):e.get_session('soak-'+str(i)).car_id='33' if i%2==0 else '43'
 
 def user(i):
  sid='soak-'+str(i);rng=random.Random(i);cursor=0
@@ -26,9 +26,9 @@ def user(i):
   else:
    r=e.handle(sid,chip_id=rng.choice(chips),request_id=f'{i}-{step}')
    if r.get('card',{} )and r['card']['type']in('car_location','fee'):
-    assert r['card']['data']['car_id']==('17'if i%2==0 else'18')
+    assert r['card']['data']['car_id']==('33'if i%2==0 else'43')
   assert r['runtime_id']==e.RUNTIME_ID
-  assert r['vehicle_context']['car_id']==('17'if i%2==0 else'18')
+  assert r['vehicle_context']['car_id']==('33'if i%2==0 else'43')
   assert r['state_version']>0
  return iterations
 
@@ -49,10 +49,11 @@ for c in e.admin_calls():
   inc=reports[c['incident_id']]
   assert c['id']in inc['admin_calls']
   assert f"보고서 #{inc['id']}"in c['summary']
-  assert inc['lot_id']+' 'in c['summary']
+  # Summaries show the configured lot name; keep checking the linked incident's location.
+  assert config.catalog.name(inc['lot_id'])in c['summary']
 assert not e.data.inflight
-assert not e.data.get_fee('17')['paid']
-assert not e.data.get_fee('18')['paid']
+assert not e.data.get_fee('33')['paid']
+assert not e.data.get_fee('43')['paid']
 print(json.dumps({'scope':'local mock, LLM disabled','users':users,'user_requests':sum(counts[:-1]),
  'alert_changes':counts[-1],'assertions':'all passed','open_read_flights':len(e.data.inflight),
  'sessions':len(e.SESSIONS),'reports':len(reports),'admin_calls':len(e.admin_calls())},ensure_ascii=False,indent=2))

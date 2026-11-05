@@ -70,6 +70,12 @@ class Catalog:
         ev = doc.get("ev_vehicles", [])
         if not isinstance(ev, list) or any(not valid_car(v) for v in ev) or len(set(ev)) != len(ev):
             raise ValueError("전기차 번호 목록 형식 오류")
+        types = doc.get("mock_vehicle_types", {})
+        if (not isinstance(types, dict) or any(not valid_car(v) or kind not in
+                ("general", "ev", "accessible") for v, kind in types.items())):
+            raise ValueError("목업 차량 종류 목록 형식 오류")
+        if types and {v for v, kind in types.items() if kind == "ev"} != set(ev):
+            raise ValueError("목업 전기차 종류와 전기차 번호 목록이 다릅니다.")
         assigned = doc.get("assigned_car_ids")
         if assigned is not None and (not isinstance(assigned, list) or any(not valid_car(v) for v in assigned)
                                      or len(set(assigned)) != len(assigned)):

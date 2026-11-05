@@ -117,6 +117,7 @@ class MockAdapter:
         self.unrecognized = []
         self.uncertain = {}
         self.demo_occupied = {}  # 시연용 점유 칸 {lot: set(spot)}. 차량 번호가 없는 가상 점유
+        self._full_occupied = {}  # Initial full-lot fixture, separate from clearable manual fill.
         self.cars = {}
         for lot, definition in definitions.items():
             for no, spot, minutes in definition.get("mock_cars",[]):
@@ -128,10 +129,8 @@ class MockAdapter:
                 used = {c["spot_no"] for c in self.cars.values() if c["lot_id"] == lot}
                 for spot in range(1,self.capacity[lot]+1):
                     if spot in used:continue
-                    # 만차 시연용 차량 번호는 90부터 내려가며 배정한다(시연·검사에서 쓰는 낮은 번호와 겹치지 않게).
-                    no = next((str(n) for n in range(min(90, config.VEHICLE_MAX), config.VEHICLE_MIN-1, -1) if _valid_car(str(n)) and str(n) not in self.cars),None)
-                    if no is None:raise ValueError("만차 시연과 미입차 차량을 함께 만들 차량 번호가 부족합니다.")
-                    self.cars[no] = {"lot_id":lot,"spot_no":spot,"entry_at":t-timedelta(minutes=45),"paid_at":None}
+                    # Full-lot filler is synthetic occupancy, not an assigned sticker vehicle.
+                    self._full_occupied.setdefault(lot, set()).add(spot)
         self.alert = {"level": 0, "version": 0}
         self.payments = {}
         self.quotes = {}
@@ -161,7 +160,14 @@ class MockAdapter:
         return {"car_id": car_id, "lot_id": car["lot_id"], "spot_no": car["spot_no"],
                 "space_id": config.catalog.space_label(car["lot_id"], car["spot_no"]),
                 "capacity": self.capacity[car["lot_id"]],
+                **self._vehicle_metadata(car_id),
                 "entry_at": iso(car["entry_at"]), "updated_at": iso(now())}
+
+    @staticmethod
+    def _vehicle_metadata(car_id):
+        """Only the mock fixture's explicit D-39 assignment supplies its type."""
+        kind = config.catalog.settings.get("mock_vehicle_types", {}).get(car_id)
+        return {"vehicle_type": kind} if kind is not None else {}
 
     def get_fee(self, car_id: str) -> dict | None:
         with self.lock:
@@ -233,12 +239,13 @@ class MockAdapter:
         """주차 중인 차량 목록 (상황 보고서의 영향 범위 계산용)."""
         with self.lock:
             rows = [{"car_id":no,"lot_id":c["lot_id"],"spot_no":c["spot_no"],
+                     **self._vehicle_metadata(no),
                      "space_id":config.catalog.space_label(c["lot_id"], c["spot_no"]),"entry_at":iso(c["entry_at"])}
                     for no,c in self.cars.items()] + deepcopy(self.unrecognized)
         return sorted((c for c in rows if lot_id is None or c["lot_id"] == lot_id), key=lambda c:(c["lot_id"],c["spot_no"]))
 
     def _occupied_spots(self, lot):
-        return {c["spot_no"] for c in self.cars.values() if c["lot_id"] == lot} | self.demo_occupied.get(lot, set()) | self.uncertain.get(lot, set()) | {c["spot_no"] for c in self.unrecognized if c["lot_id"] == lot}
+        return {c["spot_no"] for c in self.cars.values() if c["lot_id"] == lot} | self._full_occupied.get(lot, set()) | self.demo_occupied.get(lot, set()) | self.uncertain.get(lot, set()) | {c["spot_no"] for c in self.unrecognized if c["lot_id"] == lot}
 
     def _check_lot(self, lot_id):
         if lot_id not in self.capacity:
@@ -676,12 +683,15 @@ class ApiAdapter:
         if session_status is None:
             session_status = C.SESSION_CLOSED if value.get("exit_at") else C.SESSION_ACTIVE
         policy = value.get("rate_policy") if isinstance(value.get("rate_policy"), dict) else None
+        if "payment_blocked" in value:
+            require(type(value["payment_blocked"]) is bool, "결제 차단 여부 형식 오류")
         return {"car_id": car_id, "session_id": session_id, "lot_id": value.get("lot_id") or car.get("lot_id"),
                 "fee": value["amount_krw"], "minutes": value["duration_minutes"], "entry_at": value["entry_at"],
                 "exit_at": value.get("exit_at"), "session_status": session_status,
                 "paid": value["payment_status"] == C.PAYMENT_COMPLETED,
                 "payment_status": value["payment_status"], "is_daily_capped": value.get("is_daily_capped", False),
                 "rate_policy": policy, "quote_id": quote_id, "quote_expires_at": quote_expires,
+                **({"payment_blocked": value["payment_blocked"]} if "payment_blocked" in value else {}),
                 "updated_at": basis or iso(now()), **self._meta(headers)}
 
     def get_rate_policies(self):

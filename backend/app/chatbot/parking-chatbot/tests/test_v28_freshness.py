@@ -28,14 +28,14 @@ class FreshnessV28Tests(unittest.TestCase):
         if kind == 'alert':
             return dict(level=2, version=1, lot_id='A', spot_no=None,
                         started_at=stamp, updated_at=stamp, api_result=True, **extra)
-        d = {'empty': self.mock.get_empty_spots, 'car': lambda: self.mock.find_car('17'),
-             'fee': lambda: self.mock.get_fee('17')}[kind]()
+        d = {'empty': self.mock.get_empty_spots, 'car': lambda: self.mock.find_car('33'),
+             'fee': lambda: self.mock.get_fee('33')}[kind]()
         return {**d, 'api_result': True, 'payment_status': 'unpaid', 'is_daily_capped': False,
                 'updated_at': stamp, **extra}
 
     def fetch(self, kind, d):
         key = kind if kind in ('empty', 'alert') else kind+':17'
-        return self.cached._call(key, lambda *args: deepcopy(d), *(() if ':' not in key else ('17',)))
+        return self.cached._call(key, lambda *args: deepcopy(d), *(() if ':' not in key else ('33',)))
 
     # v2.9: 신선도 세부 규칙(STALE_POLICY, "N분 전 기준" 표기)은 제거했다. 아래는 남긴 안전·연결 규칙이다.
     def test_old_general_queries_are_answered_without_age_note(self):
@@ -60,13 +60,13 @@ class FreshnessV28Tests(unittest.TestCase):
                 self.assertIn('차를 옮기려 하지 마세요', T.api_alert(d))
 
     def test_fee_accepts_real_billing_target_at(self):
-        car = {'session_id': 's', 'updated_at': iso(self.fixed), 'car_id': '17', 'lot_id': 'A'}
+        car = {'session_id': 's', 'updated_at': iso(self.fixed), 'car_id': '33', 'lot_id': 'A'}
         fee = {'amount_krw': 1000, 'duration_minutes': 30, 'entry_at': iso(self.fixed), 'exit_at': None,
                'payment_status': 'unpaid', 'target_at': iso(self.fixed-timedelta(minutes=5)),
                'rate_policy': {'base_minutes': 30, 'base_fee': 1000, 'unit_minutes': 10, 'extra_fee': 500, 'daily_cap': 10000},
                'quote_id': 'q1', 'quote_expires_at': iso(self.fixed+timedelta(minutes=5))}
         with patch.object(self.api, 'find_car', return_value=car), patch.object(self.api, '_request', return_value=(200, fee, {})):
-            d = self.cached.get_fee('17')
+            d = self.cached.get_fee('33')
         self.assertEqual(d['updated_at'], fee['target_at'])
         self.assertEqual(d['quote_id'], 'q1')
         self.assertEqual(d['session_status'], 'active')
@@ -75,7 +75,7 @@ class FreshnessV28Tests(unittest.TestCase):
             fee.pop(key)
         self.cached.cache.clear()
         with patch.object(self.api, 'find_car', return_value=car), patch.object(self.api, '_request', return_value=(200, fee, {})):
-            self.assertEqual(self.cached.get_fee('17')['fee'], 1000)
+            self.assertEqual(self.cached.get_fee('33')['fee'], 1000)
 
     def test_engine_mock_notice_once_without_age_line(self):
         d = self.value('empty', data_source='mock')

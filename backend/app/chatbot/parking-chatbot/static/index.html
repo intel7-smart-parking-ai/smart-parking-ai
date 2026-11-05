@@ -214,6 +214,7 @@ function connection(ok){
   $("#connection").style.color=ok?"#4B5563":"#B42318";
 }
 function applyState(r){
+  if(r.meta?.busy)return;
   if(!r.runtime_id || typeof r.state_version!=="number") return;
   if(runtimeId!==r.runtime_id){stateVersion=-1;seenEvents.clear();cursor=0;lastFailed=null;}
   if(r.state_version<stateVersion)return;
@@ -235,7 +236,7 @@ function sid(){
 const SID = sid();
 
 const esc = (s) => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const hhmm = (iso) => { const d = new Date(iso); return d.toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Seoul"}); };
+const hhmm = (iso) => { if(iso==null || iso==="" || Number.isNaN(new Date(iso).getTime()))return "미확인"; const d = new Date(iso); return d.toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Seoul"}); };
 const won = (n) => n.toLocaleString("ko-KR") + "원";
 
 function addUser(text){
@@ -305,7 +306,7 @@ function renderCard(card){
       const detected = d.started_at && (!d.api_result || !Number.isNaN(new Date(d.started_at).getTime())) ? hhmm(d.started_at) : "-";
       return `<div class="card alert"><h3>${d.api_result||d.level>=2?"경보":"확인 중"} · 모의 화재(LED)</h3>
         <div class="big-line">${esc(location)}</div>
-        <div class="kv"><span>신뢰도</span><span>${Math.round((d.confidence||0)*100)}%</span></div>
+        <div class="kv"><span>신뢰도</span><span>${d.confidence==null?"미확인":Math.round(d.confidence*100)+"%"}</span></div>
         <div class="kv"><span>감지 시각</span><span>${detected}</span></div></div>`;
     }
     case "journey": {

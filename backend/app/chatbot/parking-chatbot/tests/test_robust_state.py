@@ -17,7 +17,7 @@ class RobustStateTests(unittest.TestCase):
         e.reset_all()
 
     def quote(self, sid="s"):
-        e.get_session(sid).car_id = "17"
+        e.get_session(sid).car_id = "33"
         return e.handle(sid, text="결제")
 
     def test_cancel_new_confirmation_new_key_and_success_clears_state(self):
@@ -31,7 +31,7 @@ class RobustStateTests(unittest.TestCase):
         answer = e.handle("s", chip_id="confirm_yes", confirmation_token=quote["confirmation_token"])
         assert_safe(answer)
         self.assertIsNone(e.get_session("s").pending)
-        self.assertTrue(e.data.get_fee("17")["paid"])
+        self.assertTrue(e.data.get_fee("33")["paid"])
 
     def test_failed_request_replay_never_sends_second_payment(self):
         quote = self.quote()
@@ -51,7 +51,7 @@ class RobustStateTests(unittest.TestCase):
         self.assertIsNone(e.get_session("s").pending)
         e.data.set_alert(0)
         e.handle("s", text="네")
-        self.assertFalse(e.data.get_fee("17")["paid"])
+        self.assertFalse(e.data.get_fee("33")["paid"])
 
     def test_late_llm_result_ignored_if_alarm_changed(self):
         entered, release = threading.Event(), threading.Event()
@@ -80,7 +80,7 @@ class RobustStateTests(unittest.TestCase):
         e.get_session("s").pending.expires_at = time.monotonic()-1
         answer = e.handle("s", text="네")
         self.assertIn("확인 시간", answer["text"])
-        self.assertFalse(e.data.get_fee("17")["paid"])
+        self.assertFalse(e.data.get_fee("33")["paid"])
 
     def test_public_views_and_chips_do_not_share_mutable_results(self):
         public = config.catalog.public()

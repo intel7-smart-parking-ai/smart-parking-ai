@@ -503,7 +503,18 @@ def h_get_fee(s, p):
     if d.get("status") in {"unavailable", "error", "conflict"}:
         return T.fee_unavailable(d), None, ["fee", "call_admin"], None
     card = {"type": "fee", "data": {**d, "journey": journey(d)}}
+    if d.get("payment_blocked") is True:
+        text, _, chips, updated = _server_payment_blocked(s, d)
+        return T.fee(d) + "\n" + text, card, chips, updated
     return T.fee(d) + _stale_note(d), card, "after_get_fee", d["updated_at"]
+
+
+def _server_payment_blocked(s, evidence):
+    """Use the server's payment prohibition without inferring an alarm location."""
+    s.clear()
+    # Reuse established mock-fire guidance; do not invent a level, time or spot.
+    return (T.safety_card(evidence)["title"] + "\n" + T.safety_guidance(evidence),
+            None, "alert", evidence.get("updated_at"))
 
 
 
@@ -525,6 +536,8 @@ def h_pay_fee(s, p):
     _answer_evidence.set(d)
     if not d:
         return T.CAR_NOT_FOUND.format(no=s.car_id), None, "default", None
+    if d.get("payment_blocked") is True:
+        return _server_payment_blocked(s, d)
     if d.get("status") in {"unavailable", "error", "conflict"}:
         return T.fee_unavailable(d), None, ["fee", "call_admin"], None
     if d.get("stale"):
@@ -550,7 +563,12 @@ def _execute_payment(s, pending):
     """Reserve the single payment slot while releasing its condition during I/O."""
     global _payment_active
     with _payment_condition:
-        _payment_condition.wait_for(lambda: not _payment_active)
+        try:
+            remaining = request_timeout(config.REQUEST_BUDGET_SEC)
+        except TimeoutError:
+            remaining = 0
+        if not _payment_condition.wait_for(lambda: not _payment_active, timeout=remaining):
+            return T.pay({"status": "unavailable"}, pending.car_id), None, ["fee", "call_admin"], None
         _payment_active = True
     try:
         return _execute_payment_locked(s, pending)
@@ -589,6 +607,8 @@ def _execute_payment_locked(s, pending):
     _answer_evidence.set(d)
     if not d:
         return T.CAR_NOT_FOUND.format(no=pending.car_id), None, "default", None
+    if d.get("payment_blocked") is True:
+        return _server_payment_blocked(s, d)
     if d.get("status") in {"unavailable", "error", "conflict"}:
         return T.fee_unavailable(d), None, ["fee", "call_admin"], None
     if d.get("stale"):
@@ -625,6 +645,8 @@ def _execute_payment_locked(s, pending):
     except DataUnavailable:
         _uncertain_payments.add(visit)
         return "결제 요청의 처리 결과를 확인하지 못했어요. 다시 결제하지 말고 요금 조회 또는 관리자 확인을 해 주세요.", None, ["fee", "call_admin"], None
+    if r.get("error_code") == "EVACUATION_ACTIVE":
+        return _server_payment_blocked(s, r)
     if r["status"] in QUOTE_RETRY_STATUSES:
         return _reconfirm(s)
     if isinstance(data.inner, ApiAdapter):
@@ -974,9 +996,15 @@ def _dispatch(s: Session, sid: str, intent: str, params: dict, vehicle_only: boo
         if s.flow in (Flow.CONFIRM_ACTION, Flow.CONFIRM_VEHICLE):
             s.clear()
         s.fail_count += 1
-        return _respond(s, T.UNKNOWN_AGAIN if s.fail_count >= 2 else T.UNKNOWN_FIRST,
-                        chip_set="unknown_again" if s.fail_count >= 2 else "default",
-                        meta={"fallback": min(s.fail_count, 2)})
+        hint_text = s.history[-1][1] if s.history and s.history[-1][0] == "user" else ""
+        response = _respond(s, T.UNKNOWN_AGAIN if s.fail_count >= 2 else T.UNKNOWN_FIRST,
+                            chip_set="unknown_again" if s.fail_count >= 2 else "default",
+                            meta={"fallback": min(s.fail_count, 2)})
+        if config.FALLBACK_HINTS and s.fail_count == 1 and current_alert().get("level", 0) < 2:
+            from .fallback_hints import select
+            ids = select(hint_text, [chip["id"] for chip in response["chips"]], CHIPS)
+            response["chips"] = _response_chips(s, ids)
+        return response
     s.clear()
     if intent in NEEDS_VEHICLE:
         if vno and vno != s.car_id:
