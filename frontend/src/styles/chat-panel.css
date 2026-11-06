@@ -2,3 +2,9 @@
 
 .chat-panel > .chat-chips{margin:12px 0}.chat-panel > .chat-safety{margin-bottom:14px}.chat-retry{margin-bottom:12px}
 .chat-panel .chat-banner{scroll-margin-top:90px}.chat-panel .chat-form>.button{width:auto;min-width:80px;flex:0 0 auto}.chat-panel .chat-form{flex-wrap:wrap}.chat-panel .chat-form input{min-width:140px}
+
+.chat-panel .chat-form>.chat-send-button{width:48px;min-width:48px;height:48px;padding:12px;display:flex;align-items:center;justify-content:center;border-radius:11px;color:#fff;background:#315fce}.chat-send-button svg{display:block;width:24px;height:24px;flex:none}.chat-send-button:disabled{opacity:.5}
+
+.chat-panel .chat-form>.chat-send-button{background:#315fce;opacity:1}.chat-panel .chat-form>.chat-send-button:disabled{background:#758fd0;opacity:1}.chat-panel .chat-form>.chat-send-button:not(:disabled):active{background:#99afe8}
+
+.chat-panel .chat-form>.chat-voice-button{width:48px;min-width:48px;height:48px;padding:12px;display:flex;align-items:center;justify-content:center}.chat-voice-button svg{width:24px;height:24px}.chat-voice-button[aria-pressed=true]{color:#315fce;background:#eaf0ff;outline:2px solid #315fce;outline-offset:2px}

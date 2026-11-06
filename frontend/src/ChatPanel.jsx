@@ -1,3 +1,4 @@
+import {t,getLanguage} from './serviceLocale.js';
 import {formatLotName} from './uiState.js';
 import {requestId} from './requestId.js';
 import {useEffect,useRef,useState,useSyncExternalStore} from 'react';
@@ -27,35 +28,35 @@ export default function ChatPanel({lots,alerts,voiceInput=false}) {
  function toggleVoice(){
   if(recognition.current){recognition.current.stop();return;}
   const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!Recognition){setVoiceError('이 브라우저는 음성 입력을 지원하지 않아요. 질문을 직접 입력해 주세요.');return;}
+  if(!Recognition){setVoiceError(t('이 브라우저는 음성 입력을 지원하지 않아요. 질문을 직접 입력해 주세요.'));return;}
   const input=new Recognition(),epoch=++voiceGeneration.current,revision=draftRevision.current;
-  input.lang='ko-KR';
+  input.lang={ko:'ko-KR',en:'en-US','zh-CN':'zh-CN',ja:'ja-JP'}[getLanguage()];
   input.onresult=e=>{if(epoch===voiceGeneration.current&&revision===draftRevision.current)edit(e.results[0][0].transcript);};
-  input.onerror=e=>{if(epoch===voiceGeneration.current&&e.error!=='aborted')setVoiceError(e.error==='not-allowed'?'마이크 접근을 허용해 주세요.':'음성을 인식하지 못했어요. 다시 말해 주세요.');};
+  input.onerror=e=>{if(epoch===voiceGeneration.current&&e.error!=='aborted')setVoiceError(e.error==='not-allowed'?t('마이크 접근을 허용해 주세요.'):t('음성을 인식하지 못했어요. 다시 말해 주세요.'));};
   input.onend=()=>{if(epoch===voiceGeneration.current){recognition.current=null;setListening(false);}};
   setVoiceError('');
-  try{input.start();recognition.current=input;setListening(true);}catch{setVoiceError('음성 입력을 시작하지 못했어요.');}
+  try{input.start();recognition.current=input;setListening(true);}catch{setVoiceError(t('음성 입력을 시작하지 못했어요.'));}
  }
  function send(e){e.preventDefault();draftRevision.current++;setVoiceError('');chat.send();}
  const context=view?.vehicle_context;
- const contextState={parked:'주차 중',pending:'입차 확인 중',not_found:'위치 확인 안 됨',unavailable:'정보 확인 불가',stale:'정보 갱신 필요'};
+ const contextState={parked:t('주차 중'),pending:t('입차 확인 중'),not_found:t('위치 확인 안 됨'),unavailable:t('정보 확인 불가'),stale:t('정보 갱신 필요')};
  return <section className="panel chat-panel">
-  <header className="chat-panel-heading"><div><h2>주차 챗봇</h2><p>빈자리와 차량 위치를 확인하고, 안내된 버튼으로 다음 단계를 진행하세요.</p></div><button className="button white" aria-expanded={showMap} onClick={()=>setShowMap(v=>!v)}>{showMap?'전체 지도 닫기':'전체 주차장 지도 미리보기'}</button></header>
-  {view?.banner?.text&&<div ref={safetyNotice} className="chat-banner" data-level={view.banner.level} role="alert"><strong>안전 안내</strong><span>{formatLotName(view.banner.text)}</span></div>}
-  {view?.safety&&<div className="chat-safety" role="alert"><strong>{formatLotName(view.safety.title)||'안전 안내'}</strong><p>{formatLotName(view.safety.guidance)}</p>{view.safety.vehicle_help&&<small>{formatLotName(view.safety.vehicle_help)}</small>}</div>}
-  {context?.car_id&&<div className="chat-context">지금 대화 중: <strong>{context.car_id}번</strong> · {contextState[context.state]||context.state}</div>}
+  <header className="chat-panel-heading"><div><h2>{t("주차 챗봇")}</h2><p>{t("빈자리와 차량 위치를 확인하고, 안내된 버튼으로 다음 단계를 진행하세요.")}</p></div><button className="button white" aria-expanded={showMap} onClick={()=>setShowMap(v=>!v)}>{showMap?t('전체 지도 닫기'):t('전체 주차장 지도 미리보기')}</button></header>
+  {view?.banner?.text&&<div ref={safetyNotice} className="chat-banner" data-level={view.banner.level} role="alert"><strong>{t("안전 안내")}</strong><span>{formatLotName(view.banner.text)}</span></div>}
+  {view?.safety&&<div className="chat-safety" role="alert"><strong>{formatLotName(view.safety.title)||t('안전 안내')}</strong><p>{formatLotName(view.safety.guidance)}</p>{view.safety.vehicle_help&&<small>{formatLotName(view.safety.vehicle_help)}</small>}</div>}
+  {context?.car_id&&<div className="chat-context">{t("지금 대화 중:")} <strong>{context.car_id}{t("번")}</strong> · {contextState[context.state]||context.state}</div>}
   {showMap&&!unsafe&&<RecommendationMap/>}
   <div ref={transcript} className="chat-transcript" role="log" aria-live="polite">{rows.map((row,i)=><article className={`chat-row ${row.who==='user'?'mine':'assistant'}`} key={i}>
-   <span className="chat-speaker">{row.who==='user'?'나':'주차 챗봇'}</span>
+   <span className="chat-speaker">{row.who==='user'?t('나'):t('주차 챗봇')}</span>
    <div className="chat-bubble">{formatLotName(row.text)}</div>
    {row.result?.card&&<ChatResponseCard card={row.result.card} lots={lots} alerts={alerts} allowMap={!unsafe&&!row.result.safety}/>}
    {!unsafe&&chatRecommendations(row.result).length>0&&<RecommendationMap recommended={chatRecommendations(row.result)}/>}
   </article>)}</div>
-  {confirmation&&!unsafe&&<p className="chat-confirm-note">내용을 확인한 뒤 아래 버튼으로 진행해 주세요.</p>}
-  {Array.isArray(view?.chips)&&view.chips.length>0&&<div className="chat-chips" aria-label="추천 선택지">{view.chips.map((chip,j)=><button type="button" key={`${actionEpoch}-${chip.id}-${j}`} disabled={busy||restartRequired||(unsafe&&(Boolean(chip.confirmation_token)||/^confirm_/.test(chip.id)))} onClick={()=>{stopVoice();chat.choose(chip,actionEpoch);}}>{formatLotName(chip.label)||chip.id}</button>)}</div>}
+  {confirmation&&!unsafe&&<p className="chat-confirm-note">{t("내용을 확인한 뒤 아래 버튼으로 진행해 주세요.")}</p>}
+  {Array.isArray(view?.chips)&&view.chips.length>0&&<div className="chat-chips" aria-label={t("추천 선택지")}>{view.chips.map((chip,j)=><button type="button" key={`${actionEpoch}-${chip.id}-${j}`} disabled={busy||restartRequired||(unsafe&&(Boolean(chip.confirmation_token)||/^confirm_/.test(chip.id)))} onClick={()=>{stopVoice();chat.choose(chip,actionEpoch);}}>{formatLotName(chip.label)||chip.id}</button>)}</div>}
   {(error||voiceError)&&<p className="operation-error" role="status">{error||voiceError}</p>}
-  {retry&&<button type="button" className="button white chat-retry" disabled={busy} onClick={()=>chat.retry()}>같은 요청 다시 시도</button>}
-  {restartRequired&&<button type="button" className="button white" onClick={()=>{stopVoice();chat.reset();}}>대화 다시 시작</button>}
-  <form onSubmit={send} className="search-form chat-form"><input aria-label="챗봇 질문" value={draft} onChange={e=>edit(e.target.value)} placeholder="빈자리나 차량 위치를 질문하세요"/>{voiceInput&&<button type="button" className="button white" disabled={busy||confirmation||unsafe||restartRequired} aria-pressed={listening} onClick={toggleVoice}>{listening?'듣기 종료':'음성 입력'}</button>}<button className="button primary" disabled={busy||listening||restartRequired||!draft.trim()}>{busy?'응답 대기 중…':'질문 보내기'}</button></form>
+  {retry&&<button type="button" className="button white chat-retry" disabled={busy} onClick={()=>chat.retry()}>{t("같은 요청 다시 시도")}</button>}
+  {restartRequired&&<button type="button" className="button white" onClick={()=>{stopVoice();chat.reset();}}>{t("대화 다시 시작")}</button>}
+  <form onSubmit={send} className="search-form chat-form"><input aria-label={t("챗봇 질문")} value={draft} onChange={e=>edit(e.target.value)} placeholder={t("빈자리나 차량 위치를 질문하세요")}/>{voiceInput&&<button type="button" className="button white chat-voice-button" disabled={busy||confirmation||unsafe||restartRequired} aria-label={listening?t('듣기 종료'):t('음성 입력')} title={listening?t('듣기 종료'):t('음성 입력')} aria-pressed={listening} onClick={toggleVoice}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="8" y="2" width="8" height="13" rx="4"/><path d="M4 11v1a8 8 0 0 0 16 0v-1M12 20v3m-4 0h8M8 6h3M8 9h3"/></svg></button>}<button className="button primary chat-send-button" aria-label={busy?t('응답 대기 중…'):t('질문 보내기')} title={busy?t('응답 대기 중…'):t('질문 보내기')} disabled={busy||listening||restartRequired||!draft.trim()}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m21 3-6.5 18-4-7.5L3 9.5 21 3Z"/><path d="m10.5 13.5 5-5"/></svg></button></form>
  </section>;
 }

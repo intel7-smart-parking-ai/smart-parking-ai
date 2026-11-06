@@ -1,3 +1,4 @@
+import {t} from './serviceLocale.js';
 import {useEffect, useState} from 'react';
 import {api} from './api.js';
 import './styles/parking-extras.css';
@@ -9,18 +10,18 @@ export function ParkingExtras({lot, lots, alerts, onSelect, syncStatus}) {
     !evacuationRequired(alerts, item.lot_id) && item.spaces.some(space => space.status === 'empty'));
   return <section className="panel parking-availability">
     <div className="parking-availability-summary">
-    <h3>구역별 빈자리</h3>
+    <h3>{t("구역별 빈자리")}</h3>
     <dl>
-    <div><dt>전체</dt><dd>{lot.spaces.length}면</dd></div>
-    {[['general', '일반'], ['ev', '전기차'], ['accessible', '장애인']].map(([type, name]) =>
-      <div key={type}><dt>{name}</dt><dd>{lot.spaces.filter(space => space.space_type === type && space.status === 'empty').length}면</dd></div>)}
+    <div><dt>{t("전체")}</dt><dd>{lot.spaces.length}{t("면")}</dd></div>
+    {[['general', t('일반')], ['ev', t('전기차')], ['accessible', t('장애인')]].map(([type, name]) =>
+      <div key={type}><dt>{name}</dt><dd>{lot.spaces.filter(space => space.space_type === type && space.status === 'empty').length}{t("면")}</dd></div>)}
     </dl>
     {syncStatus}
     </div>
-    {full && <><h3>다른 주차장 확인</h3>{alternatives.map(item =>
+    {full && <><h3>{t("다른 주차장 확인")}</h3>{alternatives.map(item =>
       <button className="button white full" key={item.lot_id} onClick={() => onSelect(item.lot_id)}>
-        {item.name} · {item.spaces.filter(space => space.status === 'empty').length}면
-      </button>)}{!alternatives.length && <p>현재 안내 가능한 빈자리가 없습니다.</p>}</>}
+        {item.name} · {item.spaces.filter(space => space.status === 'empty').length}{t("면")}
+      </button>)}{!alternatives.length && <p>{t("현재 안내 가능한 빈자리가 없습니다.")}</p>}</>}
   </section>;
 }
 
