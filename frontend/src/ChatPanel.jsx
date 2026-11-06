@@ -1,67 +1,61 @@
 import {formatLotName} from './uiState.js';
 import {requestId} from './requestId.js';
-import {useEffect,useRef,useState} from 'react';
+import {useEffect,useRef,useState,useSyncExternalStore} from 'react';
 import {request} from './api.js';
+import {createChatSession} from './chatSession.js';
 import {chatRecommendations} from './recommendationMapData.js';
 import RecommendationMap from './RecommendationMap.jsx';
 import ChatResponseCard from './ChatResponseCard.jsx';
 import './styles/chat-panel.css';
 
-function replyText(result){
- if(typeof result?.text==='string'&&result.text.trim())return result.text;
- return (Array.isArray(result?.messages)?result.messages:[]).map(item=>typeof item==='string'?item:item?.text).filter(Boolean).join('\n');
-}
-
-export default function ChatPanel({lots,alerts,voiceInput=false}){
- const session=useRef(requestId());
- const [text,setText]=useState(''),[rows,setRows]=useState([]),[busy,setBusy]=useState(false),[error,setError]=useState(''),[showMap,setShowMap]=useState(false);
- const recognition=useRef(null);
- const [listening,setListening]=useState(false);
- useEffect(()=>()=>recognition.current?.abort(),[]);
+export default function ChatPanel({lots,alerts,voiceInput=false}) {
+ const [chat] = useState(() => createChatSession({request, makeId:requestId}));
+ const state = useSyncExternalStore(chat.subscribe,chat.getSnapshot);
+ const {draft,rows,view,busy,error,retry,restartRequired,actionEpoch} = state;
+ const [showMap,setShowMap]=useState(false),[listening,setListening]=useState(false);
+ const recognition=useRef(null),voiceGeneration=useRef(0),draftRevision=useRef(0),transcript=useRef(null),safetyNotice=useRef(null);
+ const [voiceError,setVoiceError]=useState('');
+ const confirmation = view?.flow==='confirm_action';
+ const unsafe = Boolean(view?.safety)||Number(view?.banner?.level)>=2;
+ function stopVoice(){voiceGeneration.current++;recognition.current?.abort();recognition.current=null;setListening(false)}
+ useEffect(()=>{const timer=setInterval(()=>chat.poll(),2500);return()=>{clearInterval(timer);chat.cancelPending();voiceGeneration.current++;recognition.current?.abort();};},[chat]);
+ useEffect(()=>{chat.invalidateAlerts(alerts);},[chat,alerts]);
+ useEffect(()=>{if(confirmation||unsafe)stopVoice();},[confirmation,unsafe]);
+ useEffect(()=>{if(unsafe)safetyNotice.current?.scrollIntoView({block:'start'});},[unsafe]);
+ useEffect(()=>{if(transcript.current)transcript.current.scrollTop=transcript.current.scrollHeight;},[rows]);
+ function edit(value){draftRevision.current++;chat.edit(value)}
  function toggleVoice(){
-  if(recognition.current){recognition.current.stop();return}
+  if(recognition.current){recognition.current.stop();return;}
   const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!Recognition){setError('이 브라우저는 음성 입력을 지원하지 않아요. 질문을 직접 입력해 주세요.');return}
-  const input=new Recognition();
+  if(!Recognition){setVoiceError('이 브라우저는 음성 입력을 지원하지 않아요. 질문을 직접 입력해 주세요.');return;}
+  const input=new Recognition(),epoch=++voiceGeneration.current,revision=draftRevision.current;
   input.lang='ko-KR';
-  input.onresult=e=>setText(e.results[0][0].transcript.trim().slice(0,200));
-  input.onerror=e=>{if(e.error!=='aborted')setError(e.error==='not-allowed'?'마이크 접근을 허용해 주세요.':'음성을 인식하지 못했어요. 다시 말해 주세요.')};
-  input.onend=()=>{recognition.current=null;setListening(false)};
-  setError('');
-  try{input.start();recognition.current=input;setListening(true)}
-  catch{setError('음성 입력을 시작하지 못했어요.')}
+  input.onresult=e=>{if(epoch===voiceGeneration.current&&revision===draftRevision.current)edit(e.results[0][0].transcript);};
+  input.onerror=e=>{if(epoch===voiceGeneration.current&&e.error!=='aborted')setVoiceError(e.error==='not-allowed'?'마이크 접근을 허용해 주세요.':'음성을 인식하지 못했어요. 다시 말해 주세요.');};
+  input.onend=()=>{if(epoch===voiceGeneration.current){recognition.current=null;setListening(false);}};
+  setVoiceError('');
+  try{input.start();recognition.current=input;setListening(true);}catch{setVoiceError('음성 입력을 시작하지 못했어요.');}
  }
- const latest=rows.at(-1)?.result;
- async function submit(body,userLabel){
-  if(busy)return;
-  setBusy(true);setError('');
-  try{
-   const result=await request('/chat',{method:'POST',body:{session_id:session.current,...body,request_id:requestId()}},'team');
-   const answer=formatLotName(replyText(result));
-   if(!answer)throw new Error('챗봇 응답 형식을 확인해주세요.');
-   setRows(old=>[...old,{who:'나',text:userLabel},{who:'주차 안내',text:answer,result,recommendations:chatRecommendations(result)}]);
-   setText('');
-  }catch(err){setError(err.status===404?'챗봇 API 연결 대기 중입니다. 담당 서버에 /api/v1/chat 라우터 연결이 필요합니다.':err.status===409?'응답 처리 중입니다. 잠시 후 다시 시도해 주세요.':err.status===400?'질문을 다시 입력해 주세요.':err.status===503?'지금은 정보를 가져올 수 없어요.':err.message)}finally{setBusy(false)}
- }
- function send(e){e.preventDefault();const input=text.trim();if(input)submit({text:input},input)}
- function choose(chip){if(typeof chip?.id!=='string'||!chip.id)return;submit({chip_id:chip.id,...(chip.confirmation_token?{confirmation_token:chip.confirmation_token}:{})},chip.label||'선택')}
- const context=latest?.vehicle_context;
+ function send(e){e.preventDefault();draftRevision.current++;setVoiceError('');chat.send();}
+ const context=view?.vehicle_context;
  const contextState={parked:'주차 중',pending:'입차 확인 중',not_found:'위치 확인 안 됨',unavailable:'정보 확인 불가',stale:'정보 갱신 필요'};
  return <section className="panel chat-panel">
-  <header className="chat-panel-heading"><div><h2>주차 안내 챗봇</h2><p>빈자리와 차량 위치를 확인하고, 안내된 버튼으로 다음 단계를 진행하세요.</p></div><button className="button white" aria-expanded={showMap} onClick={()=>setShowMap(v=>!v)}>{showMap?'전체 지도 닫기':'전체 주차장 지도 미리보기'}</button></header>
-  {latest?.banner?.text&&<div className="chat-banner" role="alert"><strong>모의 경보 안내</strong><span>{latest.banner.text}</span></div>}
+  <header className="chat-panel-heading"><div><h2>주차 챗봇</h2><p>빈자리와 차량 위치를 확인하고, 안내된 버튼으로 다음 단계를 진행하세요.</p></div><button className="button white" aria-expanded={showMap} onClick={()=>setShowMap(v=>!v)}>{showMap?'전체 지도 닫기':'전체 주차장 지도 미리보기'}</button></header>
+  {view?.banner?.text&&<div ref={safetyNotice} className="chat-banner" data-level={view.banner.level} role="alert"><strong>안전 안내</strong><span>{formatLotName(view.banner.text)}</span></div>}
+  {view?.safety&&<div className="chat-safety" role="alert"><strong>{formatLotName(view.safety.title)||'안전 안내'}</strong><p>{formatLotName(view.safety.guidance)}</p>{view.safety.vehicle_help&&<small>{formatLotName(view.safety.vehicle_help)}</small>}</div>}
   {context?.car_id&&<div className="chat-context">지금 대화 중: <strong>{context.car_id}번</strong> · {contextState[context.state]||context.state}</div>}
-  {showMap&&<RecommendationMap/>}
-  <div className="chat-transcript" role="log" aria-live="polite">{rows.map((row,i)=><article className={`chat-row ${row.who==='나'?'mine':'assistant'}`} key={i}>
-   <span className="chat-speaker">{row.who}</span>
-   {row.result?.safety&&<div className="chat-safety" role="alert"><strong>{row.result.safety.title||'사람 먼저 · 모의 화재 안내'}</strong><p>{row.result.safety.guidance}</p>{row.result.safety.vehicle_help&&<small>{row.result.safety.vehicle_help}</small>}</div>}
-   <div className="chat-bubble">{row.text}</div>
-   {row.result?.card&&<ChatResponseCard card={row.result.card} lots={lots} alerts={alerts} allowMap={!latest?.safety&&!row.result.safety}/>}
-   {row.recommendations?.length>0&&<RecommendationMap recommended={row.recommendations}/>}
-   {row.result?.flow==='confirm_action'&&<p className="chat-confirm-note">모의 결제 확인은 아래 버튼으로 진행해 주세요.</p>}
-   {Array.isArray(row.result?.chips)&&row.result.chips.length>0&&<div className="chat-chips" aria-label="추천 선택지">{row.result.chips.map((chip,j)=><button type="button" key={`${chip.id}-${j}`} disabled={busy||i!==rows.length-1} onClick={()=>choose(chip)}>{chip.label||chip.id}</button>)}</div>}
+  {showMap&&!unsafe&&<RecommendationMap/>}
+  <div ref={transcript} className="chat-transcript" role="log" aria-live="polite">{rows.map((row,i)=><article className={`chat-row ${row.who==='user'?'mine':'assistant'}`} key={i}>
+   <span className="chat-speaker">{row.who==='user'?'나':'주차 챗봇'}</span>
+   <div className="chat-bubble">{formatLotName(row.text)}</div>
+   {row.result?.card&&<ChatResponseCard card={row.result.card} lots={lots} alerts={alerts} allowMap={!unsafe&&!row.result.safety}/>}
+   {!unsafe&&chatRecommendations(row.result).length>0&&<RecommendationMap recommended={chatRecommendations(row.result)}/>}
   </article>)}</div>
-  {error&&<p className="operation-error" role="status">{error}</p>}
-  <form onSubmit={send} className="search-form chat-form"><input aria-label="챗봇 질문" maxLength={200} value={text} onChange={e=>setText(e.target.value)} placeholder="빈자리나 차량 위치를 질문하세요"/>{voiceInput&&<button type="button" className="button white" disabled={busy} aria-pressed={listening} onClick={toggleVoice}>{listening?'듣기 종료':'음성 입력'}</button>}<button className="button primary" disabled={busy||listening||!text.trim()}>{busy?'응답 대기 중…':'질문 보내기'}</button></form>
- </section>
+  {confirmation&&!unsafe&&<p className="chat-confirm-note">내용을 확인한 뒤 아래 버튼으로 진행해 주세요.</p>}
+  {Array.isArray(view?.chips)&&view.chips.length>0&&<div className="chat-chips" aria-label="추천 선택지">{view.chips.map((chip,j)=><button type="button" key={`${actionEpoch}-${chip.id}-${j}`} disabled={busy||restartRequired||(unsafe&&(Boolean(chip.confirmation_token)||/^confirm_/.test(chip.id)))} onClick={()=>{stopVoice();chat.choose(chip,actionEpoch);}}>{formatLotName(chip.label)||chip.id}</button>)}</div>}
+  {(error||voiceError)&&<p className="operation-error" role="status">{error||voiceError}</p>}
+  {retry&&<button type="button" className="button white chat-retry" disabled={busy} onClick={()=>chat.retry()}>같은 요청 다시 시도</button>}
+  {restartRequired&&<button type="button" className="button white" onClick={()=>{stopVoice();chat.reset();}}>대화 다시 시작</button>}
+  <form onSubmit={send} className="search-form chat-form"><input aria-label="챗봇 질문" value={draft} onChange={e=>edit(e.target.value)} placeholder="빈자리나 차량 위치를 질문하세요"/>{voiceInput&&<button type="button" className="button white" disabled={busy||confirmation||unsafe||restartRequired} aria-pressed={listening} onClick={toggleVoice}>{listening?'듣기 종료':'음성 입력'}</button>}<button className="button primary" disabled={busy||listening||restartRequired||!draft.trim()}>{busy?'응답 대기 중…':'질문 보내기'}</button></form>
+ </section>;
 }

@@ -17,6 +17,22 @@ function Zone({x, y, zone}) {
 function Gate({x, y, label}) {
   return <g className="pdf-gate" transform={`translate(${x} ${y})`} aria-hidden="true"><rect x="-42" y="-18" width="84" height="36" rx="6"/><text textAnchor="middle" y="6">{label}</text></g>;
 }
+const emergencyExitPositions = {
+  basic: [145, 965],
+  angled: [145, 80],
+  airport: [140, 300],
+  mall: [768, 979],
+};
+
+function EmergencyExit({kind}) {
+  const position = emergencyExitPositions[kind];
+  if (!position) return null;
+  return <g className="pdf-emergency-exit" transform={'translate(' + position.join(' ') + ')'} role="img" aria-label="비상구 예시 위치">
+    <title>비상구 예시 위치</title>
+    <image href="/icons/emergency-exit.png" x="-21" y="-21" width="42" height="42"/>
+  </g>;
+}
+
 function MiniCar({x, y, number, rotation = 0}) {
   const label = String(number ?? '');
   const badgeWidth = Math.max(64, label.length * 20 + 16);
@@ -36,16 +52,16 @@ function Bay({space, points, x, y, vertical, labelY, carY, carX, carRotation, st
   const cardTop=geometry.labelY+(compact?16:18);
   const plateSize=compact?10:22;
 
-  const label = `${space.space_id} ${types[space.space_type]} ${statuses[space.status]}${(space.car_id||number) ? ' 차량 ' + (lot.type === 'real' ? space.car_id : space.plate_number || number) : ''}`;
+  const label = `${space.space_id} ${types[space.space_type]} ${statuses[space.status]}${admin&&(space.car_id||number) ? ' 차량 ' + (lot.type === 'real' ? space.car_id : space.plate_number || number) : ''}`;
   return <g className={`pdf-bay ${space.status} ${space.space_type} ${dim ? 'dim' : ''} ${selected ? 'found' : ''} ${warned ? 'warned' : ''}`} role="button" tabIndex={0} aria-label={parkingStatus ? label+' · '+parkingStatus : label} onClick={() => onSpace(space)} onKeyDown={e => {if (e.key === 'Enter' || e.key === ' ') {e.preventDefault(); onSpace(space);}}}>
     <title>{label}{parkingStatus && ' · '+parkingStatus}</title><polygon className="pdf-bay-shape" points={points}/>
     {parkingStatus && <g className="reserved-parking-marker" transform={`translate(${geometry.centerX} ${geometry.centerY+28})`}><circle r="12"/><text textAnchor="middle" y="6">{parkingStatus==='확인 필요'?'?':'!'}</text></g>}
-    {['ev','accessible'].includes(space.space_type) && <g className="bay-floor-symbol" opacity={space.status==='occupied'?.12:.95} transform={`translate(${geometry.centerX} ${geometry.centerY+8}) skewX(${geometry.floorSymbolSkew}) scale(${lot.lot_id==='C' && space.space_type==='ev' ? .42 : geometry.floorSymbolScale})`} aria-hidden="true">
+    {(admin || space.status !== 'occupied') && ['ev','accessible'].includes(space.space_type) && <g className="bay-floor-symbol" opacity={space.status==='occupied'?.12:.95} transform={`translate(${geometry.centerX} ${geometry.centerY+8}) skewX(${geometry.floorSymbolSkew}) scale(${lot.lot_id==='C' && space.space_type==='ev' ? .42 : geometry.floorSymbolScale})`} aria-hidden="true">
       {space.space_type==='accessible'?<g fill="none" stroke="#fff" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round"><circle cx="-4" cy="-30" r="9" fill="#fff" stroke="none"/><path d="M-8-12V15H18L32 39M-7-1H17M-20 5A29 29 0 1 0 14 32"/></g>:<g fill="none" stroke="#fff" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"><path d="M-40 10V-5L-28-22H16L29-5H36V13H-40M-27-22-32-5H22L16-22"/><circle cx="-25" cy="13" r="9" fill="#589b72"/><circle cx="21" cy="13" r="9" fill="#589b72"/><path d="M36-4H43V-19H48M44-24V-16M51-24V-16"/><text x="0" y="44" textAnchor="middle" fill="#fff" stroke="none" fontSize="18" fontWeight="700">전기차 전용</text></g>}
     </g>}
     {stopPath && <path className="pdf-wheel-stop" d={vertical ? geometry.stopPath : stopPath} aria-hidden="true"/>}
     <text className="pdf-bay-label" x={geometry.labelX} y={geometry.labelY} style={{fontSize:geometry.labelSize}} dominantBaseline="middle" textAnchor="middle">{space.space_id}</text>
-    {space.status === 'occupied' && <g className="bay-vehicle-card" transform={`translate(${geometry.centerX} ${cardTop})`}>
+    {admin && space.status === 'occupied' && <g className="bay-vehicle-card" transform={`translate(${geometry.centerX} ${cardTop})`}>
       <rect x={-cardWidth/2} y="0" width={cardWidth} height={compact?27:33} rx={compact?5:7} fill="#fff" stroke="#b5c5df" strokeWidth="1.5"/>
       <text x="0" y={compact?17:23} textAnchor="middle" fontSize={plateSize} fontWeight="750" fill="#1e3352">{space.plate_number||space.vehicle_number||(space.car_id?'스티커 '+space.car_id:'번호 미제공')}</text>
       {['ev','accessible'].includes(space.space_type)&&<rect x={-cardWidth/2} y={compact?32:40} width={cardWidth} height={compact?20:29} rx="5" fill="#fff" fillOpacity=".94" stroke="none"/>}
@@ -55,6 +71,7 @@ function Bay({space, points, x, y, vertical, labelY, carY, carX, carRotation, st
         <tspan fill="#c93636" fontWeight="750">{Number.isFinite(fees?.[space.session_id]?.amount_krw)?fees[space.session_id].amount_krw.toLocaleString('ko-KR')+'원':'요금 미확인'}</tspan>
       </text>
     </g>}
+    {!admin && space.status === 'occupied' && <g className="user-bay-status" aria-hidden="true"><rect x={geometry.centerX-(compact?29:60)} y={geometry.centerY-(compact?4:10)} width={compact?58:120} height={compact?24:44} rx={compact?4:6} fill="#fff" fillOpacity=".97"/><text x={geometry.centerX} y={geometry.centerY+(compact?12:20)} textAnchor="middle" fontSize={compact?14:26} fontWeight="800" fill="#173861">주차 중</text></g>}
     {warned && <text className="pdf-warning" x={geometry.centerX} y={geometry.labelY} dx={50} fill="#bd2929" fontSize={22} textAnchor="middle">⚠</text>}
   </g>;
 }
@@ -69,8 +86,9 @@ export default function ParkingLayoutMap(props) {
   const [preview,setPreview]=useState(null);
   useEffect(()=>setPreview(null),[lot.lot_id]);
   const [fees,setFees]=useState({});
-  const sessions=lot.spaces.filter(space=>space.status==='occupied'&&space.session_id).map(space=>space.session_id).sort().join(',');
+  const sessions=props.admin ? lot.spaces.filter(space=>space.status==='occupied'&&space.session_id).map(space=>space.session_id).sort().join(',') : '';
   useEffect(()=>{
+    if (!props.admin) return;
     let alive=true;
     async function refreshFees(){
       const values=await Promise.all(sessions.split(',').filter(Boolean).map(async id=>{
@@ -81,7 +99,7 @@ export default function ParkingLayoutMap(props) {
     refreshFees();
     const timer=setInterval(refreshFees,15000);
     return()=>{alive=false;clearInterval(timer)};
-  },[sessions]);
+  },[sessions, props.admin]);
 
   const kind = lot.lot_id==='C' ? 'airport' : lot.layout_type;
   if (!names[kind]) return <FallbackMap {...props}/>;
@@ -99,7 +117,7 @@ export default function ParkingLayoutMap(props) {
       <strong>전용구역 관제</strong>
       {reservedIssues.length ? <ul>{reservedIssues.map(space => <li key={space.space_id}><button type="button" className="button white" onClick={() => props.onSpace(space)}>{space.space_id} · {types[space.space_type]} · {reservedParkingStatus(space)}{space.plate_number ? ' · '+space.plate_number : ''}</button></li>)}</ul> : <span> · 확인할 차량 없음</span>}
     </div>}
-    {!props.hidePreviewControls && <div className="parking-preview-controls" role="group" aria-label="주차 표시 시연" style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:12}}>
+    {props.admin && !props.hidePreviewControls && <div className="parking-preview-controls" role="group" aria-label="주차 표시 시연" style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:12}}>
       {[['general','일반 칸 주차 시연'],['ev','전기차 칸 주차 시연'],['accessible','장애인 칸 주차 시연']].map(([type,title])=><button type="button" key={type} className={'button '+(preview===type?'primary':'white')} disabled={!lot.spaces.some(space=>space.space_type===type)} aria-pressed={preview===type} onClick={()=>setPreview(value=>value===type?null:type)}>{title}</button>)}
       {preview&&<button type="button" className="button white" onClick={()=>setPreview(null)}>시연 종료</button>}
     </div>}
@@ -165,6 +183,7 @@ export default function ParkingLayoutMap(props) {
           <Arrow x={560} y={900}/><Arrow x={560} y={670}/><Arrow x={560} y={380} rotate={270}/><Arrow x={300} y={380} rotate={270}/>
           <Gate x={560} y={1030} label="입구"/><Gate x={90} y={380} label="출구"/>
         </>}
+        <EmergencyExit kind={kind}/>
       </svg>
     </div>
     <div className="map-legend">{Object.entries(statuses).map(([id,label]) => <span key={id}><i className={`legend-dot ${id}`}/>{label}</span>)}</div>

@@ -144,20 +144,20 @@ def test_common_list_and_156_layout(experiment, lot, count):
         s['space_id']: s['space_type'] for s in expected['spaces']}
     if lot == 'D':
         assert set(spaces) == {f'{zone}-{i:02}' for zone in 'ABCD' for i in range(1, 17)}
-        assert {k for k, v in spaces.items() if v['space_type'] == 'ev'} == {f'D-{i:02}' for i in range(1, 9)}
-        assert {k for k, v in spaces.items() if v['space_type'] == 'accessible'} == {f'C-{i:02}' for i in range(13, 17)}
+        assert {k for k, v in spaces.items() if v['space_type'] == 'ev'} == {f'{z}-{i:02}' for z in 'CD' for i in range(5, 9)}
+        assert {k for k, v in spaces.items() if v['space_type'] == 'accessible'} == {f'{z}-{i:02}' for z in 'AB' for i in range(5, 9)}
 
 
 @pytest.mark.parametrize('observed', ['general', 'ev', 'accessible', None])
 def test_vehicle_type_comes_only_from_observation(experiment, observed):
     client, store, clock = experiment
-    occupy(client, lot_id='D', camera_id=None, space_id='D-01', vehicle_type=observed)
-    row = space(client, 'D', 'D-01')
+    occupy(client, lot_id='D', camera_id=None, space_id='D-05', vehicle_type=observed)
+    row = space(client, 'D', 'D-05')
     assert row['space_type'] == 'ev' and row['vehicle_type'] == observed
     assert row['status'] == 'occupied'  # 전용칸 종류로 차량 종류를 추정/차단하지 않는다.
     # 미인식 새 관측은 이전 차량 종류를 복사하지 않는다.
-    client.post(POST, json=event(3, lot_id='D', camera_id=None, space_id='D-01', vehicle_type=None, confidence=.2))
-    assert space(client, 'D', 'D-01')['vehicle_type'] is None
+    client.post(POST, json=event(3, lot_id='D', camera_id=None, space_id='D-05', vehicle_type=None, confidence=.2))
+    assert space(client, 'D', 'D-05')['vehicle_type'] is None
 
 
 def test_vehicle_type_cleared_on_stale_and_empty(experiment):

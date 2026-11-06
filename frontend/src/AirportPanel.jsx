@@ -65,11 +65,11 @@ export default function AirportPanel({lot, admin = false}) {
     const overlapping = records.filter(item => item.zone === zone && item.start < end && item.end > start);
     const times = [start, ...overlapping.map(item => item.start).filter(time => time > start)];
     if (times.some(time => overlapping.filter(item => item.start <= time && item.end > time).length >= capacity)) {
-      setMessage('해당 시간대의 모의 예약이 가득 찼습니다.');
+      setMessage('해당 시간대의 예약이 가득 찼습니다.');
       return;
     }
     const item = {id: crypto.randomUUID(), zone, start, end};
-    if (store([...records, item])) setMessage(zones[zone] + ' 모의 예약이 저장됐습니다.');
+    if (store([...records, item])) setMessage(zones[zone] + ' 예약이 저장됐습니다.');
   }
 
   function simulate(scenario) {
@@ -85,7 +85,7 @@ export default function AirportPanel({lot, admin = false}) {
       <p role="status">{best.expected ? best.label + ' 진입을 추천합니다.' : '모든 구역이 만차 예상입니다. 진입 전 대기 시간을 확보해 주세요.'} 현재 빈자리와 시연 유입량을 사용한 추정입니다.</p>
     </div>
     {admin ? <div className="airport-section">
-      <h3>공항 안전 관제 · 모의 이벤트</h3>
+      <h3>공항 안전 관제 · 이벤트</h3>
       <div className="airport-actions">{scenarios.map(scenario => <button key={scenario.id} type="button" className="button white" onClick={() => simulate(scenario)}>{scenario.label} 시연</button>)}</div>
       <p role="status">미확인 {events.filter(item => !item.checked).length}건</p>
       <ul className="airport-events">{events.map(item => <li key={item.eventId}><div><strong>{item.label}</strong><p>{item.detail}</p><small>{formatKST(item.at)}</small></div><button type="button" className="button white" disabled={item.checked} onClick={() => setEvents(current => current.map(row => row.eventId === item.eventId ? {...row, checked: true} : row))}>{item.checked ? '확인 완료' : '확인'}</button></li>)}</ul>
@@ -96,11 +96,11 @@ export default function AirportPanel({lot, admin = false}) {
         <label>예약 구역<select value={zone} onChange={event => setZone(event.target.value)}>{Object.entries(zones).map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select></label>
         <label>입차<input type="datetime-local" name="start" required/></label>
         <label>출차<input type="datetime-local" name="end" required/></label>
-        <button className="button primary" type="submit">모의 예약</button>
+        <button className="button primary" type="submit">예약</button>
       </form>
       <p>{anotherZone.label} 현재 빈자리 {anotherZone.available}면</p>
       <p role="status">{message}</p>
-      <ul className="airport-events">{reservations.map(item => <li key={item.id}><div><strong>{zones[item.zone]}</strong><p>{formatKST(item.start)} ~ {formatKST(item.end)}</p></div><button type="button" className="button white" onClick={() => {if (store(readReservations().filter(row => row.id !== item.id))) setMessage('모의 예약이 취소됐습니다.');}}>예약 취소</button></li>)}</ul>
+      <ul className="airport-events">{reservations.map(item => <li key={item.id}><div><strong>{zones[item.zone]}</strong><p>{formatKST(item.start)} ~ {formatKST(item.end)}</p></div><button type="button" className="button white" onClick={() => {if (store(readReservations().filter(row => row.id !== item.id))) setMessage('예약이 취소됐습니다.');}}>예약 취소</button></li>)}</ul>
     </div>}
   </section>;
 }
