@@ -1,0 +1,33 @@
+{
+  "product_version": "V23",
+  "tests": 16,
+  "failures": 18,
+  "errors": 5,
+  "passed": false,
+  "seconds": 4.148,
+  "failed_tests": [
+    "test_bad_prediction_review_preserves_truth_but_not_complete_bundle (test_v24.EvidenceIntegrity.test_bad_prediction_review_preserves_truth_but_not_complete_bundle)",
+    "test_legacy_false_complete_bundle_with_matching_bad_fingerprint_is_rejected (test_v24.EvidenceIntegrity.test_legacy_false_complete_bundle_with_matching_bad_fingerprint_is_rejected)",
+    "test_missing_promised_prediction_review_cannot_export (test_v24.EvidenceIntegrity.test_missing_promised_prediction_review_cannot_export)",
+    "test_pending_missing_prediction_cannot_be_resaved_as_complete (test_v24.EvidenceIntegrity.test_pending_missing_prediction_cannot_be_resaved_as_complete)",
+    "test_pending_prediction_status_blocks_export_even_when_file_present (test_v24.EvidenceIntegrity.test_pending_prediction_status_blocks_export_even_when_file_present)",
+    "test_local_ocr_sticker_updates_sticker_mode_occupancy (test_v24.IdentityRescue.test_local_ocr_sticker_updates_sticker_mode_occupancy)",
+    "test_analysis_during_calibration_is_refused (test_v24.InputLifecycle.test_analysis_during_calibration_is_refused)",
+    "test_first_camera_connect_clears_photo_and_inference (test_v24.InputLifecycle.test_first_camera_connect_clears_photo_and_inference)",
+    "test_first_camera_connect_respects_unsaved_review_cancel (test_v24.InputLifecycle.test_first_camera_connect_respects_unsaved_review_cancel)",
+    "test_photo_setup_result_waits_for_no_competing_analysis (test_v24.InputLifecycle.test_photo_setup_result_waits_for_no_competing_analysis)",
+    "test_configuration_validation_checks_model_preprocessing (test_v24.ModelConfiguration.test_configuration_validation_checks_model_preprocessing) (key='std')",
+    "test_configuration_validation_checks_model_preprocessing (test_v24.ModelConfiguration.test_configuration_validation_checks_model_preprocessing) (key='mean')",
+    "test_configuration_validation_checks_model_preprocessing (test_v24.ModelConfiguration.test_configuration_validation_checks_model_preprocessing) (key='scale')",
+    "test_configuration_validation_checks_model_preprocessing (test_v24.ModelConfiguration.test_configuration_validation_checks_model_preprocessing) (key='size')",
+    "test_configuration_validation_checks_model_preprocessing (test_v24.ModelConfiguration.test_configuration_validation_checks_model_preprocessing) (key='output')",
+    "test_configuration_validation_checks_model_preprocessing (test_v24.ModelConfiguration.test_configuration_validation_checks_model_preprocessing) (key='labels')",
+    "test_fractional_name_box_rejected_before_pixel_slicing (test_v24.RoiContracts.test_fractional_name_box_rejected_before_pixel_slicing)",
+    "test_manual_open_boundary_metadata_is_also_validated (test_v24.RoiContracts.test_manual_open_boundary_metadata_is_also_validated)",
+    "test_invalid_threshold_rejected_before_openvino_or_file_access (test_v24.ModelConfiguration.test_invalid_threshold_rejected_before_openvino_or_file_access) (threshold=-0.01)",
+    "test_invalid_threshold_rejected_before_openvino_or_file_access (test_v24.ModelConfiguration.test_invalid_threshold_rejected_before_openvino_or_file_access) (threshold=1.01)",
+    "test_invalid_threshold_rejected_before_openvino_or_file_access (test_v24.ModelConfiguration.test_invalid_threshold_rejected_before_openvino_or_file_access) (threshold=nan)",
+    "test_invalid_threshold_rejected_before_openvino_or_file_access (test_v24.ModelConfiguration.test_invalid_threshold_rejected_before_openvino_or_file_access) (threshold=inf)",
+    "test_invalid_threshold_rejected_before_openvino_or_file_access (test_v24.ModelConfiguration.test_invalid_threshold_rejected_before_openvino_or_file_access) (threshold=True)"
+  ]
+}

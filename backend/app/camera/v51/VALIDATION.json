@@ -1,0 +1,180 @@
+{
+  "product_version": "V51",
+  "version": "51.0",
+  "based_on": "V50",
+  "date_kst": "2026-11-06",
+  "previous_zip_sha256": "6dda0212fa49267d938715c88778ad4548ac5fd0cf6b26675ec1243b9ca6b77f",
+  "tests": {
+    "tests": 709,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "product_version": "V51",
+    "passed": true,
+    "seconds": 139.054,
+    "scope": "V19–V51 all discovered test methods, three isolated module groups; hardware and photo replays are recorded separately"
+  },
+  "새Intel사진": {
+    "사진": 2,
+    "실물등록칸": 28,
+    "차량라벨": 6,
+    "번호색_직접일치": 5,
+    "번호보류": 1,
+    "색일치": 6,
+    "잘못확정한번호": 0,
+    "보류": "A주차장 B-04 흰색 87에서 87/28 방향 근거 충돌",
+    "독립현장정답표": false,
+    "시험입력_해시": {
+      "A": "19c4b6bd7d001da1d7e1da9d5c6f4f96f0c64a7ae33af095ffc7bb2dd2f0e86a",
+      "B": "11979343466cead89e3373e82ddaf1b65923cb271ee4965946ed63dc1a08ae58"
+    }
+  },
+  "기존보류사진": {
+    "원본쌍": 2,
+    "V50_완료": 0,
+    "V51_저장재열람": 2,
+    "한쌍당_빈칸": 28
+  },
+  "첨부화면": {
+    "A_점유": 3,
+    "A_빈칸": 9,
+    "B_빈칸": 11,
+    "B_밝기변화보류": 5,
+    "B_잘못된점유": 0
+  },
+  "기존번호11칸": {
+    "직접일치": 2,
+    "추정일치": 9,
+    "오답": 0,
+    "보류": 0
+  },
+  "실제창_파일입력시험": {
+    "빈기준_Space_F5_Esc_저장쌍": 2,
+    "초기실행_Space_자동연결_F5_Esc_저장쌍": 2,
+    "각시험_내보내기칸짝": 56,
+    "검사방법": "숨겨진 실제 Tk 창의 단축키 처리기와 생산 CameraHub, 입력은 저장 사진, 추가 USB 카메라 촬영 없음"
+  },
+  "변환근거_검사": {
+    "valid_frames": 6,
+    "altered_evidence_rejected": 18,
+    "cases": [
+      [
+        "70cd774183c44617bc3b9f6f2d0f7202",
+        "A",
+        "missing"
+      ],
+      [
+        "70cd774183c44617bc3b9f6f2d0f7202",
+        "A",
+        "matrix"
+      ],
+      [
+        "70cd774183c44617bc3b9f6f2d0f7202",
+        "A",
+        "supported_bays"
+      ],
+      [
+        "70cd774183c44617bc3b9f6f2d0f7202",
+        "B",
+        "missing"
+      ],
+      [
+        "70cd774183c44617bc3b9f6f2d0f7202",
+        "B",
+        "matrix"
+      ],
+      [
+        "70cd774183c44617bc3b9f6f2d0f7202",
+        "B",
+        "supported_bays"
+      ],
+      [
+        "aa1da21061f04eb1aa59a8a3e44fd50f",
+        "A",
+        "missing"
+      ],
+      [
+        "aa1da21061f04eb1aa59a8a3e44fd50f",
+        "A",
+        "matrix"
+      ],
+      [
+        "aa1da21061f04eb1aa59a8a3e44fd50f",
+        "A",
+        "supported_bays"
+      ],
+      [
+        "aa1da21061f04eb1aa59a8a3e44fd50f",
+        "B",
+        "missing"
+      ],
+      [
+        "aa1da21061f04eb1aa59a8a3e44fd50f",
+        "B",
+        "matrix"
+      ],
+      [
+        "aa1da21061f04eb1aa59a8a3e44fd50f",
+        "B",
+        "supported_bays"
+      ],
+      [
+        "c9ddbb45f7504fe689c06015dc71e195",
+        "A",
+        "missing"
+      ],
+      [
+        "c9ddbb45f7504fe689c06015dc71e195",
+        "A",
+        "matrix"
+      ],
+      [
+        "c9ddbb45f7504fe689c06015dc71e195",
+        "A",
+        "supported_bays"
+      ],
+      [
+        "c9ddbb45f7504fe689c06015dc71e195",
+        "B",
+        "missing"
+      ],
+      [
+        "c9ddbb45f7504fe689c06015dc71e195",
+        "B",
+        "matrix"
+      ],
+      [
+        "c9ddbb45f7504fe689c06015dc71e195",
+        "B",
+        "supported_bays"
+      ]
+    ]
+  },
+  "V50자료호환": {
+    "V50_원본및기록_해시동일_파일수": 102,
+    "V51_복구검사_완료쌍": 1,
+    "V51_내보냄": {
+      "scenes": 2,
+      "space_pairs": 28,
+      "images": 32,
+      "json_files": 30,
+      "originals": 2,
+      "measurements": 1
+    },
+    "이전정답표_실물비교칸": 28,
+    "이전정답표_대조규격": "동시측정현장대조-v3"
+  },
+  "미검증": [
+    "새 실물 24대의 독립 번호·색·방향 평가",
+    "V51 실제 카메라 5분 또는 30분 추가 운전",
+    "조명별 물리 차체 경계 침범 정확도",
+    "센서 노출 시차",
+    "Geti 실제 가져오기·학습·평가"
+  ],
+  "검증기록": [
+    "CODE_AUDIT_V51.md",
+    "FIELD_REPLAY_V51.json",
+    "TEST_RESULTS_V51.json"
+  ],
+  "이전실측기록": "V50의 300.092초 실측은 VALIDATION_V50.json 및 HARDWARE_5MIN_V50.json에 보관"
+}

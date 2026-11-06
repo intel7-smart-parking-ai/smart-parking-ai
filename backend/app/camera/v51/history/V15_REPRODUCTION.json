@@ -1,0 +1,53 @@
+{
+  "baseline": "V15",
+  "cases": 11,
+  "failures": [
+    {
+      "test": "test_get_frame_cannot_mutate_camera_option_audit (v16_reproduction.CameraLifecycle.test_get_frame_cannot_mutate_camera_option_audit)",
+      "traceback": "<local-path>"
+    },
+    {
+      "test": "test_inflight_setting_hides_old_frame_until_next_read (v16_reproduction.CameraLifecycle.test_inflight_setting_hides_old_frame_until_next_read)",
+      "traceback": "<local-path>"
+    },
+    {
+      "test": "test_readback_mismatch_is_not_success (v16_reproduction.CameraLifecycle.test_readback_mismatch_is_not_success)",
+      "traceback": "<local-path>"
+    },
+    {
+      "test": "test_shutdown_does_not_return_last_frame (v16_reproduction.CameraLifecycle.test_shutdown_does_not_return_last_frame)",
+      "traceback": "<local-path>"
+    },
+    {
+      "test": "test_incomplete_export_does_not_leave_usable_dataset_files (v16_reproduction.DatasetIntegrity.test_incomplete_export_does_not_leave_usable_dataset_files)",
+      "traceback": "<local-path>"
+    },
+    {
+      "test": "test_invalid_selected_number_requires_reanalysis (v16_reproduction.DatasetIntegrity.test_invalid_selected_number_requires_reanalysis)",
+      "traceback": "<local-path>"
+    },
+    {
+      "test": "test_missing_slot_status_requires_reanalysis (v16_reproduction.DatasetIntegrity.test_missing_slot_status_requires_reanalysis)",
+      "traceback": "<local-path>"
+    },
+    {
+      "test": "test_review_extra_metadata_cannot_replace_image_identity (v16_reproduction.DatasetIntegrity.test_review_extra_metadata_cannot_replace_image_identity)",
+      "traceback": "<local-path>"
+    },
+    {
+      "test": "test_fast_reconnect_requires_fresh_roi_confirmation (v16_reproduction.GUIIntegrity.test_fast_reconnect_requires_fresh_roi_confirmation)",
+      "traceback": "<local-path>"
+    },
+    {
+      "test": "test_check_rejects_corrupt_quality_file_before_opening_camera (v16_reproduction.Preflight.test_check_rejects_corrupt_quality_file_before_opening_camera)",
+      "traceback": "<local-path>"
+    }
+  ],
+  "errors": [
+    {
+      "test": "test_save_camera_settings_preserves_unedited_options (v16_reproduction.GUIIntegrity.test_save_camera_settings_preserves_unedited_options)",
+      "traceback": "<local-path>"
+    }
+  ],
+  "skipped": []
+}

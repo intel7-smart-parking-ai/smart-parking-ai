@@ -1,0 +1,88 @@
+{
+  "devices": [
+    {
+      "name": "RealSense D435",
+      "serial": "<serial>",
+      "usb": "3.2"
+    },
+    {
+      "name": "RealSense D435",
+      "serial": "<serial>",
+      "usb": "3.2"
+    }
+  ],
+  "width": 1920,
+  "height": 1080,
+  "fps_requested": 30,
+  "serials": {
+    "A": "<serial>",
+    "B": "<serial>"
+  },
+  "skew_limit_ms": 100,
+  "accepted_skews_ms": [
+    27.7134,
+    5.7717,
+    5.3943,
+    5.6352,
+    27.947,
+    6.0188,
+    5.1648,
+    5.5179,
+    28.0054,
+    4.8862,
+    5.148,
+    5.2771,
+    5.4245,
+    28.6845,
+    6.3601,
+    4.5572,
+    5.1089,
+    27.4185,
+    5.7921,
+    6.2023,
+    3.929,
+    5.006,
+    28.2398,
+    5.759,
+    3.9608,
+    5.4916,
+    4.655,
+    6.0112,
+    5.833,
+    28.9825
+  ],
+  "rejected_checks": 0,
+  "registration": {
+    "A": {
+      "ready": false,
+      "message": "A 카메라 · A주차장 1/12칸 · 주차선/마커 확인"
+    },
+    "B": {
+      "ready": false,
+      "message": "B 카메라 · B주차장 0/16칸 · 주차선/마커 확인"
+    }
+  },
+  "saved_measurements": 0,
+  "status_before_stop": {
+    "A": {
+      "status": "RUNNING",
+      "age_seconds": 0.0,
+      "sequence": 176,
+      "last_error": ""
+    },
+    "B": {
+      "status": "RUNNING",
+      "age_seconds": 0.01,
+      "sequence": 163,
+      "last_error": ""
+    }
+  },
+  "stream_test_seconds": 6.75,
+  "stopped": true,
+  "pc_receive_skew_stats_ms": {
+    "min": 3.929,
+    "median": 5.697100000000001,
+    "max": 28.9825
+  },
+  "parking_boards_set_up_for_capture": false
+}

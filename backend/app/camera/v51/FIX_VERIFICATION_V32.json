@@ -1,0 +1,63 @@
+{
+  "product_version": "V32",
+  "passed": true,
+  "comparison": {
+    "inconsistent_sidecar": {
+      "v31_exported_scenes": 1,
+      "v32_exported_scenes": 0,
+      "partial_scenes": 1,
+      "false_complete_labels_counted": 0
+    },
+    "shared_original": {
+      "v31_reported_originals": 2,
+      "v32_reported_originals": 1,
+      "actual_original_files": 1,
+      "ui_capture_scenes": 2,
+      "ui_original_files": 1
+    },
+    "inside_marker": {
+      "v31_enrolled": true,
+      "v32_enrolled": false,
+      "reason": "마커 ID 4가 주차칸 A-01 내부와 겹칩니다. 칸 밖의 같은 평면에 고정하세요."
+    },
+    "failed_enrollment": {
+      "v31_active_template_changed": true,
+      "v32_active_template_changed": false
+    }
+  },
+  "physical_photo_current_index": {
+    "counts": {
+      "capture_scenes": 2,
+      "originals": 2,
+      "spaces": 28,
+      "stickers": 0,
+      "label_files": 0,
+      "label_rows": 0,
+      "occupancy_approved": 0,
+      "number_approved": 0,
+      "color_approved": 0,
+      "occupancy_ready": 0,
+      "number_ready": 0,
+      "color_ready": 0,
+      "bytes": 48193887,
+      "partial": 0,
+      "selected_occupancy_ready": 0,
+      "selected_number_ready": 0,
+      "selected_color_ready": 0,
+      "annotated_spaces": 28,
+      "korean_labels": 28,
+      "annotated_scenes": 2,
+      "scene_labels": 2,
+      "collection_pairs": 28,
+      "information_complete": 0,
+      "needs_attention": 28,
+      "quality_warning_labels": 1,
+      "quality_passed": 0,
+      "quality_held": 2,
+      "quality_unassessed": 0,
+      "quality_recheck_required": 0
+    },
+    "files_unchanged": 173,
+    "errors": []
+  }
+}

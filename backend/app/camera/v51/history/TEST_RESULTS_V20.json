@@ -1,0 +1,10 @@
+{
+  "product_version": "V20",
+  "tests": 83,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "passed": true,
+  "seconds": 9.274,
+  "scope": "V19+V20 synthetic geometry/color, data integrity/export, Tk workflows, split OCR workers, mocked HTTP cancellation; no physical camera, real server, or trained model accuracy test"
+}

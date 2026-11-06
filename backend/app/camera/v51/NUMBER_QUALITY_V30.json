@@ -1,0 +1,172 @@
+{
+  "passed": true,
+  "scope": "Deterministic synthetic number-region quality comparison, not OCR accuracy",
+  "results": {
+    "V29": [
+      {
+        "case": "sharp",
+        "state": "통과",
+        "reasons": [],
+        "number_metrics": {
+          "너비_px": 30,
+          "높이_px": 30,
+          "짧은변_px": 30
+        }
+      },
+      {
+        "case": "flat_number",
+        "state": "통과",
+        "reasons": [],
+        "number_metrics": {
+          "너비_px": 30,
+          "높이_px": 30,
+          "짧은변_px": 30
+        }
+      },
+      {
+        "case": "blurred_number",
+        "state": "통과",
+        "reasons": [],
+        "number_metrics": {
+          "너비_px": 30,
+          "높이_px": 30,
+          "짧은변_px": 30
+        }
+      },
+      {
+        "case": "dark_number",
+        "state": "통과",
+        "reasons": [],
+        "number_metrics": {
+          "너비_px": 30,
+          "높이_px": 30,
+          "짧은변_px": 30
+        }
+      },
+      {
+        "case": "reflected_number",
+        "state": "통과",
+        "reasons": [],
+        "number_metrics": {
+          "너비_px": 30,
+          "높이_px": 30,
+          "짧은변_px": 30
+        }
+      },
+      {
+        "case": "disjoint_evidence",
+        "state": "통과",
+        "reasons": [],
+        "number_metrics": {
+          "너비_px": 30,
+          "높이_px": 30,
+          "짧은변_px": 30
+        }
+      }
+    ],
+    "V30": [
+      {
+        "case": "sharp",
+        "state": "통과",
+        "reasons": [],
+        "number_metrics": {
+          "너비_px": 30,
+          "높이_px": 30,
+          "짧은변_px": 30,
+          "유효픽셀수": 784,
+          "선명도": 27898.022,
+          "어두운픽셀비율": 0.0,
+          "밝은픽셀비율": 0.0,
+          "스티커겹침비율": 1.0
+        }
+      },
+      {
+        "case": "flat_number",
+        "state": "보류",
+        "reasons": [
+          "번호 영역 선명도 부족"
+        ],
+        "number_metrics": {
+          "너비_px": 30,
+          "높이_px": 30,
+          "짧은변_px": 30,
+          "유효픽셀수": 784,
+          "선명도": 0.0,
+          "어두운픽셀비율": 0.0,
+          "밝은픽셀비율": 0.0,
+          "스티커겹침비율": 1.0
+        }
+      },
+      {
+        "case": "blurred_number",
+        "state": "보류",
+        "reasons": [
+          "번호 영역 선명도 부족"
+        ],
+        "number_metrics": {
+          "너비_px": 30,
+          "높이_px": 30,
+          "짧은변_px": 30,
+          "유효픽셀수": 784,
+          "선명도": 2.695,
+          "어두운픽셀비율": 0.0,
+          "밝은픽셀비율": 0.0,
+          "스티커겹침비율": 1.0
+        }
+      },
+      {
+        "case": "dark_number",
+        "state": "보류",
+        "reasons": [
+          "번호 영역 선명도 부족",
+          "번호 영역 과도하게 어두움"
+        ],
+        "number_metrics": {
+          "너비_px": 30,
+          "높이_px": 30,
+          "짧은변_px": 30,
+          "유효픽셀수": 784,
+          "선명도": 0.0,
+          "어두운픽셀비율": 1.0,
+          "밝은픽셀비율": 0.0,
+          "스티커겹침비율": 1.0
+        }
+      },
+      {
+        "case": "reflected_number",
+        "state": "보류",
+        "reasons": [
+          "번호 영역 선명도 부족",
+          "번호 영역 과도하게 밝음"
+        ],
+        "number_metrics": {
+          "너비_px": 30,
+          "높이_px": 30,
+          "짧은변_px": 30,
+          "유효픽셀수": 784,
+          "선명도": 0.0,
+          "어두운픽셀비율": 0.0,
+          "밝은픽셀비율": 1.0,
+          "스티커겹침비율": 1.0
+        }
+      },
+      {
+        "case": "disjoint_evidence",
+        "state": "보류",
+        "reasons": [
+          "번호와 스티커 영역 불일치"
+        ],
+        "number_metrics": {
+          "너비_px": 30,
+          "높이_px": 30,
+          "짧은변_px": 30,
+          "유효픽셀수": 784,
+          "선명도": 27898.022,
+          "어두운픽셀비율": 0.0,
+          "밝은픽셀비율": 0.0,
+          "스티커겹침비율": 0.0
+        }
+      }
+    ]
+  }
+}

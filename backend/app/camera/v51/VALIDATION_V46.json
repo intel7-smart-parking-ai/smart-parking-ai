@@ -1,0 +1,121 @@
+{
+  "product_version": "V46",
+  "version": "46.0",
+  "based_on": "V45",
+  "date_kst": "2026-11-06",
+  "previous_zip_sha256": "32237419d90d93327d7310f8de364ce18d57cafdd4eeb7072e24aa5c45d12f74",
+  "tests": {
+    "product_version": "V46",
+    "tests": 605,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": true,
+    "seconds": 429.403,
+    "scope": "V19-V46 geometry/color, identity evidence and OCR mocks, automatic ROI/anchor guards, Korean paired assets, copy counts, data integrity/audit/export, one-start Tk workflow, split workers, mocked HTTP; no physical camera or live server"
+  },
+  "재생자료": "FIELD_REPLAY_V46.json",
+  "기존사진_조건별": {
+    "base": {
+      "direct": 2,
+      "estimated": 9,
+      "held": 0,
+      "wrong": 0,
+      "empty_false_number": 0
+    },
+    "dark": {
+      "direct": 1,
+      "estimated": 10,
+      "held": 0,
+      "wrong": 0,
+      "empty_false_number": 0
+    },
+    "bright": {
+      "direct": 1,
+      "estimated": 9,
+      "held": 1,
+      "wrong": 0,
+      "empty_false_number": 0
+    }
+  },
+  "합성24종": {
+    "direct": 19,
+    "estimated": 3,
+    "held": 2,
+    "wrong": 0,
+    "empty_false_number": 0
+  },
+  "흰색66_99_번호보류": 16,
+  "숫자영역_포화77_번호보류": true,
+  "미승인학습크롭": 0,
+  "기존데이터호환": {
+    "V45_원래파일_SHA256_동일": 102,
+    "복구확인_완료쌍": 1,
+    "내보낸칸짝": 28,
+    "기존정답표_실물점유대조칸": 28,
+    "고유차량수": null
+  },
+  "추가재현": {
+    "세_분할_동일크롭_품질통과_사람승인_모의측정": "전달 실패, 완료 manifest 없음",
+    "모의선침범과입구돌출_정답이선침범만": {
+      "선침범적중": 1,
+      "입구돌출오경보": 1
+    },
+    "관측24칸_같은12개차량식별표": 12,
+    "양쪽이전프레임_허용범위내최소수신차_ms": 5,
+    "빈기준및구도": {
+      "A": {
+        "strong": [],
+        "weak": [
+          "A-03"
+        ]
+      },
+      "B": {
+        "strong": [],
+        "weak": []
+      },
+      "수평이동_px": {
+        "0": {
+          "경고수": 0,
+          "빈칸": 12
+        },
+        "1": {
+          "경고수": 0,
+          "빈칸": 12
+        },
+        "2": {
+          "보류": "빈 기준과 주차선 위치 이동 · 구도를 확인하고 두 빈 기준을 다시 등록하세요."
+        },
+        "4": {
+          "보류": "빈 기준과 주차선 위치 이동 · 구도를 확인하고 두 빈 기준을 다시 등록하세요."
+        },
+        "6": {
+          "보류": "빈 기준과 주차선 위치 이동 · 구도를 확인하고 두 빈 기준을 다시 등록하세요."
+        },
+        "12": {
+          "보류": "빈 기준과 주차선 위치 이동 · 구도를 확인하고 두 빈 기준을 다시 등록하세요."
+        }
+      },
+      "차량사진_강한후보가림": {
+        "원래": [
+          "A-04",
+          "B-05",
+          "B-07",
+          "B-08"
+        ],
+        "남은강한": [],
+        "남은약한": [
+          "A-07",
+          "A-08"
+        ]
+      },
+      "차량사진_등록보류": "빈 기준 보류 · 카메라 B의 약한 스티커 후보를 고정 화면에서 다시 확인하세요: A-07, A-08"
+    }
+  },
+  "다음시험순서": [
+    "새 실물 차량 24대 동시 배치",
+    "조명·방향별 독립 정답 대조 및 물리적 선 침범 평가",
+    "실제 두 카메라 30분 연속 수집",
+    "Geti 실제 가져오기·학습·동일 시험 세트 전후 비교"
+  ]
+}

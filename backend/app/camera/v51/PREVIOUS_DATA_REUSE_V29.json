@@ -1,0 +1,153 @@
+{
+  "product_version": "V29",
+  "datasets": [
+    {
+      "root": "<local-path>",
+      "files_compared": 171,
+      "unchanged": true,
+      "lots": [
+        {
+          "lot": "A",
+          "roi_count": 12,
+          "source": "synthetic",
+          "warnings": [],
+          "current_bundle_metadata_verified": null
+        },
+        {
+          "lot": "B",
+          "roi_count": 16,
+          "source": "synthetic",
+          "warnings": [],
+          "current_bundle_metadata_verified": null
+        }
+      ]
+    },
+    {
+      "root": "<local-path>",
+      "files_compared": 169,
+      "unchanged": true,
+      "lots": [
+        {
+          "lot": "A",
+          "roi_count": 12,
+          "source": "import",
+          "warnings": [],
+          "current_bundle_metadata_verified": true
+        },
+        {
+          "lot": "B",
+          "roi_count": 16,
+          "source": "import",
+          "warnings": [],
+          "current_bundle_metadata_verified": true
+        }
+      ]
+    },
+    {
+      "root": "<local-path>",
+      "files_compared": 169,
+      "unchanged": true,
+      "lots": [
+        {
+          "lot": "A",
+          "roi_count": 12,
+          "source": "import",
+          "warnings": [],
+          "current_bundle_metadata_verified": true
+        },
+        {
+          "lot": "B",
+          "roi_count": 16,
+          "source": "import",
+          "warnings": [],
+          "current_bundle_metadata_verified": true
+        }
+      ]
+    },
+    {
+      "root": "<local-path>",
+      "files_compared": 170,
+      "unchanged": true,
+      "lots": [
+        {
+          "lot": "A",
+          "roi_count": 12,
+          "source": "import",
+          "warnings": [],
+          "current_bundle_metadata_verified": true
+        },
+        {
+          "lot": "B",
+          "roi_count": 16,
+          "source": "import",
+          "warnings": [],
+          "current_bundle_metadata_verified": true
+        }
+      ]
+    },
+    {
+      "root": "<local-path>",
+      "files_compared": 170,
+      "unchanged": true,
+      "lots": [
+        {
+          "lot": "A",
+          "roi_count": 12,
+          "source": "import",
+          "warnings": [],
+          "current_bundle_metadata_verified": true
+        },
+        {
+          "lot": "B",
+          "roi_count": 16,
+          "source": "import",
+          "warnings": [],
+          "current_bundle_metadata_verified": true
+        }
+      ]
+    },
+    {
+      "root": "<local-path>",
+      "files_compared": 174,
+      "unchanged": true,
+      "lots": [
+        {
+          "lot": "A",
+          "roi_count": 12,
+          "source": "import",
+          "warnings": [],
+          "current_bundle_metadata_verified": true
+        },
+        {
+          "lot": "B",
+          "roi_count": 16,
+          "source": "import",
+          "warnings": [],
+          "current_bundle_metadata_verified": true
+        }
+      ]
+    },
+    {
+      "root": "<local-path>",
+      "files_compared": 175,
+      "unchanged": true,
+      "lots": [
+        {
+          "lot": "A",
+          "roi_count": 12,
+          "source": "import",
+          "warnings": [],
+          "current_bundle_metadata_verified": true
+        },
+        {
+          "lot": "B",
+          "roi_count": 16,
+          "source": "import",
+          "warnings": [],
+          "current_bundle_metadata_verified": true
+        }
+      ]
+    }
+  ],
+  "all_original_files_unchanged": true
+}

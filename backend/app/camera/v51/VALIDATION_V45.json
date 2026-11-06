@@ -1,0 +1,88 @@
+{
+  "product_version": "V45",
+  "version": "45.0",
+  "based_on": "V44",
+  "date_kst": "2026-11-05",
+  "previous_zip_sha256": "d938a89cdb774b6ca29143668ea38b2e7dd9e31b54bb8ad72a1d3c116aec6420",
+  "tests": {
+    "product_version": "V45",
+    "tests": 594,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": true,
+    "seconds": 371.471,
+    "scope": "V19-V45 geometry/color, identity evidence and OCR mocks, automatic ROI/anchor guards, Korean paired assets, copy counts, data integrity/audit/export, one-start Tk workflow, split workers, mocked HTTP; no physical camera or live server"
+  },
+  "동일사진비교": {
+    "44": {
+      "base": {
+        "direct": 2,
+        "estimated": 9,
+        "held": 0,
+        "wrong": 0,
+        "empty_false_number": 0
+      },
+      "dark": {
+        "direct": 1,
+        "estimated": 10,
+        "held": 0,
+        "wrong": 0,
+        "empty_false_number": 0
+      },
+      "bright": {
+        "direct": 1,
+        "estimated": 9,
+        "held": 1,
+        "wrong": 0,
+        "empty_false_number": 0
+      }
+    },
+    "45": {
+      "base": {
+        "direct": 2,
+        "estimated": 9,
+        "held": 0,
+        "wrong": 0,
+        "empty_false_number": 0
+      },
+      "dark": {
+        "direct": 1,
+        "estimated": 10,
+        "held": 0,
+        "wrong": 0,
+        "empty_false_number": 0
+      },
+      "bright": {
+        "direct": 1,
+        "estimated": 9,
+        "held": 1,
+        "wrong": 0,
+        "empty_false_number": 0
+      }
+    }
+  },
+  "일반합성24종": {
+    "direct": 19,
+    "estimated": 3,
+    "held": 2,
+    "wrong": 0,
+    "empty_false_number": 0
+  },
+  "방향시험": {
+    "조합": 16,
+    "V44_번호제시": 6,
+    "V45_흰색유지_번호보류": 16
+  },
+  "포화77_번호보류": true,
+  "미승인학습크롭수": 0,
+  "근거파일": "EXPOSURE_REPLAY_V45.json",
+  "형식": "새 판독에는 선택적 번호판독영상진단을 추가한다. 이전 기록은 기존 필드로 읽는다.",
+  "남은한계": [
+    "밝은 B/A-07 초록 11은 보류",
+    "기존 사진에서 직접 2건, 추정 9건",
+    "신규 실물 차량과 실제 반사·카메라 자동 노출",
+    "두 카메라 30분 연속 운전과 Intel GPU 처리량",
+    "물리적 선 침범 정확도와 Geti 실제 학습"
+  ]
+}

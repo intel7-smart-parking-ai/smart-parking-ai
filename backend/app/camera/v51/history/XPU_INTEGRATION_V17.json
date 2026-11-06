@@ -1,0 +1,51 @@
+{
+  "product_version": "17.0",
+  "camera_access": false,
+  "model_download": false,
+  "samples": [
+    {
+      "source_image_id": "dfd270a355464f9ab3cceda79e02a62c",
+      "audit_image_id": "a13ed2b2f5c446ac92597f013261e1e8",
+      "reference_number": "49",
+      "automatic_number": "49",
+      "number_status": "candidate",
+      "number_exact_match": true,
+      "color_after_manual_polygon": "blue",
+      "seconds": 1.5093312999233603,
+      "matches_v16_selected_number": true,
+      "raw_sha256": "a9121fe9c3710d585ceb850307d0638effaa538988ffb0c2846164e8780b8e21"
+    },
+    {
+      "source_image_id": "09b2a2d07f3940f58087d3708a7f9de2",
+      "audit_image_id": "434e6d7cd01e4efd9f3366ef483927c4",
+      "reference_number": "49",
+      "automatic_number": null,
+      "number_status": "no_text",
+      "number_exact_match": false,
+      "color_after_manual_polygon": "blue",
+      "seconds": 0.6022743999492377,
+      "matches_v16_selected_number": true,
+      "raw_sha256": "5c02436ce4cd3aeeaf3eba9021e162508e6b7914f836947457878b8437906e09"
+    }
+  ],
+  "errors": [],
+  "engine": {
+    "engine": "easyocr",
+    "version": "1.7.2",
+    "torch": "2.15.0+xpu",
+    "languages": [
+      "ko",
+      "en"
+    ],
+    "requested_device": "xpu",
+    "device": "xpu",
+    "gpu": "Intel(R) Arc(TM) B390 GPU",
+    "fallback_reason": null
+  },
+  "detector_device": "xpu:0",
+  "recognizer_device": "xpu:0",
+  "manual_reference_export": {
+    "path": "<local-path>",
+    "spaces": 2
+  }
+}

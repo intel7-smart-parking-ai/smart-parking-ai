@@ -1,0 +1,2033 @@
+{
+  "product_version": "V21",
+  "engine": {
+    "engine": "easyocr",
+    "version": "1.7.2",
+    "torch": "2.15.0+xpu",
+    "languages": [
+      "ko",
+      "en"
+    ],
+    "requested_device": "cpu",
+    "device": "cpu",
+    "gpu": null,
+    "fallback_reason": null
+  },
+  "synthetic_images": true,
+  "physical_camera": false,
+  "downloads": false,
+  "results": [
+    {
+      "ready": true,
+      "spaces": [
+        {
+          "space_id": "A-01",
+          "space_type": "general",
+          "polygon": [
+            [
+              12,
+              10
+            ],
+            [
+              185,
+              11
+            ],
+            [
+              184,
+              245
+            ],
+            [
+              10,
+              244
+            ]
+          ]
+        },
+        {
+          "space_id": "A-02",
+          "space_type": "general",
+          "polygon": [
+            [
+              212,
+              10
+            ],
+            [
+              385,
+              11
+            ],
+            [
+              384,
+              245
+            ],
+            [
+              210,
+              244
+            ]
+          ]
+        },
+        {
+          "space_id": "A-03",
+          "space_type": "general",
+          "polygon": [
+            [
+              412,
+              10
+            ],
+            [
+              585,
+              11
+            ],
+            [
+              584,
+              245
+            ],
+            [
+              410,
+              244
+            ]
+          ]
+        },
+        {
+          "space_id": "A-05",
+          "space_type": "electric",
+          "polygon": [
+            [
+              812,
+              10
+            ],
+            [
+              985,
+              11
+            ],
+            [
+              984,
+              245
+            ],
+            [
+              810,
+              244
+            ]
+          ]
+        },
+        {
+          "space_id": "A-06",
+          "space_type": "electric",
+          "polygon": [
+            [
+              1012,
+              10
+            ],
+            [
+              1185,
+              11
+            ],
+            [
+              1184,
+              245
+            ],
+            [
+              1010,
+              244
+            ]
+          ]
+        },
+        {
+          "space_id": "B-01",
+          "space_type": "general",
+          "polygon": [
+            [
+              12,
+              270
+            ],
+            [
+              185,
+              271
+            ],
+            [
+              184,
+              505
+            ],
+            [
+              10,
+              504
+            ]
+          ]
+        },
+        {
+          "space_id": "B-02",
+          "space_type": "general",
+          "polygon": [
+            [
+              212,
+              270
+            ],
+            [
+              385,
+              271
+            ],
+            [
+              384,
+              505
+            ],
+            [
+              210,
+              504
+            ]
+          ]
+        },
+        {
+          "space_id": "B-03",
+          "space_type": "general",
+          "polygon": [
+            [
+              412,
+              270
+            ],
+            [
+              585,
+              271
+            ],
+            [
+              584,
+              505
+            ],
+            [
+              410,
+              504
+            ]
+          ]
+        },
+        {
+          "space_id": "B-04",
+          "space_type": "general",
+          "polygon": [
+            [
+              612,
+              270
+            ],
+            [
+              785,
+              271
+            ],
+            [
+              784,
+              505
+            ],
+            [
+              610,
+              504
+            ]
+          ]
+        },
+        {
+          "space_id": "B-06",
+          "space_type": "accessible",
+          "polygon": [
+            [
+              1012,
+              270
+            ],
+            [
+              1185,
+              271
+            ],
+            [
+              1184,
+              505
+            ],
+            [
+              1010,
+              504
+            ]
+          ]
+        },
+        {
+          "space_id": "A-04",
+          "space_type": "general",
+          "polygon": [
+            [
+              612,
+              10
+            ],
+            [
+              785,
+              11
+            ],
+            [
+              784,
+              245
+            ],
+            [
+              610,
+              244
+            ]
+          ]
+        },
+        {
+          "space_id": "B-05",
+          "space_type": "general",
+          "polygon": [
+            [
+              812,
+              270
+            ],
+            [
+              985,
+              271
+            ],
+            [
+              984,
+              505
+            ],
+            [
+              810,
+              504
+            ]
+          ]
+        }
+      ],
+      "expected_count": 12,
+      "detected_count": 12,
+      "missing": [],
+      "duplicate_names": [],
+      "errors": [],
+      "text_evidence": [
+        {
+          "space_id": "A-01",
+          "text": "A-01",
+          "score": 0.9360768630880415,
+          "bbox": [
+            47,
+            203,
+            97,
+            223
+          ],
+          "view_scale": 1.0
+        },
+        {
+          "space_id": "A-02",
+          "text": "A-02",
+          "score": 0.895997579416063,
+          "bbox": [
+            246,
+            204,
+            297,
+            224
+          ],
+          "view_scale": 2.0
+        },
+        {
+          "space_id": "A-03",
+          "text": "A-03",
+          "score": 0.935877471088472,
+          "bbox": [
+            447,
+            203,
+            497,
+            223
+          ],
+          "view_scale": 1.0
+        },
+        {
+          "space_id": "A-05",
+          "text": "A-05",
+          "score": 0.8064332238552419,
+          "bbox": [
+            847,
+            203,
+            897,
+            223
+          ],
+          "view_scale": 1.0
+        },
+        {
+          "space_id": "A-06",
+          "text": "A-06",
+          "score": 0.7259729453173898,
+          "bbox": [
+            1046,
+            204,
+            1097,
+            224
+          ],
+          "view_scale": 2.0
+        },
+        {
+          "space_id": "B-01",
+          "text": "B-01",
+          "score": 0.9514573498311644,
+          "bbox": [
+            46,
+            464,
+            96,
+            484
+          ],
+          "view_scale": 2.0
+        },
+        {
+          "space_id": "B-02",
+          "text": "B-02",
+          "score": 0.9402293221833412,
+          "bbox": [
+            246,
+            464,
+            297,
+            484
+          ],
+          "view_scale": 2.0
+        },
+        {
+          "space_id": "B-03",
+          "text": "B-03",
+          "score": 0.9679139184143258,
+          "bbox": [
+            446,
+            464,
+            498,
+            484
+          ],
+          "view_scale": 2.0
+        },
+        {
+          "space_id": "B-04",
+          "text": "B-04",
+          "score": 0.9166361339352408,
+          "bbox": [
+            646,
+            463,
+            698,
+            484
+          ],
+          "view_scale": 2.0
+        },
+        {
+          "space_id": "B-06",
+          "text": "B-06",
+          "score": 0.9465252441711527,
+          "bbox": [
+            1046,
+            464,
+            1097,
+            484
+          ],
+          "view_scale": 2.0
+        },
+        {
+          "space_id": "A-04",
+          "text": "A-04",
+          "score": 0.9524733924065143,
+          "bbox": [
+            646,
+            203,
+            698,
+            224
+          ],
+          "view_scale": 2.0
+        },
+        {
+          "space_id": "B-05",
+          "text": "B-05",
+          "score": 0.9528648038407764,
+          "bbox": [
+            846,
+            464,
+            898,
+            484
+          ],
+          "view_scale": 2.0
+        }
+      ],
+      "method": "auto_line_and_text_v1",
+      "min_score": 0.7,
+      "roi": {
+        "lot_id": "A",
+        "lot_name": "가",
+        "camera_id": "A",
+        "serial": "<serial>",
+        "image_size": [
+          1200,
+          540
+        ],
+        "pose": "fixed-test",
+        "calibration_key": "44d203adaf2464eac6531a7c173869b27815b2e2593881feb141a7d35a3fd89b",
+        "spaces": [
+          {
+            "space_id": "A-01",
+            "space_type": "general",
+            "polygon": [
+              [
+                12,
+                10
+              ],
+              [
+                185,
+                11
+              ],
+              [
+                184,
+                245
+              ],
+              [
+                10,
+                244
+              ]
+            ]
+          },
+          {
+            "space_id": "A-02",
+            "space_type": "general",
+            "polygon": [
+              [
+                212,
+                10
+              ],
+              [
+                385,
+                11
+              ],
+              [
+                384,
+                245
+              ],
+              [
+                210,
+                244
+              ]
+            ]
+          },
+          {
+            "space_id": "A-03",
+            "space_type": "general",
+            "polygon": [
+              [
+                412,
+                10
+              ],
+              [
+                585,
+                11
+              ],
+              [
+                584,
+                245
+              ],
+              [
+                410,
+                244
+              ]
+            ]
+          },
+          {
+            "space_id": "A-05",
+            "space_type": "electric",
+            "polygon": [
+              [
+                812,
+                10
+              ],
+              [
+                985,
+                11
+              ],
+              [
+                984,
+                245
+              ],
+              [
+                810,
+                244
+              ]
+            ]
+          },
+          {
+            "space_id": "A-06",
+            "space_type": "electric",
+            "polygon": [
+              [
+                1012,
+                10
+              ],
+              [
+                1185,
+                11
+              ],
+              [
+                1184,
+                245
+              ],
+              [
+                1010,
+                244
+              ]
+            ]
+          },
+          {
+            "space_id": "B-01",
+            "space_type": "general",
+            "polygon": [
+              [
+                12,
+                270
+              ],
+              [
+                185,
+                271
+              ],
+              [
+                184,
+                505
+              ],
+              [
+                10,
+                504
+              ]
+            ]
+          },
+          {
+            "space_id": "B-02",
+            "space_type": "general",
+            "polygon": [
+              [
+                212,
+                270
+              ],
+              [
+                385,
+                271
+              ],
+              [
+                384,
+                505
+              ],
+              [
+                210,
+                504
+              ]
+            ]
+          },
+          {
+            "space_id": "B-03",
+            "space_type": "general",
+            "polygon": [
+              [
+                412,
+                270
+              ],
+              [
+                585,
+                271
+              ],
+              [
+                584,
+                505
+              ],
+              [
+                410,
+                504
+              ]
+            ]
+          },
+          {
+            "space_id": "B-04",
+            "space_type": "general",
+            "polygon": [
+              [
+                612,
+                270
+              ],
+              [
+                785,
+                271
+              ],
+              [
+                784,
+                505
+              ],
+              [
+                610,
+                504
+              ]
+            ]
+          },
+          {
+            "space_id": "B-06",
+            "space_type": "accessible",
+            "polygon": [
+              [
+                1012,
+                270
+              ],
+              [
+                1185,
+                271
+              ],
+              [
+                1184,
+                505
+              ],
+              [
+                1010,
+                504
+              ]
+            ]
+          },
+          {
+            "space_id": "A-04",
+            "space_type": "general",
+            "polygon": [
+              [
+                612,
+                10
+              ],
+              [
+                785,
+                11
+              ],
+              [
+                784,
+                245
+              ],
+              [
+                610,
+                244
+              ]
+            ]
+          },
+          {
+            "space_id": "B-05",
+            "space_type": "general",
+            "polygon": [
+              [
+                812,
+                270
+              ],
+              [
+                985,
+                271
+              ],
+              [
+                984,
+                505
+              ],
+              [
+                810,
+                504
+              ]
+            ]
+          }
+        ],
+        "unregistered_spaces": [],
+        "operator_confirmed": false,
+        "registration_method": "auto_line_and_text_v1",
+        "registration_revision": "roi-registration-v2",
+        "auto_validation": {
+          "ready": true,
+          "expected_count": 12,
+          "detected_count": 12,
+          "missing": [],
+          "duplicate_names": [],
+          "errors": [],
+          "text_evidence": [
+            {
+              "space_id": "A-01",
+              "text": "A-01",
+              "score": 0.9360768630880415,
+              "bbox": [
+                47,
+                203,
+                97,
+                223
+              ],
+              "view_scale": 1.0
+            },
+            {
+              "space_id": "A-02",
+              "text": "A-02",
+              "score": 0.895997579416063,
+              "bbox": [
+                246,
+                204,
+                297,
+                224
+              ],
+              "view_scale": 2.0
+            },
+            {
+              "space_id": "A-03",
+              "text": "A-03",
+              "score": 0.935877471088472,
+              "bbox": [
+                447,
+                203,
+                497,
+                223
+              ],
+              "view_scale": 1.0
+            },
+            {
+              "space_id": "A-05",
+              "text": "A-05",
+              "score": 0.8064332238552419,
+              "bbox": [
+                847,
+                203,
+                897,
+                223
+              ],
+              "view_scale": 1.0
+            },
+            {
+              "space_id": "A-06",
+              "text": "A-06",
+              "score": 0.7259729453173898,
+              "bbox": [
+                1046,
+                204,
+                1097,
+                224
+              ],
+              "view_scale": 2.0
+            },
+            {
+              "space_id": "B-01",
+              "text": "B-01",
+              "score": 0.9514573498311644,
+              "bbox": [
+                46,
+                464,
+                96,
+                484
+              ],
+              "view_scale": 2.0
+            },
+            {
+              "space_id": "B-02",
+              "text": "B-02",
+              "score": 0.9402293221833412,
+              "bbox": [
+                246,
+                464,
+                297,
+                484
+              ],
+              "view_scale": 2.0
+            },
+            {
+              "space_id": "B-03",
+              "text": "B-03",
+              "score": 0.9679139184143258,
+              "bbox": [
+                446,
+                464,
+                498,
+                484
+              ],
+              "view_scale": 2.0
+            },
+            {
+              "space_id": "B-04",
+              "text": "B-04",
+              "score": 0.9166361339352408,
+              "bbox": [
+                646,
+                463,
+                698,
+                484
+              ],
+              "view_scale": 2.0
+            },
+            {
+              "space_id": "B-06",
+              "text": "B-06",
+              "score": 0.9465252441711527,
+              "bbox": [
+                1046,
+                464,
+                1097,
+                484
+              ],
+              "view_scale": 2.0
+            },
+            {
+              "space_id": "A-04",
+              "text": "A-04",
+              "score": 0.9524733924065143,
+              "bbox": [
+                646,
+                203,
+                698,
+                224
+              ],
+              "view_scale": 2.0
+            },
+            {
+              "space_id": "B-05",
+              "text": "B-05",
+              "score": 0.9528648038407764,
+              "bbox": [
+                846,
+                464,
+                898,
+                484
+              ],
+              "view_scale": 2.0
+            }
+          ],
+          "method": "auto_line_and_text_v1",
+          "min_score": 0.7
+        }
+      },
+      "diagnostic_path": "<local-path>",
+      "seconds": 4.473194600082934,
+      "same_frame_alignment": {
+        "passed": true,
+        "matches": 1039,
+        "inliers": 1039,
+        "inlier_ratio": 1.0,
+        "maximum_drift_px": 9.565561369254474e-14,
+        "reason": "주차선/칸이름 구도 일치"
+      }
+    },
+    {
+      "ready": true,
+      "spaces": [
+        {
+          "space_id": "A-01",
+          "space_type": "general",
+          "polygon": [
+            [
+              32,
+              10
+            ],
+            [
+              185,
+              11
+            ],
+            [
+              164,
+              245
+            ],
+            [
+              11,
+              244
+            ]
+          ]
+        },
+        {
+          "space_id": "A-02",
+          "space_type": "general",
+          "polygon": [
+            [
+              232,
+              10
+            ],
+            [
+              385,
+              11
+            ],
+            [
+              364,
+              245
+            ],
+            [
+              211,
+              244
+            ]
+          ]
+        },
+        {
+          "space_id": "A-03",
+          "space_type": "general",
+          "polygon": [
+            [
+              432,
+              10
+            ],
+            [
+              585,
+              11
+            ],
+            [
+              564,
+              245
+            ],
+            [
+              411,
+              244
+            ]
+          ]
+        },
+        {
+          "space_id": "A-05",
+          "space_type": "general",
+          "polygon": [
+            [
+              832,
+              10
+            ],
+            [
+              985,
+              11
+            ],
+            [
+              964,
+              245
+            ],
+            [
+              811,
+              244
+            ]
+          ]
+        },
+        {
+          "space_id": "A-06",
+          "space_type": "general",
+          "polygon": [
+            [
+              1032,
+              10
+            ],
+            [
+              1185,
+              11
+            ],
+            [
+              1164,
+              245
+            ],
+            [
+              1011,
+              244
+            ]
+          ]
+        },
+        {
+          "space_id": "A-07",
+          "space_type": "electric",
+          "polygon": [
+            [
+              1232,
+              10
+            ],
+            [
+              1385,
+              11
+            ],
+            [
+              1364,
+              245
+            ],
+            [
+              1211,
+              244
+            ]
+          ]
+        },
+        {
+          "space_id": "A-08",
+          "space_type": "electric",
+          "polygon": [
+            [
+              1432,
+              10
+            ],
+            [
+              1585,
+              11
+            ],
+            [
+              1564,
+              245
+            ],
+            [
+              1411,
+              244
+            ]
+          ]
+        },
+        {
+          "space_id": "B-01",
+          "space_type": "general",
+          "polygon": [
+            [
+              32,
+              270
+            ],
+            [
+              185,
+              271
+            ],
+            [
+              164,
+              505
+            ],
+            [
+              11,
+              504
+            ]
+          ]
+        },
+        {
+          "space_id": "B-02",
+          "space_type": "general",
+          "polygon": [
+            [
+              232,
+              270
+            ],
+            [
+              385,
+              271
+            ],
+            [
+              364,
+              505
+            ],
+            [
+              211,
+              504
+            ]
+          ]
+        },
+        {
+          "space_id": "B-03",
+          "space_type": "general",
+          "polygon": [
+            [
+              432,
+              270
+            ],
+            [
+              585,
+              271
+            ],
+            [
+              564,
+              505
+            ],
+            [
+              411,
+              504
+            ]
+          ]
+        },
+        {
+          "space_id": "B-04",
+          "space_type": "general",
+          "polygon": [
+            [
+              632,
+              270
+            ],
+            [
+              785,
+              271
+            ],
+            [
+              764,
+              505
+            ],
+            [
+              611,
+              504
+            ]
+          ]
+        },
+        {
+          "space_id": "B-06",
+          "space_type": "general",
+          "polygon": [
+            [
+              1032,
+              270
+            ],
+            [
+              1185,
+              271
+            ],
+            [
+              1164,
+              505
+            ],
+            [
+              1011,
+              504
+            ]
+          ]
+        },
+        {
+          "space_id": "B-07",
+          "space_type": "accessible",
+          "polygon": [
+            [
+              1232,
+              270
+            ],
+            [
+              1385,
+              271
+            ],
+            [
+              1364,
+              505
+            ],
+            [
+              1211,
+              504
+            ]
+          ]
+        },
+        {
+          "space_id": "B-08",
+          "space_type": "accessible",
+          "polygon": [
+            [
+              1432,
+              270
+            ],
+            [
+              1585,
+              271
+            ],
+            [
+              1564,
+              505
+            ],
+            [
+              1411,
+              504
+            ]
+          ]
+        },
+        {
+          "space_id": "A-04",
+          "space_type": "general",
+          "polygon": [
+            [
+              632,
+              10
+            ],
+            [
+              785,
+              11
+            ],
+            [
+              764,
+              245
+            ],
+            [
+              611,
+              244
+            ]
+          ]
+        },
+        {
+          "space_id": "B-05",
+          "space_type": "general",
+          "polygon": [
+            [
+              832,
+              270
+            ],
+            [
+              985,
+              271
+            ],
+            [
+              964,
+              505
+            ],
+            [
+              811,
+              504
+            ]
+          ]
+        }
+      ],
+      "expected_count": 16,
+      "detected_count": 16,
+      "missing": [],
+      "duplicate_names": [],
+      "errors": [],
+      "text_evidence": [
+        {
+          "space_id": "A-01",
+          "text": "A-01",
+          "score": 0.9360768630880415,
+          "bbox": [
+            47,
+            203,
+            97,
+            223
+          ],
+          "view_scale": 1.0
+        },
+        {
+          "space_id": "A-02",
+          "text": "A-02",
+          "score": 0.895997579416063,
+          "bbox": [
+            246,
+            204,
+            297,
+            224
+          ],
+          "view_scale": 2.0
+        },
+        {
+          "space_id": "A-03",
+          "text": "A-03",
+          "score": 0.935877471088472,
+          "bbox": [
+            447,
+            203,
+            497,
+            223
+          ],
+          "view_scale": 1.0
+        },
+        {
+          "space_id": "A-05",
+          "text": "A-05",
+          "score": 0.8064332238552419,
+          "bbox": [
+            847,
+            203,
+            897,
+            223
+          ],
+          "view_scale": 1.0
+        },
+        {
+          "space_id": "A-06",
+          "text": "A-06",
+          "score": 0.7252855964382071,
+          "bbox": [
+            1047,
+            203,
+            1097,
+            223
+          ],
+          "view_scale": 1.0
+        },
+        {
+          "space_id": "A-07",
+          "text": "A-07",
+          "score": 0.8364377632344205,
+          "bbox": [
+            1246,
+            204,
+            1297,
+            224
+          ],
+          "view_scale": 2.0
+        },
+        {
+          "space_id": "A-08",
+          "text": "A-08",
+          "score": 0.9179682028926641,
+          "bbox": [
+            1447,
+            203,
+            1497,
+            223
+          ],
+          "view_scale": 1.0
+        },
+        {
+          "space_id": "B-01",
+          "text": "B-01",
+          "score": 0.9514573498311644,
+          "bbox": [
+            46,
+            464,
+            96,
+            484
+          ],
+          "view_scale": 2.0
+        },
+        {
+          "space_id": "B-02",
+          "text": "B-02",
+          "score": 0.9402293221833412,
+          "bbox": [
+            246,
+            464,
+            297,
+            484
+          ],
+          "view_scale": 2.0
+        },
+        {
+          "space_id": "B-03",
+          "text": "B-03",
+          "score": 0.9679139184143258,
+          "bbox": [
+            446,
+            464,
+            498,
+            484
+          ],
+          "view_scale": 2.0
+        },
+        {
+          "space_id": "B-04",
+          "text": "B-04",
+          "score": 0.9166361339352408,
+          "bbox": [
+            646,
+            463,
+            698,
+            484
+          ],
+          "view_scale": 2.0
+        },
+        {
+          "space_id": "B-06",
+          "text": "B-06",
+          "score": 0.9465252441711527,
+          "bbox": [
+            1046,
+            464,
+            1097,
+            484
+          ],
+          "view_scale": 2.0
+        },
+        {
+          "space_id": "B-07",
+          "text": "B-07",
+          "score": 0.8943691813678618,
+          "bbox": [
+            1246,
+            464,
+            1297,
+            484
+          ],
+          "view_scale": 2.0
+        },
+        {
+          "space_id": "B-08",
+          "text": "B-08",
+          "score": 0.9521895804342067,
+          "bbox": [
+            1446,
+            464,
+            1498,
+            484
+          ],
+          "view_scale": 2.0
+        },
+        {
+          "space_id": "A-04",
+          "text": "A-04",
+          "score": 0.9524733924065143,
+          "bbox": [
+            646,
+            203,
+            698,
+            224
+          ],
+          "view_scale": 2.0
+        },
+        {
+          "space_id": "B-05",
+          "text": "B-05",
+          "score": 0.9528648038407764,
+          "bbox": [
+            846,
+            464,
+            898,
+            484
+          ],
+          "view_scale": 2.0
+        }
+      ],
+      "method": "auto_line_and_text_v1",
+      "min_score": 0.7,
+      "roi": {
+        "lot_id": "B",
+        "lot_name": "나",
+        "camera_id": "A",
+        "serial": "<serial>",
+        "image_size": [
+          1600,
+          540
+        ],
+        "pose": "fixed-test",
+        "calibration_key": "60f4c7af2d735f9badc778e2abdb9e7d2bc294d2642f2c4df8a5fdb715ab5c67",
+        "spaces": [
+          {
+            "space_id": "A-01",
+            "space_type": "general",
+            "polygon": [
+              [
+                32,
+                10
+              ],
+              [
+                185,
+                11
+              ],
+              [
+                164,
+                245
+              ],
+              [
+                11,
+                244
+              ]
+            ]
+          },
+          {
+            "space_id": "A-02",
+            "space_type": "general",
+            "polygon": [
+              [
+                232,
+                10
+              ],
+              [
+                385,
+                11
+              ],
+              [
+                364,
+                245
+              ],
+              [
+                211,
+                244
+              ]
+            ]
+          },
+          {
+            "space_id": "A-03",
+            "space_type": "general",
+            "polygon": [
+              [
+                432,
+                10
+              ],
+              [
+                585,
+                11
+              ],
+              [
+                564,
+                245
+              ],
+              [
+                411,
+                244
+              ]
+            ]
+          },
+          {
+            "space_id": "A-05",
+            "space_type": "general",
+            "polygon": [
+              [
+                832,
+                10
+              ],
+              [
+                985,
+                11
+              ],
+              [
+                964,
+                245
+              ],
+              [
+                811,
+                244
+              ]
+            ]
+          },
+          {
+            "space_id": "A-06",
+            "space_type": "general",
+            "polygon": [
+              [
+                1032,
+                10
+              ],
+              [
+                1185,
+                11
+              ],
+              [
+                1164,
+                245
+              ],
+              [
+                1011,
+                244
+              ]
+            ]
+          },
+          {
+            "space_id": "A-07",
+            "space_type": "electric",
+            "polygon": [
+              [
+                1232,
+                10
+              ],
+              [
+                1385,
+                11
+              ],
+              [
+                1364,
+                245
+              ],
+              [
+                1211,
+                244
+              ]
+            ]
+          },
+          {
+            "space_id": "A-08",
+            "space_type": "electric",
+            "polygon": [
+              [
+                1432,
+                10
+              ],
+              [
+                1585,
+                11
+              ],
+              [
+                1564,
+                245
+              ],
+              [
+                1411,
+                244
+              ]
+            ]
+          },
+          {
+            "space_id": "B-01",
+            "space_type": "general",
+            "polygon": [
+              [
+                32,
+                270
+              ],
+              [
+                185,
+                271
+              ],
+              [
+                164,
+                505
+              ],
+              [
+                11,
+                504
+              ]
+            ]
+          },
+          {
+            "space_id": "B-02",
+            "space_type": "general",
+            "polygon": [
+              [
+                232,
+                270
+              ],
+              [
+                385,
+                271
+              ],
+              [
+                364,
+                505
+              ],
+              [
+                211,
+                504
+              ]
+            ]
+          },
+          {
+            "space_id": "B-03",
+            "space_type": "general",
+            "polygon": [
+              [
+                432,
+                270
+              ],
+              [
+                585,
+                271
+              ],
+              [
+                564,
+                505
+              ],
+              [
+                411,
+                504
+              ]
+            ]
+          },
+          {
+            "space_id": "B-04",
+            "space_type": "general",
+            "polygon": [
+              [
+                632,
+                270
+              ],
+              [
+                785,
+                271
+              ],
+              [
+                764,
+                505
+              ],
+              [
+                611,
+                504
+              ]
+            ]
+          },
+          {
+            "space_id": "B-06",
+            "space_type": "general",
+            "polygon": [
+              [
+                1032,
+                270
+              ],
+              [
+                1185,
+                271
+              ],
+              [
+                1164,
+                505
+              ],
+              [
+                1011,
+                504
+              ]
+            ]
+          },
+          {
+            "space_id": "B-07",
+            "space_type": "accessible",
+            "polygon": [
+              [
+                1232,
+                270
+              ],
+              [
+                1385,
+                271
+              ],
+              [
+                1364,
+                505
+              ],
+              [
+                1211,
+                504
+              ]
+            ]
+          },
+          {
+            "space_id": "B-08",
+            "space_type": "accessible",
+            "polygon": [
+              [
+                1432,
+                270
+              ],
+              [
+                1585,
+                271
+              ],
+              [
+                1564,
+                505
+              ],
+              [
+                1411,
+                504
+              ]
+            ]
+          },
+          {
+            "space_id": "A-04",
+            "space_type": "general",
+            "polygon": [
+              [
+                632,
+                10
+              ],
+              [
+                785,
+                11
+              ],
+              [
+                764,
+                245
+              ],
+              [
+                611,
+                244
+              ]
+            ]
+          },
+          {
+            "space_id": "B-05",
+            "space_type": "general",
+            "polygon": [
+              [
+                832,
+                270
+              ],
+              [
+                985,
+                271
+              ],
+              [
+                964,
+                505
+              ],
+              [
+                811,
+                504
+              ]
+            ]
+          }
+        ],
+        "unregistered_spaces": [],
+        "operator_confirmed": false,
+        "registration_method": "auto_line_and_text_v1",
+        "registration_revision": "roi-registration-v2",
+        "auto_validation": {
+          "ready": true,
+          "expected_count": 16,
+          "detected_count": 16,
+          "missing": [],
+          "duplicate_names": [],
+          "errors": [],
+          "text_evidence": [
+            {
+              "space_id": "A-01",
+              "text": "A-01",
+              "score": 0.9360768630880415,
+              "bbox": [
+                47,
+                203,
+                97,
+                223
+              ],
+              "view_scale": 1.0
+            },
+            {
+              "space_id": "A-02",
+              "text": "A-02",
+              "score": 0.895997579416063,
+              "bbox": [
+                246,
+                204,
+                297,
+                224
+              ],
+              "view_scale": 2.0
+            },
+            {
+              "space_id": "A-03",
+              "text": "A-03",
+              "score": 0.935877471088472,
+              "bbox": [
+                447,
+                203,
+                497,
+                223
+              ],
+              "view_scale": 1.0
+            },
+            {
+              "space_id": "A-05",
+              "text": "A-05",
+              "score": 0.8064332238552419,
+              "bbox": [
+                847,
+                203,
+                897,
+                223
+              ],
+              "view_scale": 1.0
+            },
+            {
+              "space_id": "A-06",
+              "text": "A-06",
+              "score": 0.7252855964382071,
+              "bbox": [
+                1047,
+                203,
+                1097,
+                223
+              ],
+              "view_scale": 1.0
+            },
+            {
+              "space_id": "A-07",
+              "text": "A-07",
+              "score": 0.8364377632344205,
+              "bbox": [
+                1246,
+                204,
+                1297,
+                224
+              ],
+              "view_scale": 2.0
+            },
+            {
+              "space_id": "A-08",
+              "text": "A-08",
+              "score": 0.9179682028926641,
+              "bbox": [
+                1447,
+                203,
+                1497,
+                223
+              ],
+              "view_scale": 1.0
+            },
+            {
+              "space_id": "B-01",
+              "text": "B-01",
+              "score": 0.9514573498311644,
+              "bbox": [
+                46,
+                464,
+                96,
+                484
+              ],
+              "view_scale": 2.0
+            },
+            {
+              "space_id": "B-02",
+              "text": "B-02",
+              "score": 0.9402293221833412,
+              "bbox": [
+                246,
+                464,
+                297,
+                484
+              ],
+              "view_scale": 2.0
+            },
+            {
+              "space_id": "B-03",
+              "text": "B-03",
+              "score": 0.9679139184143258,
+              "bbox": [
+                446,
+                464,
+                498,
+                484
+              ],
+              "view_scale": 2.0
+            },
+            {
+              "space_id": "B-04",
+              "text": "B-04",
+              "score": 0.9166361339352408,
+              "bbox": [
+                646,
+                463,
+                698,
+                484
+              ],
+              "view_scale": 2.0
+            },
+            {
+              "space_id": "B-06",
+              "text": "B-06",
+              "score": 0.9465252441711527,
+              "bbox": [
+                1046,
+                464,
+                1097,
+                484
+              ],
+              "view_scale": 2.0
+            },
+            {
+              "space_id": "B-07",
+              "text": "B-07",
+              "score": 0.8943691813678618,
+              "bbox": [
+                1246,
+                464,
+                1297,
+                484
+              ],
+              "view_scale": 2.0
+            },
+            {
+              "space_id": "B-08",
+              "text": "B-08",
+              "score": 0.9521895804342067,
+              "bbox": [
+                1446,
+                464,
+                1498,
+                484
+              ],
+              "view_scale": 2.0
+            },
+            {
+              "space_id": "A-04",
+              "text": "A-04",
+              "score": 0.9524733924065143,
+              "bbox": [
+                646,
+                203,
+                698,
+                224
+              ],
+              "view_scale": 2.0
+            },
+            {
+              "space_id": "B-05",
+              "text": "B-05",
+              "score": 0.9528648038407764,
+              "bbox": [
+                846,
+                464,
+                898,
+                484
+              ],
+              "view_scale": 2.0
+            }
+          ],
+          "method": "auto_line_and_text_v1",
+          "min_score": 0.7
+        }
+      },
+      "diagnostic_path": "<local-path>",
+      "seconds": 6.323112900136039,
+      "same_frame_alignment": {
+        "passed": true,
+        "matches": 1550,
+        "inliers": 1545,
+        "inlier_ratio": 0.9967741935483871,
+        "maximum_drift_px": 7.657737562550421e-14,
+        "reason": "주차선/칸이름 구도 일치"
+      }
+    }
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "opencv_version": "5.0.0",
+  "aruco_detector_available": true,
+  "passed": true,
+  "scope": "Synthetic planar marker generation/detection and homography only; no real printed markers, camera, OCR comparison or UI integration",
+  "application_integrated": false,
+  "results": [
+    {
+      "case": "front",
+      "marker_ids": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "median_detection_ms": 2.365,
+      "synthetic_size": [
+        1200,
+        900
+      ],
+      "state": "성공",
+      "grid_mean_error_px": 0.0451,
+      "grid_max_error_px": 0.0609,
+      "inlier_corners": 16
+    },
+    {
+      "case": "perspective",
+      "marker_ids": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "median_detection_ms": 2.505,
+      "synthetic_size": [
+        1200,
+        900
+      ],
+      "state": "성공",
+      "grid_mean_error_px": 0.0765,
+      "grid_max_error_px": 0.1659,
+      "inlier_corners": 16
+    },
+    {
+      "case": "rotated_plane",
+      "marker_ids": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "median_detection_ms": 2.496,
+      "synthetic_size": [
+        1200,
+        900
+      ],
+      "state": "성공",
+      "grid_mean_error_px": 0.0437,
+      "grid_max_error_px": 0.0795,
+      "inlier_corners": 16
+    },
+    {
+      "case": "one_marker_occluded",
+      "marker_ids": [
+        1,
+        2,
+        3
+      ],
+      "median_detection_ms": 2.254,
+      "synthetic_size": [
+        1200,
+        900
+      ],
+      "state": "성공",
+      "grid_mean_error_px": 0.3952,
+      "grid_max_error_px": 0.9816,
+      "inlier_corners": 12
+    },
+    {
+      "case": "only_one_visible",
+      "marker_ids": [
+        3
+      ],
+      "median_detection_ms": 2.153,
+      "synthetic_size": [
+        1200,
+        900
+      ],
+      "state": "보류",
+      "reason": "본 시험의 전판 좌표 정책: 분산 배치 마커3개 미만"
+    }
+  ]
+}

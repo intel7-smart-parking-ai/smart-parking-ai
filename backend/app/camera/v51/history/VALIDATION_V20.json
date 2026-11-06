@@ -1,0 +1,172 @@
+{
+  "version": "20.0",
+  "product_version": "V20",
+  "display_name": "V20 주차장 통합 수집",
+  "based_on": "V19",
+  "date_kst": "2026-11-04",
+  "contract_revision": "20261104-d39-v3",
+  "tests": {
+    "product_version": "V20",
+    "tests": 83,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": true,
+    "seconds": 9.274,
+    "scope": "V19+V20 synthetic geometry/color, data integrity/export, Tk workflows, split OCR workers, mocked HTTP cancellation; no physical camera, real server, or trained model accuracy test"
+  },
+  "tests_passed": 83,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "config_check_passed": true,
+  "ast_parsed_python_files": 39,
+  "json_parsed_files_before_report_update": 29,
+  "v19_release_source_unchanged": true,
+  "v19_files_compared": 85,
+  "v19_zip_unchanged": true,
+  "config_contract_layout_unchanged": true,
+  "changed_python_files": [
+    "camera_hub.py",
+    "dashboard.py",
+    "dataset19.py",
+    "demo.py",
+    "main.py",
+    "pipeline.py",
+    "prediction_contract.py",
+    "review.py",
+    "run_tests.py",
+    "tests/test_v19.py",
+    "tests/test_v20.py",
+    "transport19.py",
+    "vision19.py"
+  ],
+  "ocr_cpu_smoke": {
+    "product_version": "V20",
+    "synthetic_only": true,
+    "small_green_sticker": {
+      "product_version": "V20",
+      "synthetic_image_only": true,
+      "engine": {
+        "engine": "easyocr",
+        "version": "1.7.2",
+        "torch": "2.15.0+xpu",
+        "languages": [
+          "ko",
+          "en"
+        ],
+        "requested_device": "cpu",
+        "device": "cpu",
+        "gpu": null,
+        "fallback_reason": null
+      },
+      "seconds_including_load": 4.33,
+      "occupancy": "occupied",
+      "number": null,
+      "color": "green",
+      "stage": "complete",
+      "errors": [],
+      "ocr_candidates": [
+        {
+          "text": "8",
+          "number_candidate": null,
+          "score": 0.9446099746892287,
+          "text_bbox": [
+            54,
+            90,
+            91,
+            116
+          ],
+          "status": "invalid_number",
+          "color_candidate": {
+            "name": "unknown",
+            "ratios": {},
+            "method": "sticker_interior_hsv_v1",
+            "status": "sticker_region_required",
+            "polygon": null,
+            "sample_pixels": 0
+          },
+          "vehicle_type_candidate": null
+        }
+      ],
+      "passed": false
+    },
+    "large_white_sticker": {
+      "product_version": "V20",
+      "synthetic_image_only": true,
+      "engine": {
+        "engine": "easyocr",
+        "version": "1.7.2",
+        "torch": "2.15.0+xpu",
+        "languages": [
+          "ko",
+          "en"
+        ],
+        "requested_device": "cpu",
+        "device": "cpu",
+        "gpu": null,
+        "fallback_reason": null
+      },
+      "seconds_including_load": 5.645,
+      "occupancy": "occupied",
+      "number": "23",
+      "color": "white",
+      "stage": "complete",
+      "errors": [],
+      "ocr_candidates": [
+        {
+          "text": "23",
+          "number_candidate": "23",
+          "score": 0.8678344333200907,
+          "text_bbox": [
+            194,
+            283,
+            319,
+            368
+          ],
+          "status": "candidate",
+          "color_candidate": {
+            "name": "unknown",
+            "ratios": {},
+            "method": "sticker_interior_hsv_v1",
+            "status": "sticker_region_required",
+            "polygon": null,
+            "sample_pixels": 0
+          },
+          "vehicle_type_candidate": null
+        }
+      ],
+      "passed": true
+    },
+    "field_accuracy_evaluated": false,
+    "sandbox_torch_dll_denied_then_local_approved_run": true
+  },
+  "full_b_16_synthetic_pipeline_passed": true,
+  "hardware_camera_tested": false,
+  "visual_ui_inspection_completed": false,
+  "openvino_trained_model_tested": false,
+  "openvino_reload_mock_tested": true,
+  "real_server_requests_sent": false,
+  "geti_import_tested": false,
+  "long_duration_performance_tested": false,
+  "model_downloads_performed": false,
+  "limitations": [
+    "Physical accuracy and FPS are unmeasured. Small synthetic green sticker OCR failed and remains documented.",
+    "Color/shape proposals are heuristics, not a learned sticker detector; parking ROIs are manually registered.",
+    "No trained occupancy model or vehicle mask-based violation detector is included.",
+    "In-flight HTTP cannot be recalled; server final state is not queried.",
+    "One common approval state per slot remains; no independent per-task approval or full evaluation/coverage report.",
+    "Synthetic UI workflow tests passed; visual UI layout on physical display sizes remains unverified.",
+    "Historical tests are retained but only the 83 tests executed on V20 count toward this release."
+  ],
+  "distribution_excludes": [
+    ".demo_output",
+    ".git",
+    ".test_tmp",
+    ".venv",
+    "__pycache__",
+    "datasets",
+    "logs",
+    "models"
+  ]
+}

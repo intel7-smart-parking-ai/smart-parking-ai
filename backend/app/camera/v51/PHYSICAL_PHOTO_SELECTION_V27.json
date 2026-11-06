@@ -1,0 +1,19 @@
+{
+  "product_version": "V27",
+  "passed": true,
+  "quality_passed": 0,
+  "quality_held": 2,
+  "exported_scenes": 0,
+  "skipped": [
+    {
+      "file": "3f435bbba7305d72aac35771d3cfea65.json",
+      "reason": "품질 보류: 보류 주차칸 포함"
+    },
+    {
+      "file": "d54019a8a57c5109834361da23de3be2.json",
+      "reason": "품질 보류: 보류 주차칸 포함"
+    }
+  ],
+  "reason": "Unknown occupancy/identity on empty-board photos; no fabricated truth",
+  "export_path": "<local-path>"
+}

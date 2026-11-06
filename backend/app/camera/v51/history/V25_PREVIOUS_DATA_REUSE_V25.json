@@ -1,0 +1,63 @@
+{
+  "product_version": "V25",
+  "datasets": [
+    {
+      "root": "<local-path>",
+      "files_compared": 171,
+      "unchanged": true,
+      "lots": [
+        {
+          "lot": "A",
+          "roi_count": 12,
+          "source": "synthetic",
+          "warnings": []
+        },
+        {
+          "lot": "B",
+          "roi_count": 16,
+          "source": "synthetic",
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "root": "<local-path>",
+      "files_compared": 169,
+      "unchanged": true,
+      "lots": [
+        {
+          "lot": "A",
+          "roi_count": 12,
+          "source": "import",
+          "warnings": []
+        },
+        {
+          "lot": "B",
+          "roi_count": 16,
+          "source": "import",
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "root": "<local-path>",
+      "files_compared": 169,
+      "unchanged": true,
+      "lots": [
+        {
+          "lot": "A",
+          "roi_count": 12,
+          "source": "import",
+          "warnings": []
+        },
+        {
+          "lot": "B",
+          "roi_count": 16,
+          "source": "import",
+          "warnings": []
+        }
+      ]
+    }
+  ],
+  "all_original_files_unchanged": true
+}

@@ -1,0 +1,261 @@
+{
+  "product_version": "V48",
+  "version": "48.0",
+  "based_on": "V47",
+  "date_kst": "2026-11-06",
+  "previous_zip_sha256": "ab356dc28cd247fdc8fcb9b8b04603a9b941aa5d651ba76c91b46d87242e3090",
+  "tests": {
+    "product_version": "V48",
+    "tests": 645,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": true,
+    "seconds": 433.837,
+    "scope": "V19-V48 geometry/color, identity evidence and OCR mocks, automatic ROI/anchor guards, Korean paired assets, copy counts, data integrity/audit/export, one-start Tk workflow, split workers, mocked HTTP; no physical camera or live server"
+  },
+  "추가회귀_동일18개": {
+    "V47": {
+      "실행": 18,
+      "통과": 2,
+      "기대미충족": 16,
+      "건너뜀": 0,
+      "기대미충족_시험": [
+        "CameraEvidence.test_ambiguous_virtual_pair_reaches_original_storage_and_held_labels",
+        "CameraEvidence.test_api_events_reject_mixed_camera_and_roi",
+        "CameraEvidence.test_cached_latest_pair_is_ineligible_after_disconnect_or_new_epoch",
+        "CameraEvidence.test_camera_serial_and_channel_must_match_roi_before_analysis",
+        "CameraEvidence.test_saved_candidate_cannot_be_enriched_with_other_camera_pixels",
+        "DurableEvidence.test_changed_split_metadata_is_not_an_accepted_number_delivery",
+        "DurableEvidence.test_duplicate_manifest_sample_cannot_multiply_field_result",
+        "DurableEvidence.test_duplicate_receipt_paths_do_not_count_as_verified_files",
+        "DurableEvidence.test_low_score_selected_observation_rejected_even_if_two_other_views_agree",
+        "DurableEvidence.test_manual_rebuild_cannot_remove_conflicting_journal",
+        "DurableEvidence.test_recovery_preserves_disagreeing_but_valid_saved_prediction",
+        "DurableEvidence.test_reformatting_an_old_review_does_not_destroy_its_exported_revision",
+        "DurableEvidence.test_truth_verification_distinguishes_present_from_correct",
+        "DurableEvidence.test_valid_number_is_counted_once_as_verified",
+        "StickerAssignment.test_two_distinct_readable_stickers_in_one_bay_hold",
+        "StickerAssignment.test_virtual_retry_preserves_same_disc_conflict_evidence"
+      ]
+    },
+    "V48": {
+      "실행": 18,
+      "통과": 18,
+      "기대미충족": 0,
+      "건너뜀": 0,
+      "기대미충족_시험": []
+    }
+  },
+  "한칸_두스티커_동일픽셀": {
+    "V47": {
+      "physical": {
+        "단독12장_번호직접일치": 12,
+        "두장동시_배치수": 6,
+        "복수인데_번호선택": 3,
+        "복수보류": 3
+      },
+      "virtual": {
+        "단독12장_번호직접일치": 12,
+        "두장동시_배치수": 6,
+        "복수인데_번호선택": 3,
+        "복수보류": 3
+      }
+    },
+    "V48": {
+      "physical": {
+        "단독12장_번호직접일치": 12,
+        "두장동시_배치수": 6,
+        "복수인데_번호선택": 0,
+        "복수보류": 6
+      },
+      "virtual": {
+        "단독12장_번호직접일치": 12,
+        "두장동시_배치수": 6,
+        "복수인데_번호선택": 0,
+        "복수보류": 6
+      }
+    }
+  },
+  "기존사진_차량11칸": {
+    "direct": 2,
+    "estimated": 9,
+    "held": 0,
+    "wrong": 0,
+    "empty_false_number": 0
+  },
+  "기존사진_조건별": {
+    "A_base": {
+      "direct": 1,
+      "estimated": 4,
+      "held": 0,
+      "wrong": 0,
+      "empty_false_number": 0
+    },
+    "A_dark": {
+      "direct": 1,
+      "estimated": 4,
+      "held": 0,
+      "wrong": 0,
+      "empty_false_number": 0
+    },
+    "A_bright": {
+      "direct": 1,
+      "estimated": 4,
+      "held": 0,
+      "wrong": 0,
+      "empty_false_number": 0
+    },
+    "B_base": {
+      "direct": 1,
+      "estimated": 5,
+      "held": 0,
+      "wrong": 0,
+      "empty_false_number": 0
+    },
+    "B_dark": {
+      "direct": 0,
+      "estimated": 6,
+      "held": 0,
+      "wrong": 0,
+      "empty_false_number": 0
+    },
+    "B_bright": {
+      "direct": 0,
+      "estimated": 5,
+      "held": 1,
+      "wrong": 0,
+      "empty_false_number": 0
+    }
+  },
+  "기존합성24": {
+    "direct": 15,
+    "estimated": 3,
+    "held": 6,
+    "wrong": 0,
+    "empty_false_number": 0
+  },
+  "기존추가합성72": {
+    "direct_correct": 42,
+    "estimate_correct": 9,
+    "direct_wrong": 0,
+    "estimate_wrong": 0,
+    "held": 21,
+    "empty_false_number": 0
+  },
+  "기존별도합성24": {
+    "direct_correct": 19,
+    "estimate_correct": 3,
+    "direct_wrong": 0,
+    "estimate_wrong": 0,
+    "held": 2,
+    "empty_false_number": 0
+  },
+  "흰색66_99_방향16건_번호보류": true,
+  "완전포화된_합성77_번호보류": true,
+  "미승인학습크롭수": 0,
+  "강제종료후_판독충돌": {
+    "47": {
+      "source": "smart_parking_v47",
+      "child_exit": 47,
+      "raw_count": 2,
+      "journal_count_before": 2,
+      "control_pairs": 1,
+      "control_exported_bays": 28,
+      "conflict_complete": 1,
+      "conflict_held": 0,
+      "conflict_exported_pairs": 1,
+      "conflicting_prediction_preserved": true,
+      "journal_preserved": false,
+      "raw_hashes_preserved": true
+    },
+    "48": {
+      "source": "smart_parking_v48",
+      "child_exit": 47,
+      "raw_count": 2,
+      "journal_count_before": 2,
+      "control_pairs": 1,
+      "control_exported_bays": 28,
+      "conflict_complete": 0,
+      "conflict_held": 1,
+      "conflict_exported_pairs": 0,
+      "conflicting_prediction_preserved": true,
+      "journal_preserved": true,
+      "raw_hashes_preserved": true,
+      "after_explicit_restoration": 1,
+      "after_second_recovery": 1,
+      "after_repair_exported_bays": 28
+    }
+  },
+  "빈기준_기존사진검사": {
+    "실물장비_사용": false,
+    "빈사진_스티커후보": {
+      "A": [
+        "A-03"
+      ],
+      "B": []
+    },
+    "수평이동_px": {
+      "0": {
+        "빈칸": 12,
+        "경계경고": 0
+      },
+      "1": {
+        "빈칸": 12,
+        "경계경고": 0
+      },
+      "2": {
+        "보류": "빈 기준과 주차선 위치 이동 · 구도를 확인하고 두 빈 기준을 다시 등록하세요."
+      },
+      "4": {
+        "보류": "빈 기준과 주차선 위치 이동 · 구도를 확인하고 두 빈 기준을 다시 등록하세요."
+      },
+      "6": {
+        "보류": "빈 기준과 주차선 위치 이동 · 구도를 확인하고 두 빈 기준을 다시 등록하세요."
+      },
+      "12": {
+        "보류": "빈 기준과 주차선 위치 이동 · 구도를 확인하고 두 빈 기준을 다시 등록하세요."
+      }
+    },
+    "재확인근거_대조채널": [
+      "A",
+      "B"
+    ],
+    "재연결후_측정": "주차장·시점·연결 변경 · 두 빈 주차장 기준을 다시 등록하세요."
+  },
+  "기존자료호환": {
+    "V47_원본및기록_해시동일_파일수": 102,
+    "V48_복구검사_완료쌍": 1,
+    "V48_내보냄": {
+      "scenes": 2,
+      "space_pairs": 28,
+      "images": 32,
+      "json_files": 30,
+      "originals": 2,
+      "measurements": 1
+    },
+    "이전정답표_실물비교칸": 28,
+    "이전정답표_대조규격": "동시측정현장대조-v2"
+  },
+  "실제장치검색": {
+    "장치수": 0,
+    "장치": [],
+    "조회_UTC": "2026-11-05T20:43:36.639965+00:00"
+  },
+  "미측정": {
+    "새실물24대_인식률": null,
+    "실물조명별_경계침범정확도": null,
+    "실물30분안정성": null,
+    "센서노출동기오차": null,
+    "Geti실제학습효과": null
+  },
+  "다음시험순서": [
+    "새 실물 차량 24대 동시 배치와 차량별 식별표 작성",
+    "조명·방향별 독립 정답 대조와 실제 선 침범 평가",
+    "실제 두 카메라 30분 연속 수집",
+    "Geti에 가져온 수·분할 확인 및 독립 시험 세트에서 학습 전후 비교"
+  ],
+  "재생자료": "FIELD_REPLAY_V48.json",
+  "전체점검": "CODE_AUDIT_V48.md",
+  "검증한계": "기존 사진에는 동일 차량의 반복 관측이 있다. 합성 시험과 소프트웨어 회귀 시험의 통과율은 현장 인식률과 별도로 해석한다. 신규 카메라 촬영, 센서 노출시각 계측, Geti 실제 가져오기·학습은 진행하지 못했다."
+}

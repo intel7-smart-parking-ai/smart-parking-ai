@@ -1,0 +1,59 @@
+{
+  "version": "V32",
+  "isolated_fixtures_only": true,
+  "cases": [
+    {
+      "case": "existing_id_accepts_different_group",
+      "reproduced": true,
+      "requested": [
+        "new-batch",
+        "new-session"
+      ],
+      "saved": [
+        "old-batch",
+        "old-session"
+      ]
+    },
+    {
+      "case": "ui_reuses_old_batch_photo_id",
+      "reproduced": true,
+      "requested_group": [
+        "new-batch",
+        "new-session"
+      ],
+      "old_id_reused": "c524733c501f5894aa33cb77e9cfeefb"
+    },
+    {
+      "case": "save_receipt_attaches_to_different_frame_with_same_timestamp",
+      "reproduced": true,
+      "displayed_frame": 2,
+      "attached_frame": 1
+    },
+    {
+      "case": "stale_source_mislabels_camera_and_breaks_retry",
+      "reproduced": true,
+      "packet_source": "camera",
+      "saved_source": {
+        "kind": "import",
+        "original_filename": "<image-path>",
+        "captured_time_kind": "import_time_not_camera_capture"
+      },
+      "retry_error": "기존 장면과 입력 출처가 다릅니다."
+    },
+    {
+      "case": "same_pixels_different_png_cross_split",
+      "reproduced": true,
+      "compared_pixels": "same input array",
+      "encoded_sha256": [
+        "d8060345d387fe5ec2592c2dea64b3e7582435435c92f99ab62bba1fe7be3b16",
+        "4bed9026799941535d0c96499e51c4f74c45c576d2884a1a91a8844d85cb8105"
+      ],
+      "splits": [
+        "train",
+        "validation"
+      ],
+      "exported_samples": 24
+    }
+  ],
+  "all_reproduced": true
+}

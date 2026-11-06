@@ -1,0 +1,10 @@
+{
+  "product_version": "V19",
+  "tests": 52,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "passed": true,
+  "seconds": 5.933,
+  "scope": "V19 synthetic geometry, inference guards, storage/review/export, Tk workflows, mocked HTTP transport; no physical camera or trained model accuracy test"
+}

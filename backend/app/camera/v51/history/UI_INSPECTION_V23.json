@@ -1,0 +1,12 @@
+{
+  "product_version": "V23",
+  "a_demo_window_observed": true,
+  "a_previous_saved_scene_observed": true,
+  "final_visual_switch_a_to_b_completed": false,
+  "stopped_by_user_escape": true,
+  "computer_use_resumed_after_escape": false,
+  "withdrawn_tk_a_b_switch_tests": true,
+  "final_all_dpi_visual_check": false,
+  "actual_photo_overlay_a12_b16_inspected_as_files": true,
+  "note": "Final photo/geometry review uses file artifacts, not further computer control."
+}

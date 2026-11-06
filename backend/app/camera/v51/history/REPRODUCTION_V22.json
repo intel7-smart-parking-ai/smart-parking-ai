@@ -1,0 +1,19 @@
+{
+  "version": "V22",
+  "results": {
+    "interrupted_resave_exported_stale_scene": 0,
+    "interrupted_review_exported_stale_scene": 0,
+    "approved_whitespace_number": {
+      "truth": "23",
+      "korean_json": 23
+    },
+    "pending_manifest_exported_scene": 0,
+    "new_batch_during_calibration": "blocked",
+    "after_stale_calibration": {
+      "auto_run": true,
+      "phase": "waiting",
+      "calibrating": false
+    }
+  },
+  "scope": "synthetic/mocked faults only; no source modifications, camera or HTTP"
+}

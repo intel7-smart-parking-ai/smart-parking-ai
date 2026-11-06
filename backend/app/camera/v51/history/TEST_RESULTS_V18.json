@@ -1,0 +1,10 @@
+{
+  "project": "smart_parking_v18",
+  "executable": "<local-path>",
+  "baseline": false,
+  "full_suite": true,
+  "tests_run": 134,
+  "failures": [],
+  "errors": [],
+  "skipped": []
+}

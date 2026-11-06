@@ -1,0 +1,656 @@
+{
+  "rubric_revision": "parking-goal-20-v1",
+  "meaning": "고정된 20개 기능 수용 기준의 충족 개수/20. 같은 가중치의 구현 체크리스트 평가이며 현장 정확도·완벽함·실사용 준비율이 아님. 코드가 있어도 정해진 수용 시험을 통과하기 전에는 새 점수를 부여하지 않음.",
+  "field_accuracy": null,
+  "field_accuracy_reason": "현재 10~99 실물 규격은 제공 캡처에서 재생 검증했다. 새 차량·조명·오주차에 대한 독립 현장 정확도는 미측정이다.",
+  "criteria": [
+    {
+      "id": "R01",
+      "name": "카메라 한 대·주차장 A/B 전환",
+      "acceptance": "입력과 주차장 전환 시 이전 장면과 ROI가 섞이지 않음",
+      "met_in": "V26"
+    },
+    {
+      "id": "R02",
+      "name": "A12/B16 전칸 이름과 표시",
+      "acceptance": "각 주차장 카탈로그·전칸 카드와 누락 상태 표시",
+      "met_in": "V26"
+    },
+    {
+      "id": "R03",
+      "name": "직각·사선 ㄷ자 기하",
+      "acceptance": "실제3면과 가상 입구를 구분하고 제공 사진28칸을 연결",
+      "met_in": "V26"
+    },
+    {
+      "id": "R04",
+      "name": "자동 칸 등록·구도 대조",
+      "acceptance": "이름/선 근거가 충분할 때 전칸 등록, 부족하면 보류",
+      "met_in": "V26"
+    },
+    {
+      "id": "R05",
+      "name": "D39 번호 후보 처리",
+      "acceptance": "같은 프레임 근거·운영번호·복수 판독·중복 검사. 실차 정확도는 별도",
+      "met_in": "V26"
+    },
+    {
+      "id": "R06",
+      "name": "스티커 배경색 후보",
+      "acceptance": "차체색과 분리하여 흰/초록/파랑 후보와 영역 저장. 실차 정확도는 별도",
+      "met_in": "V26"
+    },
+    {
+      "id": "R07",
+      "name": "점유 후보와 보류",
+      "acceptance": "모델/빈기준/스티커 근거를 구분하고 근거 없음을 빈칸으로 단정하지 않음",
+      "met_in": "V26"
+    },
+    {
+      "id": "R08",
+      "name": "후보와 사람 정답 분리",
+      "acceptance": "불확실·중복을 자동 승인하지 않고 사람 승인 이력을 보존",
+      "met_in": "V26"
+    },
+    {
+      "id": "R09",
+      "name": "통합 결과와 전용칸 경고",
+      "acceptance": "한 UI에서 전체/칸 결과와 전용칸 종류 불일치 의심 표시",
+      "met_in": "V26"
+    },
+    {
+      "id": "R10",
+      "name": "무표시 원본 보존",
+      "acceptance": "표시사진을 별도로 만들고 저장/복구/내보내기가 원본을 바꾸지 않음",
+      "met_in": "V26"
+    },
+    {
+      "id": "R11",
+      "name": "칸명 파일·한글수치 JSON",
+      "acceptance": "칸 이름 기반 같은 stem 사진/JSON에 원본좌표·번호·색·수치 연결",
+      "met_in": "V26"
+    },
+    {
+      "id": "R12",
+      "name": "장면·칸·사진 정합성",
+      "acceptance": "촬영/ROI/시각/배치/해시와 전체·개별 JSON 불일치 거부",
+      "met_in": "V26"
+    },
+    {
+      "id": "R13",
+      "name": "쓰기 중단·동일 장면 재시도",
+      "acceptance": "pending/partial을 완료로 위장하지 않고 같은 프레임 재시도에서 중복 원본 방지",
+      "met_in": "V26"
+    },
+    {
+      "id": "R14",
+      "name": "검증된 전달 묶음·수량",
+      "acceptance": "내보낸 사진/JSON 상대경로·목적지해시·완료상태·UI 수량 일치",
+      "met_in": "V26"
+    },
+    {
+      "id": "R15",
+      "name": "승인 학습 자료·평가",
+      "acceptance": "승인 크롭·배치 분할과 보류/정답수 포함 대조, 정답 없으면 정확도 미산출",
+      "met_in": "V26"
+    },
+    {
+      "id": "R16",
+      "name": "자동 품질 통과/보류 판정",
+      "acceptance": "전칸 정보·해상도·선명도·노출·번호색 일관성을 설정된 규칙으로 자동 판정하고 사유/정책/수치 저장",
+      "met_in": "V27"
+    },
+    {
+      "id": "R17",
+      "name": "선별 통과 자료 전용 내보내기",
+      "acceptance": "보류/미판정/오래된 판정을 제외하고 통과 자료만 전달, 통과·보류 수량을 UI와 실제 파일로 대조",
+      "met_in": "V27"
+    },
+    {
+      "id": "R18",
+      "name": "차량 외곽 기반 주차위반",
+      "acceptance": "실차 자료/모델로 차량 외곽을 검출하여 선침범·다중칸 점유를 정답과 대조. 배경 변화만으로 완료 처리하지 않음",
+      "met_in": null
+    },
+    {
+      "id": "R19",
+      "name": "동시 데이터 쓰기 충돌 방지",
+      "acceptance": "동일 데이터 루트의 여러 작성자 충돌을 막고 다른 루트 작업은 허용하는 프로세스 시험",
+      "met_in": "V28"
+    },
+    {
+      "id": "R20",
+      "name": "재시작 후 최초 촬영 복구",
+      "acceptance": "원본/촬영정보 쓰기 중 실제 프로세스 종료 후 재시작해 원본과 문맥을 검증하고 회수. 없는 예측은 생성하지 않음",
+      "met_in": "V28"
+    }
+  ],
+  "releases": [
+    {
+      "version": "V26",
+      "met": 15,
+      "total": 20,
+      "implementation_percent": 75.0,
+      "regression_passed": 259,
+      "regression_total": 259,
+      "fault_points_passed": 67,
+      "field_accuracy": null
+    },
+    {
+      "version": "V27",
+      "met": 17,
+      "total": 20,
+      "implementation_percent": 85,
+      "regression_passed": 286,
+      "regression_total": 286,
+      "regression_percent": 100,
+      "fault_trials_passed": 100,
+      "field_accuracy": null
+    },
+    {
+      "version": "V28",
+      "met": 19,
+      "total": 20,
+      "implementation_percent": 95,
+      "regression_passed": 331,
+      "regression_total": 331,
+      "regression_percent": 100,
+      "fault_trials_passed": 116,
+      "field_accuracy": null
+    },
+    {
+      "version": "V29",
+      "met": 19,
+      "total": 20,
+      "implementation_percent": 95,
+      "regression_passed": 350,
+      "regression_total": 350,
+      "regression_percent": 100,
+      "fault_trials_passed": 116,
+      "field_accuracy": null,
+      "note": "Final review: actual number crop gate, quality-selected training counts, unknown legacy view, bounded lock contention retry. Fixed denominator unchanged."
+    },
+    {
+      "version": "V30",
+      "met": 19,
+      "total": 20,
+      "implementation_percent": 95,
+      "regression_passed": 369,
+      "regression_total": 369,
+      "regression_percent": 100,
+      "fault_trials_passed": 116,
+      "field_accuracy": null,
+      "note": "Number crop pixel quality, sticker overlap, explicit quality-check revision and legacy recheck. Fixed denominator unchanged."
+    },
+    {
+      "version": "V31",
+      "met": 19,
+      "total": 20,
+      "implementation_percent": 95,
+      "regression_passed": 406,
+      "regression_total": 406,
+      "regression_percent": 100,
+      "fault_trials_passed": 120,
+      "field_accuracy": null,
+      "note": "ArUco registration/tracking and frame-bound evidence integrated; original rubric unchanged. 116 existing write boundaries + 4 marker enrollment interruption cases."
+    },
+    {
+      "version": "V32",
+      "met": 19,
+      "total": 20,
+      "implementation_percent": 95,
+      "regression_passed": 438,
+      "regression_total": 438,
+      "regression_percent": 100,
+      "fault_trials_passed": 120,
+      "field_accuracy": null,
+      "note": "Four reproduced integrity/count/enrollment defects corrected; 32 additional tests. Fixed feature rubric unchanged."
+    },
+    {
+      "version": "V33",
+      "met": 19,
+      "total": 20,
+      "implementation_percent": 95,
+      "regression_passed": 453,
+      "regression_total": 453,
+      "regression_percent": 100,
+      "fault_trials_passed": 120,
+      "field_accuracy": null,
+      "note": "Five reproduced capture and export issues fixed; 15 new regression tests. Fixed checklist unchanged."
+    }
+  ],
+  "additional_requirements": [
+    {
+      "id": "VIEW01",
+      "name": "천장 기본/우선 UI와 다섯 시점 선택",
+      "implemented_in": "V28",
+      "field_accuracy_measured": false
+    },
+    {
+      "id": "VIEW02",
+      "name": "시점 변경 구도 재등록·그룹 유지",
+      "implemented_in": "V28",
+      "field_accuracy_measured": false
+    },
+    {
+      "id": "VIEW03",
+      "name": "시점별 한글 폴더/사진·JSON·내보내기 연결",
+      "implemented_in": "V28",
+      "field_accuracy_measured": false
+    },
+    {
+      "id": "VIEW04",
+      "name": "시점별 수집량·품질·정답 대조/미측정 구분",
+      "implemented_in": "V28",
+      "field_accuracy_measured": false
+    },
+    {
+      "id": "VIEW05",
+      "name": "품질 통과와 사람 승인 동시 학습 내보내기",
+      "implemented_in": "V28",
+      "field_accuracy_measured": false
+    }
+  ],
+  "aruco_integration": {
+    "introduced_in": "V31",
+    "implemented": true,
+    "synthetic_tested": true,
+    "physical_marker_tested": false,
+    "vehicle_accuracy": null
+  },
+  "dual_camera_upgrade": {
+    "product_version": "V34",
+    "regression_passed": 469,
+    "regression_total": 469,
+    "new_dual_tests": 16,
+    "hardware_pair_tested": false,
+    "default_lots": [
+      "A",
+      "B"
+    ],
+    "field_accuracy": null,
+    "note": "The old 19/20 checklist concerned a single camera; no new dual-camera field score inferred."
+  },
+  "dual_camera_final_review": {
+    "product_version": "V35",
+    "regressions_passed": 488,
+    "physical_cameras_streaming": 2,
+    "live_pairs_sampled": 30,
+    "live_measurements_saved": 0,
+    "field_accuracy": null,
+    "confirmed_empty_reference_tested": true
+  },
+  "dual_camera_v36": {
+    "product_version": "V36",
+    "regressions_passed": 495,
+    "interruption_checks_passed": 120,
+    "physical_cameras_streaming": 2,
+    "live_pairs_sampled": 30,
+    "field_accuracy": null
+  },
+  "dual_camera_v37": {
+    "검증": "사진 사본에서 각 주차장 3칸씩 가림",
+    "빈기준_등록칸수": {
+      "A": 12,
+      "B": 16
+    },
+    "빈기준없이_등록칸수": {
+      "A": 11,
+      "B": 15
+    },
+    "회귀통과": 507,
+    "실차정답률": null
+  },
+  "dual_camera_v38": {
+    "기준": "저장한 빈 보드 원본",
+    "현재측정_등록칸": {
+      "A": 12,
+      "B": 0
+    },
+    "서로다른_전체보드사진": {
+      "A": 12,
+      "B": 16
+    },
+    "실차정답률": null,
+    "회귀시험": 515
+  },
+  "dual_camera_v39": {
+    "선명도70_각2장_위치등록": {
+      "A": [
+        12,
+        12
+      ],
+      "B": [
+        16,
+        16
+      ]
+    },
+    "B_전체경계": [
+      15,
+      15
+    ],
+    "일부촬영": "A-08",
+    "회귀통과": 526,
+    "실차정답률": null
+  },
+  "dual_camera_v40": {
+    "회귀통과": 535,
+    "오류주입_복구후_전달칸": 28,
+    "기존실측대조_위치등록": {
+      "A": 12,
+      "B": 16
+    },
+    "조명조정후_동일원본_최종등록": {
+      "A": 12,
+      "B": 16
+    },
+    "추가빈기준시험": {
+      "folder": "empty_20261105T073053537643Z",
+      "실측수신차_ms": [
+        10.4612,
+        9.94
+      ],
+      "단계": "빈 기준 등록",
+      "보류사유": "B 카메라 · B주차장 7/16칸 · 미등록 A-01(경계 미확인), A-02(경계 미확인), A-03(경계 미확인), A-04(경계 미확인) 외 5칸 · 해당 글씨와 주차선을 확인하세요."
+    },
+    "실차정답률": null
+  },
+  "dual_camera_v41": {
+    "등록칸": 28,
+    "제공캡처_번호와색": 11,
+    "그중_추정": 9,
+    "미등록번호_합성대조": 24,
+    "조명변형": {
+      "dark": {
+        "조건": "픽셀값 × 0.75 + 2",
+        "표시사진_JSON_대조": 28,
+        "차량": 11,
+        "번호와색_일치": 9,
+        "차량번호_보류": 2,
+        "차량번호_오판독": 0,
+        "빈칸에_번호부여": 0
+      },
+      "bright": {
+        "조건": "픽셀값 × 1.15 + 8",
+        "표시사진_JSON_대조": 28,
+        "차량": 11,
+        "번호와색_일치": 10,
+        "차량번호_보류": 1,
+        "차량번호_오판독": 0,
+        "빈칸에_번호부여": 0
+      }
+    },
+    "실물24대": null
+  },
+  "dual_camera_v42": {
+    "회귀통과": 550,
+    "차량배치_빈기준등록_차단조건수": 2,
+    "손상된표시사진_전달쌍": 0,
+    "복구후_전달칸": 28,
+    "실물추가24대": null
+  },
+  "dual_camera_v43": {
+    "회귀통과": 562,
+    "실제캡처_점유칸": 11,
+    "직접번호색일치": 2,
+    "추정번호색일치": 9,
+    "스티커밖_숫자학습크롭수": 0,
+    "V42호환_칸사진JSON수": 28,
+    "추가24대_합성번호색일치": 24,
+    "추가24대_실물": null
+  },
+  "dual_camera_v44": {
+    "회귀통과": 580,
+    "실물캡처번호색일치": 11,
+    "가상배치_같은6대반복": 12,
+    "어두운합성24대_번호색일치": 23,
+    "어두운합성24대_오답": 0,
+    "어두운합성24대_보류": 1,
+    "보드없는가상선_합성24대": {
+      "직접일치": 20,
+      "추정일치": 3,
+      "보류": 1,
+      "오답": 0,
+      "빈칸정상": 4,
+      "빈칸오번호": 0
+    },
+    "실물24대_정확도": null
+  },
+  "dual_camera_v45": {
+    "회귀통과": 594,
+    "밝기비교": {
+      "base": {
+        "direct": 2,
+        "estimated": 9,
+        "held": 0,
+        "wrong": 0,
+        "empty_false_number": 0
+      },
+      "dark": {
+        "direct": 1,
+        "estimated": 10,
+        "held": 0,
+        "wrong": 0,
+        "empty_false_number": 0
+      },
+      "bright": {
+        "direct": 1,
+        "estimated": 9,
+        "held": 1,
+        "wrong": 0,
+        "empty_false_number": 0
+      }
+    },
+    "합성24종": {
+      "direct": 19,
+      "estimated": 3,
+      "held": 2,
+      "wrong": 0,
+      "empty_false_number": 0
+    },
+    "실물신규24대정확도": null
+  },
+  "dual_camera_v46": {
+    "회귀통과": 605,
+    "기존사진": {
+      "direct": 2,
+      "estimated": 9,
+      "held": 0,
+      "wrong": 0,
+      "empty_false_number": 0
+    },
+    "합성24종": {
+      "direct": 19,
+      "estimated": 3,
+      "held": 2,
+      "wrong": 0,
+      "empty_false_number": 0
+    },
+    "실물신규24대정확도": null,
+    "실물30분연속수집": null,
+    "Geti실제학습성능": null
+  },
+  "dual_camera_v47": {
+    "회귀통과": 627,
+    "기존사진": {
+      "direct": 2,
+      "estimated": 9,
+      "held": 0,
+      "wrong": 0,
+      "empty_false_number": 0
+    },
+    "추가합성48": {
+      "direct_correct": 28,
+      "estimate_correct": 6,
+      "direct_wrong": 0,
+      "estimate_wrong": 0,
+      "held": 14,
+      "empty_false_number": 0
+    },
+    "코드고정후_합성24": {
+      "direct_correct": 19,
+      "estimate_correct": 3,
+      "direct_wrong": 0,
+      "estimate_wrong": 0,
+      "held": 2,
+      "empty_false_number": 0
+    },
+    "실물신규24대정확도": null,
+    "실물30분연속수집": null,
+    "Geti실제학습성능": null
+  },
+  "dual_camera_v48": {
+    "회귀통과": 645,
+    "신규회귀": 18,
+    "기존사진_차량11칸": {
+      "direct": 2,
+      "estimated": 9,
+      "held": 0,
+      "wrong": 0,
+      "empty_false_number": 0
+    },
+    "복수스티커_6개배치": {
+      "V47": {
+        "physical": {
+          "단독12장_번호직접일치": 12,
+          "두장동시_배치수": 6,
+          "복수인데_번호선택": 3,
+          "복수보류": 3
+        },
+        "virtual": {
+          "단독12장_번호직접일치": 12,
+          "두장동시_배치수": 6,
+          "복수인데_번호선택": 3,
+          "복수보류": 3
+        }
+      },
+      "V48": {
+        "physical": {
+          "단독12장_번호직접일치": 12,
+          "두장동시_배치수": 6,
+          "복수인데_번호선택": 0,
+          "복수보류": 6
+        },
+        "virtual": {
+          "단독12장_번호직접일치": 12,
+          "두장동시_배치수": 6,
+          "복수인데_번호선택": 0,
+          "복수보류": 6
+        }
+      }
+    },
+    "중단후판독충돌_완료내보내기쌍": 0,
+    "기존자료_동일해시파일": 102,
+    "실장비_열거수": 0,
+    "미측정": {
+      "새실물24대_인식률": null,
+      "실물조명별_경계침범정확도": null,
+      "실물30분안정성": null,
+      "센서노출동기오차": null,
+      "Geti실제학습효과": null
+    }
+  },
+  "dual_camera_v49": {
+    "전체회귀": 671,
+    "신규회귀": 26,
+    "기존실물사진11칸": {
+      "direct": 2,
+      "estimated": 9,
+      "held": 0,
+      "wrong": 0,
+      "empty_false_number": 0
+    },
+    "단독촬영_판독충돌": {
+      "수집장면": 0,
+      "학습크롭": 0,
+      "검수내보냄": 0,
+      "CSV칸": 0,
+      "감사_번호비교칸": 0,
+      "내보낼수있는번호": 0,
+      "자동복구보류": 1,
+      "저널보존": true,
+      "원본해시동일": true
+    },
+    "이번추가합성24": {
+      "direct_correct": 15,
+      "estimate_correct": 5,
+      "direct_wrong": 0,
+      "estimate_wrong": 0,
+      "held": 4,
+      "empty_false_number": 0
+    },
+    "실물현장성적": null
+  },
+  "dual_camera_v50": {
+    "전체회귀": 687,
+    "주차장별도면구역": {
+      "A": {
+        "일반": 9,
+        "전기차": 2,
+        "장애인": 1
+      },
+      "B": {
+        "일반": 12,
+        "전기차": 2,
+        "장애인": 2
+      }
+    },
+    "실장치5분": {
+      "카메라": "RealSense D435 ×2",
+      "해상도_FPS": [
+        1920,
+        1080,
+        30
+      ],
+      "측정활성_초": 300.092,
+      "선택관측수": 2792,
+      "유효쌍_최대PC수신차_ms": 16.2122,
+      "표본쌍": 6,
+      "저장후재열람쌍": 4,
+      "스티커대기쌍": 2,
+      "연결회차변경": {
+        "A": 0,
+        "B": 0
+      },
+      "저장실패": 0,
+      "모드": "표본 전부 가상 안내선",
+      "검증파일": "HARDWARE_5MIN_V50.json"
+    },
+    "기존번호11칸": {
+      "직접일치": 2,
+      "추정일치": 9,
+      "오답": 0,
+      "보류": 0,
+      "고유차량독립시험": false
+    },
+    "새합성24": {
+      "direct_correct": 15,
+      "estimate_correct": 1,
+      "direct_wrong": 0,
+      "estimate_wrong": 0,
+      "held": 8,
+      "empty_false_number": 0
+    },
+    "신규실물인식률": null,
+    "Geti학습효과": null
+  },
+  "dual_camera_v51": {
+    "회귀": 709,
+    "새Intel사진": {
+      "사진": 2,
+      "실물등록칸": 28,
+      "차량라벨": 6,
+      "번호색_직접일치": 5,
+      "번호보류": 1,
+      "색일치": 6,
+      "잘못확정한번호": 0,
+      "보류": "A주차장 B-04 흰색 87에서 87/28 방향 근거 충돌",
+      "독립현장정답표": false,
+      "시험입력_해시": {
+        "A": "19c4b6bd7d001da1d7e1da9d5c6f4f96f0c64a7ae33af095ffc7bb2dd2f0e86a",
+        "B": "11979343466cead89e3373e82ddaf1b65923cb271ee4965946ed63dc1a08ae58"
+      }
+    },
+    "추가실장치촬영": false
+  }
+}

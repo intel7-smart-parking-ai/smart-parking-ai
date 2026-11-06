@@ -1,0 +1,2832 @@
+{
+  "product_version": "V21",
+  "engine": {
+    "engine": "easyocr",
+    "version": "1.7.2",
+    "torch": "2.15.0+xpu",
+    "languages": [
+      "ko",
+      "en"
+    ],
+    "requested_device": "cpu",
+    "device": "cpu",
+    "gpu": null,
+    "fallback_reason": null
+  },
+  "total_seconds_including_load": 18.577,
+  "cases": [
+    {
+      "name": "small_green_rectangle_previous_failure",
+      "seconds": 0.341,
+      "rows": [
+        {
+          "space_id": "A-05",
+          "expected": {
+            "occupancy": "occupied",
+            "number": "23",
+            "color": "green"
+          },
+          "actual": {
+            "occupancy": "occupied",
+            "number": "23",
+            "color": "green",
+            "ocr_status": "candidate"
+          },
+          "matches": true,
+          "candidates": [
+            {
+              "text": "23",
+              "number_candidate": "23",
+              "score": 0.9416606702166058,
+              "text_bbox": [
+                54,
+                91,
+                90,
+                115
+              ],
+              "status": "candidate",
+              "method": "sticker_color",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            },
+            {
+              "text": "23",
+              "number_candidate": "23",
+              "score": 0.9576673352871297,
+              "text_bbox": [
+                54,
+                91,
+                90,
+                115
+              ],
+              "status": "candidate",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            },
+            {
+              "text": "23",
+              "number_candidate": "23",
+              "score": 0.9938267834904889,
+              "text_bbox": [
+                54,
+                91,
+                90,
+                115
+              ],
+              "status": "candidate",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            }
+          ]
+        },
+        {
+          "space_id": "B-01",
+          "expected": {
+            "occupancy": "vacant",
+            "number": null,
+            "color": "unknown"
+          },
+          "actual": {
+            "occupancy": "vacant",
+            "number": null,
+            "color": "unknown",
+            "ocr_status": "disabled"
+          },
+          "matches": true,
+          "candidates": []
+        }
+      ],
+      "errors": [],
+      "matching_rows": 2,
+      "total_rows": 2
+    },
+    {
+      "name": "synthetic_A_round_stickers",
+      "seconds": 6.75,
+      "rows": [
+        {
+          "space_id": "A-01",
+          "expected": {
+            "occupancy": "occupied",
+            "number": "23",
+            "color": "green"
+          },
+          "actual": {
+            "occupancy": "occupied",
+            "number": "23",
+            "color": "green",
+            "ocr_status": "candidate"
+          },
+          "matches": true,
+          "candidates": [
+            {
+              "text": "23",
+              "number_candidate": "23",
+              "score": 0.9999915706407035,
+              "text_bbox": [
+                79,
+                119,
+                131,
+                155
+              ],
+              "status": "candidate",
+              "method": "sticker_color",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            },
+            {
+              "text": "23",
+              "number_candidate": "23",
+              "score": 0.8731364697471552,
+              "text_bbox": [
+                81,
+                119,
+                131,
+                155
+              ],
+              "status": "candidate",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            },
+            {
+              "text": "23",
+              "number_candidate": "23",
+              "score": 0.5940193334663109,
+              "text_bbox": [
+                84,
+                121,
+                129,
+                155
+              ],
+              "status": "low_score",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 0,
+              "selected_in_view": false
+            },
+            {
+              "text": "",
+              "number_candidate": null,
+              "score": 0.0,
+              "text_bbox": [
+                78,
+                113,
+                128,
+                163
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 90,
+              "selected_in_view": false
+            },
+            {
+              "text": "4",
+              "number_candidate": null,
+              "score": 0.26844140728954713,
+              "text_bbox": [
+                75,
+                109,
+                133,
+                167
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 180,
+              "selected_in_view": false
+            },
+            {
+              "text": "23",
+              "number_candidate": "23",
+              "score": 0.9999703287475791,
+              "text_bbox": [
+                80,
+                116,
+                131,
+                158
+              ],
+              "status": "candidate",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 270,
+              "selected_in_view": true
+            }
+          ]
+        },
+        {
+          "space_id": "A-02",
+          "expected": {
+            "occupancy": "occupied",
+            "number": "42",
+            "color": "green"
+          },
+          "actual": {
+            "occupancy": "occupied",
+            "number": null,
+            "color": "green",
+            "ocr_status": "single_view_unconfirmed"
+          },
+          "matches": false,
+          "candidates": [
+            {
+              "text": "42",
+              "number_candidate": "42",
+              "score": 0.9527059221457189,
+              "text_bbox": [
+                301,
+                117,
+                352,
+                156
+              ],
+              "status": "candidate",
+              "method": "sticker_color",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            },
+            {
+              "text": "4",
+              "number_candidate": null,
+              "score": 0.764219050933125,
+              "text_bbox": [
+                298,
+                110,
+                355,
+                167
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 0,
+              "selected_in_view": false
+            },
+            {
+              "text": "8",
+              "number_candidate": null,
+              "score": 0.5382797972511675,
+              "text_bbox": [
+                302,
+                122,
+                348,
+                154
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 90,
+              "selected_in_view": false
+            },
+            {
+              "text": "6",
+              "number_candidate": null,
+              "score": 0.14963180162249046,
+              "text_bbox": [
+                297,
+                110,
+                354,
+                167
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 180,
+              "selected_in_view": false
+            },
+            {
+              "text": "8",
+              "number_candidate": null,
+              "score": 0.9042422445582474,
+              "text_bbox": [
+                298,
+                110,
+                355,
+                167
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 270,
+              "selected_in_view": false
+            },
+            {
+              "text": "4",
+              "number_candidate": null,
+              "score": 0.44395267004532357,
+              "text_bbox": [
+                299,
+                110,
+                355,
+                166
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 0,
+              "selected_in_view": false
+            },
+            {
+              "text": "4",
+              "number_candidate": null,
+              "score": 0.07422827175993518,
+              "text_bbox": [
+                299,
+                112,
+                353,
+                165
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 180,
+              "selected_in_view": false
+            },
+            {
+              "text": "8",
+              "number_candidate": null,
+              "score": 0.7582599728949369,
+              "text_bbox": [
+                299,
+                111,
+                355,
+                166
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 270,
+              "selected_in_view": false
+            }
+          ]
+        },
+        {
+          "space_id": "A-03",
+          "expected": {
+            "occupancy": "occupied",
+            "number": "57",
+            "color": "green"
+          },
+          "actual": {
+            "occupancy": "occupied",
+            "number": "57",
+            "color": "green",
+            "ocr_status": "candidate"
+          },
+          "matches": true,
+          "candidates": [
+            {
+              "text": "57",
+              "number_candidate": "57",
+              "score": 0.5513616295891962,
+              "text_bbox": [
+                522,
+                121,
+                565,
+                154
+              ],
+              "status": "low_score",
+              "method": "sticker_color",
+              "rotation_degrees": 0,
+              "selected_in_view": false
+            },
+            {
+              "text": "19",
+              "number_candidate": null,
+              "score": 0.25523502831771266,
+              "text_bbox": [
+                520,
+                118,
+                569,
+                155
+              ],
+              "status": "invalid_number",
+              "method": "sticker_color",
+              "rotation_degrees": 90,
+              "selected_in_view": false
+            },
+            {
+              "text": "29",
+              "number_candidate": null,
+              "score": 0.33138384626066947,
+              "text_bbox": [
+                521,
+                119,
+                567,
+                154
+              ],
+              "status": "invalid_number",
+              "method": "sticker_color",
+              "rotation_degrees": 180,
+              "selected_in_view": false
+            },
+            {
+              "text": "57",
+              "number_candidate": "57",
+              "score": 1.0,
+              "text_bbox": [
+                521,
+                120,
+                568,
+                155
+              ],
+              "status": "candidate",
+              "method": "sticker_color",
+              "rotation_degrees": 270,
+              "selected_in_view": true
+            },
+            {
+              "text": "81",
+              "number_candidate": null,
+              "score": 0.457738886056093,
+              "text_bbox": [
+                517,
+                110,
+                571,
+                163
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 0,
+              "selected_in_view": false
+            },
+            {
+              "text": "49",
+              "number_candidate": null,
+              "score": 0.18705951750657246,
+              "text_bbox": [
+                520,
+                118,
+                570,
+                156
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 90,
+              "selected_in_view": false
+            },
+            {
+              "text": "49",
+              "number_candidate": null,
+              "score": 0.3781543308558634,
+              "text_bbox": [
+                520,
+                119,
+                567,
+                155
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 180,
+              "selected_in_view": false
+            },
+            {
+              "text": "57",
+              "number_candidate": "57",
+              "score": 1.0,
+              "text_bbox": [
+                521,
+                119,
+                568,
+                156
+              ],
+              "status": "candidate",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 270,
+              "selected_in_view": true
+            },
+            {
+              "text": "8",
+              "number_candidate": null,
+              "score": 0.9769070719396531,
+              "text_bbox": [
+                518,
+                112,
+                569,
+                163
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 0,
+              "selected_in_view": false
+            },
+            {
+              "text": "29",
+              "number_candidate": null,
+              "score": 0.23410226598207057,
+              "text_bbox": [
+                519,
+                119,
+                567,
+                155
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 90,
+              "selected_in_view": false
+            },
+            {
+              "text": "29",
+              "number_candidate": null,
+              "score": 0.5890970112717386,
+              "text_bbox": [
+                521,
+                118,
+                566,
+                155
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 180,
+              "selected_in_view": false
+            },
+            {
+              "text": "95",
+              "number_candidate": null,
+              "score": 0.09401787907538309,
+              "text_bbox": [
+                517,
+                109,
+                573,
+                165
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 270,
+              "selected_in_view": false
+            }
+          ]
+        },
+        {
+          "space_id": "A-04",
+          "expected": {
+            "occupancy": "occupied",
+            "number": "85",
+            "color": "green"
+          },
+          "actual": {
+            "occupancy": "occupied",
+            "number": "85",
+            "color": "green",
+            "ocr_status": "candidate"
+          },
+          "matches": true,
+          "candidates": [
+            {
+              "text": "85",
+              "number_candidate": "85",
+              "score": 0.999999915706304,
+              "text_bbox": [
+                740,
+                119,
+                791,
+                155
+              ],
+              "status": "candidate",
+              "method": "sticker_color",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            },
+            {
+              "text": "85",
+              "number_candidate": "85",
+              "score": 0.999999915706304,
+              "text_bbox": [
+                741,
+                120,
+                790,
+                155
+              ],
+              "status": "candidate",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            },
+            {
+              "text": "85",
+              "number_candidate": "85",
+              "score": 0.9999996628252286,
+              "text_bbox": [
+                741,
+                119,
+                791,
+                156
+              ],
+              "status": "candidate",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            }
+          ]
+        },
+        {
+          "space_id": "A-05",
+          "expected": {
+            "occupancy": "occupied",
+            "number": "14",
+            "color": "blue"
+          },
+          "actual": {
+            "occupancy": "occupied",
+            "number": null,
+            "color": "blue",
+            "ocr_status": "conflicting_views"
+          },
+          "matches": false,
+          "candidates": [
+            {
+              "text": "14",
+              "number_candidate": "14",
+              "score": 0.7249712347984314,
+              "text_bbox": [
+                961,
+                120,
+                1010,
+                155
+              ],
+              "status": "candidate",
+              "method": "sticker_color",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            },
+            {
+              "text": "8",
+              "number_candidate": null,
+              "score": 0.25060224997174885,
+              "text_bbox": [
+                961,
+                119,
+                1011,
+                155
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 0,
+              "selected_in_view": false
+            },
+            {
+              "text": "85",
+              "number_candidate": "85",
+              "score": 0.8764793911963429,
+              "text_bbox": [
+                961,
+                120,
+                1010,
+                155
+              ],
+              "status": "candidate",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 90,
+              "selected_in_view": true
+            },
+            {
+              "text": "4",
+              "number_candidate": null,
+              "score": 0.9375447225695019,
+              "text_bbox": [
+                957,
+                109,
+                1015,
+                167
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 0,
+              "selected_in_view": false
+            },
+            {
+              "text": "1",
+              "number_candidate": null,
+              "score": 0.06764460335952904,
+              "text_bbox": [
+                961,
+                121,
+                1009,
+                154
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 90,
+              "selected_in_view": false
+            },
+            {
+              "text": "",
+              "number_candidate": null,
+              "score": 0.0,
+              "text_bbox": [
+                956,
+                109,
+                1013,
+                167
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 180,
+              "selected_in_view": false
+            },
+            {
+              "text": "14",
+              "number_candidate": "14",
+              "score": 0.9175045581070518,
+              "text_bbox": [
+                962,
+                121,
+                1010,
+                155
+              ],
+              "status": "candidate",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 270,
+              "selected_in_view": true
+            }
+          ]
+        },
+        {
+          "space_id": "A-06",
+          "expected": {
+            "occupancy": "occupied",
+            "number": "32",
+            "color": "blue"
+          },
+          "actual": {
+            "occupancy": "occupied",
+            "number": "32",
+            "color": "blue",
+            "ocr_status": "candidate"
+          },
+          "matches": true,
+          "candidates": [
+            {
+              "text": "32",
+              "number_candidate": "32",
+              "score": 0.9999878617292061,
+              "text_bbox": [
+                1179,
+                117,
+                1231,
+                157
+              ],
+              "status": "candidate",
+              "method": "sticker_color",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            },
+            {
+              "text": "32",
+              "number_candidate": "32",
+              "score": 0.9999940994463072,
+              "text_bbox": [
+                1179,
+                117,
+                1232,
+                158
+              ],
+              "status": "candidate",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            },
+            {
+              "text": "3",
+              "number_candidate": null,
+              "score": 0.6789523287204169,
+              "text_bbox": [
+                1177,
+                109,
+                1234,
+                167
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 0,
+              "selected_in_view": false
+            },
+            {
+              "text": "7",
+              "number_candidate": null,
+              "score": 0.9985938250631534,
+              "text_bbox": [
+                1178,
+                117,
+                1231,
+                158
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 180,
+              "selected_in_view": false
+            },
+            {
+              "text": "32",
+              "number_candidate": "32",
+              "score": 0.9905530904369384,
+              "text_bbox": [
+                1180,
+                119,
+                1230,
+                156
+              ],
+              "status": "candidate",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 270,
+              "selected_in_view": true
+            }
+          ]
+        },
+        {
+          "space_id": "B-01",
+          "expected": {
+            "occupancy": "occupied",
+            "number": "55",
+            "color": "blue"
+          },
+          "actual": {
+            "occupancy": "occupied",
+            "number": "55",
+            "color": "blue",
+            "ocr_status": "candidate"
+          },
+          "matches": true,
+          "candidates": [
+            {
+              "text": "55",
+              "number_candidate": "55",
+              "score": 0.9999995785315409,
+              "text_bbox": [
+                81,
+                410,
+                130,
+                445
+              ],
+              "status": "candidate",
+              "method": "sticker_color",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            },
+            {
+              "text": "55",
+              "number_candidate": "55",
+              "score": 0.9999985670074514,
+              "text_bbox": [
+                80,
+                408,
+                131,
+                446
+              ],
+              "status": "candidate",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            },
+            {
+              "text": "55",
+              "number_candidate": "55",
+              "score": 0.9999991570631338,
+              "text_bbox": [
+                80,
+                408,
+                131,
+                446
+              ],
+              "status": "candidate",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            }
+          ]
+        },
+        {
+          "space_id": "B-02",
+          "expected": {
+            "occupancy": "occupied",
+            "number": "75",
+            "color": "blue"
+          },
+          "actual": {
+            "occupancy": "occupied",
+            "number": "75",
+            "color": "blue",
+            "ocr_status": "candidate"
+          },
+          "matches": true,
+          "candidates": [
+            {
+              "text": "75",
+              "number_candidate": "75",
+              "score": 0.9999882831962188,
+              "text_bbox": [
+                300,
+                407,
+                351,
+                446
+              ],
+              "status": "candidate",
+              "method": "sticker_color",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            },
+            {
+              "text": "75",
+              "number_candidate": "75",
+              "score": 0.9999943523269706,
+              "text_bbox": [
+                300,
+                409,
+                351,
+                445
+              ],
+              "status": "candidate",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            },
+            {
+              "text": "4",
+              "number_candidate": null,
+              "score": 0.8967450424067955,
+              "text_bbox": [
+                297,
+                398,
+                354,
+                455
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 0,
+              "selected_in_view": false
+            },
+            {
+              "text": "8",
+              "number_candidate": null,
+              "score": 0.9638760368247326,
+              "text_bbox": [
+                302,
+                410,
+                348,
+                444
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 90,
+              "selected_in_view": false
+            },
+            {
+              "text": "4",
+              "number_candidate": null,
+              "score": 0.3937566958309482,
+              "text_bbox": [
+                295,
+                397,
+                354,
+                456
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 180,
+              "selected_in_view": false
+            },
+            {
+              "text": "",
+              "number_candidate": null,
+              "score": 0.0,
+              "text_bbox": [
+                300,
+                409,
+                350,
+                446
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 270,
+              "selected_in_view": false
+            }
+          ]
+        },
+        {
+          "space_id": "B-03",
+          "expected": {
+            "occupancy": "occupied",
+            "number": "10",
+            "color": "white"
+          },
+          "actual": {
+            "occupancy": "occupied",
+            "number": "10",
+            "color": "white",
+            "ocr_status": "candidate"
+          },
+          "matches": true,
+          "candidates": [
+            {
+              "text": "10",
+              "number_candidate": "10",
+              "score": 0.9999998314126102,
+              "text_bbox": [
+                521,
+                410,
+                570,
+                445
+              ],
+              "status": "candidate",
+              "method": "sticker_color",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            },
+            {
+              "text": "10",
+              "number_candidate": "10",
+              "score": 0.999999915706304,
+              "text_bbox": [
+                521,
+                409,
+                571,
+                446
+              ],
+              "status": "candidate",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            },
+            {
+              "text": "1",
+              "number_candidate": null,
+              "score": 0.6351915038750953,
+              "text_bbox": [
+                517,
+                399,
+                574,
+                457
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 0,
+              "selected_in_view": false
+            },
+            {
+              "text": "05",
+              "number_candidate": null,
+              "score": 0.968148046683633,
+              "text_bbox": [
+                520,
+                410,
+                570,
+                445
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 90,
+              "selected_in_view": false
+            },
+            {
+              "text": "05",
+              "number_candidate": null,
+              "score": 0.3565366404161837,
+              "text_bbox": [
+                521,
+                410,
+                567,
+                444
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 180,
+              "selected_in_view": false
+            },
+            {
+              "text": "10",
+              "number_candidate": "10",
+              "score": 0.9999957853177504,
+              "text_bbox": [
+                521,
+                408,
+                570,
+                446
+              ],
+              "status": "candidate",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 270,
+              "selected_in_view": true
+            }
+          ]
+        },
+        {
+          "space_id": "B-04",
+          "expected": {
+            "occupancy": "occupied",
+            "number": "11",
+            "color": "white"
+          },
+          "actual": {
+            "occupancy": "occupied",
+            "number": "11",
+            "color": "white",
+            "ocr_status": "candidate"
+          },
+          "matches": true,
+          "candidates": [
+            {
+              "text": "11",
+              "number_candidate": "11",
+              "score": 0.9999932565108979,
+              "text_bbox": [
+                740,
+                409,
+                790,
+                446
+              ],
+              "status": "candidate",
+              "method": "sticker_color",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            },
+            {
+              "text": "5",
+              "number_candidate": null,
+              "score": 0.4511126715102023,
+              "text_bbox": [
+                741,
+                410,
+                789,
+                446
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 0,
+              "selected_in_view": false
+            },
+            {
+              "text": "5",
+              "number_candidate": null,
+              "score": 0.3962330695395764,
+              "text_bbox": [
+                741,
+                411,
+                788,
+                445
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 90,
+              "selected_in_view": false
+            },
+            {
+              "text": "97",
+              "number_candidate": null,
+              "score": 0.15763851869145393,
+              "text_bbox": [
+                740,
+                410,
+                787,
+                446
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 180,
+              "selected_in_view": false
+            },
+            {
+              "text": "11",
+              "number_candidate": "11",
+              "score": 0.9999994099441718,
+              "text_bbox": [
+                741,
+                410,
+                788,
+                445
+              ],
+              "status": "candidate",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 270,
+              "selected_in_view": true
+            },
+            {
+              "text": "11",
+              "number_candidate": "11",
+              "score": 0.9999988198884456,
+              "text_bbox": [
+                742,
+                409,
+                788,
+                447
+              ],
+              "status": "candidate",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            }
+          ]
+        },
+        {
+          "space_id": "B-05",
+          "expected": {
+            "occupancy": "occupied",
+            "number": "12",
+            "color": "white"
+          },
+          "actual": {
+            "occupancy": "occupied",
+            "number": "12",
+            "color": "white",
+            "ocr_status": "candidate"
+          },
+          "matches": true,
+          "candidates": [
+            {
+              "text": "12",
+              "number_candidate": "12",
+              "score": 0.5774296416013197,
+              "text_bbox": [
+                961,
+                410,
+                1010,
+                445
+              ],
+              "status": "low_score",
+              "method": "sticker_color",
+              "rotation_degrees": 0,
+              "selected_in_view": false
+            },
+            {
+              "text": "9",
+              "number_candidate": null,
+              "score": 0.40609957313620626,
+              "text_bbox": [
+                960,
+                410,
+                1010,
+                446
+              ],
+              "status": "invalid_number",
+              "method": "sticker_color",
+              "rotation_degrees": 90,
+              "selected_in_view": false
+            },
+            {
+              "text": "6",
+              "number_candidate": null,
+              "score": 0.11731541714695837,
+              "text_bbox": [
+                955,
+                399,
+                1014,
+                458
+              ],
+              "status": "invalid_number",
+              "method": "sticker_color",
+              "rotation_degrees": 180,
+              "selected_in_view": false
+            },
+            {
+              "text": "12",
+              "number_candidate": "12",
+              "score": 1.0,
+              "text_bbox": [
+                960,
+                408,
+                1010,
+                447
+              ],
+              "status": "candidate",
+              "method": "sticker_color",
+              "rotation_degrees": 270,
+              "selected_in_view": true
+            },
+            {
+              "text": "12",
+              "number_candidate": "12",
+              "score": 1.0,
+              "text_bbox": [
+                961,
+                410,
+                1010,
+                445
+              ],
+              "status": "candidate",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            },
+            {
+              "text": "4",
+              "number_candidate": null,
+              "score": 0.9523920836767417,
+              "text_bbox": [
+                957,
+                399,
+                1015,
+                457
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 0,
+              "selected_in_view": false
+            },
+            {
+              "text": "9",
+              "number_candidate": null,
+              "score": 0.7837162691617436,
+              "text_bbox": [
+                961,
+                410,
+                1005,
+                444
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 90,
+              "selected_in_view": false
+            },
+            {
+              "text": "6",
+              "number_candidate": null,
+              "score": 0.10243925241810814,
+              "text_bbox": [
+                956,
+                398,
+                1014,
+                456
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 180,
+              "selected_in_view": false
+            },
+            {
+              "text": "12",
+              "number_candidate": "12",
+              "score": 0.5617804879012422,
+              "text_bbox": [
+                961,
+                408,
+                1010,
+                445
+              ],
+              "status": "low_score",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 270,
+              "selected_in_view": false
+            }
+          ]
+        },
+        {
+          "space_id": "B-06",
+          "expected": {
+            "occupancy": "occupied",
+            "number": "20",
+            "color": "white"
+          },
+          "actual": {
+            "occupancy": "occupied",
+            "number": "20",
+            "color": "white",
+            "ocr_status": "candidate"
+          },
+          "matches": true,
+          "candidates": [
+            {
+              "text": "20",
+              "number_candidate": "20",
+              "score": 0.9999988198884456,
+              "text_bbox": [
+                1180,
+                408,
+                1230,
+                445
+              ],
+              "status": "candidate",
+              "method": "sticker_color",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            },
+            {
+              "text": "20",
+              "number_candidate": "20",
+              "score": 0.9999996628252286,
+              "text_bbox": [
+                1181,
+                408,
+                1230,
+                445
+              ],
+              "status": "candidate",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            },
+            {
+              "text": "20",
+              "number_candidate": "20",
+              "score": 0.9999994099441718,
+              "text_bbox": [
+                1181,
+                408,
+                1229,
+                445
+              ],
+              "status": "candidate",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            }
+          ]
+        }
+      ],
+      "errors": [],
+      "matching_rows": 10,
+      "total_rows": 12
+    },
+    {
+      "name": "synthetic_B_round_stickers",
+      "seconds": 6.312,
+      "rows": [
+        {
+          "space_id": "A-01",
+          "expected": {
+            "occupancy": "occupied",
+            "number": "21",
+            "color": "white"
+          },
+          "actual": {
+            "occupancy": "occupied",
+            "number": "21",
+            "color": "white",
+            "ocr_status": "candidate"
+          },
+          "matches": true,
+          "candidates": [
+            {
+              "text": "21",
+              "number_candidate": "21",
+              "score": 0.9899209336386816,
+              "text_bbox": [
+                80,
+                117,
+                130,
+                156
+              ],
+              "status": "candidate",
+              "method": "sticker_color",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            },
+            {
+              "text": "4",
+              "number_candidate": null,
+              "score": 0.1404535697147935,
+              "text_bbox": [
+                76,
+                110,
+                134,
+                167
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 0,
+              "selected_in_view": false
+            },
+            {
+              "text": "97",
+              "number_candidate": null,
+              "score": 0.12533317187131485,
+              "text_bbox": [
+                80,
+                121,
+                128,
+                156
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 90,
+              "selected_in_view": false
+            },
+            {
+              "text": "9",
+              "number_candidate": null,
+              "score": 0.3828687194421754,
+              "text_bbox": [
+                79,
+                119,
+                128,
+                156
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 180,
+              "selected_in_view": false
+            },
+            {
+              "text": "8",
+              "number_candidate": null,
+              "score": 0.9648548259292511,
+              "text_bbox": [
+                80,
+                119,
+                129,
+                155
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 270,
+              "selected_in_view": false
+            },
+            {
+              "text": "2",
+              "number_candidate": null,
+              "score": 0.38863064747035025,
+              "text_bbox": [
+                77,
+                111,
+                133,
+                166
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 0,
+              "selected_in_view": false
+            },
+            {
+              "text": "8",
+              "number_candidate": null,
+              "score": 0.39252877663273367,
+              "text_bbox": [
+                80,
+                121,
+                127,
+                155
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 90,
+              "selected_in_view": false
+            },
+            {
+              "text": "4",
+              "number_candidate": null,
+              "score": 0.30877102917293087,
+              "text_bbox": [
+                75,
+                110,
+                132,
+                167
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 180,
+              "selected_in_view": false
+            },
+            {
+              "text": "21",
+              "number_candidate": "21",
+              "score": 0.999999915706304,
+              "text_bbox": [
+                81,
+                119,
+                128,
+                156
+              ],
+              "status": "candidate",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 270,
+              "selected_in_view": true
+            }
+          ]
+        },
+        {
+          "space_id": "A-02",
+          "expected": {
+            "occupancy": "occupied",
+            "number": "22",
+            "color": "white"
+          },
+          "actual": {
+            "occupancy": "occupied",
+            "number": "22",
+            "color": "white",
+            "ocr_status": "candidate"
+          },
+          "matches": true,
+          "candidates": [
+            {
+              "text": "22",
+              "number_candidate": "22",
+              "score": 0.656232012336801,
+              "text_bbox": [
+                300,
+                117,
+                351,
+                156
+              ],
+              "status": "low_score",
+              "method": "sticker_color",
+              "rotation_degrees": 0,
+              "selected_in_view": false
+            },
+            {
+              "text": "8",
+              "number_candidate": null,
+              "score": 0.9995860289892597,
+              "text_bbox": [
+                301,
+                120,
+                351,
+                156
+              ],
+              "status": "invalid_number",
+              "method": "sticker_color",
+              "rotation_degrees": 90,
+              "selected_in_view": false
+            },
+            {
+              "text": "77",
+              "number_candidate": null,
+              "score": 0.5434373776031842,
+              "text_bbox": [
+                298,
+                119,
+                351,
+                158
+              ],
+              "status": "invalid_number",
+              "method": "sticker_color",
+              "rotation_degrees": 180,
+              "selected_in_view": false
+            },
+            {
+              "text": "22",
+              "number_candidate": "22",
+              "score": 1.0,
+              "text_bbox": [
+                300,
+                119,
+                350,
+                156
+              ],
+              "status": "candidate",
+              "method": "sticker_color",
+              "rotation_degrees": 270,
+              "selected_in_view": true
+            },
+            {
+              "text": "22",
+              "number_candidate": "22",
+              "score": 0.7355203397213805,
+              "text_bbox": [
+                300,
+                117,
+                351,
+                156
+              ],
+              "status": "candidate",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            },
+            {
+              "text": "22",
+              "number_candidate": "22",
+              "score": 0.9891077393721361,
+              "text_bbox": [
+                303,
+                119,
+                349,
+                155
+              ],
+              "status": "candidate",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            }
+          ]
+        },
+        {
+          "space_id": "A-03",
+          "expected": {
+            "occupancy": "occupied",
+            "number": "24",
+            "color": "white"
+          },
+          "actual": {
+            "occupancy": "occupied",
+            "number": null,
+            "color": "white",
+            "ocr_status": "single_view_unconfirmed"
+          },
+          "matches": false,
+          "candidates": [
+            {
+              "text": "24",
+              "number_candidate": "24",
+              "score": 0.6317253708839417,
+              "text_bbox": [
+                521,
+                119,
+                570,
+                154
+              ],
+              "status": "low_score",
+              "method": "sticker_color",
+              "rotation_degrees": 0,
+              "selected_in_view": false
+            },
+            {
+              "text": "8",
+              "number_candidate": null,
+              "score": 0.29931254852622047,
+              "text_bbox": [
+                521,
+                120,
+                570,
+                156
+              ],
+              "status": "invalid_number",
+              "method": "sticker_color",
+              "rotation_degrees": 90,
+              "selected_in_view": false
+            },
+            {
+              "text": "8",
+              "number_candidate": null,
+              "score": 0.7085105946288337,
+              "text_bbox": [
+                519,
+                120,
+                570,
+                155
+              ],
+              "status": "invalid_number",
+              "method": "sticker_color",
+              "rotation_degrees": 180,
+              "selected_in_view": false
+            },
+            {
+              "text": "24",
+              "number_candidate": "24",
+              "score": 0.522766673791431,
+              "text_bbox": [
+                521,
+                119,
+                569,
+                155
+              ],
+              "status": "low_score",
+              "method": "sticker_color",
+              "rotation_degrees": 270,
+              "selected_in_view": false
+            },
+            {
+              "text": "24",
+              "number_candidate": "24",
+              "score": 0.9229634346791158,
+              "text_bbox": [
+                521,
+                118,
+                571,
+                155
+              ],
+              "status": "candidate",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            },
+            {
+              "text": "24",
+              "number_candidate": "24",
+              "score": 0.5989717145851163,
+              "text_bbox": [
+                516,
+                108,
+                575,
+                167
+              ],
+              "status": "low_score",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 0,
+              "selected_in_view": false
+            },
+            {
+              "text": "8",
+              "number_candidate": null,
+              "score": 0.25535656789088534,
+              "text_bbox": [
+                517,
+                109,
+                574,
+                167
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 90,
+              "selected_in_view": false
+            },
+            {
+              "text": "3",
+              "number_candidate": null,
+              "score": 0.5669510451497359,
+              "text_bbox": [
+                514,
+                108,
+                574,
+                167
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 180,
+              "selected_in_view": false
+            },
+            {
+              "text": "8",
+              "number_candidate": null,
+              "score": 0.31873370982147264,
+              "text_bbox": [
+                522,
+                120,
+                570,
+                155
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 270,
+              "selected_in_view": false
+            }
+          ]
+        },
+        {
+          "space_id": "A-04",
+          "expected": {
+            "occupancy": "occupied",
+            "number": "30",
+            "color": "white"
+          },
+          "actual": {
+            "occupancy": "occupied",
+            "number": "30",
+            "color": "white",
+            "ocr_status": "candidate"
+          },
+          "matches": true,
+          "candidates": [
+            {
+              "text": "30",
+              "number_candidate": "30",
+              "score": 0.9997188920942879,
+              "text_bbox": [
+                740,
+                119,
+                790,
+                154
+              ],
+              "status": "candidate",
+              "method": "sticker_color",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            },
+            {
+              "text": "30",
+              "number_candidate": "30",
+              "score": 0.4664074778556824,
+              "text_bbox": [
+                740,
+                118,
+                790,
+                155
+              ],
+              "status": "low_score",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 0,
+              "selected_in_view": false
+            },
+            {
+              "text": "8",
+              "number_candidate": null,
+              "score": 0.9979382662370426,
+              "text_bbox": [
+                739,
+                120,
+                790,
+                155
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 90,
+              "selected_in_view": false
+            },
+            {
+              "text": "02",
+              "number_candidate": null,
+              "score": 0.40459894208619823,
+              "text_bbox": [
+                738,
+                118,
+                789,
+                156
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 180,
+              "selected_in_view": false
+            },
+            {
+              "text": "8",
+              "number_candidate": null,
+              "score": 0.9978893223525667,
+              "text_bbox": [
+                740,
+                119,
+                790,
+                155
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 270,
+              "selected_in_view": false
+            },
+            {
+              "text": "30",
+              "number_candidate": "30",
+              "score": 0.9994952866555094,
+              "text_bbox": [
+                741,
+                120,
+                789,
+                155
+              ],
+              "status": "candidate",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            }
+          ]
+        },
+        {
+          "space_id": "A-05",
+          "expected": {
+            "occupancy": "occupied",
+            "number": "33",
+            "color": "white"
+          },
+          "actual": {
+            "occupancy": "occupied",
+            "number": "33",
+            "color": "white",
+            "ocr_status": "candidate"
+          },
+          "matches": true,
+          "candidates": [
+            {
+              "text": "33",
+              "number_candidate": "33",
+              "score": 0.9995861430351197,
+              "text_bbox": [
+                961,
+                120,
+                1010,
+                155
+              ],
+              "status": "candidate",
+              "method": "sticker_color",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            },
+            {
+              "text": "33",
+              "number_candidate": "33",
+              "score": 0.9999013777989344,
+              "text_bbox": [
+                961,
+                120,
+                1010,
+                155
+              ],
+              "status": "candidate",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            },
+            {
+              "text": "5",
+              "number_candidate": null,
+              "score": 0.2303208606025473,
+              "text_bbox": [
+                957,
+                110,
+                1013,
+                165
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 0,
+              "selected_in_view": false
+            },
+            {
+              "text": "8",
+              "number_candidate": null,
+              "score": 0.9825050307060934,
+              "text_bbox": [
+                960,
+                119,
+                1010,
+                155
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 270,
+              "selected_in_view": false
+            }
+          ]
+        },
+        {
+          "space_id": "A-06",
+          "expected": {
+            "occupancy": "occupied",
+            "number": "34",
+            "color": "white"
+          },
+          "actual": {
+            "occupancy": "occupied",
+            "number": "34",
+            "color": "white",
+            "ocr_status": "candidate"
+          },
+          "matches": true,
+          "candidates": [
+            {
+              "text": "34",
+              "number_candidate": "34",
+              "score": 0.6329919425641481,
+              "text_bbox": [
+                1181,
+                119,
+                1230,
+                154
+              ],
+              "status": "low_score",
+              "method": "sticker_color",
+              "rotation_degrees": 0,
+              "selected_in_view": false
+            },
+            {
+              "text": "8",
+              "number_candidate": null,
+              "score": 0.1373150157092482,
+              "text_bbox": [
+                1180,
+                120,
+                1231,
+                155
+              ],
+              "status": "invalid_number",
+              "method": "sticker_color",
+              "rotation_degrees": 90,
+              "selected_in_view": false
+            },
+            {
+              "text": "8",
+              "number_candidate": null,
+              "score": 0.09964862985809564,
+              "text_bbox": [
+                1177,
+                117,
+                1232,
+                158
+              ],
+              "status": "invalid_number",
+              "method": "sticker_color",
+              "rotation_degrees": 180,
+              "selected_in_view": false
+            },
+            {
+              "text": "9",
+              "number_candidate": null,
+              "score": 0.7121728856624578,
+              "text_bbox": [
+                1179,
+                119,
+                1230,
+                155
+              ],
+              "status": "invalid_number",
+              "method": "sticker_color",
+              "rotation_degrees": 270,
+              "selected_in_view": false
+            },
+            {
+              "text": "34",
+              "number_candidate": "34",
+              "score": 0.7357195518451184,
+              "text_bbox": [
+                1181,
+                120,
+                1231,
+                154
+              ],
+              "status": "candidate",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            },
+            {
+              "text": "34",
+              "number_candidate": "34",
+              "score": 0.9977586209524217,
+              "text_bbox": [
+                1180,
+                118,
+                1230,
+                155
+              ],
+              "status": "candidate",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            }
+          ]
+        },
+        {
+          "space_id": "A-07",
+          "expected": {
+            "occupancy": "occupied",
+            "number": "40",
+            "color": "white"
+          },
+          "actual": {
+            "occupancy": "occupied",
+            "number": "40",
+            "color": "white",
+            "ocr_status": "candidate"
+          },
+          "matches": true,
+          "candidates": [
+            {
+              "text": "40",
+              "number_candidate": "40",
+              "score": 0.9999994942378553,
+              "text_bbox": [
+                1402,
+                120,
+                1450,
+                154
+              ],
+              "status": "candidate",
+              "method": "sticker_color",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            },
+            {
+              "text": "40",
+              "number_candidate": "40",
+              "score": 0.9012058997518086,
+              "text_bbox": [
+                1398,
+                110,
+                1454,
+                166
+              ],
+              "status": "candidate",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            },
+            {
+              "text": "40",
+              "number_candidate": "40",
+              "score": 0.9999996628252286,
+              "text_bbox": [
+                1403,
+                120,
+                1449,
+                154
+              ],
+              "status": "candidate",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            }
+          ]
+        },
+        {
+          "space_id": "A-08",
+          "expected": {
+            "occupancy": "occupied",
+            "number": "41",
+            "color": "white"
+          },
+          "actual": {
+            "occupancy": "occupied",
+            "number": "41",
+            "color": "white",
+            "ocr_status": "candidate"
+          },
+          "matches": true,
+          "candidates": [
+            {
+              "text": "41",
+              "number_candidate": "41",
+              "score": 0.9999994099441718,
+              "text_bbox": [
+                1621,
+                117,
+                1672,
+                157
+              ],
+              "status": "candidate",
+              "method": "sticker_color",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            },
+            {
+              "text": "41",
+              "number_candidate": "41",
+              "score": 0.9999997471189183,
+              "text_bbox": [
+                1621,
+                119,
+                1670,
+                156
+              ],
+              "status": "candidate",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            },
+            {
+              "text": "4",
+              "number_candidate": null,
+              "score": 0.45517556192875475,
+              "text_bbox": [
+                1618,
+                111,
+                1674,
+                167
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 0,
+              "selected_in_view": false
+            },
+            {
+              "text": "74",
+              "number_candidate": null,
+              "score": 0.2859415679401939,
+              "text_bbox": [
+                1622,
+                122,
+                1666,
+                154
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 90,
+              "selected_in_view": false
+            },
+            {
+              "text": "6",
+              "number_candidate": null,
+              "score": 0.18584948059016426,
+              "text_bbox": [
+                1617,
+                111,
+                1673,
+                166
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 180,
+              "selected_in_view": false
+            },
+            {
+              "text": "9",
+              "number_candidate": null,
+              "score": 0.48119647441593827,
+              "text_bbox": [
+                1624,
+                122,
+                1668,
+                153
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 270,
+              "selected_in_view": false
+            }
+          ]
+        },
+        {
+          "space_id": "B-01",
+          "expected": {
+            "occupancy": "occupied",
+            "number": "43",
+            "color": "white"
+          },
+          "actual": {
+            "occupancy": "occupied",
+            "number": "43",
+            "color": "white",
+            "ocr_status": "candidate"
+          },
+          "matches": true,
+          "candidates": [
+            {
+              "text": "43",
+              "number_candidate": "43",
+              "score": 0.9999978926582248,
+              "text_bbox": [
+                81,
+                410,
+                131,
+                445
+              ],
+              "status": "candidate",
+              "method": "sticker_color",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            },
+            {
+              "text": "43",
+              "number_candidate": "43",
+              "score": 0.9999983141264758,
+              "text_bbox": [
+                81,
+                409,
+                131,
+                445
+              ],
+              "status": "candidate",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            },
+            {
+              "text": "05",
+              "number_candidate": null,
+              "score": 0.7782178697178161,
+              "text_bbox": [
+                83,
+                403,
+                132,
+                452
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 0,
+              "selected_in_view": false
+            },
+            {
+              "text": "43",
+              "number_candidate": "43",
+              "score": 0.6259343443942353,
+              "text_bbox": [
+                84,
+                411,
+                130,
+                443
+              ],
+              "status": "low_score",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 270,
+              "selected_in_view": false
+            }
+          ]
+        },
+        {
+          "space_id": "B-02",
+          "expected": {
+            "occupancy": "occupied",
+            "number": "44",
+            "color": "white"
+          },
+          "actual": {
+            "occupancy": "occupied",
+            "number": null,
+            "color": "white",
+            "ocr_status": "single_view_unconfirmed"
+          },
+          "matches": false,
+          "candidates": [
+            {
+              "text": "44",
+              "number_candidate": "44",
+              "score": 1.0,
+              "text_bbox": [
+                302,
+                410,
+                351,
+                444
+              ],
+              "status": "candidate",
+              "method": "sticker_color",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            },
+            {
+              "text": "44",
+              "number_candidate": "44",
+              "score": 0.6957415694450862,
+              "text_bbox": [
+                303,
+                410,
+                350,
+                444
+              ],
+              "status": "low_score",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 0,
+              "selected_in_view": false
+            },
+            {
+              "text": "8",
+              "number_candidate": null,
+              "score": 0.5531314885941505,
+              "text_bbox": [
+                301,
+                402,
+                353,
+                455
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 90,
+              "selected_in_view": false
+            },
+            {
+              "text": "8",
+              "number_candidate": null,
+              "score": 0.2896157645878361,
+              "text_bbox": [
+                298,
+                400,
+                354,
+                455
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 180,
+              "selected_in_view": false
+            },
+            {
+              "text": "8",
+              "number_candidate": null,
+              "score": 0.35683151031836147,
+              "text_bbox": [
+                302,
+                412,
+                350,
+                444
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 270,
+              "selected_in_view": false
+            },
+            {
+              "text": "24",
+              "number_candidate": "24",
+              "score": 0.5268796765086001,
+              "text_bbox": [
+                301,
+                402,
+                353,
+                454
+              ],
+              "status": "low_score",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 0,
+              "selected_in_view": false
+            }
+          ]
+        },
+        {
+          "space_id": "B-03",
+          "expected": {
+            "occupancy": "occupied",
+            "number": "58",
+            "color": "white"
+          },
+          "actual": {
+            "occupancy": "occupied",
+            "number": "58",
+            "color": "white",
+            "ocr_status": "candidate"
+          },
+          "matches": true,
+          "candidates": [
+            {
+              "text": "58",
+              "number_candidate": "58",
+              "score": 0.999999915706304,
+              "text_bbox": [
+                521,
+                409,
+                571,
+                445
+              ],
+              "status": "candidate",
+              "method": "sticker_color",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            },
+            {
+              "text": "58",
+              "number_candidate": "58",
+              "score": 0.9999998314126102,
+              "text_bbox": [
+                521,
+                410,
+                570,
+                445
+              ],
+              "status": "candidate",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            },
+            {
+              "text": "58",
+              "number_candidate": "58",
+              "score": 1.0,
+              "text_bbox": [
+                520,
+                408,
+                570,
+                446
+              ],
+              "status": "candidate",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            }
+          ]
+        },
+        {
+          "space_id": "B-04",
+          "expected": {
+            "occupancy": "occupied",
+            "number": "88",
+            "color": "white"
+          },
+          "actual": {
+            "occupancy": "occupied",
+            "number": "88",
+            "color": "white",
+            "ocr_status": "candidate"
+          },
+          "matches": true,
+          "candidates": [
+            {
+              "text": "88",
+              "number_candidate": "88",
+              "score": 0.9999991570631338,
+              "text_bbox": [
+                740,
+                409,
+                791,
+                445
+              ],
+              "status": "candidate",
+              "method": "sticker_color",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            },
+            {
+              "text": "88",
+              "number_candidate": "88",
+              "score": 0.9999995785315409,
+              "text_bbox": [
+                741,
+                410,
+                790,
+                445
+              ],
+              "status": "candidate",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            },
+            {
+              "text": "88",
+              "number_candidate": "88",
+              "score": 0.9999996628252286,
+              "text_bbox": [
+                741,
+                407,
+                790,
+                445
+              ],
+              "status": "candidate",
+              "method": "sticker_value_binary",
+              "rotation_degrees": 0,
+              "selected_in_view": true
+            }
+          ]
+        },
+        {
+          "space_id": "B-05",
+          "expected": {
+            "occupancy": "vacant",
+            "number": null,
+            "color": "unknown"
+          },
+          "actual": {
+            "occupancy": "vacant",
+            "number": null,
+            "color": "unknown",
+            "ocr_status": "disabled"
+          },
+          "matches": true,
+          "candidates": []
+        },
+        {
+          "space_id": "B-06",
+          "expected": {
+            "occupancy": "vacant",
+            "number": null,
+            "color": "unknown"
+          },
+          "actual": {
+            "occupancy": "vacant",
+            "number": null,
+            "color": "unknown",
+            "ocr_status": "disabled"
+          },
+          "matches": true,
+          "candidates": []
+        },
+        {
+          "space_id": "B-07",
+          "expected": {
+            "occupancy": "vacant",
+            "number": null,
+            "color": "unknown"
+          },
+          "actual": {
+            "occupancy": "vacant",
+            "number": null,
+            "color": "unknown",
+            "ocr_status": "disabled"
+          },
+          "matches": true,
+          "candidates": []
+        },
+        {
+          "space_id": "B-08",
+          "expected": {
+            "occupancy": "vacant",
+            "number": null,
+            "color": "unknown"
+          },
+          "actual": {
+            "occupancy": "vacant",
+            "number": null,
+            "color": "unknown",
+            "ocr_status": "disabled"
+          },
+          "matches": true,
+          "candidates": []
+        }
+      ],
+      "errors": [],
+      "matching_rows": 14,
+      "total_rows": 16
+    },
+    {
+      "name": "historical_real_round_49_not_current_D39",
+      "seconds": 0.917,
+      "rows": [
+        {
+          "space_id": "B-06",
+          "expected": {
+            "number": null,
+            "color": "blue"
+          },
+          "actual": {
+            "occupancy": "unknown",
+            "number": null,
+            "color": "blue",
+            "ocr_status": "ambiguous"
+          },
+          "matches": true,
+          "candidates": [
+            {
+              "text": "6",
+              "number_candidate": null,
+              "score": 0.8122782111167908,
+              "text_bbox": [
+                976,
+                641,
+                1005,
+                670
+              ],
+              "status": "invalid_number",
+              "method": "sticker_color",
+              "rotation_degrees": 0,
+              "selected_in_view": false
+            },
+            {
+              "text": "67",
+              "number_candidate": null,
+              "score": 0.9999590335090263,
+              "text_bbox": [
+                978,
+                643,
+                1009,
+                686
+              ],
+              "status": "invalid_number",
+              "method": "sticker_color",
+              "rotation_degrees": 90,
+              "selected_in_view": false
+            },
+            {
+              "text": "49",
+              "number_candidate": null,
+              "score": 0.92463845463215,
+              "text_bbox": [
+                974,
+                641,
+                1011,
+                688
+              ],
+              "status": "invalid_number",
+              "method": "sticker_color",
+              "rotation_degrees": 180,
+              "selected_in_view": false
+            },
+            {
+              "text": "49",
+              "number_candidate": null,
+              "score": 0.9949422843890879,
+              "text_bbox": [
+                974,
+                641,
+                1008,
+                685
+              ],
+              "status": "invalid_number",
+              "method": "sticker_color",
+              "rotation_degrees": 270,
+              "selected_in_view": false
+            },
+            {
+              "text": "6",
+              "number_candidate": null,
+              "score": 0.9999713899751441,
+              "text_bbox": [
+                974,
+                640,
+                1006,
+                671
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 0,
+              "selected_in_view": false
+            },
+            {
+              "text": "9",
+              "number_candidate": null,
+              "score": 0.5166620555346668,
+              "text_bbox": [
+                980,
+                658,
+                1008,
+                687
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 90,
+              "selected_in_view": false
+            },
+            {
+              "text": "49",
+              "number_candidate": null,
+              "score": 0.9994704237820823,
+              "text_bbox": [
+                972,
+                639,
+                1012,
+                689
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 180,
+              "selected_in_view": false
+            },
+            {
+              "text": "9",
+              "number_candidate": null,
+              "score": 0.2506238532924385,
+              "text_bbox": [
+                974,
+                640,
+                1007,
+                686
+              ],
+              "status": "invalid_number",
+              "method": "sticker_value_normalized",
+              "rotation_degrees": 270,
+              "selected_in_view": false
+            }
+          ]
+        }
+      ],
+      "errors": [],
+      "matching_rows": 1,
+      "total_rows": 1
+    }
+  ],
+  "current_D39_physical_photos_available": false,
+  "real_input_note": "One historical image with obsolete number 49; occupancy not evaluated without reference/model.",
+  "synthetic_only_for_current_D39": true,
+  "downloads": false,
+  "real_camera_opened": false,
+  "network_requests": false
+}

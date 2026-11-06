@@ -1,0 +1,848 @@
+{
+  "product_version": "V40",
+  "version": "40.0",
+  "based_on": "V39",
+  "date_kst": "2026-11-05",
+  "previous_release_zip_sha256": "cebcd3949dcc017131faff3b0f23b8be08bda21fd637d7e7e69acb2f179564f7",
+  "default_mode": "dual_realsense",
+  "defaults": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "max_skew_ms": 100,
+    "channels": {
+      "A": {
+        "serial": "<serial>",
+        "lot": "A",
+        "view": "ceiling"
+      },
+      "B": {
+        "serial": "<serial>",
+        "lot": "B",
+        "view": "ceiling"
+      }
+    }
+  },
+  "camera_quality": {
+    "defaults": {
+      "exposure": null,
+      "gain": null,
+      "white_balance": null,
+      "power_line_frequency": 2,
+      "auto_exposure_priority": 0
+    },
+    "A": {
+      "sharpness": 70
+    },
+    "B": {
+      "sharpness": 70
+    }
+  },
+  "tests": {
+    "product_version": "V40",
+    "tests": 535,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": true,
+    "seconds": 341.532,
+    "scope": "V19-V40 geometry/color, identity evidence and OCR mocks, automatic ROI/anchor guards, Korean paired assets, copy counts, data integrity/audit/export, one-start Tk workflow, split workers, mocked HTTP; no physical camera or live server"
+  },
+  "new_regression_methods": 9,
+  "중단복구_속도대조": {
+    "조건": "1920×1080, 사선 16칸, 합성 변화영역 8개, 마스크 8장. 동일 CPU 단일 OpenCV 스레드. 전체 측정 중 변화영역 경계·걸침 검사만 측정.",
+    "마스크별_결과일치": 8,
+    "중앙값_ms": {
+      "39": 361.585,
+      "40": 3.237
+    },
+    "반복_ms": {
+      "39": [
+        441.77840021438897,
+        439.2306001391262,
+        326.8345999531448,
+        328.17000010982156,
+        323.454599827528,
+        388.40549997985363,
+        389.081500004977,
+        334.76429991424084
+      ],
+      "40": [
+        3.001400036737323,
+        3.0276000034064054,
+        2.8554999735206366,
+        3.024900099262595,
+        3.4459999296814203,
+        3.46989999525249,
+        3.554499940946698,
+        3.5614001099020243
+      ]
+    },
+    "중앙값_감소율_pct": 99.1,
+    "저장중단재현": {
+      "V39": {
+        "보존_원본": 1,
+        "복구전_전달쌍": 0,
+        "복구후_완료쌍": 0,
+        "복구후_보류쌍": 1,
+        "복구후_전달칸": 0
+      },
+      "V40": {
+        "보존_원본": 2,
+        "복구전_전달쌍": 0,
+        "복구후_완료쌍": 1,
+        "복구후_보류쌍": 0,
+        "복구후_전달칸": 28
+      }
+    }
+  },
+  "V39자료_호환": {
+    "source": "V39, simulated boards with confirmed empty reference",
+    "verified_source_files": 110,
+    "bay_pairs": 28,
+    "export_images": 34,
+    "export_data_json": 31
+  },
+  "실측_같은구도_과거조명원본_1쌍": {
+    "위치등록": {
+      "A": 12,
+      "B": 16
+    },
+    "B_부분등록": {
+      "칸명": "A-08",
+      "등록상태": "일부 촬영 · 위치 등록",
+      "화면안_다각형_px": [
+        [
+          1919,
+          139
+        ],
+        [
+          1919,
+          186
+        ],
+        [
+          1776,
+          354
+        ],
+        [
+          1602,
+          339
+        ],
+        [
+          1781,
+          128
+        ]
+      ],
+      "전체경계_추정_px": [
+        [
+          1780.55,
+          128.08
+        ],
+        [
+          1955.96,
+          142.47
+        ],
+        [
+          1776.2,
+          354.31
+        ],
+        [
+          1602.46,
+          338.57
+        ]
+      ],
+      "화면안_면적비율": 0.9782378289628845,
+      "대조한_인접칸": [
+        "A-07",
+        "A-06"
+      ],
+      "세주차선_지지율": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "읽은칸명_좌표_px": [
+        1727,
+        227,
+        1808,
+        268
+      ],
+      "칸명판독점수": 0.9998679161071777
+    },
+    "B_보류사유": "B 카메라 · B주차장 15/16칸 · 위치 등록 16/16칸 · 일부 촬영 A-08 · 끝 주차선까지 여백을 확보하세요.",
+    "검증한사진해시": 4,
+    "원본픽셀일치": 2,
+    "완료측정": 0,
+    "품질통과_내보내기": {
+      "scenes": 0,
+      "space_pairs": 0,
+      "images": 0,
+      "json_files": 0,
+      "originals": 0,
+      "measurements": 0
+    }
+  },
+  "첫실물_저조도_재현": {
+    "장치": [
+      {
+        "name": "RealSense D435",
+        "serial": "<serial>",
+        "usb": "3.2"
+      },
+      {
+        "name": "RealSense D435",
+        "serial": "<serial>",
+        "usb": "3.2"
+      }
+    ],
+    "실제수신차_ms": 5.1742,
+    "장치해제": true,
+    "원본촬영_UTC": "2026-11-05T07:13:11.708+00:00",
+    "최종코드_동일원본_재검사": {
+      "A": {
+        "저조도측정": {
+          "평균밝기_0_255": 2.764,
+          "밝기24미만_비율": 0.993109
+        },
+        "보류사유": "A 카메라 · A주차장 0/12칸 · 영상이 너무 어둡습니다 · 평균 밝기 2.764/255 · 조명·렌즈·노출을 확인하세요.",
+        "원본_SHA256": "55102ce83470563f1d61ee7366ed3f4bc8265e9d542b3e5cad82a49f450014b8"
+      },
+      "B": {
+        "저조도측정": {
+          "평균밝기_0_255": 1.948,
+          "밝기24미만_비율": 0.995304
+        },
+        "보류사유": "B 카메라 · B주차장 0/16칸 · 영상이 너무 어둡습니다 · 평균 밝기 1.948/255 · 조명·렌즈·노출을 확인하세요.",
+        "원본_SHA256": "f241382dac8bda2ca61f7417cde244f158c9e924d6aad8d59e5153592432e7d9"
+      }
+    },
+    "OCR호출수": 0,
+    "전달": {
+      "scenes": 0,
+      "space_pairs": 0,
+      "images": 0,
+      "json_files": 0,
+      "originals": 0,
+      "measurements": 0
+    },
+    "진단": "dark_frame_replay\\diagnostics\\held_pairs\\932c690f0d5d4950b68ccbf2215bf9a6"
+  },
+  "배치준비후_실물시험": [
+    {
+      "장치": [
+        {
+          "name": "RealSense D435",
+          "serial": "<serial>",
+          "usb": "3.2"
+        },
+        {
+          "name": "RealSense D435",
+          "serial": "<serial>",
+          "usb": "3.2"
+        }
+      ],
+      "검증폴더": "live_20261105T071958425246Z",
+      "기준": "실시간 1회. 빈 기준 미확정. 사용자 학습 폴더와 분리.",
+      "장치해제": true,
+      "수신차_ms": 17.557,
+      "카메라": {
+        "A": {
+          "시리얼": "<serial>",
+          "프레임": 62,
+          "촬영_UTC": "2026-11-05T07:20:02.224+00:00",
+          "원본_SHA256": "dbced7a533cde2e6286e02e2177addef4569cc0a6aef9ef83e4b44d13e9cb382",
+          "보류사유": "A 카메라 · A주차장 0/12칸 · 영상이 너무 어둡습니다 · 평균 밝기 5.519/255 · 조명·렌즈·노출을 확인하세요.",
+          "전체경계": 0,
+          "위치등록": 0,
+          "부분촬영": []
+        },
+        "B": {
+          "시리얼": "<serial>",
+          "프레임": 49,
+          "촬영_UTC": "2026-11-05T07:20:02.207+00:00",
+          "원본_SHA256": "5aa87a45f0416ca9f1e17c36e948b8727de57b74f8ac4db460cca8cad337e91b",
+          "보류사유": "B 카메라 · B주차장 0/16칸 · 영상이 너무 어둡습니다 · 평균 밝기 3.482/255 · 조명·렌즈·노출을 확인하세요.",
+          "전체경계": 0,
+          "위치등록": 0,
+          "부분촬영": []
+        }
+      },
+      "진단": "diagnostics\\held_pairs\\294935e28f044a3a8fa6902b7dae1c07",
+      "품질통과_전달": {
+        "scenes": 0,
+        "space_pairs": 0,
+        "images": 0,
+        "json_files": 0,
+        "originals": 0,
+        "measurements": 0
+      }
+    },
+    {
+      "장치": [
+        {
+          "name": "RealSense D435",
+          "serial": "<serial>",
+          "usb": "3.2"
+        },
+        {
+          "name": "RealSense D435",
+          "serial": "<serial>",
+          "usb": "3.2"
+        }
+      ],
+      "검증폴더": "live_20261105T072144031106Z",
+      "기준": "실시간 1회. 빈 기준 미확정. 사용자 학습 폴더와 분리.",
+      "자동노출대기_밝기": [
+        {
+          "초": 3,
+          "A": 106.429,
+          "B": 95.557
+        },
+        {
+          "초": 8,
+          "A": 106.593,
+          "B": 94.387
+        },
+        {
+          "초": 15,
+          "A": 105.612,
+          "B": 93.677
+        }
+      ],
+      "장치설정_조회": {
+        "A": {
+          "exposure": 156.0,
+          "gain": 64.0,
+          "enable_auto_exposure": 1.0
+        },
+        "B": {
+          "exposure": 156.0,
+          "gain": 64.0,
+          "enable_auto_exposure": 1.0
+        }
+      },
+      "장치해제": true,
+      "수신차_ms": 21.2401,
+      "카메라": {
+        "A": {
+          "시리얼": "<serial>",
+          "프레임": 438,
+          "촬영_UTC": "2026-11-05T07:22:00.056+00:00",
+          "원본_SHA256": "737371cf7a3295563adce8958c8d554a542597209b959039f3443b5241b91cf5",
+          "보류사유": "A 카메라 · A주차장 11/12칸 · 미등록 B-06(칸명 미판독) · 해당 글씨와 주차선을 확인하세요.",
+          "전체경계": 11,
+          "위치등록": 11,
+          "부분촬영": []
+        },
+        "B": {
+          "시리얼": "<serial>",
+          "프레임": 426,
+          "촬영_UTC": "2026-11-05T07:22:00.077+00:00",
+          "원본_SHA256": "4b480e53ab97f1139bcae0ba5c211321043c31b7bd5f9caac14d9fae8f978829",
+          "차량자동후보": {
+            "A-03": {
+              "occupancy": "unknown",
+              "number": null,
+              "color": "unknown",
+              "zone_rule": "unknown",
+              "issues": [
+                "번호 미확인: sticker_not_localized"
+              ]
+            },
+            "A-04": {
+              "occupancy": "unknown",
+              "number": null,
+              "color": "unknown",
+              "zone_rule": "unknown",
+              "issues": [
+                "번호 미확인: sticker_not_localized"
+              ]
+            },
+            "A-05": {
+              "occupancy": "unknown",
+              "number": null,
+              "color": "unknown",
+              "zone_rule": "unknown",
+              "issues": [
+                "번호 미확인: sticker_not_localized"
+              ]
+            },
+            "A-07": {
+              "occupancy": "unknown",
+              "number": null,
+              "color": "unknown",
+              "zone_rule": "unknown",
+              "issues": [
+                "번호 미확인: sticker_not_localized"
+              ]
+            },
+            "A-08": {
+              "occupancy": "unknown",
+              "number": null,
+              "color": "unknown",
+              "zone_rule": "unknown",
+              "issues": [
+                "번호 미확인: sticker_not_localized"
+              ]
+            },
+            "B-03": {
+              "occupancy": "unknown",
+              "number": null,
+              "color": "unknown",
+              "zone_rule": "unknown",
+              "issues": [
+                "번호 미확인: sticker_not_localized"
+              ]
+            },
+            "B-04": {
+              "occupancy": "unknown",
+              "number": null,
+              "color": "unknown",
+              "zone_rule": "unknown",
+              "issues": [
+                "번호 미확인: sticker_not_localized"
+              ]
+            },
+            "B-05": {
+              "occupancy": "unknown",
+              "number": null,
+              "color": "unknown",
+              "zone_rule": "unknown",
+              "issues": [
+                "번호 미확인: sticker_not_localized"
+              ]
+            },
+            "B-06": {
+              "occupancy": "unknown",
+              "number": null,
+              "color": "unknown",
+              "zone_rule": "unknown",
+              "issues": [
+                "번호 미확인: sticker_not_localized"
+              ]
+            },
+            "B-07": {
+              "occupancy": "unknown",
+              "number": null,
+              "color": "unknown",
+              "zone_rule": "unknown",
+              "issues": [
+                "번호 미확인: sticker_not_localized"
+              ]
+            },
+            "B-08": {
+              "occupancy": "unknown",
+              "number": null,
+              "color": "unknown",
+              "zone_rule": "unknown",
+              "issues": [
+                "번호 미확인: sticker_not_localized"
+              ]
+            },
+            "A-02": {
+              "occupancy": "unknown",
+              "number": null,
+              "color": "unknown",
+              "zone_rule": "unknown",
+              "issues": [
+                "번호 미확인: sticker_not_localized"
+              ]
+            },
+            "A-06": {
+              "occupancy": "unknown",
+              "number": null,
+              "color": "unknown",
+              "zone_rule": "unknown",
+              "issues": [
+                "번호 미확인: sticker_not_localized"
+              ]
+            },
+            "A-01": {
+              "occupancy": "unknown",
+              "number": null,
+              "color": "unknown",
+              "zone_rule": "unknown",
+              "issues": [
+                "번호 미확인: sticker_not_localized"
+              ]
+            },
+            "B-01": {
+              "occupancy": "unknown",
+              "number": null,
+              "color": "unknown",
+              "zone_rule": "unknown",
+              "issues": [
+                "번호 미확인: sticker_not_localized"
+              ]
+            },
+            "B-02": {
+              "occupancy": "unknown",
+              "number": null,
+              "color": "unknown",
+              "zone_rule": "unknown",
+              "issues": [
+                "번호 미확인: sticker_not_localized"
+              ]
+            }
+          },
+          "전체경계": 16,
+          "위치등록": 16,
+          "부분촬영": []
+        }
+      },
+      "진단": "diagnostics\\held_pairs\\262619fd3dff4673af2c8f1702d0e3cd",
+      "품질통과_전달": {
+        "scenes": 0,
+        "space_pairs": 0,
+        "images": 0,
+        "json_files": 0,
+        "originals": 0,
+        "measurements": 0
+      }
+    }
+  ],
+  "B06_수정후_같은실물_저장과전달": {
+    "현장촬영_수신차_ms": 21.2401,
+    "최종코드_동일원본_재검사": {
+      "A": {
+        "전체경계": 12,
+        "원본_SHA256": "737371cf7a3295563adce8958c8d554a542597209b959039f3443b5241b91cf5",
+        "인접칸에서_복원": [],
+        "국소재판독": {
+          "B-04": [
+            {
+              "text": "B-04",
+              "score": 0.8437727614510372,
+              "bbox": [
+                1489,
+                596,
+                1560,
+                626
+              ],
+              "mode": "band_inverse",
+              "scale_xy": [
+                3.0,
+                3.0
+              ]
+            },
+            {
+              "text": "B-04",
+              "score": 0.918164849281311,
+              "bbox": [
+                1489,
+                595,
+                1560,
+                626
+              ],
+              "mode": "band_toned",
+              "scale_xy": [
+                3.0,
+                3.0
+              ]
+            }
+          ],
+          "B-05": [
+            {
+              "text": "B-05",
+              "score": 0.8009668777023808,
+              "bbox": [
+                1501,
+                726,
+                1573,
+                756
+              ],
+              "mode": "gray",
+              "scale_xy": [
+                3.0,
+                3.0
+              ]
+            },
+            {
+              "text": "B-05",
+              "score": 0.7703753240377164,
+              "bbox": [
+                1504,
+                726,
+                1572,
+                755
+              ],
+              "mode": "contrast_wide",
+              "scale_xy": [
+                4.0,
+                3.0
+              ]
+            }
+          ],
+          "B-06": [
+            {
+              "text": "B-06",
+              "score": 0.9151154982576692,
+              "bbox": [
+                1516,
+                863,
+                1586,
+                893
+              ],
+              "mode": "contrast_wide",
+              "scale_xy": [
+                4.0,
+                3.0
+              ]
+            },
+            {
+              "text": "B-06",
+              "score": 0.9345227479934692,
+              "bbox": [
+                1515,
+                864,
+                1587,
+                892
+              ],
+              "mode": "band_inverse",
+              "scale_xy": [
+                3.0,
+                3.0
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "전체경계": 16,
+        "원본_SHA256": "4b480e53ab97f1139bcae0ba5c211321043c31b7bd5f9caac14d9fae8f978829",
+        "인접칸에서_복원": [],
+        "국소재판독": {
+          "A-01": [
+            {
+              "text": "A-01",
+              "score": 0.9100186228752136,
+              "bbox": [
+                386,
+                221,
+                451,
+                250
+              ],
+              "mode": "contrast_wide",
+              "scale_xy": [
+                4.0,
+                3.0
+              ]
+            },
+            {
+              "text": "A-01",
+              "score": 0.9342744946479797,
+              "bbox": [
+                387,
+                221,
+                450,
+                251
+              ],
+              "mode": "contrast_wider",
+              "scale_xy": [
+                5.0,
+                3.0
+              ]
+            }
+          ],
+          "B-01": [
+            {
+              "text": "B-01",
+              "score": 0.8891556745154746,
+              "bbox": [
+                398,
+                797,
+                465,
+                828
+              ],
+              "mode": "stroke_medium",
+              "scale_xy": [
+                3.0,
+                3.0
+              ]
+            },
+            {
+              "text": "B-01",
+              "score": 0.8070085753105687,
+              "bbox": [
+                400,
+                798,
+                465,
+                827
+              ],
+              "mode": "stroke_fine",
+              "scale_xy": [
+                3.0,
+                3.0
+              ]
+            }
+          ],
+          "B-02": [
+            {
+              "text": "B-02",
+              "score": 0.9611041245783198,
+              "bbox": [
+                565,
+                795,
+                633,
+                824
+              ],
+              "mode": "stroke_medium",
+              "scale_xy": [
+                3.0,
+                3.0
+              ]
+            },
+            {
+              "text": "B-02",
+              "score": 0.9852117719476328,
+              "bbox": [
+                566,
+                796,
+                633,
+                823
+              ],
+              "mode": "stroke_fine",
+              "scale_xy": [
+                3.0,
+                3.0
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "빈기준": "미확정",
+    "전체자료": {
+      "scenes": 2,
+      "space_pairs": 28,
+      "images": 32,
+      "json_files": 30,
+      "originals": 2,
+      "measurements": 1
+    },
+    "검수본_파일목록": "실측_28칸_최종검수본/내보내기_결과.json",
+    "양쪽품질통과만": {
+      "scenes": 0,
+      "space_pairs": 0,
+      "images": 0,
+      "json_files": 0,
+      "originals": 0,
+      "measurements": 0
+    },
+    "장면품질": {
+      "A": "보류",
+      "B": "보류"
+    },
+    "확인한_칸별사진_JSON": 28,
+    "동일빈보드_기준등록": {
+      "A": 12,
+      "B": 16
+    }
+  },
+  "추가_실물빈기준시험": {
+    "folder": "empty_20261105T073053537643Z",
+    "실측수신차_ms": [
+      10.4612,
+      9.94
+    ],
+    "단계": "빈 기준 등록",
+    "보류사유": "B 카메라 · B주차장 7/16칸 · 미등록 A-01(경계 미확인), A-02(경계 미확인), A-03(경계 미확인), A-04(경계 미확인) 외 5칸 · 해당 글씨와 주차선을 확인하세요."
+  },
+  "연속측정_모의검증": {
+    "조건": "모의 카메라 2대, 빈 기준 1쌍, 6회 연속 측정, 별도 임시 폴더, OCR 모의",
+    "카메라별_저장칸": {
+      "A": 72,
+      "B": 96
+    },
+    "품질통과_전달": {
+      "scenes": 12,
+      "space_pairs": 168,
+      "images": 194,
+      "json_files": 181,
+      "originals": 12,
+      "measurements": 6
+    },
+    "세번째측정_B크롭손상_후": {
+      "scenes": 10,
+      "space_pairs": 140,
+      "images": 162,
+      "json_files": 151,
+      "originals": 10,
+      "measurements": 5
+    },
+    "제외장면": 2
+  },
+  "칸이름_오등록_방지_실제OCR": [
+    {
+      "모의글꼴": "arialbd.ttf",
+      "입력": "8-01",
+      "B01등록": false
+    },
+    {
+      "모의글꼴": "arialbd.ttf",
+      "입력": "6-01",
+      "B01등록": false
+    },
+    {
+      "모의글꼴": "arialbd.ttf",
+      "입력": "A-01",
+      "B01등록": false
+    },
+    {
+      "모의글꼴": "arialbd.ttf",
+      "입력": "B-02",
+      "B01등록": false
+    },
+    {
+      "모의글꼴": "arialbd.ttf",
+      "입력": "B-0",
+      "B01등록": false
+    },
+    {
+      "모의글꼴": "arialbd.ttf",
+      "입력": "",
+      "B01등록": false
+    },
+    {
+      "모의글꼴": "segoeuib.ttf",
+      "입력": "8-01",
+      "B01등록": false
+    },
+    {
+      "모의글꼴": "segoeuib.ttf",
+      "입력": "6-01",
+      "B01등록": false
+    },
+    {
+      "모의글꼴": "segoeuib.ttf",
+      "입력": "A-01",
+      "B01등록": false
+    },
+    {
+      "모의글꼴": "segoeuib.ttf",
+      "입력": "B-02",
+      "B01등록": false
+    },
+    {
+      "모의글꼴": "segoeuib.ttf",
+      "입력": "B-0",
+      "B01등록": false
+    },
+    {
+      "모의글꼴": "segoeuib.ttf",
+      "입력": "",
+      "B01등록": false
+    }
+  ],
+  "ground_truth_accuracy": {
+    "occupancy": null,
+    "number": null,
+    "sticker_color": null,
+    "parking_violation": null
+  },
+  "미검증": [
+    "실차 6대의 번호·스티커색·오주차 정답 대조",
+    "장시간 연속 운전과 실제 전원 차단",
+    "현장 전체 측정 주기의 시간 분포"
+  ]
+}

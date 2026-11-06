@@ -1,0 +1,74 @@
+{
+  "product_version": "V34",
+  "scope": "simulated sources, generated boards and controlled host timestamps; no physical dual stream",
+  "paired_export_counts": {
+    "scenes": 2,
+    "space_pairs": 28,
+    "images": 32,
+    "json_files": 30,
+    "originals": 2,
+    "measurements": 1
+  },
+  "export_files_hash_verified": 63,
+  "source_receipts": {
+    "complete": 1,
+    "held": 0,
+    "errors": [],
+    "bay_pairs": {
+      "A": 12,
+      "B": 16
+    },
+    "capture_recovery": {
+      "복구완료수": 0,
+      "복구보류수": 0,
+      "복구완료": [],
+      "복구보류": [],
+      "설명": "검증된 원본·촬영문맥·저장된 예측만 복구합니다. 없는 정보는 추정하지 않습니다."
+    }
+  },
+  "example_measurement": {
+    "id": "5645ddb1a89f4498bb93a4ab558dfd24",
+    "session": "offline-replay",
+    "members": {
+      "A": {
+        "image_id": "94eb4aa687685b0bb43f0a201226b637",
+        "serial": "<serial>",
+        "frame_id": 1,
+        "timestamp": "2026-11-04T09:00:00+00:00",
+        "epoch": 1,
+        "received_ns": 1308478702552800,
+        "lot": "A",
+        "view": "ceiling",
+        "batch": "lot-A-arrangement"
+      },
+      "B": {
+        "image_id": "d035eacbb4075255b0e298f29324732a",
+        "serial": "<serial>",
+        "frame_id": 1,
+        "timestamp": "2026-11-04T09:00:00+00:00",
+        "epoch": 1,
+        "received_ns": 1308478726552800,
+        "lot": "B",
+        "view": "ceiling",
+        "batch": "lot-B-arrangement"
+      }
+    },
+    "skew_ms": 24.0,
+    "max_skew_ms": 100,
+    "clock": "host_monotonic_receive_ns",
+    "quality": {
+      "A": "보류",
+      "B": "보류"
+    }
+  },
+  "physical_discovery_observation": {
+    "devices_reported_by_realsense_sdk": 1,
+    "models": [
+      "RealSense D435"
+    ],
+    "active_dual_physical_capture_tested": false
+  },
+  "field_accuracy": null,
+  "hardware_synchronization_measured": false,
+  "throughput_measured": false
+}

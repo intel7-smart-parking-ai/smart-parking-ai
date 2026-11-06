@@ -1,0 +1,42 @@
+{
+  "product_version": "V36",
+  "requested_mode": "1920x1080@30",
+  "requested_pairs": 30,
+  "limit_ms": 100,
+  "saved_images": 0,
+  "devices": [
+    {
+      "name": "RealSense D435",
+      "serial": "<serial>",
+      "usb": "3.2"
+    },
+    {
+      "name": "RealSense D435",
+      "serial": "<serial>",
+      "usb": "3.2"
+    }
+  ],
+  "last_wait": "카메라 B의 새 영상 대기",
+  "accepted_pairs": 30,
+  "last_status": {
+    "A": {
+      "status": "RUNNING",
+      "age_seconds": 0.01,
+      "sequence": 128,
+      "last_error": ""
+    },
+    "B": {
+      "status": "RUNNING",
+      "age_seconds": 0.01,
+      "sequence": 110,
+      "last_error": ""
+    }
+  },
+  "passed": true,
+  "skew_ms": {
+    "minimum": 2.0637,
+    "median": 5.17955,
+    "maximum": 29.2357
+  },
+  "released": true
+}

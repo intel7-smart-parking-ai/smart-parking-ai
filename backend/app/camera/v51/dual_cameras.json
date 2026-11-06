@@ -1,0 +1,18 @@
+{
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "max_skew_ms": 100,
+  "channels": {
+    "A": {
+      "serial": "<serial-A>",
+      "lot": "A",
+      "view": "ceiling"
+    },
+    "B": {
+      "serial": "<serial-B>",
+      "lot": "B",
+      "view": "ceiling"
+    }
+  }
+}

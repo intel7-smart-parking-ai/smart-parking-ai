@@ -1,0 +1,3825 @@
+{
+  "product_version": "V51",
+  "추가USB촬영": false,
+  "기존보류_V50": {
+    "held1": {
+      "A": {
+        "error": "등록 구도 확인 보류 · 구도 이동 또는 불확실: 자동 재등록 필요 · 보드와 카메라 고정을 확인하세요."
+      },
+      "B": {
+        "error": "등록 구도 확인 보류 · 구도 이동 또는 불확실: 자동 재등록 필요 · 보드와 카메라 고정을 확인하세요."
+      }
+    },
+    "held2": {
+      "A": {
+        "error": "등록 구도 확인 보류 · 구도 이동 또는 불확실: 자동 재등록 필요 · 보드와 카메라 고정을 확인하세요."
+      },
+      "B": {
+        "error": "등록 구도 확인 보류 · 구도 이동 또는 불확실: 자동 재등록 필요 · 보드와 카메라 고정을 확인하세요."
+      }
+    },
+    "screen": {
+      "A": {
+        "error": "등록 구도 확인 보류 · 구도 이동 또는 불확실: 자동 재등록 필요 · 보드와 카메라 고정을 확인하세요."
+      },
+      "B": {
+        "error": "등록 구도 확인 보류 · 구도 이동 또는 불확실: 자동 재등록 필요 · 보드와 카메라 고정을 확인하세요."
+      }
+    }
+  },
+  "기존보류_V51": {
+    "held1": {
+      "A": {
+        "slots": 12,
+        "registration": "fixed_printed_board_v1",
+        "reference": {
+          "빈기준에서현재로": [
+            [
+              0.9686808167921056,
+              -0.06443046971429986,
+              88.32297846182931
+            ],
+            [
+              0.045761567985707845,
+              0.915510764448826,
+              16.474026051139898
+            ],
+            [
+              2.1410944847397052e-05,
+              -3.440018908226855e-05,
+              0.9999999999999999
+            ]
+          ],
+          "최대칸이동_px": 63.79,
+          "일치한주차선": {
+            "A": [
+              "A-01",
+              "A-02",
+              "A-03",
+              "A-04",
+              "A-05",
+              "A-06"
+            ],
+            "B": [
+              "B-01",
+              "B-02",
+              "B-03",
+              "B-04",
+              "B-05",
+              "B-06"
+            ]
+          }
+        },
+        "errors": [],
+        "rows": [
+          {
+            "bay": "A-01",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "A-02",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "A-03",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "A-04",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "A-05",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "A-06",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "B-01",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "B-02",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "B-03",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "B-04",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "B-05",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "B-06",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          }
+        ]
+      },
+      "B": {
+        "slots": 16,
+        "registration": "fixed_printed_board_v1",
+        "reference": {
+          "빈기준에서현재로": [
+            [
+              0.9439095335012715,
+              -0.015938292333816148,
+              60.870853339442654
+            ],
+            [
+              -0.011023492186659139,
+              0.9490876207167711,
+              30.247887506410766
+            ],
+            [
+              -1.6573728447381153e-05,
+              -1.5882314644694967e-05,
+              0.9999999999999999
+            ]
+          ],
+          "최대칸이동_px": 43.66,
+          "일치한주차선": {
+            "A": [
+              "A-01",
+              "A-02",
+              "A-03",
+              "A-04",
+              "A-05",
+              "A-06",
+              "A-07",
+              "A-08"
+            ],
+            "B": [
+              "B-01",
+              "B-02",
+              "B-03",
+              "B-04",
+              "B-05",
+              "B-06",
+              "B-07",
+              "B-08"
+            ]
+          }
+        },
+        "errors": [],
+        "rows": [
+          {
+            "bay": "A-01",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "A-02",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "A-03",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "A-04",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "A-05",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "A-06",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "A-07",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "A-08",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "B-01",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "B-02",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "B-03",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "B-04",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "B-05",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "B-06",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "B-07",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "B-08",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          }
+        ]
+      },
+      "reopened": "70cd774183c44617bc3b9f6f2d0f7202"
+    },
+    "held2": {
+      "A": {
+        "slots": 12,
+        "registration": "fixed_printed_board_v1",
+        "reference": {
+          "빈기준에서현재로": [
+            [
+              0.9988373019659538,
+              0.06245724502458291,
+              -27.50698002365587
+            ],
+            [
+              -0.04156105713870693,
+              1.0379120646294033,
+              -28.49071533745577
+            ],
+            [
+              -1.759791873877708e-05,
+              3.504915872106277e-05,
+              1.0
+            ]
+          ],
+          "최대칸이동_px": 79.91,
+          "일치한주차선": {
+            "A": [
+              "A-01",
+              "A-02",
+              "A-03",
+              "A-04",
+              "A-05",
+              "A-06"
+            ],
+            "B": [
+              "B-01",
+              "B-02",
+              "B-03",
+              "B-04",
+              "B-05",
+              "B-06"
+            ]
+          }
+        },
+        "errors": [],
+        "rows": [
+          {
+            "bay": "A-01",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "A-02",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "A-03",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "A-04",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "A-05",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "A-06",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "B-01",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "B-02",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "B-03",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "B-04",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "B-05",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "B-06",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          }
+        ]
+      },
+      "B": {
+        "slots": 16,
+        "registration": "fixed_printed_board_v1",
+        "reference": {
+          "빈기준에서현재로": [
+            [
+              0.9510074252494106,
+              0.0010440134306773491,
+              32.39536327820619
+            ],
+            [
+              -0.012432463254896262,
+              0.9565258096619907,
+              25.66688510839656
+            ],
+            [
+              -1.0580817218556068e-05,
+              -2.8851265829239022e-06,
+              1.0
+            ]
+          ],
+          "최대칸이동_px": 34.0,
+          "일치한주차선": {
+            "A": [
+              "A-01",
+              "A-02",
+              "A-03",
+              "A-04",
+              "A-05",
+              "A-06",
+              "A-07",
+              "A-08"
+            ],
+            "B": [
+              "B-01",
+              "B-02",
+              "B-03",
+              "B-04",
+              "B-05",
+              "B-06",
+              "B-07",
+              "B-08"
+            ]
+          }
+        },
+        "errors": [],
+        "rows": [
+          {
+            "bay": "A-01",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "A-02",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "A-03",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "A-04",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "A-05",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "A-06",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "A-07",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "A-08",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "B-01",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "B-02",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "B-03",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "B-04",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "B-05",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "B-06",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "B-07",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "B-08",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          }
+        ]
+      },
+      "reopened": "c9ddbb45f7504fe689c06015dc71e195"
+    },
+    "screen": {
+      "A": {
+        "slots": 12,
+        "registration": "fixed_printed_board_v1",
+        "reference": {
+          "빈기준에서현재로": [
+            [
+              1.3397749258229503,
+              0.0055020465578245305,
+              -474.4952492094029
+            ],
+            [
+              0.08660861393525461,
+              1.2520595730601742,
+              -186.23664499396963
+            ],
+            [
+              0.00014279122761178212,
+              4.119083860606578e-05,
+              1.0
+            ]
+          ],
+          "최대칸이동_px": 283.93,
+          "일치한주차선": {
+            "A": [
+              "A-01",
+              "A-02",
+              "A-03",
+              "A-04",
+              "A-05",
+              "A-06"
+            ],
+            "B": [
+              "B-01",
+              "B-02",
+              "B-03",
+              "B-04",
+              "B-05"
+            ]
+          }
+        },
+        "errors": [],
+        "rows": [
+          {
+            "bay": "A-01",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "A-02",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "A-03",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "A-04",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "A-05",
+            "occ": "occupied",
+            "ocr": "estimated",
+            "number": null,
+            "estimate": "87",
+            "color": "green",
+            "issues": [
+              "번호 추정 · 참고 사진 비교",
+              "원본 추정 숫자 영역 14×16px · 초점과 촬영 거리를 확인하세요."
+            ]
+          },
+          {
+            "bay": "A-06",
+            "occ": "occupied",
+            "ocr": "estimated",
+            "number": null,
+            "estimate": "28",
+            "color": "green",
+            "issues": [
+              "번호 추정 · 참고 사진 비교",
+              "원본 추정 숫자 영역 15×19px · 초점과 촬영 거리를 확인하세요."
+            ]
+          },
+          {
+            "bay": "B-01",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "B-02",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "B-03",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "B-04",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "B-05",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "B-06",
+            "occ": "occupied",
+            "ocr": "estimated",
+            "number": null,
+            "estimate": "77",
+            "color": "blue",
+            "issues": [
+              "번호 추정 · 참고 사진 비교",
+              "원본 추정 숫자 영역 12×17px · 초점과 촬영 거리를 확인하세요."
+            ]
+          }
+        ]
+      },
+      "B": {
+        "slots": 16,
+        "registration": "fixed_printed_board_v1",
+        "reference": {
+          "빈기준에서현재로": [
+            [
+              0.732366917445434,
+              -0.08101294476657205,
+              163.756691337445
+            ],
+            [
+              -0.058041376650442775,
+              0.7452782966981821,
+              89.47121657356328
+            ],
+            [
+              -8.658170472986106e-05,
+              -6.273308124580203e-05,
+              1.0
+            ]
+          ],
+          "최대칸이동_px": 133.15,
+          "일치한주차선": {
+            "A": [
+              "A-01",
+              "A-02",
+              "A-03",
+              "A-04",
+              "A-05",
+              "A-07",
+              "A-08"
+            ],
+            "B": [
+              "B-01",
+              "B-02",
+              "B-03",
+              "B-04",
+              "B-05",
+              "B-06",
+              "B-07",
+              "B-08"
+            ]
+          }
+        },
+        "errors": [],
+        "rows": [
+          {
+            "bay": "A-01",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "A-02",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "A-03",
+            "occ": "unknown",
+            "ocr": "lighting_change_unconfirmed",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": [
+              "밝기 변화와 물체 구분 보류 · 새 윤곽 부족"
+            ]
+          },
+          {
+            "bay": "A-04",
+            "occ": "unknown",
+            "ocr": "lighting_change_unconfirmed",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": [
+              "밝기 변화와 물체 구분 보류 · 새 윤곽 부족"
+            ]
+          },
+          {
+            "bay": "A-05",
+            "occ": "unknown",
+            "ocr": "lighting_change_unconfirmed",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": [
+              "밝기 변화와 물체 구분 보류 · 새 윤곽 부족"
+            ]
+          },
+          {
+            "bay": "A-06",
+            "occ": "unknown",
+            "ocr": "lighting_change_unconfirmed",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": [
+              "밝기 변화와 물체 구분 보류 · 새 윤곽 부족"
+            ]
+          },
+          {
+            "bay": "A-07",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "A-08",
+            "occ": "unknown",
+            "ocr": "lighting_change_unconfirmed",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": [
+              "밝기 변화와 물체 구분 보류 · 새 윤곽 부족"
+            ]
+          },
+          {
+            "bay": "B-01",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "B-02",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "B-03",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "B-04",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "B-05",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "B-06",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "B-07",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          },
+          {
+            "bay": "B-08",
+            "occ": "vacant",
+            "ocr": "pending",
+            "number": null,
+            "estimate": null,
+            "color": "unknown",
+            "issues": []
+          }
+        ]
+      },
+      "reopened": "aa1da21061f04eb1aa59a8a3e44fd50f"
+    },
+    "export": {
+      "scenes": 6,
+      "space_pairs": 84,
+      "images": 100,
+      "json_files": 92,
+      "originals": 6,
+      "measurements": 3
+    }
+  },
+  "새Intel사진_V50": {
+    "scope": "사용자 제공 Intel 카메라 사진 2장 개별 재생, 독립 정답은 사진을 육안으로 읽어 작성, 동시촬영 여부와 센서 메타데이터 미제공",
+    "channels": {
+      "A": {
+        "sha256": "19c4b6bd7d001da1d7e1da9d5c6f4f96f0c64a7ae33af095ffc7bb2dd2f0e86a",
+        "held": "A 카메라 · A주차장 10/12칸 · 미등록 A-06(칸명 미판독), B-06(칸명 미판독) · 해당 글씨와 주차선을 확인하세요."
+      },
+      "B": {
+        "sha256": "11979343466cead89e3373e82ddaf1b65923cb271ee4965946ed63dc1a08ae58",
+        "image_size": [
+          1052,
+          604
+        ],
+        "counts": {
+          "empty": 13,
+          "wrong": 1,
+          "estimate": 1,
+          "direct": 1
+        },
+        "rows": [
+          {
+            "bay": "A-07",
+            "number": "23",
+            "color": "white",
+            "grade": "wrong",
+            "status": "estimated",
+            "method": "round_sticker_inner_rim",
+            "candidates": []
+          },
+          {
+            "bay": "B-05",
+            "number": "34",
+            "color": "white",
+            "grade": "estimate",
+            "status": "estimated",
+            "method": "round_sticker_inner_rim",
+            "candidates": []
+          },
+          {
+            "bay": "B-08",
+            "number": "77",
+            "color": "blue",
+            "grade": "direct",
+            "status": "candidate",
+            "method": "round_sticker_inner_rim",
+            "candidates": []
+          }
+        ],
+        "saved_id": "f1df03549f07554a919263a239f59c72",
+        "reopened": "complete"
+      }
+    }
+  },
+  "새Intel사진_V51": {
+    "scope": "사용자 제공 Intel 카메라 사진 2장 개별 재생, 독립 정답은 사진을 육안으로 읽어 작성, 동시촬영 여부와 센서 메타데이터 미제공",
+    "channels": {
+      "A": {
+        "sha256": "19c4b6bd7d001da1d7e1da9d5c6f4f96f0c64a7ae33af095ffc7bb2dd2f0e86a",
+        "image_size": [
+          1038,
+          656
+        ],
+        "counts": {
+          "empty": 9,
+          "direct": 2,
+          "held": 1
+        },
+        "rows": [
+          {
+            "bay": "A-06",
+            "number": "11",
+            "color": "green",
+            "grade": "direct",
+            "status": "candidate",
+            "method": "rectangular_sticker_border",
+            "candidates": [
+              {
+                "polygon": [
+                  [
+                    261,
+                    454
+                  ],
+                  [
+                    289,
+                    454
+                  ],
+                  [
+                    289,
+                    481
+                  ],
+                  [
+                    261,
+                    481
+                  ]
+                ],
+                "color": "green",
+                "shape": "rectangle",
+                "center": [
+                  275.0,
+                  467.5
+                ],
+                "radius": 13.5
+              }
+            ]
+          },
+          {
+            "bay": "B-04",
+            "number": null,
+            "color": "white",
+            "grade": "held",
+            "status": "sticker_number_unread",
+            "method": "rectangular_sticker_border",
+            "candidates": [
+              {
+                "polygon": [
+                  [
+                    658,
+                    307
+                  ],
+                  [
+                    686,
+                    307
+                  ],
+                  [
+                    686,
+                    333
+                  ],
+                  [
+                    658,
+                    333
+                  ]
+                ],
+                "color": "white",
+                "shape": "rectangle",
+                "center": [
+                  672.0,
+                  320.0
+                ],
+                "radius": 13.0
+              }
+            ]
+          },
+          {
+            "bay": "B-06",
+            "number": "49",
+            "color": "blue",
+            "grade": "direct",
+            "status": "candidate",
+            "method": "rectangular_sticker_border",
+            "candidates": [
+              {
+                "polygon": [
+                  [
+                    653,
+                    458
+                  ],
+                  [
+                    678,
+                    458
+                  ],
+                  [
+                    678,
+                    485
+                  ],
+                  [
+                    653,
+                    485
+                  ]
+                ],
+                "color": "blue",
+                "shape": "rectangle",
+                "center": [
+                  665.5,
+                  471.5
+                ],
+                "radius": 12.5
+              }
+            ]
+          }
+        ],
+        "saved_id": "21ed4c3739a05b00a110e5bafe0243e8",
+        "reopened": "complete"
+      },
+      "B": {
+        "sha256": "11979343466cead89e3373e82ddaf1b65923cb271ee4965946ed63dc1a08ae58",
+        "image_size": [
+          1052,
+          604
+        ],
+        "counts": {
+          "empty": 13,
+          "direct": 3
+        },
+        "rows": [
+          {
+            "bay": "A-07",
+            "number": "23",
+            "color": "green",
+            "grade": "direct",
+            "status": "candidate",
+            "method": "rectangular_sticker_border",
+            "candidates": [
+              {
+                "polygon": [
+                  [
+                    772,
+                    116
+                  ],
+                  [
+                    794,
+                    132
+                  ],
+                  [
+                    778,
+                    153
+                  ],
+                  [
+                    757,
+                    136
+                  ]
+                ],
+                "color": "green",
+                "shape": "rectangle",
+                "center": [
+                  775.2400131225586,
+                  134.180006980896
+                ],
+                "radius": 13.40000057220459
+              }
+            ]
+          },
+          {
+            "bay": "B-05",
+            "number": "34",
+            "color": "white",
+            "grade": "direct",
+            "status": "candidate",
+            "method": "rectangular_sticker_border",
+            "candidates": [
+              {
+                "polygon": [
+                  [
+                    610,
+                    439
+                  ],
+                  [
+                    633,
+                    453
+                  ],
+                  [
+                    617,
+                    480
+                  ],
+                  [
+                    594,
+                    465
+                  ]
+                ],
+                "color": "white",
+                "shape": "rectangle",
+                "center": [
+                  613.6292190551758,
+                  459.3932571411133
+                ],
+                "radius": 13.991971969604492
+              }
+            ]
+          },
+          {
+            "bay": "B-08",
+            "number": "77",
+            "color": "blue",
+            "grade": "direct",
+            "status": "candidate",
+            "method": "rectangular_sticker_border",
+            "candidates": [
+              {
+                "polygon": [
+                  [
+                    886,
+                    461
+                  ],
+                  [
+                    908,
+                    480
+                  ],
+                  [
+                    888,
+                    501
+                  ],
+                  [
+                    867,
+                    482
+                  ]
+                ],
+                "color": "blue",
+                "shape": "rectangle",
+                "center": [
+                  887.2348175048828,
+                  480.9613275527954
+                ],
+                "radius": 14.828718185424805
+              }
+            ]
+          }
+        ],
+        "saved_id": "193c15d994195c24846981c7b9782d56",
+        "reopened": "complete"
+      }
+    }
+  },
+  "기존원형사진_노출_방향": {
+    "source": "smart_parking_v51",
+    "conditions": {
+      "A_base": {
+        "counts": {
+          "direct": 1,
+          "estimated": 4,
+          "held": 0,
+          "wrong": 0,
+          "empty_false_number": 0
+        },
+        "rows": [
+          {
+            "space": "A-01",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 7949,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.000629,
+                "contrast_p90_p10": 27.0
+              },
+              "analysis": {
+                "pixels": 7949,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.000629,
+                "contrast_p90_p10": 27.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-02",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 8663,
+                "white_clip_ratio": 0.000231,
+                "channel_clip_ratio": 0.000923,
+                "contrast_p90_p10": 32.0
+              },
+              "analysis": {
+                "pixels": 8663,
+                "white_clip_ratio": 0.000231,
+                "channel_clip_ratio": 0.000923,
+                "contrast_p90_p10": 32.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-03",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 9097,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.001209,
+                "contrast_p90_p10": 30.0
+              },
+              "analysis": {
+                "pixels": 9097,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.001209,
+                "contrast_p90_p10": 30.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-04",
+            "number": "87",
+            "color": "white",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 178,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.011236,
+                "contrast_p90_p10": 127.0
+              },
+              "analysis": {
+                "pixels": 178,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.011236,
+                "contrast_p90_p10": 127.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-05",
+            "number": "11",
+            "color": "green",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 183,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 95.2
+              },
+              "analysis": {
+                "pixels": 183,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 95.2
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-06",
+            "number": "28",
+            "color": "green",
+            "grade": "direct",
+            "status": "candidate",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 172,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 53.7
+              },
+              "analysis": {
+                "pixels": 172,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 53.7
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-01",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 9113,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 32.0
+              },
+              "analysis": {
+                "pixels": 9113,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 32.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-02",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 9152,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.000437,
+                "contrast_p90_p10": 26.0
+              },
+              "analysis": {
+                "pixels": 9152,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.000437,
+                "contrast_p90_p10": 26.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-03",
+            "number": "34",
+            "color": "white",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 149,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 131.0
+              },
+              "analysis": {
+                "pixels": 149,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 131.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-04",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 9976,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0002,
+                "contrast_p90_p10": 27.5
+              },
+              "analysis": {
+                "pixels": 9976,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0002,
+                "contrast_p90_p10": 27.5
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-05",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 10508,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.000571,
+                "contrast_p90_p10": 26.0
+              },
+              "analysis": {
+                "pixels": 10508,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.000571,
+                "contrast_p90_p10": 26.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-06",
+            "number": "77",
+            "color": "blue",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 225,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 71.8
+              },
+              "analysis": {
+                "pixels": 225,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 71.8
+              },
+              "status": "no_clip_evidence"
+            }
+          }
+        ],
+        "verified_space_pairs": 12,
+        "errors": []
+      },
+      "A_dark": {
+        "counts": {
+          "direct": 1,
+          "estimated": 4,
+          "held": 0,
+          "wrong": 0,
+          "empty_false_number": 0
+        },
+        "rows": [
+          {
+            "space": "A-01",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 7949,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 21.0
+              },
+              "analysis": {
+                "pixels": 7949,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.000755,
+                "contrast_p90_p10": 27.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-02",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 8663,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 23.8
+              },
+              "analysis": {
+                "pixels": 8663,
+                "white_clip_ratio": 0.000231,
+                "channel_clip_ratio": 0.000923,
+                "contrast_p90_p10": 31.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-03",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 9097,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 23.0
+              },
+              "analysis": {
+                "pixels": 9097,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.001429,
+                "contrast_p90_p10": 30.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-04",
+            "number": "87",
+            "color": "white",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 177,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 95.4
+              },
+              "analysis": {
+                "pixels": 177,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.016949,
+                "contrast_p90_p10": 127.4
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-05",
+            "number": "11",
+            "color": "green",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 183,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 70.8
+              },
+              "analysis": {
+                "pixels": 183,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 95.2
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-06",
+            "number": "28",
+            "color": "green",
+            "grade": "direct",
+            "status": "candidate",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 162,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 38.9
+              },
+              "analysis": {
+                "pixels": 162,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 52.8
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-01",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 9113,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 24.0
+              },
+              "analysis": {
+                "pixels": 9113,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 32.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-02",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 9152,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 20.0
+              },
+              "analysis": {
+                "pixels": 9152,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.000437,
+                "contrast_p90_p10": 26.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-03",
+            "number": "34",
+            "color": "white",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 151,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 99.0
+              },
+              "analysis": {
+                "pixels": 151,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 132.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-04",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 9976,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 21.0
+              },
+              "analysis": {
+                "pixels": 9976,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.000401,
+                "contrast_p90_p10": 27.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-05",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 10508,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 19.0
+              },
+              "analysis": {
+                "pixels": 10508,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.000761,
+                "contrast_p90_p10": 26.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-06",
+            "number": "77",
+            "color": "blue",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 210,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 50.0
+              },
+              "analysis": {
+                "pixels": 210,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 66.1
+              },
+              "status": "no_clip_evidence"
+            }
+          }
+        ],
+        "verified_space_pairs": 12,
+        "errors": []
+      },
+      "A_bright": {
+        "counts": {
+          "direct": 1,
+          "estimated": 4,
+          "held": 0,
+          "wrong": 0,
+          "empty_false_number": 0
+        },
+        "rows": [
+          {
+            "space": "A-01",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 7949,
+                "white_clip_ratio": 0.00868,
+                "channel_clip_ratio": 0.018367,
+                "contrast_p90_p10": 31.0
+              },
+              "analysis": {
+                "pixels": 7949,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 27.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-02",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 8663,
+                "white_clip_ratio": 0.012121,
+                "channel_clip_ratio": 0.023664,
+                "contrast_p90_p10": 36.0
+              },
+              "analysis": {
+                "pixels": 8663,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 32.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-03",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 9097,
+                "white_clip_ratio": 0.010333,
+                "channel_clip_ratio": 0.019567,
+                "contrast_p90_p10": 35.4
+              },
+              "analysis": {
+                "pixels": 9097,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 30.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-04",
+            "number": "87",
+            "color": "white",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 177,
+                "white_clip_ratio": 0.361582,
+                "channel_clip_ratio": 0.446328,
+                "contrast_p90_p10": 124.0
+              },
+              "analysis": {
+                "pixels": 177,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 107.0
+              },
+              "status": "highlight_present"
+            }
+          },
+          {
+            "space": "A-05",
+            "number": "11",
+            "color": "green",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 184,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.005435,
+                "contrast_p90_p10": 109.0
+              },
+              "analysis": {
+                "pixels": 184,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 95.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-06",
+            "number": "28",
+            "color": "green",
+            "grade": "direct",
+            "status": "candidate",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 162,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.012346,
+                "contrast_p90_p10": 61.9
+              },
+              "analysis": {
+                "pixels": 162,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 53.9
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-01",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 9113,
+                "white_clip_ratio": 0.00417,
+                "channel_clip_ratio": 0.01635,
+                "contrast_p90_p10": 36.0
+              },
+              "analysis": {
+                "pixels": 9113,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 32.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-02",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 9152,
+                "white_clip_ratio": 0.003278,
+                "channel_clip_ratio": 0.009397,
+                "contrast_p90_p10": 30.0
+              },
+              "analysis": {
+                "pixels": 9152,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 26.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-03",
+            "number": "34",
+            "color": "white",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 160,
+                "white_clip_ratio": 0.04375,
+                "channel_clip_ratio": 0.3375,
+                "contrast_p90_p10": 142.4
+              },
+              "analysis": {
+                "pixels": 160,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 123.4
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-04",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 9976,
+                "white_clip_ratio": 0.003508,
+                "channel_clip_ratio": 0.015738,
+                "contrast_p90_p10": 31.0
+              },
+              "analysis": {
+                "pixels": 9976,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 28.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-05",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 10508,
+                "white_clip_ratio": 0.003426,
+                "channel_clip_ratio": 0.009897,
+                "contrast_p90_p10": 29.0
+              },
+              "analysis": {
+                "pixels": 10508,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 26.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-06",
+            "number": "77",
+            "color": "blue",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 225,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 82.8
+              },
+              "analysis": {
+                "pixels": 225,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 71.8
+              },
+              "status": "no_clip_evidence"
+            }
+          }
+        ],
+        "verified_space_pairs": 12,
+        "errors": []
+      },
+      "B_base": {
+        "counts": {
+          "direct": 1,
+          "estimated": 5,
+          "held": 0,
+          "wrong": 0,
+          "empty_false_number": 0
+        },
+        "rows": [
+          {
+            "space": "A-01",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 8359,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.000837,
+                "contrast_p90_p10": 22.0
+              },
+              "analysis": {
+                "pixels": 8359,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.000837,
+                "contrast_p90_p10": 22.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-02",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 8609,
+                "white_clip_ratio": 0.000232,
+                "channel_clip_ratio": 0.004298,
+                "contrast_p90_p10": 42.0
+              },
+              "analysis": {
+                "pixels": 8609,
+                "white_clip_ratio": 0.000232,
+                "channel_clip_ratio": 0.004298,
+                "contrast_p90_p10": 42.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-03",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 8935,
+                "white_clip_ratio": 0.000448,
+                "channel_clip_ratio": 0.002126,
+                "contrast_p90_p10": 88.0
+              },
+              "analysis": {
+                "pixels": 8935,
+                "white_clip_ratio": 0.000448,
+                "channel_clip_ratio": 0.002126,
+                "contrast_p90_p10": 88.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-04",
+            "number": "87",
+            "color": "white",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 196,
+                "white_clip_ratio": 0.25,
+                "channel_clip_ratio": 0.357143,
+                "contrast_p90_p10": 101.0
+              },
+              "analysis": {
+                "pixels": 196,
+                "white_clip_ratio": 0.25,
+                "channel_clip_ratio": 0.357143,
+                "contrast_p90_p10": 101.0
+              },
+              "status": "highlight_present"
+            }
+          },
+          {
+            "space": "A-05",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 8671,
+                "white_clip_ratio": 0.001153,
+                "channel_clip_ratio": 0.004382,
+                "contrast_p90_p10": 59.0
+              },
+              "analysis": {
+                "pixels": 8671,
+                "white_clip_ratio": 0.001153,
+                "channel_clip_ratio": 0.004382,
+                "contrast_p90_p10": 59.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-06",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 8878,
+                "white_clip_ratio": 0.000788,
+                "channel_clip_ratio": 0.003267,
+                "contrast_p90_p10": 46.3
+              },
+              "analysis": {
+                "pixels": 8878,
+                "white_clip_ratio": 0.000788,
+                "channel_clip_ratio": 0.003267,
+                "contrast_p90_p10": 46.3
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-07",
+            "number": "11",
+            "color": "green",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 152,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 78.8
+              },
+              "analysis": {
+                "pixels": 152,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 78.8
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-08",
+            "number": "28",
+            "color": "green",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 156,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 67.0
+              },
+              "analysis": {
+                "pixels": 156,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 67.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-01",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 11016,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.000182,
+                "contrast_p90_p10": 21.0
+              },
+              "analysis": {
+                "pixels": 11016,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.000182,
+                "contrast_p90_p10": 21.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-02",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 11508,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 8.7e-05,
+                "contrast_p90_p10": 22.0
+              },
+              "analysis": {
+                "pixels": 11508,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 8.7e-05,
+                "contrast_p90_p10": 22.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-03",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 11560,
+                "white_clip_ratio": 0.000779,
+                "channel_clip_ratio": 0.002768,
+                "contrast_p90_p10": 24.0
+              },
+              "analysis": {
+                "pixels": 11560,
+                "white_clip_ratio": 0.000779,
+                "channel_clip_ratio": 0.002768,
+                "contrast_p90_p10": 24.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-04",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 11614,
+                "white_clip_ratio": 0.000775,
+                "channel_clip_ratio": 0.004047,
+                "contrast_p90_p10": 28.0
+              },
+              "analysis": {
+                "pixels": 11614,
+                "white_clip_ratio": 0.000775,
+                "channel_clip_ratio": 0.004047,
+                "contrast_p90_p10": 28.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-05",
+            "number": "34",
+            "color": "white",
+            "grade": "direct",
+            "status": "candidate",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 205,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.019512,
+                "contrast_p90_p10": 124.8
+              },
+              "analysis": {
+                "pixels": 205,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.019512,
+                "contrast_p90_p10": 124.8
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-06",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 11142,
+                "white_clip_ratio": 0.000269,
+                "channel_clip_ratio": 0.002872,
+                "contrast_p90_p10": 23.0
+              },
+              "analysis": {
+                "pixels": 11142,
+                "white_clip_ratio": 0.000269,
+                "channel_clip_ratio": 0.002872,
+                "contrast_p90_p10": 23.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-07",
+            "number": "49",
+            "color": "blue",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 178,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 85.6
+              },
+              "analysis": {
+                "pixels": 178,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 85.6
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-08",
+            "number": "77",
+            "color": "blue",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 240,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 70.1
+              },
+              "analysis": {
+                "pixels": 240,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 70.1
+              },
+              "status": "no_clip_evidence"
+            }
+          }
+        ],
+        "verified_space_pairs": 16,
+        "errors": []
+      },
+      "B_dark": {
+        "counts": {
+          "direct": 0,
+          "estimated": 6,
+          "held": 0,
+          "wrong": 0,
+          "empty_false_number": 0
+        },
+        "rows": [
+          {
+            "space": "A-01",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 8359,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 17.0
+              },
+              "analysis": {
+                "pixels": 8359,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.001196,
+                "contrast_p90_p10": 23.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-02",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 8609,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 31.0
+              },
+              "analysis": {
+                "pixels": 8609,
+                "white_clip_ratio": 0.000232,
+                "channel_clip_ratio": 0.004879,
+                "contrast_p90_p10": 42.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-03",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 8935,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 66.0
+              },
+              "analysis": {
+                "pixels": 8935,
+                "white_clip_ratio": 0.000672,
+                "channel_clip_ratio": 0.002238,
+                "contrast_p90_p10": 88.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-04",
+            "number": "87",
+            "color": "white",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 211,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 81.0
+              },
+              "analysis": {
+                "pixels": 211,
+                "white_clip_ratio": 0.2891,
+                "channel_clip_ratio": 0.402844,
+                "contrast_p90_p10": 108.0
+              },
+              "status": "highlight_present"
+            }
+          },
+          {
+            "space": "A-05",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 8671,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 44.0
+              },
+              "analysis": {
+                "pixels": 8671,
+                "white_clip_ratio": 0.001615,
+                "channel_clip_ratio": 0.005997,
+                "contrast_p90_p10": 60.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-06",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 8878,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 35.0
+              },
+              "analysis": {
+                "pixels": 8878,
+                "white_clip_ratio": 0.001239,
+                "channel_clip_ratio": 0.004506,
+                "contrast_p90_p10": 47.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-07",
+            "number": "11",
+            "color": "green",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 162,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 59.8
+              },
+              "analysis": {
+                "pixels": 162,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 80.7
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-08",
+            "number": "28",
+            "color": "green",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 148,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 49.3
+              },
+              "analysis": {
+                "pixels": 148,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 66.3
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-01",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 11016,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 15.0
+              },
+              "analysis": {
+                "pixels": 11016,
+                "white_clip_ratio": 9.1e-05,
+                "channel_clip_ratio": 0.000182,
+                "contrast_p90_p10": 21.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-02",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 11508,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 17.0
+              },
+              "analysis": {
+                "pixels": 11508,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.000174,
+                "contrast_p90_p10": 23.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-03",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 11560,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 19.0
+              },
+              "analysis": {
+                "pixels": 11560,
+                "white_clip_ratio": 0.000865,
+                "channel_clip_ratio": 0.003028,
+                "contrast_p90_p10": 25.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-04",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 11614,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 21.0
+              },
+              "analysis": {
+                "pixels": 11614,
+                "white_clip_ratio": 0.001033,
+                "channel_clip_ratio": 0.004908,
+                "contrast_p90_p10": 28.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-05",
+            "number": "34",
+            "color": "white",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 205,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 93.2
+              },
+              "analysis": {
+                "pixels": 205,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.02439,
+                "contrast_p90_p10": 125.4
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-06",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 11142,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 17.0
+              },
+              "analysis": {
+                "pixels": 11142,
+                "white_clip_ratio": 0.000269,
+                "channel_clip_ratio": 0.004039,
+                "contrast_p90_p10": 23.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-07",
+            "number": "49",
+            "color": "blue",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 172,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 64.8
+              },
+              "analysis": {
+                "pixels": 172,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 85.9
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-08",
+            "number": "77",
+            "color": "blue",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 275,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 47.2
+              },
+              "analysis": {
+                "pixels": 275,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 63.2
+              },
+              "status": "no_clip_evidence"
+            }
+          }
+        ],
+        "verified_space_pairs": 16,
+        "errors": []
+      },
+      "B_bright": {
+        "counts": {
+          "direct": 0,
+          "estimated": 5,
+          "held": 1,
+          "wrong": 0,
+          "empty_false_number": 0
+        },
+        "rows": [
+          {
+            "space": "A-01",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 8359,
+                "white_clip_ratio": 0.004666,
+                "channel_clip_ratio": 0.015313,
+                "contrast_p90_p10": 26.0
+              },
+              "analysis": {
+                "pixels": 8359,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 22.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-02",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 8609,
+                "white_clip_ratio": 0.005924,
+                "channel_clip_ratio": 0.016843,
+                "contrast_p90_p10": 48.0
+              },
+              "analysis": {
+                "pixels": 8609,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 42.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-03",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 8935,
+                "white_clip_ratio": 0.008954,
+                "channel_clip_ratio": 0.021824,
+                "contrast_p90_p10": 101.0
+              },
+              "analysis": {
+                "pixels": 8935,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 87.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-04",
+            "number": "87",
+            "color": "white",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 182,
+                "white_clip_ratio": 0.648352,
+                "channel_clip_ratio": 0.71978,
+                "contrast_p90_p10": 68.8
+              },
+              "analysis": {
+                "pixels": 182,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 58.9
+              },
+              "status": "highlight_present"
+            }
+          },
+          {
+            "space": "A-05",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 8671,
+                "white_clip_ratio": 0.024219,
+                "channel_clip_ratio": 0.040364,
+                "contrast_p90_p10": 68.0
+              },
+              "analysis": {
+                "pixels": 8671,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 58.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-06",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 8878,
+                "white_clip_ratio": 0.023091,
+                "channel_clip_ratio": 0.039649,
+                "contrast_p90_p10": 54.0
+              },
+              "analysis": {
+                "pixels": 8878,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 46.3
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-07",
+            "number": null,
+            "color": "unknown",
+            "grade": "held",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 8208,
+                "white_clip_ratio": 0.204191,
+                "channel_clip_ratio": 0.311282,
+                "contrast_p90_p10": 205.0
+              },
+              "analysis": {
+                "pixels": 8208,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 177.0
+              },
+              "status": "highlight_present"
+            }
+          },
+          {
+            "space": "A-08",
+            "number": "28",
+            "color": "green",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 160,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 75.2
+              },
+              "analysis": {
+                "pixels": 160,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 65.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-01",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 11016,
+                "white_clip_ratio": 0.004448,
+                "channel_clip_ratio": 0.010439,
+                "contrast_p90_p10": 25.0
+              },
+              "analysis": {
+                "pixels": 11016,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 20.5
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-02",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 11508,
+                "white_clip_ratio": 0.007039,
+                "channel_clip_ratio": 0.01651,
+                "contrast_p90_p10": 26.0
+              },
+              "analysis": {
+                "pixels": 11508,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 22.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-03",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 11560,
+                "white_clip_ratio": 0.009256,
+                "channel_clip_ratio": 0.023529,
+                "contrast_p90_p10": 29.0
+              },
+              "analysis": {
+                "pixels": 11560,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 25.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-04",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 11614,
+                "white_clip_ratio": 0.014551,
+                "channel_clip_ratio": 0.029275,
+                "contrast_p90_p10": 32.0
+              },
+              "analysis": {
+                "pixels": 11614,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 29.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-05",
+            "number": "34",
+            "color": "white",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 205,
+                "white_clip_ratio": 0.2,
+                "channel_clip_ratio": 0.478049,
+                "contrast_p90_p10": 137.4
+              },
+              "analysis": {
+                "pixels": 205,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 118.8
+              },
+              "status": "highlight_present"
+            }
+          },
+          {
+            "space": "B-06",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 11142,
+                "white_clip_ratio": 0.008078,
+                "channel_clip_ratio": 0.025848,
+                "contrast_p90_p10": 26.0
+              },
+              "analysis": {
+                "pixels": 11142,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 22.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-07",
+            "number": "49",
+            "color": "blue",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 171,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.02924,
+                "contrast_p90_p10": 98.0
+              },
+              "analysis": {
+                "pixels": 171,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 84.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-08",
+            "number": "77",
+            "color": "blue",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 225,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.031111,
+                "contrast_p90_p10": 78.6
+              },
+              "analysis": {
+                "pixels": 225,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 68.2
+              },
+              "status": "no_clip_evidence"
+            }
+          }
+        ],
+        "verified_space_pairs": 16,
+        "errors": []
+      }
+    },
+    "direction": [
+      {
+        "printed": "66",
+        "rotation": 0,
+        "mode": "physical",
+        "number": null,
+        "status": "sticker_number_unread",
+        "color": "white"
+      },
+      {
+        "printed": "66",
+        "rotation": 0,
+        "mode": "virtual",
+        "number": null,
+        "status": "sticker_number_unread",
+        "color": "white"
+      },
+      {
+        "printed": "66",
+        "rotation": 90,
+        "mode": "physical",
+        "number": null,
+        "status": "sticker_number_unread",
+        "color": "white"
+      },
+      {
+        "printed": "66",
+        "rotation": 90,
+        "mode": "virtual",
+        "number": null,
+        "status": "sticker_number_unread",
+        "color": "white"
+      },
+      {
+        "printed": "66",
+        "rotation": 180,
+        "mode": "physical",
+        "number": null,
+        "status": "sticker_number_unread",
+        "color": "white"
+      },
+      {
+        "printed": "66",
+        "rotation": 180,
+        "mode": "virtual",
+        "number": null,
+        "status": "sticker_number_unread",
+        "color": "white"
+      },
+      {
+        "printed": "66",
+        "rotation": 270,
+        "mode": "physical",
+        "number": null,
+        "status": "sticker_number_unread",
+        "color": "white"
+      },
+      {
+        "printed": "66",
+        "rotation": 270,
+        "mode": "virtual",
+        "number": null,
+        "status": "sticker_number_unread",
+        "color": "white"
+      },
+      {
+        "printed": "99",
+        "rotation": 0,
+        "mode": "physical",
+        "number": null,
+        "status": "sticker_number_unread",
+        "color": "white"
+      },
+      {
+        "printed": "99",
+        "rotation": 0,
+        "mode": "virtual",
+        "number": null,
+        "status": "sticker_number_unread",
+        "color": "white"
+      },
+      {
+        "printed": "99",
+        "rotation": 90,
+        "mode": "physical",
+        "number": null,
+        "status": "sticker_number_unread",
+        "color": "white"
+      },
+      {
+        "printed": "99",
+        "rotation": 90,
+        "mode": "virtual",
+        "number": null,
+        "status": "sticker_number_unread",
+        "color": "white"
+      },
+      {
+        "printed": "99",
+        "rotation": 180,
+        "mode": "physical",
+        "number": null,
+        "status": "sticker_number_unread",
+        "color": "white"
+      },
+      {
+        "printed": "99",
+        "rotation": 180,
+        "mode": "virtual",
+        "number": null,
+        "status": "sticker_number_unread",
+        "color": "white"
+      },
+      {
+        "printed": "99",
+        "rotation": 270,
+        "mode": "physical",
+        "number": null,
+        "status": "sticker_number_unread",
+        "color": "white"
+      },
+      {
+        "printed": "99",
+        "rotation": 270,
+        "mode": "virtual",
+        "number": null,
+        "status": "sticker_number_unread",
+        "color": "white"
+      }
+    ],
+    "physical_camera": false,
+    "digital_perturbations": true,
+    "saturated_digits": {
+      "number": null,
+      "status": "round_sticker_unread"
+    },
+    "unreviewed_training_samples": 0
+  },
+  "빈기준사용_단축키": {
+    "모드": "두 카메라 파일 재생, 빈 기준 등록 및 Space·F5와 공용인 단축 실행 경로",
+    "단발_연속_저장": [
+      {
+        "id": "717539339eee47b8861e6ceac40e567b",
+        "rows": {
+          "A": {
+            "A-01": "vacant",
+            "A-02": "vacant",
+            "A-03": "vacant",
+            "A-04": "vacant",
+            "A-05": "occupied",
+            "A-06": "occupied",
+            "B-01": "vacant",
+            "B-02": "vacant",
+            "B-03": "vacant",
+            "B-04": "vacant",
+            "B-05": "vacant",
+            "B-06": "occupied"
+          },
+          "B": {
+            "A-01": "vacant",
+            "A-02": "vacant",
+            "A-03": "unknown",
+            "A-04": "unknown",
+            "A-05": "unknown",
+            "A-06": "unknown",
+            "A-07": "vacant",
+            "A-08": "unknown",
+            "B-01": "vacant",
+            "B-02": "vacant",
+            "B-03": "vacant",
+            "B-04": "vacant",
+            "B-05": "vacant",
+            "B-06": "vacant",
+            "B-07": "vacant",
+            "B-08": "vacant"
+          }
+        }
+      },
+      {
+        "id": "dcc17eaa796d4542b262271839af0378",
+        "rows": {
+          "A": {
+            "A-01": "vacant",
+            "A-02": "vacant",
+            "A-03": "vacant",
+            "A-04": "vacant",
+            "A-05": "occupied",
+            "A-06": "occupied",
+            "B-01": "vacant",
+            "B-02": "vacant",
+            "B-03": "vacant",
+            "B-04": "vacant",
+            "B-05": "vacant",
+            "B-06": "occupied"
+          },
+          "B": {
+            "A-01": "vacant",
+            "A-02": "vacant",
+            "A-03": "unknown",
+            "A-04": "unknown",
+            "A-05": "unknown",
+            "A-06": "unknown",
+            "A-07": "vacant",
+            "A-08": "unknown",
+            "B-01": "vacant",
+            "B-02": "vacant",
+            "B-03": "vacant",
+            "B-04": "vacant",
+            "B-05": "vacant",
+            "B-06": "vacant",
+            "B-07": "vacant",
+            "B-08": "vacant"
+          }
+        }
+      }
+    ],
+    "내보내기": "<local-path>"
+  },
+  "처음실행_단축키": {
+    "모드": "새 Intel 사진 파일 재생, 초기 실행에서 Space로 자동 연결·1회 저장, F5 수집·Esc 정지",
+    "단발_연속_저장": [
+      {
+        "id": "118579f318da40e5ac3945958b23ba70",
+        "rows": {
+          "A": {
+            "A-01": "unknown",
+            "A-02": "unknown",
+            "A-03": "unknown",
+            "A-04": "unknown",
+            "A-05": "unknown",
+            "A-06": "occupied",
+            "B-01": "unknown",
+            "B-02": "unknown",
+            "B-03": "unknown",
+            "B-04": "unknown",
+            "B-05": "unknown",
+            "B-06": "occupied"
+          },
+          "B": {
+            "A-01": "unknown",
+            "A-02": "unknown",
+            "A-03": "unknown",
+            "A-04": "unknown",
+            "A-05": "unknown",
+            "A-06": "unknown",
+            "A-07": "occupied",
+            "A-08": "unknown",
+            "B-01": "unknown",
+            "B-02": "unknown",
+            "B-03": "unknown",
+            "B-04": "unknown",
+            "B-05": "occupied",
+            "B-06": "unknown",
+            "B-07": "unknown",
+            "B-08": "occupied"
+          }
+        }
+      },
+      {
+        "id": "88c773b3cb834d0883e9078aa3a2ba93",
+        "rows": {
+          "A": {
+            "A-01": "unknown",
+            "A-02": "unknown",
+            "A-03": "unknown",
+            "A-04": "unknown",
+            "A-05": "unknown",
+            "A-06": "occupied",
+            "B-01": "unknown",
+            "B-02": "unknown",
+            "B-03": "unknown",
+            "B-04": "unknown",
+            "B-05": "unknown",
+            "B-06": "occupied"
+          },
+          "B": {
+            "A-01": "unknown",
+            "A-02": "unknown",
+            "A-03": "unknown",
+            "A-04": "unknown",
+            "A-05": "unknown",
+            "A-06": "unknown",
+            "A-07": "occupied",
+            "A-08": "unknown",
+            "B-01": "unknown",
+            "B-02": "unknown",
+            "B-03": "unknown",
+            "B-04": "unknown",
+            "B-05": "occupied",
+            "B-06": "unknown",
+            "B-07": "unknown",
+            "B-08": "occupied"
+          }
+        }
+      }
+    ],
+    "내보내기": "<local-path>"
+  },
+  "변환근거_재검사": {
+    "valid_frames": 6,
+    "altered_evidence_rejected": 18,
+    "cases": [
+      [
+        "70cd774183c44617bc3b9f6f2d0f7202",
+        "A",
+        "missing"
+      ],
+      [
+        "70cd774183c44617bc3b9f6f2d0f7202",
+        "A",
+        "matrix"
+      ],
+      [
+        "70cd774183c44617bc3b9f6f2d0f7202",
+        "A",
+        "supported_bays"
+      ],
+      [
+        "70cd774183c44617bc3b9f6f2d0f7202",
+        "B",
+        "missing"
+      ],
+      [
+        "70cd774183c44617bc3b9f6f2d0f7202",
+        "B",
+        "matrix"
+      ],
+      [
+        "70cd774183c44617bc3b9f6f2d0f7202",
+        "B",
+        "supported_bays"
+      ],
+      [
+        "aa1da21061f04eb1aa59a8a3e44fd50f",
+        "A",
+        "missing"
+      ],
+      [
+        "aa1da21061f04eb1aa59a8a3e44fd50f",
+        "A",
+        "matrix"
+      ],
+      [
+        "aa1da21061f04eb1aa59a8a3e44fd50f",
+        "A",
+        "supported_bays"
+      ],
+      [
+        "aa1da21061f04eb1aa59a8a3e44fd50f",
+        "B",
+        "missing"
+      ],
+      [
+        "aa1da21061f04eb1aa59a8a3e44fd50f",
+        "B",
+        "matrix"
+      ],
+      [
+        "aa1da21061f04eb1aa59a8a3e44fd50f",
+        "B",
+        "supported_bays"
+      ],
+      [
+        "c9ddbb45f7504fe689c06015dc71e195",
+        "A",
+        "missing"
+      ],
+      [
+        "c9ddbb45f7504fe689c06015dc71e195",
+        "A",
+        "matrix"
+      ],
+      [
+        "c9ddbb45f7504fe689c06015dc71e195",
+        "A",
+        "supported_bays"
+      ],
+      [
+        "c9ddbb45f7504fe689c06015dc71e195",
+        "B",
+        "missing"
+      ],
+      [
+        "c9ddbb45f7504fe689c06015dc71e195",
+        "B",
+        "matrix"
+      ],
+      [
+        "c9ddbb45f7504fe689c06015dc71e195",
+        "B",
+        "supported_bays"
+      ]
+    ]
+  },
+  "면적확대_합성범위": "자동 회귀에서 3색 사각형의 반폭 16·32·36픽셀을 검사. 새 Intel 사진은 실제 확대된 라벨 사진.",
+  "참고사진": "별도 휴대폰 사진의 라벨 모양을 확인했으며 그 사진을 학습 템플릿에 추가하지 않음"
+}

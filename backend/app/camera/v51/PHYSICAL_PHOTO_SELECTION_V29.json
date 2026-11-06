@@ -1,0 +1,20 @@
+{
+  "product_version": "V29",
+  "passed": true,
+  "quality_passed": 0,
+  "quality_held": 2,
+  "exported_scenes": 0,
+  "skipped": [
+    {
+      "file": "21559e115c375f67b4b1a6e978d8fe11.json",
+      "reason": "품질 보류: 보류 주차칸 포함"
+    },
+    {
+      "file": "c0e39c3ef8455c3c9873e30f594654d1.json",
+      "reason": "품질 보류: 보류 주차칸 포함"
+    }
+  ],
+  "capture_view": "unspecified",
+  "reason": "Empty-board photos do not establish vehicle identity or occupancy; angle not guessed",
+  "export_path": "<local-path>"
+}

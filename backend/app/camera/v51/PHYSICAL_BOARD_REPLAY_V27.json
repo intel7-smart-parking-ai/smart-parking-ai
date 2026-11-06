@@ -1,0 +1,42 @@
+{
+  "product_version": "V27",
+  "scope": "Actual empty-board photos with historical V23 CPU OCR observations; current V27 storage/export and relocated-file verification",
+  "fresh_ocr_calls": 0,
+  "historical_actual_ocr_calls_replayed": 35,
+  "results": [
+    {
+      "lot": "A",
+      "registered": 12,
+      "open_u": 12,
+      "geometry_identical_to_v26": true,
+      "source_sha256": "e5fb270fa6bdc2c5316fecbb2988cfd342576f49f6a3f3c0bc9cbd5bb3af1ce1",
+      "source_file": "<local-path>",
+      "inference_errors": []
+    },
+    {
+      "lot": "B",
+      "registered": 16,
+      "open_u": 16,
+      "geometry_identical_to_v26": true,
+      "source_sha256": "395219c5cc34cb34c85669a1fbf166159266e17cb90a5b3b886cac41b73897a4",
+      "source_file": "<local-path>",
+      "inference_errors": []
+    }
+  ],
+  "export_counts": {
+    "scenes": 2,
+    "space_pairs": 28,
+    "images": 32,
+    "json_files": 30,
+    "originals": 2
+  },
+  "source_images_unchanged": true,
+  "dataset": "<local-path>",
+  "export_path": "<local-path>",
+  "relocated_path": "<local-path>",
+  "relocated_pairs_verified": 28,
+  "verified_output_files": 63,
+  "status_files": 1,
+  "all_local_photo_json_references_resolve": true,
+  "actual_vehicle_accuracy_measured": false
+}

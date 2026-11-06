@@ -1,0 +1,26 @@
+{
+  "product_version": "V25",
+  "tests": 13,
+  "failures": 15,
+  "errors": 1,
+  "passed": false,
+  "seconds": 2.393,
+  "failed_tests": [
+    "test_complete_bundle_with_errors_is_not_exported (v26_regressions.CaptureBinding.test_complete_bundle_with_errors_is_not_exported)",
+    "test_export_rejects_sidecars_from_different_capture_metadata (v26_regressions.CaptureBinding.test_export_rejects_sidecars_from_different_capture_metadata) (field='captured_at_utc')",
+    "test_export_rejects_sidecars_from_different_capture_metadata (v26_regressions.CaptureBinding.test_export_rejects_sidecars_from_different_capture_metadata) (field='batch_id')",
+    "test_export_rejects_sidecars_from_different_capture_metadata (v26_regressions.CaptureBinding.test_export_rejects_sidecars_from_different_capture_metadata) (field='session_id')",
+    "test_index_and_export_detect_stale_roi_without_prediction (v26_regressions.CaptureBinding.test_index_and_export_detect_stale_roi_without_prediction)",
+    "test_review_rejects_stale_capture_metadata (v26_regressions.CaptureBinding.test_review_rejects_stale_capture_metadata) (field='captured_at_utc')",
+    "test_review_rejects_stale_capture_metadata (v26_regressions.CaptureBinding.test_review_rejects_stale_capture_metadata) (field='batch_id')",
+    "test_review_rejects_stale_capture_metadata (v26_regressions.CaptureBinding.test_review_rejects_stale_capture_metadata) (field='session_id')",
+    "test_review_rejects_stale_capture_metadata (v26_regressions.CaptureBinding.test_review_rejects_stale_capture_metadata) (field='source')",
+    "test_review_rejects_stale_geometry_before_any_write (v26_regressions.CaptureBinding.test_review_rejects_stale_geometry_before_any_write)",
+    "test_scene_and_per_bay_json_must_contain_same_results (v26_regressions.CaptureBinding.test_scene_and_per_bay_json_must_contain_same_results)",
+    "test_wrong_photo_reference_is_rejected_even_when_json_digest_matches (v26_regressions.CaptureBinding.test_wrong_photo_reference_is_rejected_even_when_json_digest_matches)",
+    "test_first_manifest_records_prediction_promise_before_asset_writes (v26_regressions.EvidencePromise.test_first_manifest_records_prediction_promise_before_asset_writes)",
+    "test_review_export_detects_original_changed_during_grouping (v26_regressions.ImmutableExports.test_review_export_detects_original_changed_during_grouping)",
+    "test_verified_path_cannot_be_reregistered_with_new_hash (v26_regressions.ImmutableExports.test_verified_path_cannot_be_reregistered_with_new_hash)",
+    "test_invalid_bundle_type_skips_only_bad_scene (v26_regressions.CaptureBinding.test_invalid_bundle_type_skips_only_bad_scene)"
+  ]
+}

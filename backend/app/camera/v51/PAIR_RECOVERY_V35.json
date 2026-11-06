@@ -1,0 +1,46 @@
+{
+  "V34": {
+    "older_frame_accepted": true,
+    "missing_receipt": {
+      "complete": 0,
+      "held": 0,
+      "bay_pairs": {
+        "A": 0,
+        "B": 0
+      }
+    },
+    "broken_label": {
+      "complete": 1,
+      "held": 0,
+      "bay_pairs": {
+        "A": 12,
+        "B": 16
+      }
+    },
+    "paired_export": 0,
+    "intact_side_training": 1,
+    "intact_side_reviewed": 1
+  },
+  "V35": {
+    "older_frame_accepted": false,
+    "missing_receipt": {
+      "complete": 1,
+      "held": 0,
+      "bay_pairs": {
+        "A": 12,
+        "B": 16
+      }
+    },
+    "broken_label": {
+      "complete": 0,
+      "held": 1,
+      "bay_pairs": {
+        "A": 0,
+        "B": 0
+      }
+    },
+    "paired_export": 0,
+    "intact_side_training": 0,
+    "intact_side_reviewed": 0
+  }
+}

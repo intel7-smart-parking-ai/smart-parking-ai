@@ -1,0 +1,563 @@
+{
+  "directory": "D435_5min_20261106T001120Z",
+  "session": "V50-hardware-20261106T001120Z",
+  "target_seconds": 300,
+  "input": "physical_D435",
+  "profile": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "max_skew_ms": 100,
+    "channels": {
+      "A": {
+        "serial": "<serial>",
+        "lot": "A",
+        "view": "ceiling"
+      },
+      "B": {
+        "serial": "<serial>",
+        "lot": "B",
+        "view": "ceiling"
+      }
+    }
+  },
+  "samples": [
+    {
+      "sample": 1,
+      "skew_ms": 15.0337,
+      "frames": {
+        "A": {
+          "serial": "<serial>",
+          "epoch": 1,
+          "sequence": 16,
+          "sdk": {
+            "frame_number": 16,
+            "timestamp_ms": 1793923882166.8127,
+            "timestamp_domain": "system_time"
+          },
+          "received_utc": "2026-11-06T00:11:22.169+00:00",
+          "received_ns": 1381890324664700,
+          "sha256": "fdb2c20b4e6465364b51620f049326746e751c3538c853b79876d31825dcca99",
+          "image_size": [
+            1920,
+            1080
+          ]
+        },
+        "B": {
+          "serial": "<serial>",
+          "epoch": 1,
+          "sequence": 4,
+          "sdk": {
+            "frame_number": 4,
+            "timestamp_ms": 1793923882151.808,
+            "timestamp_domain": "system_time"
+          },
+          "received_utc": "2026-11-06T00:11:22.154+00:00",
+          "received_ns": 1381890309631000,
+          "sha256": "d7dc616848f9eed4a5f5491b9bd8a3a085f977ccde31028705ee58541cdf388b",
+          "image_size": [
+            1920,
+            1080
+          ]
+        }
+      },
+      "modes": {
+        "A": "virtual_sticker_guide_v1",
+        "B": "virtual_sticker_guide_v1"
+      },
+      "analysis_errors": {
+        "A": [],
+        "B": []
+      },
+      "measurement_id": "e1ea378f72d8436ba7802a6624e1edd2",
+      "outcome": "saved"
+    },
+    {
+      "sample": 2,
+      "skew_ms": 15.0999,
+      "frames": {
+        "A": {
+          "serial": "<serial>",
+          "epoch": 1,
+          "sequence": 1510,
+          "sdk": {
+            "frame_number": 1514,
+            "timestamp_ms": 1793923932137.1653,
+            "timestamp_domain": "system_time"
+          },
+          "received_utc": "2026-11-06T00:12:12.140+00:00",
+          "received_ns": 1381940296062100,
+          "sha256": "fad153108ebaec62f7324566677cdd10f16c93eccf4d205603613d62cf77fa85",
+          "image_size": [
+            1920,
+            1080
+          ]
+        },
+        "B": {
+          "serial": "<serial>",
+          "epoch": 1,
+          "sequence": 1500,
+          "sdk": {
+            "frame_number": 1502,
+            "timestamp_ms": 1793923932121.9858,
+            "timestamp_domain": "system_time"
+          },
+          "received_utc": "2026-11-06T00:12:12.125+00:00",
+          "received_ns": 1381940280962200,
+          "sha256": "0bff894bca09c3f8ce9a61571f5e907ceac13d8460448ea4a4ea6e90b773462b",
+          "image_size": [
+            1920,
+            1080
+          ]
+        }
+      },
+      "modes": {
+        "A": "virtual_sticker_guide_v1",
+        "B": "virtual_sticker_guide_v1"
+      },
+      "analysis_errors": {
+        "A": [],
+        "B": []
+      },
+      "measurement_id": "55785b2112f04a0ebb9c1f97a5c3243f",
+      "outcome": "saved"
+    },
+    {
+      "sample": 3,
+      "skew_ms": 14.7952,
+      "frames": {
+        "A": {
+          "serial": "<serial>",
+          "epoch": 1,
+          "sequence": 3007,
+          "sdk": {
+            "frame_number": 3011,
+            "timestamp_ms": 1793923982073.544,
+            "timestamp_domain": "system_time"
+          },
+          "received_utc": "2026-11-06T00:13:02.076+00:00",
+          "received_ns": 1381990231355600,
+          "sha256": "501167d7dc24ff3f6323692bbc056093f4e6679f9db9468daaf013031b7a33a6",
+          "image_size": [
+            1920,
+            1080
+          ]
+        },
+        "B": {
+          "serial": "<serial>",
+          "epoch": 1,
+          "sequence": 2997,
+          "sdk": {
+            "frame_number": 2999,
+            "timestamp_ms": 1793923982058.3745,
+            "timestamp_domain": "system_time"
+          },
+          "received_utc": "2026-11-06T00:13:02.061+00:00",
+          "received_ns": 1381990216560400,
+          "sha256": "24b0cb75b590e9ac26df284448356287bc9904c84555679b86eb63b4b7bba0ce",
+          "image_size": [
+            1920,
+            1080
+          ]
+        }
+      },
+      "modes": {
+        "A": "virtual_sticker_guide_v1",
+        "B": "virtual_sticker_guide_v1"
+      },
+      "analysis_errors": {
+        "A": [],
+        "B": []
+      },
+      "outcome": "waiting_for_sticker"
+    },
+    {
+      "sample": 4,
+      "skew_ms": 14.2615,
+      "frames": {
+        "A": {
+          "serial": "<serial>",
+          "epoch": 1,
+          "sequence": 4506,
+          "sdk": {
+            "frame_number": 4510,
+            "timestamp_ms": 1793924032076.993,
+            "timestamp_domain": "system_time"
+          },
+          "received_utc": "2026-11-06T00:13:52.079+00:00",
+          "received_ns": 1382040235163700,
+          "sha256": "4653acc1ff667be5f40815f4d499fae68b4fb8483f337407f2c5db976b7f39e5",
+          "image_size": [
+            1920,
+            1080
+          ]
+        },
+        "B": {
+          "serial": "<serial>",
+          "epoch": 1,
+          "sequence": 4496,
+          "sdk": {
+            "frame_number": 4498,
+            "timestamp_ms": 1793924032061.973,
+            "timestamp_domain": "system_time"
+          },
+          "received_utc": "2026-11-06T00:13:52.065+00:00",
+          "received_ns": 1382040220902200,
+          "sha256": "769bacd63894c1e54a937c53f59ccf8a4c5d7408aea81b60c74c21b693e4bd1e",
+          "image_size": [
+            1920,
+            1080
+          ]
+        }
+      },
+      "modes": {
+        "A": "virtual_sticker_guide_v1",
+        "B": "virtual_sticker_guide_v1"
+      },
+      "analysis_errors": {
+        "A": [],
+        "B": []
+      },
+      "outcome": "waiting_for_sticker"
+    },
+    {
+      "sample": 5,
+      "skew_ms": 14.7616,
+      "frames": {
+        "A": {
+          "serial": "<serial>",
+          "epoch": 1,
+          "sequence": 6008,
+          "sdk": {
+            "frame_number": 6012,
+            "timestamp_ms": 1793924082180.6707,
+            "timestamp_domain": "system_time"
+          },
+          "received_utc": "2026-11-06T00:14:42.183+00:00",
+          "received_ns": 1382090338563100,
+          "sha256": "18f327df73ab4d3125cb8a8961824deef5855a6e6f5556bf7fd5d42c645b6f68",
+          "image_size": [
+            1920,
+            1080
+          ]
+        },
+        "B": {
+          "serial": "<serial>",
+          "epoch": 1,
+          "sequence": 5998,
+          "sdk": {
+            "frame_number": 6000,
+            "timestamp_ms": 1793924082165.0168,
+            "timestamp_domain": "system_time"
+          },
+          "received_utc": "2026-11-06T00:14:42.168+00:00",
+          "received_ns": 1382090323801500,
+          "sha256": "0e45a164a7ed9b13acde12f3a068c1042a90ffbdc0d522e6999fdc16eb39b135",
+          "image_size": [
+            1920,
+            1080
+          ]
+        }
+      },
+      "modes": {
+        "A": "virtual_sticker_guide_v1",
+        "B": "virtual_sticker_guide_v1"
+      },
+      "analysis_errors": {
+        "A": [],
+        "B": []
+      },
+      "measurement_id": "c81ae3eeded84758903b964c3ca00696",
+      "outcome": "saved"
+    },
+    {
+      "sample": 6,
+      "skew_ms": 14.3986,
+      "frames": {
+        "A": {
+          "serial": "<serial>",
+          "epoch": 1,
+          "sequence": 7506,
+          "sdk": {
+            "frame_number": 7510,
+            "timestamp_ms": 1793924132150.0413,
+            "timestamp_domain": "system_time"
+          },
+          "received_utc": "2026-11-06T00:15:32.153+00:00",
+          "received_ns": 1382140308351200,
+          "sha256": "dd12de212e2803e6b3b9ea1838f48aabc4e2fd11754bcc99ca5c649666554210",
+          "image_size": [
+            1920,
+            1080
+          ]
+        },
+        "B": {
+          "serial": "<serial>",
+          "epoch": 1,
+          "sequence": 7496,
+          "sdk": {
+            "frame_number": 7498,
+            "timestamp_ms": 1793924132134.9265,
+            "timestamp_domain": "system_time"
+          },
+          "received_utc": "2026-11-06T00:15:32.138+00:00",
+          "received_ns": 1382140293952600,
+          "sha256": "ad2028dd48d126202583c1ef8877724f5a5e0657dcd5614a638548a25d87bf90",
+          "image_size": [
+            1920,
+            1080
+          ]
+        }
+      },
+      "modes": {
+        "A": "virtual_sticker_guide_v1",
+        "B": "virtual_sticker_guide_v1"
+      },
+      "analysis_errors": {
+        "A": [],
+        "B": []
+      },
+      "measurement_id": "067175d36c474ab3b7057c3996a7b2d0",
+      "outcome": "saved"
+    }
+  ],
+  "errors": [],
+  "status_at_end": {
+    "A": {
+      "status": "RUNNING",
+      "age_seconds": 0.02,
+      "sequence": 9007,
+      "last_error": ""
+    },
+    "B": {
+      "status": "RUNNING",
+      "age_seconds": 0.03,
+      "sequence": 8997,
+      "last_error": ""
+    }
+  },
+  "eligible_pair_polls": 2792,
+  "held_polls": 22,
+  "max_selected_skew_ms": 16.2122,
+  "missing_polls": {
+    "A": 0,
+    "B": 0
+  },
+  "first": {
+    "A": {
+      "sequence": 16,
+      "epoch": 1,
+      "received": 1381890.3246647
+    },
+    "B": {
+      "sequence": 5,
+      "epoch": 1,
+      "received": 1381890.3430097
+    }
+  },
+  "last": {
+    "A": {
+      "sequence": 9004,
+      "epoch": 1,
+      "received": 1382190.2797457
+    },
+    "B": {
+      "sequence": 8994,
+      "epoch": 1,
+      "received": 1382190.2641345
+    }
+  },
+  "max_gap_between_polled_frames_s": {
+    "A": 0.3001065000426024,
+    "B": 0.30044910009019077
+  },
+  "devices_released": true,
+  "run": {
+    "세션ID": "V50-hardware-20261106T001120Z",
+    "시작_UTC": "2026-11-06T00:11:22.147545+00:00",
+    "카메라설정": {
+      "width": 1920,
+      "height": 1080,
+      "fps": 30,
+      "max_skew_ms": 100,
+      "channels": {
+        "A": {
+          "serial": "<serial>",
+          "lot": "A",
+          "view": "ceiling"
+        },
+        "B": {
+          "serial": "<serial>",
+          "lot": "B",
+          "view": "ceiling"
+        }
+      }
+    },
+    "시계": "PC monotonic",
+    "완료측정쌍": 4,
+    "분석시작쌍": 6,
+    "분석보류쌍": 0,
+    "스티커대기쌍": 2,
+    "정지로해제한분석쌍": 0,
+    "저장실패수": 0,
+    "짝선택대기관측수": 22,
+    "최대수신차_ms": 15.0999,
+    "채널별최근수신": {
+      "A": {
+        "시리얼": "<serial>",
+        "연결회차": 1,
+        "프레임번호": 9004,
+        "PC수신_UTC": "2026-11-06T00:16:22.124+00:00"
+      },
+      "B": {
+        "시리얼": "<serial>",
+        "연결회차": 1,
+        "프레임번호": 8994,
+        "PC수신_UTC": "2026-11-06T00:16:22.108+00:00"
+      }
+    },
+    "연결회차변경수": {
+      "A": 0,
+      "B": 0
+    },
+    "최근대기사유": "카메라 B의 프레임 갱신 · 다음 짝 대기",
+    "최근측정ID": "067175d36c474ab3b7057c3996a7b2d0",
+    "종료사유": "5분 측정 종료",
+    "상태": "종료",
+    "기록_UTC": "2026-11-06T00:16:22.239731+00:00",
+    "실제경과_초": 300.092,
+    "측정활성_초": 300.092,
+    "정지후마무리_초": 0.0,
+    "최장저장공백_초": 156.866,
+    "측정활성_최장저장공백_초": 156.866
+  },
+  "reopened_completed_pairs": 4,
+  "최종코드_원본재생": [
+    {
+      "sample": 1,
+      "outcome": "saved",
+      "observations": {
+        "A": {
+          "mode": "virtual_sticker_guide_v1",
+          "selected": []
+        },
+        "B": {
+          "mode": "virtual_sticker_guide_v1",
+          "selected": [
+            [
+              "B-06",
+              null,
+              "87",
+              "green",
+              "estimated"
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "sample": 2,
+      "outcome": "saved",
+      "observations": {
+        "A": {
+          "mode": "virtual_sticker_guide_v1",
+          "selected": []
+        },
+        "B": {
+          "mode": "virtual_sticker_guide_v1",
+          "selected": [
+            [
+              "B-06",
+              null,
+              "87",
+              "white",
+              "estimated"
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "sample": 3,
+      "outcome": "waiting_for_sticker",
+      "observations": {
+        "A": {
+          "mode": "virtual_sticker_guide_v1",
+          "selected": []
+        },
+        "B": {
+          "mode": "virtual_sticker_guide_v1",
+          "selected": []
+        }
+      }
+    },
+    {
+      "sample": 4,
+      "outcome": "waiting_for_sticker",
+      "observations": {
+        "A": {
+          "mode": "virtual_sticker_guide_v1",
+          "selected": []
+        },
+        "B": {
+          "mode": "virtual_sticker_guide_v1",
+          "selected": []
+        }
+      }
+    },
+    {
+      "sample": 5,
+      "outcome": "saved",
+      "observations": {
+        "A": {
+          "mode": "virtual_sticker_guide_v1",
+          "selected": []
+        },
+        "B": {
+          "mode": "virtual_sticker_guide_v1",
+          "selected": [
+            [
+              "B-06",
+              null,
+              "87",
+              "white",
+              "estimated"
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "sample": 6,
+      "outcome": "saved",
+      "observations": {
+        "A": {
+          "mode": "virtual_sticker_guide_v1",
+          "selected": []
+        },
+        "B": {
+          "mode": "virtual_sticker_guide_v1",
+          "selected": [
+            [
+              "B-06",
+              null,
+              "87",
+              "white",
+              "estimated"
+            ]
+          ]
+        }
+      }
+    }
+  ],
+  "저장한가상구역_재검사": {
+    "검사한_칸_JSON": 112,
+    "가상위치_실물미확인": 112,
+    "사람승인": 0,
+    "번호판독상태": {
+      "미확인": 108,
+      "추정 · 검토 필요": 4
+    }
+  },
+  "측정방법": "생산 CameraHub·continuous_pair에서 약 0.1초 간격 짝 선택, 약 50초 간격 표본 분석·저장. 촬영 장면의 독립 정답은 미제공."
+}

@@ -1,0 +1,52 @@
+{
+  "product_version": "V35",
+  "passed": true,
+  "opencv": "5.0.0",
+  "synthetic_measurements": [
+    {
+      "lot": "A",
+      "spaces": 12,
+      "detected_markers": 6,
+      "maximum_bay_corner_error_px": 0.6817561482189712,
+      "median_full_locate_ms": 14.16795002296567,
+      "iterations": 12,
+      "export_pairs": 12,
+      "source": "synthetic 1600x1100 pixels, six generated markers; not camera/vehicle throughput"
+    },
+    {
+      "lot": "B",
+      "spaces": 16,
+      "detected_markers": 6,
+      "maximum_bay_corner_error_px": 0.6369141937483946,
+      "median_full_locate_ms": 16.24719996470958,
+      "iterations": 12,
+      "export_pairs": 16,
+      "source": "synthetic 1600x1100 pixels, six generated markers; not camera/vehicle throughput"
+    }
+  ],
+  "enrollment_interruption_trials": [
+    {
+      "previous_template": false,
+      "interrupted_after": "reference_image",
+      "passed": true
+    },
+    {
+      "previous_template": false,
+      "interrupted_after": "active_json",
+      "passed": true
+    },
+    {
+      "previous_template": true,
+      "interrupted_after": "reference_image",
+      "passed": true
+    },
+    {
+      "previous_template": true,
+      "interrupted_after": "active_json",
+      "passed": true
+    }
+  ],
+  "physical_marker_trials": 0,
+  "vehicle_accuracy": null,
+  "note": "Elapsed locate includes detection, fit, pixel hash and evidence validation. No OCR/IO/UI time, no whole-program speedup claim."
+}

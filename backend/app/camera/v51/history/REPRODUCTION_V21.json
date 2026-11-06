@@ -1,0 +1,19 @@
+{
+  "version": "V21",
+  "results": {
+    "interrupted_resave_exported_stale_scene": 1,
+    "interrupted_review_exported_stale_scene": 1,
+    "approved_whitespace_number": {
+      "truth": "23",
+      "korean_json": null
+    },
+    "pending_manifest_exported_scene": 1,
+    "new_batch_during_calibration": "allowed",
+    "after_stale_calibration": {
+      "auto_run": true,
+      "phase": "calibrating",
+      "calibrating": false
+    }
+  },
+  "scope": "synthetic/mocked faults only; no source modifications, camera or HTTP"
+}
