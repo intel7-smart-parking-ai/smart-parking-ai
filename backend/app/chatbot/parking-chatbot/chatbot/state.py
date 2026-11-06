@@ -26,6 +26,11 @@ class Session:
     destination_problem: tuple | None = None
     query_context: dict = field(default_factory=dict)
     query_context_at: float = 0
+    # 대화 맥락(dialog_context.py): 마지막으로 다룬 주차장, 방금 고르라고 보여 준 주차장 목록
+    focus_lot: str | None = None
+    focus_at: float = 0
+    offered_lots: tuple = ()
+    offered_at: float = 0
     alert_unavailable_seen: bool = False
     alerts_source: str = "ok"
     observed_alert: int = 0

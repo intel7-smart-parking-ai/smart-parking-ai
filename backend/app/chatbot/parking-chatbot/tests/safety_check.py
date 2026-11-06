@@ -27,7 +27,16 @@ def assert_safe(answer, context=None):
     if type(data.get("spot_no")) is int: context.setdefault("spots", [data["spot_no"]])
     if isinstance(data.get("session_id"), str): assert data["session_id"] not in text
     if isinstance(data.get("lots"), dict):
-        context.setdefault("empty_counts", [row[k] for row in data["lots"].values() for k in ("empty", "display_empty") if type(row.get(k)) is int])
+        counts = [row[k] for row in data["lots"].values() for k in ("empty", "display_empty") if type(row.get(k)) is int]
+        # 합계·구역별처럼 계산한 숫자는 같은 카드의 derived_counts에 근거가 있을 때만 허용한다.
+        def _ints(value):
+            if type(value) is int:
+                yield value
+            elif isinstance(value, dict):
+                for item in value.values():
+                    yield from _ints(item)
+        counts.extend(_ints(data.get("derived_counts") or {}))
+        context.setdefault("empty_counts", counts)
     for pattern, key in ((r"([\d,]+)원", "amounts"), (r"(\d+)번 칸", "spots"), (r"(\d+)자리", "empty_counts")):
         if key in context:
             allowed = set(context[key])

@@ -14,6 +14,8 @@ SAFE_ID = re.compile(r"[A-Za-z][A-Za-z0-9_-]{0,31}\Z")
 SPACE_ID = re.compile(r"[A-Z]-[0-9]{2}\Z")
 SPACE_INPUT = re.compile(r"([A-Za-z])\s*-?\s*([0-9]{1,2})\Z")
 RATE_KEYS = ("base_minutes", "base_fee", "unit_minutes", "extra_fee", "daily_cap")
+# info_gaps.TOPICS의 키와 같아야 한다(test_v2160_natural_replies에서 확인).
+GUIDE_KEYS = frozenset({"terminal", "elevator", "stairs", "restroom", "entrance", "hours", "shuttle", "height", "amenity"})
 
 
 def normalize_space(value):
@@ -107,6 +109,15 @@ class Catalog:
             height = facility.get("height_limit_m")
             if height is not None and height is not False and (type(height) not in (int,float) or not math.isfinite(height) or height <= 0):
                 raise ValueError(f"{where}.height_limit_m은 null(미확인), false(해당 없음), 양수(미터) 중 하나여야 합니다.")
+            # 시설 안내 문장(docs/v2160_natural_replies.md). 팀이 확인한 문장만 넣고, 비어 있으면 '미등록'으로 답한다.
+            guide = lot.get("guide", {})
+            where = f"{lot['lot_id']} 주차장 guide"
+            if not isinstance(guide, dict): raise ValueError(f"{where} 형식 오류: 객체여야 합니다.")
+            unknown = set(guide) - GUIDE_KEYS
+            if unknown:
+                raise ValueError(f"{where}에 알 수 없는 항목 {sorted(unknown)}. 사용 가능: {', '.join(sorted(GUIDE_KEYS))}")
+            if any(not isinstance(v, str) for v in guide.values()):
+                raise ValueError(f"{where} 값은 문장(문자열)이어야 합니다.")
         with self.lock:
             self.settings = doc
             self.reset()
