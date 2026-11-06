@@ -1,6 +1,10 @@
-# EPIC06 주차장 안내 챗봇 v2.15.5 — 현재 명세에 맞춘 검증 기준
+# EPIC06 주차장 안내 챗봇 v2.15.8 — 연결 경계 안정화 준비본
 
-최신 기준은 [구현·검증 원칙](docs/validation_policy.md)과 [v2.15.5 변경 요약](docs/v2155_change_summary.md), 목업 배정은 [D-39 대응표](docs/d39_mock_migration.md), 실행은 [11/06 대본](docs/demo_script_1106.md)을 참고하세요. 팀 레포: https://github.com/intel7-smart-parking-ai/smart-parking-ai
+최신 변경과 담당별 연결 검수는 [v2.15.8 통합 검토](docs/v2158_integration_review.md)를 참고하세요. main `9265c12` 기준 로컬 준비본이며 원격 반영·배포 완료와 구분합니다. v2.15.7의 안전 응답·명부 갱신 수정도 포함합니다.
+
+이전 준비본 변경은 [v2.15.7 변경 요약](docs/v2157_change_summary.md), 내일 준비는 [11/06 준비·인계](docs/preparation_1106.md)를 참고하세요. 번호 해석은 [v2.15.6](docs/v2156_change_summary.md), 음성 연결은 [전사문 입력 기준](docs/voice_input_contract.md), 구현 기준은 [구현·검증 원칙](docs/validation_policy.md), 실행은 [11/06 대본](docs/demo_script_1106.md)에 있습니다. 팀 레포: https://github.com/intel7-smart-parking-ai/smart-parking-ai
+
+전체 검사는 팀 레포의 `backend/app/chatbot/parking-chatbot` 배치에서 실행합니다. ZIP만 단독으로 풀면 팀 등록 경로를 검사하는 일부 테스트에서 `backend`를 찾지 못할 수 있습니다. 이 납품본의 실제 실행 결과와 미검증 범위는 변경 요약을 참고하세요.
 
 v2.5 API 계약을 유지하며 재현된 오류와 긴 답변 표시를 수정했습니다. [최신 안정성 결과](docs/robustness_report.md)를 확인하세요. [API 계약 반영 기록](docs/api_alignment_report.md)을 확인하세요. [정리 결과](docs/refactor_report.md), [챗봇 작업지침서 v2](docs/chatbot_guidelines_v2.md), [이전 결과](docs/history/integrated_v3_report.md), [기록 보관함](docs/history/README.md)을 참고하세요.
 

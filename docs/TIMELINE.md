@@ -993,3 +993,141 @@
 - 충돌 해결: 진행 기록의 `RUNBOOK_DEMO_HOST.md`가 #54의 같은 이름 파일(김채린 실측 절차)과 충돌 → 제 쪽을 `RUNBOOK_ANY_PC.md`로 변경, 김채린 문서를 기준으로
 - 참고: #53 결제 후 `amount_krw`=결제 금액 유지·계약 명시(윤명수 OK) → DECISIONS D-49 갱신
 - 추천 순서 #52 → #53 → #54(각각 base main 변경) → #56 → 진행 기록 PR
+
+### 12:04~12:10 · ⚠️ 병합 후 점검 — #53·#54가 main 미반영 (김한별 요청 "병합완료 테스트")
+- main `6e23baf`: #52(12:03:27)·#56·#57 반영. #53은 `codex/ui-rehearsal`(12:03:46), #54는 `codex/backend-integration-complete`(12:03:58)로 병합됨 — base를 main으로 바꾸기 전 병합
+- main에 없는 것: `main.py` 통합·`runtime.py`·경보·`entry_at`·409·가상 검색·Docker·API_CONTRACT D-49·RUNBOOK_DEMO_HOST
+- 해결: `codex/backend-integration-complete` → main PR 하나 (main + 이 브랜치 사전 시험: 충돌 0, pytest 350, 챗봇 537 OK, 프론트 48) — PR 링크·본문 전달
+
+### 12:09~12:14 · ✅ main 병합 완료 확인 — PR #58 (`codex/backend-integration-complete` → main, #53·#54 재병합) → main `2eae627`
+- #53·#54 커밋 main 포함, `runtime.py`·`compose.yaml`·`RUNBOOK_DEMO_HOST.md` 존재
+- 테스트: pytest **350 passed**, 챗봇 **537 OK**(skip 9), 프론트 **48 passed**·team 빌드 OK
+- 실행: `demo_main`(VISION_TOKEN 환경변수) + `run_parking_demo --hold` → A 9/12·A-01 10번 `entry_at`·`/alerts` 200·챗봇 "개발원주차장에 9자리 있어요" / `main.py` demo 모드 health OK
+- 열린 PR 0개
+
+### 12:34 · 음성인식 엔진 방식 문서 검토 — PM 공유(윤명수 태그)
+- 문서: 단기 브라우저 유지, 정식은 휴대폰 VAD → PC Whisper → 챗봇, faster-whisper·외부 STT는 측정 후, 결제는 버튼만
+- 검토: 방향 타당(VAD/STT 분리, 측정 우선). 보완 — Whisper도 휴대폰 녹음은 secure context 필요(HTTPS 문제 동일), STT는 P2·다음 주 LED 일정·동결 고려, 음성 업로드 API·폴더·무거운 라이브러리·가중치(Git 금지)는 승인 필요, 서버 측 음성 승인 차단은 `/chat`에 `input_mode` 필드 필요(챗봇 API 변경), 시험 문장 D-54 혼동 쌍 추가, 로컬 처리 = 개인정보 장점
+- 제안(PM 결정 대기, D-56 예정): 11/06 PC 브라우저 / ~11/09 윤명수 PC Whisper 실험·비교 측정 / 11/10 최종 방식 결정
+- 13:46 PM 요청 → 새 AI 인수인계용 프로젝트 정리 `docs/HANDOFF_FOR_AI.md` 작성 (규칙·규약·코드 상태·일정·결정·대기 항목·문서 지도·일하는 방식, 링크·키 제외)
+
+### 13:58 · Claude 소개 — 김한별 요청
+- 채널에서 하는 일(코드·PR 확인, 테스트 실행, 문서·Jira 정리 안내), 규칙(비밀값·링크 금지, 담당 경계, 실행 확인 후 완료)
+
+### 14:03 · Jira 관리용 전체 진행 현황 (10개 항목, 읽기 전용) — 김한별 요청 (디스코드 첨부, 저장소 미반영)
+- 완료 판단 = 병합 + 실제 테스트로 구분. 직접 실행: pytest **350 passed** · 챗봇 **537 OK**(skip 9) · 프론트 **48 passed**
+- 확인되지 않은 것은 "미확인"으로 표시 (KAN-52 실제 진행, 리허설 결과 등)
+
+### 14:05~14:38 · 음성인식 코드 GitHub 올리기·브랜치 정리 — 윤명수 요청
+- 저장소 폴더·`git add`·브랜치·PR 절차 안내. `voiceinseek` 폴더 안의 `key.pem`·`cert.pem`·`__pycache__`는 올리지 않기
+- 🔴 14:34 확인: 웹 업로드한 `feature/KAN-9-voice-input`에 **개인키 `key.pem`이 공개 저장소에 올라감** (웹 업로드는 `.gitignore`를 무시) → 병합 금지, 브랜치 삭제 방법 안내
+- 14:48 브랜치 삭제 확인 (원격 0건). 남은 것: 인증서 재발급, 키 빼고 다시 정리, 루트 `.gitignore`에 `*.pem` 추가 (PM 승인 대기)
+
+### 14:27 · 음성인식 진척도 정리 — 서정범 요청 (디스코드 첨부)
+- 11/06 브라우저 Web Speech API / 윤명수 `voiceinseek`(HTTPS 자체 인증서·8443·Whisper) 시제품 / D-56 PM 결정 대기 / 휴대폰 마이크는 secure context 필요 / 결제는 버튼으로만
+
+### 14:31 · git 전체 점검 — 김한별 요청
+- main `2eae627`, 열린 PR 0개(당시), 남은 원격 브랜치·보관 브랜치 목록 정리, `.gitignore`에 `*.pem` 없음 확인
+- 참고: 14:34 PM이 main으로 checkout·pull (로컬 브랜치 변경은 PM 작업)
+
+### 14:34 · 요금 견적 유효 시간 — 김채린 질문
+- 서버 기본 **300초** (`FEE_QUOTE_TTL_SECONDS`로 변경 가능, `payment_service.py`), 만료 시 409 `QUOTE_EXPIRED` + `quote_expires_at`, 대피 경보 중 409 `EVACUATION_ACTIVE`
+- 화면은 응답의 `quote_expires_at`을 기준으로, 15초 데모 카운트다운은 임의 값. 챗봇은 만료 5초 전부터 만료로 처리
+
+### 14:48~14:51 · Jira 내보내기(Jira.csv) 점검 → 가져오기용 CSV 작성 — 김한별 요청 (디스코드 첨부, 저장소 미반영)
+- 65건 점검: 끝났는데 열린 이슈 13건, **KAN-28 번호 충돌**(Jira = 김채린 챗봇 UI, 저장소 = 윤명수 요금), 담당 불일치(KAN-45·46·59 → 김채린), 작업 기한 0건, KAN-52 Highest 권장
+- 가져오기 파일: 1건 시험(KAN-45) · 기존 갱신 41건 · 새 이슈 13건 + 안내서 (`Issue ID` 숫자 연결 필수 — 11/04 KAN-66 중복 생성 교훈)
+- ⚠️ CSV에 팀원 Jira 계정 ID 포함 → 저장소에 올리지 않음
+
+### 15:23~15:33 · PR #59 확인 · huks13 계정 — 김채린 요청
+- PR #59 `codex/parking-ui-chat-3d` (시작 화면·다국어·챗봇 `safety`·칩·카드·3D 추천 지도), `frontend/`만 변경, 빌드 OK
+- 확인 필요 3건: 테스트 수(직접 53 vs 보고 60), `maplibre-gl` 새 라이브러리 PM 승인·README, 외부 지도 타일(인터넷 끊김 시) — 15:36 후속 커밋(오프라인 대체) 미확인
+- 작성자가 `huks13`으로 보임 → 김채린 본인 작업 확인. 원인은 그 PC의 GitHub 로그인 정보(Windows 자격 증명) → 계정 정리 방법 안내
+- 15:47 PR #59 **병합 없이 닫힘** (브랜치 남음, 이유 미확인)
+
+### 15:57~15:58 · 서정범 다음 할 일 · 챗봇 상세 MD — 서정범 요청 (디스코드 첨부)
+- 순서: ① KAN-67 결제 차단 응답 `safety` null (`engine.py` `_server_payment_blocked`가 `_respond`에 근거를 넘기지 않음 → `safety_override` 제안) ② 11/06 대본(KAN-60) ③ 리허설 6/6 ④ 목업 차량 D-54 맞추기(11 → ev, 75 → general, 13·31·49·77·78·87 추가) ⑤ 영수증 `payment` ⑥ `/vehicle-search` 연결 ⑦ 음성 문장표 ⑧ DATA-01(KAN-68) ⑨ 설정집(KAN-69)
+
+### 16:03 · 팀원별 역할·담당 업무 — 박해준 요청 (디스코드 첨부)
+- 김한별 PM·EPIC 01 / 박해준 백엔드(김채린에 인수인계)·`cam_bulk` / 우지원 카메라·ROI·`cam_hq` / 김채린 UI 총괄·모듈 통합 / 윤명수 요금·경보·음성 / 서정범 챗봇·음성
+- 지침서 v1.0은 아직 "박해준 = FastAPI·DB"로 되어 있음 (D-40~42 미반영)
+
+### 17:12~17:19 · 주차칸 상태 4가지 표시 — 김채린 질문
+- 팀 규칙: 서버 상태 `empty`/`occupied`/`uncertain`/`unavailable` 4가지, **`uncertain`을 빈자리로 표시 금지** (INTEGRATION_GUIDE·API_CONTRACT)
+- 제안: 관리자 화면은 4가지 그대로, 사용자 화면은 확인 필요·확인 불가를 회색 "확인 중" 하나로 합쳐도 됨 (빈자리 수 제외), PM 공유
+- 17:12 질문에 Discord 연결이 끊겨 17:19에 답변
+
+### 17:36 · 결제 수단 규칙 — 김채린 질문
+- D-10: 서버 값 `MOCK_CARD`/`MOCK_EASY_PAY`/`MOCK_ACCOUNT`, 실제 회사명 대신 변형 이름(피넛페이). 화면 3개 일치 ✅
+- ⚠️ 서버가 `payment_method` 값을 검사하지 않음 (`payment_service.py`, 오타도 저장) → 윤명수 변경 요청 후보
+
+### 17:41 · 주차장별 요금 정책 표시 — 김채린 질문
+- 요금 금액은 규칙(API_CONTRACT 요금표, 4곳 숫자 일치 ✅), 화면은 `GET /rate-policies` 값만 표시·계산 금지
+- 몇 곳을 보여줄지는 규칙 없음 → 사용자 화면은 선택 주차장만, 4곳 비교는 관리자 화면 제안
+
+### 17:51 · 챗봇 v2.15.6 브랜치 확인 — 서정범 보고 → ✅ 17:55 PR #60 main 병합 (`85c0369`)
+- `feature/KAN-9-chatbot-v2-15-6` `606ed1d`: 음성 전사문의 한글 차량번호(이십삼 번 등)·"N번 말고 M번" 정정 해석, 5개 파일 모두 챗봇 폴더
+- 직접 실행: 챗봇 unittest **553 OK**(skip 9, +16), pytest **350 passed**. 문장 확인: "이번 요금" → 번호 아님, "일칠 번" → 거절, "열일곱 번" → 지원 안 함
+- 미검증: 실제 휴대폰 STT 전사문
+
+### 17:54 · 오늘 마무리 목록 — 김한별 요청
+- PM: PR #60 병합(✅ 17:55), PR #59 닫힌 이유 확인, KAN-52 점검(main `camera/`·`roi/`는 `__init__.py`만) → 안 되면 D-11 모의 이벤트로 11/06 진행 결정, 결정 대기 공지
+- 팀원: 서정범 KAN-67·대본 / 김채린 PR #59 재정리·리허설 서버 / 우지원 KAN-52 / 윤명수 인증서 재발급 / 박해준 `cam_bulk` 결과
+
+### 18:02 · Claude 종료 시각 공지 — 김한별 요청 → 20:20 종료(PC 꺼짐), 20:05 남은 일 요약 예정
+
+### 18:14 · 오늘 작업 정리·저장 — 김한별 요청 → 이 기록 + `docs/DAILY_2026-11-05.md`
+
+## 2026-11-06 (금) D5 — 중간 점검①
+
+### 08:53 · ✅ D-57 C(북항주차장) 디자인 변경 — 김한별 공지
+- 김채린 건의, 팀원 3명 이상 동의(과반)로 변경 확정. 상세는 김채린에게 받기로 함
+- 후속: 칸 수·`space_id`·전용 칸이 바뀌면 `API_CONTRACT.md`·시뮬레이터·챗봇 `lots.json` 영향 범위 정리 (김채린 내용 대기)
+
+### 08:57 · 윤명수 오늘 할 일 브리핑 — 윤명수 요청
+- 🔴 리허설 결제 흐름·대피 중 결제 차단(409 `EVACUATION_ACTIVE`) 확인 / 🟠 인증서 재발급·키 뺀 음성 코드 / 🟡 `clients/` `quote_id` 반영, `payment_method` 검사 변경 요청 / ⏸ LED(재료 대기)
+
+### 08:58 · 진행률·남은 일정·팀원별 우선순위 — 김한별 요청
+- PROGRESS 기준 약 61%(모델 제외), 74개 중 ☑41·◐4·☐29, main 백엔드 350·챗봇 553·프론트 48
+- 🔴 최우선: 우지원 KAN-52 카메라·ROI 저장소 반영. 리스크: 카메라·ROI, 재료 지연 시 모델 기간 11/09~11뿐, 통합 업무 김채린 집중
+- 참고: PROGRESS 업무별 %를 다시 평균하면 약 56~58% → 다음 갱신 때 재계산 필요
+
+### 09:02 · 음성인식 분담 — 윤명수 공유
+- 윤명수가 만들어 서정범에게 전달, 수정사항은 다시 받는 방식. 분담은 문제없음
+- 재확인: 공개 저장소에 올라갔던 `key.pem`은 폐기·재발급, 전달 시 키 파일 제외
+
+### 09:05~09:12 · `quote_id` 반영·`payment_method` 검사 방법 — 윤명수 요청
+- ① `clients/` 예시 2개에 `quote_id` 전달 (서버는 PR #15부터 필수 → 기존 예시는 400)
+- ② `schemas.py` `payment_method`를 `Literal[MOCK_CARD, MOCK_EASY_PAY, MOCK_ACCOUNT]`, `payment_service.py`도 400 검사 → **변경 요청, PM 승인 후**
+- 직접 검증: 고치기 전 `CASH` 결제가 200으로 저장됨(문제 확인) → `schemas.py` 수정 시 pytest 350 passed. 영향: 화면(`payments.js` 3개 코드로 변환)·챗봇(`MOCK_CARD` 고정) 없음
+- 정정: 결제 테스트 위치는 `tests/test_billing.py`가 아니라 `tests/test_main_billing_demo.py` (붙여 넣을 테스트 전달)
+
+### 09:40 · 사용 포트 정리 — 김한별 요청
+- 시연 서버: 8002 `demo_main` · 5173 화면 / Docker: 80 웹 · 8090 관리자 게이트웨이(로컬 전용) · 8000 내부 API / 개발: 8000 기본 · 8080 챗봇 단독 · 8003 `/demo-api` 프록시(서버 미확인) · 8012 테스트 전용
+- 미확인: 윤명수 음성 HTTPS 포트
+
+### 09:43~09:47 · `feature/KAN-28-clients-quote` 확인 — 윤명수 보고
+- `4528e00` → 사용 예시가 `pay("ses_0001", "MOCK_CARD")`로 남아 quote_id 자리에 들어가는 문제 지적 → `859d9fe` 수정
+- 직접 실행: 브랜치 pytest **350 passed**, `node --check` OK. PR 제목·본문·Jira 문구 전달 (PR 생성 대기)
+- 다음: `payment_method` 검사 (PM 승인 후 `feature/KAN-28-payment-method-check`)
+
+### 09:50 · 병합 대기 목록 점검 — 김한별 요청
+- 열린 PR #63(윤명수)·#61(김채린 Draft, KAN-82) + 기록 브랜치. main + 3개 합침: 충돌 0, pytest 350, 프론트 53 passed·빌드 OK
+- #61 확인: `maplibre-gl 6.16.0` 승인 필요(외부 타일, 오프라인 대체 있음), `API_CONTRACT.md` 줄바꿈만 960줄(실제 2줄), 결제 수단 이름에서 "모의" 제거(버튼엔 남음) → PM 결정
+- 10:04 PR #63 main 병합 (`9265c12`)
+
+### 10:30 · 공개 시연 주소 점검 — 김한별 공유 (주소는 디스코드에만)
+- 구조: 휴대폰·PC → HTTPS → 집 라즈베리파이(Caddy) → Tailscale → 교육장 PC(Docker)
+- 외부 조회 점검: 화면·공개 조회 200, 관리자 로그인 화면·관리자 API 403, Swagger 비노출
+- ⚠️ `http://`(s 없이) 응답 없음, 장애 지점 4곳 → 교육장 Wi-Fi 예비안(`WEB_BIND_ADDRESS`·방화벽) 미리 설정 추천. 🟢 정식 HTTPS라 휴대폰 음성인식 보안 조건 해결(D-56 참고)
+
+### 10:42 · 스티커 16mm 정사각 시안 — 김한별 공유 (PDF 16·20·25mm, 사진 2장)
+- PDF 30개 번호·색 = D-54 일치, 현재 6대(11·23·49·77·34·87)도 일치
+- 시험 항목: 붙이는 방향 통일("숫자 위 = 차 앞" 제안), 하늘색 차체 vs 장애인 파랑, 초록 인쇄가 연함, 실제 카메라 높이에서 16 vs 20mm 비교, 무광
+- 크기·방향 확정 후 `LABELING_SPEC.md` 기록 예정
+
+### 10:44 · 챗봇 v2.15.8 PR #64 리뷰 — 서정범 요청
+- `feature/KAN-67-chatbot-v2158` `2ec6c19`, `backend/app/chatbot/` 13개 파일만
+- main `9265c12`와 합쳐 직접 실행: pytest **350 passed**, 챗봇 unittest **574 OK**(skip 9), 평가 **248/248**
+- 코드: 결제 차단 시 `safety`·`banner` 채움(경보 사실 추정 없음), 칸 명부는 검증 후 반영, 서버 영수증 검증만(재계산 없음, 취소 후 `payment=null` 확인)
+- 상태: **PR 생성·Windows 코드 검사 통과·리뷰 통과 → main 병합·통합 검수 대기**. KAN-67 = 수정 PR 제출(병합·현장 적용 전)

@@ -34,6 +34,12 @@ request_lot = ContextVar("request_lot", default=None)
 request_deadline = ContextVar("backend_request_deadline", default=None)
 
 
+class _OccupancyResult(dict):
+    """Carry proposed catalog changes outside the public JSON payload."""
+
+    catalog_spaces: dict
+
+
 def request_timeout(limit):
     """한 화면 요청의 여러 외부 조회가 제한 시간을 각각 모두 소비하지 않도록 한다."""
     deadline = request_deadline.get()
@@ -520,12 +526,12 @@ class ApiAdapter:
         except (ValueError, OverflowError):
             return None
 
-    def _space_snapshot(self, lot, total):
+    def _space_snapshot(self, lot, total, *, publish=True):
         """Normalize one /spaces response once per request, retaining completeness."""
         from .catalog import normalize_space
 
         cache = request_gets.get()
-        key = (id(self), "space_snapshot", lot, total)
+        key = (id(self), "space_snapshot", lot, total, publish)
         if cache is not None and key in cache:
             return cache[key]
         path = config.API_PATHS["spaces"].format(lot_id=quote(lot, safe=""))
@@ -551,7 +557,7 @@ class ApiAdapter:
                     "entry_at": self._entry_at(item.get("entry_at")),
                 }
         complete = complete and len(rows) == total
-        if complete:
+        if complete and publish:
             config.catalog.adopt_spaces(lot, list(rows))
         result = rows, complete, self._meta(headers).get("data_source") == "mock"
         if cache is not None:
@@ -564,7 +570,7 @@ class ApiAdapter:
             return self._failure(status, value, headers)
         require(isinstance(value, dict) and isinstance(value.get("items"), list)
                 and not value.get("next_cursor"), "주차장 목록 형식 오류")
-        lots, states = {}, {}
+        lots, states, catalog_spaces = {}, {}, {}
         unrecognized = []
         mocked = False
         zone_keys = {z["key"] for z in config.catalog.zones()}
@@ -577,11 +583,12 @@ class ApiAdapter:
                     "uncertain": item.get("uncertain_spaces", 0), "unavailable": item.get("unavailable_spaces", 0),
                     "name": item.get("name") or item.get("lot_name") or config.catalog.name(lot)}
             if request_lot.get() in (None, lot):
-                rows, complete, mock_header = self._space_snapshot(lot, info["total"])
+                rows, complete, mock_header = self._space_snapshot(lot, info["total"], publish=False)
                 mocked = mocked or mock_header or any(row["is_mock"] for row in rows.values())
                 counts = Counter()
+                unknown_start = len(unrecognized)
                 zone_rows = {key: {"total": 0, "empty": 0, "uncertain": 0} for key in zone_keys}
-                for label, space in rows.items():
+                for index, (label, space) in enumerate(rows.items(), 1):
                     state = space["status"]
                     counts[state] += 1
                     states.setdefault(lot, {})[label] = state
@@ -599,16 +606,23 @@ class ApiAdapter:
                             row[state] += 1
                     car = space["car_id"]
                     if state == "occupied" and car is None:
-                        spot = self._spot(label, lot)
+                        # The enclosing snapshot has not been validated/published yet.
+                        spot = index if complete else config.catalog.space_index(lot, label)
                         unrecognized.append({"car_id": None, "lot_id": lot, "spot_no": spot, "space_id": label, "session_id": None})
                 complete = complete and all(
                     counts[state] == info[field] for state, field in (("empty", "empty"), ("uncertain", "uncertain"), ("unavailable", "unavailable")))
+                if not complete:
+                    for car in unrecognized[unknown_start:]:
+                        car["spot_no"] = config.catalog.space_index(lot, car["space_id"])
                 if complete:
                     info["zones"] = zone_rows
+                    catalog_spaces[lot] = list(rows)
             lots[lot] = info
-        return {"lots": lots, "space_states": states, "unrecognized": unrecognized, "as_of": value.get("as_of"),
+        result = _OccupancyResult({"lots": lots, "space_states": states, "unrecognized": unrecognized, "as_of": value.get("as_of"),
                 "updated_at": value.get("as_of"), **self._meta(headers),
-                **({"data_source": "mock"} if mocked else {})}
+                **({"data_source": "mock"} if mocked else {})})
+        result.catalog_spaces = catalog_spaces
+        return result
 
     def find_car(self, car_id) -> C.VehicleLocation | dict | None:
         path = config.API_PATHS["location"].format(car_id=quote(car_id, safe=""))
@@ -685,14 +699,44 @@ class ApiAdapter:
         policy = value.get("rate_policy") if isinstance(value.get("rate_policy"), dict) else None
         if "payment_blocked" in value:
             require(type(value["payment_blocked"]) is bool, "결제 차단 여부 형식 오류")
+        # A corrupt optional receipt must not mask the authoritative safety block.
+        receipt = None if value.get("payment_blocked") is True else self._fee_receipt(value, car)
         return {"car_id": car_id, "session_id": session_id, "lot_id": value.get("lot_id") or car.get("lot_id"),
                 "fee": value["amount_krw"], "minutes": value["duration_minutes"], "entry_at": value["entry_at"],
                 "exit_at": value.get("exit_at"), "session_status": session_status,
                 "paid": value["payment_status"] == C.PAYMENT_COMPLETED,
                 "payment_status": value["payment_status"], "is_daily_capped": value.get("is_daily_capped", False),
                 "rate_policy": policy, "quote_id": quote_id, "quote_expires_at": quote_expires,
+                **({"payment": receipt} if receipt is not None else {}),
                 **({"payment_blocked": value["payment_blocked"]} if "payment_blocked" in value else {}),
                 "updated_at": basis or iso(now()), **self._meta(headers)}
+
+    def _fee_receipt(self, value, car):
+        """Validate the server's optional D-49 receipt without recalculating it."""
+        receipt = value.get("payment")
+        if receipt is None:
+            return None
+        if not isinstance(receipt, dict):
+            raise DataUnavailable("서버 영수증 형식 오류")
+        self._require_visit(receipt, car)
+        try:
+            paid_at = receipt.get("paid_at") or receipt.get("created_at")
+            valid = (value["payment_status"] == C.PAYMENT_COMPLETED
+                     and receipt.get("status") == "completed"
+                     and receipt.get("session_id") == car.get("session_id")
+                     and isinstance(receipt.get("payment_id"), str) and bool(receipt["payment_id"].strip())
+                     and C.integer(receipt.get("amount_krw"))
+                     and receipt["amount_krw"] == value["amount_krw"]
+                     and timestamp(paid_at) <= now() + timedelta(seconds=5))
+        except (TypeError, ValueError, OverflowError):
+            valid = False
+        if not valid:
+            # A conflicting receipt must not fall back to a cached old visit.
+            raise DataUnavailable("현재 주차 세션의 완료 영수증을 검증하지 못했습니다.")
+        return {"payment_id": receipt["payment_id"], "session_id": receipt["session_id"],
+                "car_id": car["car_id"], "status": "already_paid",
+                "amount": receipt["amount_krw"], "paid_at": paid_at,
+                **self._meta({})}
 
     def get_rate_policies(self):
         path = config.API_PATHS.get("rate_policies")
@@ -923,12 +967,13 @@ class CachedAdapter:
                 if key == "alert" and result.get("level", 0) == 0 and age > config.DATA_MAX_AGE_SEC and (
                         api_result or result.get("data_source") != "mock"):
                     raise DataUnavailable("경보 정보의 갱신 시각이 너무 오래되어 '경보 없음'을 확정할 수 없습니다.")
+            catalog_spaces = getattr(result, "catalog_spaces", None)
             result = freeze(result)
             with self.lock:
                 if generation != self._generation_for(key):
                     raise DataUnavailable("조회 중 데이터가 초기화되거나 변경됐습니다. 다시 조회해 주세요.")
                 if kind == "empty" and isinstance(self.inner, ApiAdapter):
-                    config.catalog.adopt(result["lots"])
+                    config.catalog.adopt(result["lots"], spaces=catalog_spaces)
                     self.catalog_ready = True
                 if isinstance(result, dict):
                     self.cache[key] = result

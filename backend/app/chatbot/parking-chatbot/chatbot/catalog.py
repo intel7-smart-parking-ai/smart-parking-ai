@@ -306,7 +306,7 @@ class Catalog:
         lot = self._settings_lot(lot_id) or {}
         return dict(lot["rate_policy"]) if lot.get("rate_policy") else None
 
-    def adopt(self, lots):
+    def adopt(self, lots, *, spaces=None):
         """검증·신선도 확인이 끝난 API 응답에만 호출한다."""
         with self.lock:
             fallback = {x["lot_id"]:x for x in self.settings["lots"]}
@@ -316,7 +316,7 @@ class Catalog:
                 incoming[key] = {**fallback.get(key,{}), "lot_id":key,
                                  "name":v.get("name", fallback.get(key,{}).get("name",key)),
                                  "kind":v.get("kind", fallback.get(key,{}).get("kind","unknown")),
-                                 "capacity":v["total"], "spaces": list(previous.get("spaces", []))}
+                                 "capacity":v["total"], "spaces": list((spaces or {}).get(key, previous.get("spaces", [])))}
             if incoming != self._lots or self.source != "backend":
                 logger(__name__).info("주차장 명부를 백엔드 기준으로 갱신: %d", len(incoming))
                 self._publish(incoming, "backend")

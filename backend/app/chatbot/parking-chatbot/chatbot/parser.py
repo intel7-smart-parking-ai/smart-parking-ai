@@ -39,6 +39,13 @@ RE_NUM_CAR = re.compile(r"(?<![\d.])(\d{1,2})\s*(?:차량|차)(?!단)")        #
 RE_NUM_ONLY = re.compile(r"^\s*(\d{1,2})\s*(?:번)?\s*(?:이요|이에요|예요|요)?\s*[.!]?\s*$")
 RE_KO_CAR = re.compile(r"(?<![가-힣])([일이삼사오육칠팔구십]+)\s*번\s*(?:차량|차)")
 RE_KO_ONLY = re.compile(r"^\s*([일이삼사오육칠팔구십]+)\s*번\s*(?:이요|요)?\s*$")
+# Read the entire spoken number before '번'. Unsupported/mixed forms must not
+# expose a valid suffix (e.g. '삼 십 번' -> 10, '백 십일 번' -> 11).
+_SPOKEN_NUMBER_CHARS = "영공일이삼사오육칠팔구십백천만억점.0-9"
+RE_SPOKEN_NUMBER = re.compile(
+    r"(?<![가-힣A-Za-z0-9.])(?P<sign>(?:마이너스|플러스|[+-])\s*)?"
+    rf"(?P<number>[{_SPOKEN_NUMBER_CHARS}](?:\s*[{_SPOKEN_NUMBER_CHARS}])*)\s*번" + _NOT_CAR
+)
 # 가상 주차장 차량: 번호판 '17가1724' 또는 화면 표시 4자리 '1724' (D-08)
 RE_PLATE = re.compile(r"(?<!\d)(\d{2,3}[가-힣]\d{4})(?!\d)")
 RE_VIRTUAL4 = re.compile(r"(?<![\d.])(\d{4})(?!\d)(?!\s*(?:년|원|분|시|초|%|층|칸|월|일))")
@@ -85,14 +92,46 @@ def extract_virtual(text: str) -> str | None:
 _FULLWIDTH = str.maketrans("０１２３４５６７８９", "0123456789")
 
 
+def _spoken_vehicle_text(text: str) -> tuple[str, bool]:
+    """Normalize scoped Sino-Korean numbers; preserve the user's stored text.
+
+    Only two-digit cardinal readings are expanded. Single-syllable words such
+    as '이번' keep their existing handling, so '이번 요금' is not car number 2.
+    Digit-by-digit, signed, decimal, mixed and out-of-range readings are rejected
+    as a whole instead of falling back to a previously selected vehicle.
+    """
+    invalid = False
+
+    def replace(match):
+        nonlocal invalid
+        token = re.sub(r"\s+", "", match["number"])
+        if match["sign"]:
+            invalid = True
+        elif token.isascii() and token.isdigit():
+            invalid |= bool(re.search(r"\s", match["number"]))
+        else:
+            value = KO_NUM.get(token)
+            if value is None:
+                invalid = True
+            elif value >= 10:
+                return f"{value}번"
+        return match[0]
+
+    return RE_SPOKEN_NUMBER.sub(replace, text), invalid
+
+
 def extract_vehicle(text: str) -> tuple[str | None, bool]:
     """(차량번호 'NN', 번호만 단독으로 말했는지). 한 자리·0 시작은 'short', 그 밖의 범위 밖은 'invalid'."""
     text = mask_spaces(RE_PLATE.sub(" ", text.translate(_FULLWIDTH)))
-    correction = re.search(r"(?:\d{1,2}\s*번(?:\s*차(?:량)?)?\s*)말고\s*(\d{1,2})\s*번", text)
+    text, invalid_spoken = _spoken_vehicle_text(text)
+    if invalid_spoken:
+        return "invalid", False
+    correction = re.search(r"(?<![\d.])\d{1,2}\s*번(?:\s*차(?:량)?)?\s*말고", text)
     if correction:
-        rest = text[correction.end():].strip()
-        only = bool(re.fullmatch(r"(?:차(?:량)?)?(?:이에요|이요|예요|요)?[.!]?", rest))
-        return _classify(correction[1]), only
+        tail = text[correction.end():].strip()
+        replacement, only = extract_vehicle(tail)
+        only = only or bool(re.fullmatch(r"\d{1,2}\s*번\s*(?:차(?:량)?)?(?:이에요|이요|예요|요)?[.!]?", tail))
+        return replacement or "missing", only
     # Malformed explicit numbers must never fall back to the previously selected car.
     tokens = re.findall(r"(?<!\d)([+-]?\d+(?:\.\d+)?)\s*(?:번|차량|차(?!단))" + _NOT_CAR, text)
     if any(token.startswith(("-", "+")) or "." in token or len(token) in (3,) or len(token) > 4 for token in tokens):
@@ -101,7 +140,7 @@ def extract_vehicle(text: str) -> tuple[str | None, bool]:
         return "invalid", False
     if re.search(r"\d{1,2}\s*번(?:\s*차(?:량)?)?\s*말고", text):
         return "missing", False  # 거절한 번호는 새 대상 후보로 사용하지 않는다.
-    numbers = {m[1] for m in RE_NUM_BEON.finditer(text)}
+    numbers = {m[1] for rx in (RE_NUM_BEON, RE_NUM_CAR) for m in rx.finditer(text)}
     if len(numbers) > 1:
         return "ambiguous", False
     for rx, only in ((RE_NUM_ONLY, True), (RE_NUM_BEON, False), (RE_NUM_CAR, False)):
@@ -276,6 +315,8 @@ def parse_rules(text: str) -> ParseResult:
     for intent, rx in RULES:
         if rx.search(text):
             return ParseResult(intent, params, "rule")
+    if normalize_car_id(vehicle) and re.search(r"번\s*위치(?:\s*(?:알려\s*줘|알려\s*주세요|확인\s*해\s*줘))?[\s?？!！.]*$", text):
+        return ParseResult("find_my_car", params, "rule")
     if zone:
         return ParseResult("get_empty_spots",params,"rule")
     if vehicle:
