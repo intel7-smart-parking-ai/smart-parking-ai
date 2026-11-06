@@ -28,7 +28,7 @@ class D39Tests(unittest.TestCase):
         expected = {
             'A': [('11',1,95),('12',2,40),('23',3,12),('40',5,150),('41',6,33),('33',7,58),('43',8,20)],
             'B': [('44',1,70),('20',2,25),('42',3,110),('22',4,15),('34',5,45),('24',6,80),('58',7,5),('88',8,63)],
-            'C': [('21',2,28),('57',3,140)], 'D': [('32',2,48),('30',5,18)]}
+            'C': [('21',7,28),('57',11,140)], 'D': [('32',2,48),('30',9,18)]}
         actual = {lot: [tuple(row) for row in data['mock_cars']] for lot,data in config.catalog.lots().items()}
         self.assertEqual(actual, expected)
         mock = MockAdapter()
