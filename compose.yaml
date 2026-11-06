@@ -14,6 +14,10 @@ services:
       DATA_SOURCE: api
       BACKEND_BASE_URL: http://127.0.0.1:8000
       LLM_PROVIDER: ${LLM_PROVIDER:-none}
+      LLM_ENGINE: ${LLM_ENGINE:-langchain}
+      LLM_TIMEOUT_SEC: ${LLM_TIMEOUT_SEC:-3}
+      BACKEND_TIMEOUT_SEC: ${BACKEND_TIMEOUT_SEC:-2}
+      REQUEST_BUDGET_SEC: ${REQUEST_BUDGET_SEC:-6}
       LLM_MODEL: ${LLM_MODEL:-google/gemma-4-26b-a4b-it}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
       TZ: Asia/Seoul

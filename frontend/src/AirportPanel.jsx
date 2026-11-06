@@ -62,7 +62,7 @@ export default function AirportPanel({lot}) {
 
   return <section className="panel airport-panel" aria-label={t('주차 예약')}>
     <header>
-      <div><h2>{lot.name} · {t('주차 예약')}</h2><p>{t('국내선·국제선 터미널 · P3 순환 셔틀')}</p></div>
+      <div><h2>{t('김해공항 주차 예약')}</h2></div>
       <button type="button" className="button primary" onClick={() => {setMessage(''); dialog.current.showModal();}}>{t('예약')}</button>
     </header>
     <dialog className="airport-reservation-dialog" ref={dialog} aria-labelledby={titleId}>

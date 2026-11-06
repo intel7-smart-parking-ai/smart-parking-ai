@@ -124,7 +124,7 @@ export default function ParkingLayoutMap(props) {
     </div>}
     {preview&&<p role="status" className="fee-note">시연용 샘플 · 선택한 유형의 첫 번째 칸에 123가 4567 / 90분 · 4,500원을 표시합니다. 실제 주차 데이터는 변경되지 않습니다.</p>}
     <div className="map-toolbar"><div className="filter-tabs">{[['all',t('전체 보기')],['empty',t('빈자리')],['ev',t('전기차')],['accessible',t('장애인')]].map(([id,label]) => <button key={id} onClick={() => setFilter(id)} className={filter === id ? 'active' : ''} aria-pressed={filter === id}>{label}</button>)}</div></div>
-    <div className="pdf-map-heading">{kind !== 'basic' && <strong>{kind === 'mall' ? t('주차 배치도') : names[kind]}</strong>}<button className="pdf-zoom-button" aria-pressed={zoomed} onClick={() => setZoomed(value => !value)}>{zoomed ? t('전체 도면 보기') : t('주차칸 확대')}</button></div>
+    <div className="pdf-map-heading">{!props.hideTitle && kind !== 'basic' && <strong>{kind === 'mall' ? t('주차 배치도') : names[kind]}</strong>}<button className="pdf-zoom-button" aria-pressed={zoomed} onClick={() => setZoomed(value => !value)}>{zoomed ? t('전체 도면 보기') : t('주차칸 확대')}</button></div>
     <div className={`pdf-map-scroll ${zoomed ? 'is-zoomed' : 'fit-map'}`} tabIndex={0} aria-label={t("주차장 도면, 확대 상태에서는 좌우로 이동하세요")}>
       <svg className="pdf-map-svg" viewBox={kind === 'mall' ? '0 0 1536 1024' : kind === 'angled' ? '0 0 1200 760' : kind === 'airport' ? '0 0 1536 1024' : kind === 'loop' ? '0 0 1000 880' : kind === 'l_shape' ? '0 0 900 1100' : '0 0 1000 1040'} role="group" aria-label={t("{0} {1}면 배치도",lot.name,lot.spaces.length)}>
         {kind === 'mall' && <MallParkingMap lot={lot} bay={bay} Arrow={Arrow} Gate={Gate}/>}

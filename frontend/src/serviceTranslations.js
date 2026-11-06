@@ -1,4 +1,5 @@
 export default {
+  "김해공항 주차 예약": ["Gimhae Airport parking reservations", "金海机场停车预约", "金海空港の駐車予約"],
   "주차 예약": ["Parking reservations", "停车预约", "駐車予約"],
   "예약 확정": ["Confirm reservation", "确认预约", "予約を確定"],
   "주차장 현황": [
