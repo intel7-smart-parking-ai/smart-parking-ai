@@ -16,7 +16,7 @@ class ChatbotBillingTools:
     self.base_url = base_url.rstrip("/")
 
   def get_vehicle_fee(self, session_id: str) -> dict[str, Any]:
-    """차량의 실시간 주차요금과 입차시간, 주차시간을 조회합니다."""
+    """차량의 실시간 주차요금과 입차시간, 주차시간을 조회합니다. 응답의 quote_id(유효 5분)로 결제해야 하며, 만료되면 다시 조회합니다."""
     url = f"{self.base_url}/api/v1/sessions/{urllib.parse.quote(session_id)}/fee"
     req = urllib.request.Request(url, headers={"User-Agent": "SmartParking-Chatbot/1.0"})
     with urllib.request.urlopen(req, timeout=5) as resp:
