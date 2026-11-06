@@ -88,7 +88,11 @@ BACKEND_BASE_URL = getenv("BACKEND_BASE_URL", "http://127.0.0.1:8000")
 # none = LLM 없이 규칙 파서만 / anthropic / openai / openrouter
 LLM_ENGINE = getenv("LLM_ENGINE", "langchain")
 LLM_PROVIDER = getenv("LLM_PROVIDER", "none")
-LLM_MODEL = getenv("LLM_MODEL", "")
+# OpenRouter 기본 모델: KAN-51 실측 Haiku 5.5 83%(평균 1.3초) > Gemma 4 26B 66~74%. D-44 PM 확정 전 제안값.
+# 되돌리기: .env에 LLM_MODEL=google/gemma-4-26b-a4b-it (D-18 기존 결정)
+DEFAULT_OPENROUTER_MODEL = "anthropic/claude-haiku-5.5"
+FALLBACK_OPENROUTER_MODEL = "google/gemma-4-26b-a4b-it"
+LLM_MODEL = getenv("LLM_MODEL", "") or (DEFAULT_OPENROUTER_MODEL if LLM_PROVIDER == "openrouter" else "")
 LLM_TIMEOUT_SEC = _number("LLM_TIMEOUT_SEC", "3", float)
 
 # billing.calculate_parking_fee_pure와 같은 목업 요금 규칙의 기본값 (API 요금은 서버 값 사용).
