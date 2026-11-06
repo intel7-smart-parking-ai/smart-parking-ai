@@ -1,5 +1,6 @@
+import {formatLotName} from './uiState.js';
 import {requestId} from './requestId.js';
-import {useRef,useState} from 'react';
+import {useEffect,useRef,useState} from 'react';
 import {request} from './api.js';
 import {chatRecommendations} from './recommendationMapData.js';
 import RecommendationMap from './RecommendationMap.jsx';
@@ -11,16 +12,32 @@ function replyText(result){
  return (Array.isArray(result?.messages)?result.messages:[]).map(item=>typeof item==='string'?item:item?.text).filter(Boolean).join('\n');
 }
 
-export default function ChatPanel({lots,alerts}){
+export default function ChatPanel({lots,alerts,voiceInput=false}){
  const session=useRef(requestId());
  const [text,setText]=useState(''),[rows,setRows]=useState([]),[busy,setBusy]=useState(false),[error,setError]=useState(''),[showMap,setShowMap]=useState(false);
+ const recognition=useRef(null);
+ const [listening,setListening]=useState(false);
+ useEffect(()=>()=>recognition.current?.abort(),[]);
+ function toggleVoice(){
+  if(recognition.current){recognition.current.stop();return}
+  const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!Recognition){setError('이 브라우저는 음성 입력을 지원하지 않아요. 질문을 직접 입력해 주세요.');return}
+  const input=new Recognition();
+  input.lang='ko-KR';
+  input.onresult=e=>setText(e.results[0][0].transcript.trim().slice(0,200));
+  input.onerror=e=>{if(e.error!=='aborted')setError(e.error==='not-allowed'?'마이크 접근을 허용해 주세요.':'음성을 인식하지 못했어요. 다시 말해 주세요.')};
+  input.onend=()=>{recognition.current=null;setListening(false)};
+  setError('');
+  try{input.start();recognition.current=input;setListening(true)}
+  catch{setError('음성 입력을 시작하지 못했어요.')}
+ }
  const latest=rows.at(-1)?.result;
  async function submit(body,userLabel){
   if(busy)return;
   setBusy(true);setError('');
   try{
    const result=await request('/chat',{method:'POST',body:{session_id:session.current,...body,request_id:requestId()}},'team');
-   const answer=replyText(result);
+   const answer=formatLotName(replyText(result));
    if(!answer)throw new Error('챗봇 응답 형식을 확인해주세요.');
    setRows(old=>[...old,{who:'나',text:userLabel},{who:'주차 안내',text:answer,result,recommendations:chatRecommendations(result)}]);
    setText('');
@@ -45,6 +62,6 @@ export default function ChatPanel({lots,alerts}){
    {Array.isArray(row.result?.chips)&&row.result.chips.length>0&&<div className="chat-chips" aria-label="추천 선택지">{row.result.chips.map((chip,j)=><button type="button" key={`${chip.id}-${j}`} disabled={busy||i!==rows.length-1} onClick={()=>choose(chip)}>{chip.label||chip.id}</button>)}</div>}
   </article>)}</div>
   {error&&<p className="operation-error" role="status">{error}</p>}
-  <form onSubmit={send} className="search-form chat-form"><input aria-label="챗봇 질문" maxLength={200} value={text} onChange={e=>setText(e.target.value)} placeholder="빈자리나 차량 위치를 질문하세요"/><button className="button primary" disabled={busy||!text.trim()}>{busy?'응답 대기 중…':'질문 보내기'}</button></form>
+  <form onSubmit={send} className="search-form chat-form"><input aria-label="챗봇 질문" maxLength={200} value={text} onChange={e=>setText(e.target.value)} placeholder="빈자리나 차량 위치를 질문하세요"/>{voiceInput&&<button type="button" className="button white" disabled={busy} aria-pressed={listening} onClick={toggleVoice}>{listening?'듣기 종료':'음성 입력'}</button>}<button className="button primary" disabled={busy||listening||!text.trim()}>{busy?'응답 대기 중…':'질문 보내기'}</button></form>
  </section>
 }

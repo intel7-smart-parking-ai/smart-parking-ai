@@ -89,7 +89,7 @@ def init_schema(conn: sqlite3.Connection) -> None:
 DEFAULT_LOTS = [
     ("A", "개발원주차장", "real", 12),
     ("B", "부산역주차장", "real", 16),
-    ("C", "북항주차장", "virtual", 12),
+    ("C", "김해공항 주차장", "virtual", 64),
     ("D", "신세계백화점주차장", "virtual", 64),
 ]
 # (lot_id, 기본 시간(분), 기본 요금, 추가 단위(분), 추가 요금, 일 최대)

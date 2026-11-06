@@ -16,6 +16,7 @@ export function bayGeometry(points) {
   }
   const height = bottom - top;
   const middle = span(top + height / 2);
+  const floorSymbolSkew = Math.atan2(span(bottom).x - span(top).x, height) * 180 / Math.PI;
   const labelSize = Math.min(26, Math.max(14, middle.width * .2));
   const labelY = top + labelSize / 2 + 10;
   const stopY = bottom - 13;
@@ -23,6 +24,8 @@ export function bayGeometry(points) {
   return {
     labelX: span(labelY).x, labelY, labelSize,
     centerX: middle.x, centerY: top + height / 2,
+    floorSymbolSkew,
+    floorSymbolScale: Math.max(0, Math.min(middle.width * .68 / 110, (height - labelSize - 34) / 100)),
     statusSize: Math.min(17, Math.max(10, middle.width * .14)),
     specialX: span(bottom - 32).x, specialY: bottom - 32,
     specialSize: Math.min(16, Math.max(9, middle.width * .13)),

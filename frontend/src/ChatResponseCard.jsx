@@ -1,3 +1,4 @@
+import {formatLotName} from './uiState.js';
 import {useEffect, useState} from 'react';
 import ParkingLayoutMap from './ParkingLayoutMap.jsx';
 
@@ -26,7 +27,7 @@ export default function ChatResponseCard({card,lots=[],alerts=[],allowMap}){
  if(!card?.data||typeof card.data!=='object')return null;
  const d=card.data;
  switch(card.type){
-  case 'empty_spots': return <div className="chat-data-card"><h3>주차장별 빈자리</h3><div className="chat-lot-list">{Object.entries(d.lots||{}).map(([id,lot])=><div className="chat-lot-row" key={id}><div><strong>{lot.name||`${id} 주차장`}</strong><span>{lot.status_reason||`빈자리 ${lot.display_empty??lot.empty??'—'}면`}</span></div><Zones zones={lot.zones}/></div>)}</div></div>;
+  case 'empty_spots': return <div className="chat-data-card"><h3>주차장별 빈자리</h3><div className="chat-lot-list">{Object.entries(d.lots||{}).map(([id,lot])=><div className="chat-lot-row" key={id}><div><strong>{formatLotName(lot.name)||`${id} 주차장`}</strong><span>{lot.status_reason||`빈자리 ${lot.display_empty??lot.empty??'—'}면`}</span></div><Zones zones={lot.zones}/></div>)}</div></div>;
   case 'car_location': {
    const lot=lots.find(item=>item.lot_id===d.lot_id);
    const space=lot?.spaces.find(item=>item.space_id===d.space_id);

@@ -1,0 +1,89 @@
+.kiosk-welcome:is([data-preview=kiosk-a], [data-preview=kiosk-b]) {
+  padding: 0;
+  background: #f6f8fb;
+  color: #15233a;
+}
+.kiosk-welcome:is([data-preview=kiosk-a], [data-preview=kiosk-b])::before { display: none; }
+.kiosk-preview {
+  width: min(100% - 40px, 960px);
+  min-height: 100svh;
+  margin-inline: auto;
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+.kiosk-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  padding-block: 20px;
+  border-bottom: 1px solid #dbe2ed;
+}
+.kiosk-preview-header .kiosk-brand { margin: 0; }
+.kiosk-preview-main {
+  width: min(100%, 640px);
+  justify-self: center;
+  align-self: center;
+  text-align: center;
+  padding-block: 36px 64px;
+}
+.kiosk-preview-main h1 {
+  text-align: center !important;
+  color: inherit;
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 700;
+  letter-spacing: -.035em;
+  margin: 0 0 28px;
+}
+.kiosk-preview-actions { display: grid; gap: 12px; }
+[data-preview=kiosk-a] .kiosk-preview-actions { max-width: 390px; margin-inline: auto; }
+[data-preview=kiosk-b] .kiosk-preview-actions { grid-template-columns: 3fr 2fr; }
+.kiosk-preview-actions button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 60px;
+  padding: 14px;
+  border: 1px solid #c9d5e8;
+  border-radius: 10px;
+  background: #fff;
+  color: #15233a;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 140ms ease, background-color 140ms ease;
+}
+.kiosk-preview-actions button > .icon { width: 24px; height: 24px; flex: none; }
+.kiosk-preview-actions button.kiosk-preview-pay {
+  min-height: 76px;
+  background: #194bb5;
+  border-color: #194bb5;
+  color: #fff;
+  font-size: clamp(1.125rem, 3vw, 1.375rem);
+}
+.kiosk-preview-actions button:hover { transform: translateY(-2px); background: #eaf1fb; }
+.kiosk-preview-actions button.kiosk-preview-pay:hover { background: #133e98; }
+.kiosk-preview-actions button:active { transform: translateY(1px); }
+.kiosk-preview-help {
+  min-height: 44px;
+  margin-top: 12px;
+  padding-inline: 12px;
+  border: 0;
+  background: transparent;
+  color: #254778;
+  font: inherit;
+  font-size: .875rem;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+@media (max-width: 520px) {
+  [data-preview=kiosk-b] .kiosk-preview-actions { grid-template-columns: 1fr; }
+  .kiosk-preview-header { padding-block: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kiosk-preview-actions button { transition: none; }
+  .kiosk-preview-actions button:is(:hover, :active) { transform: none; }
+}

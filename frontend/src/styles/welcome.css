@@ -1,1 +1,196 @@
-.kiosk-welcome{min-height:100svh;isolation:isolate;position:relative;display:flex;flex-direction:column;overflow:hidden;background:#f8faff;color:#101c35;font-family:Arial,'Malgun Gothic',sans-serif}.kiosk-welcome *{box-sizing:border-box}.kiosk-welcome:before{content:'';position:absolute;z-index:-1;right:-130px;top:-290px;width:650px;height:650px;background:linear-gradient(140deg,#eff3ff,#dfe9ff);border-radius:50%;pointer-events:none}.kiosk-header{width:min(1100px,88%);margin:0 auto;min-height:100px;display:flex;align-items:center;justify-content:space-between;gap:24px}.kiosk-header>a{font-size:30px;font-weight:900;letter-spacing:-1.4px;text-decoration:none;color:#092f92}.kiosk-header>a span{color:#164cce}.kiosk-languages{display:flex;flex-wrap:wrap;gap:5px}.kiosk-languages button{min-height:44px;padding:10px 13px;border:1px solid transparent;border-radius:8px;background:transparent;color:#60708a;font:inherit;font-size:12px;cursor:pointer}.kiosk-languages button[aria-pressed=true]{background:#e5edff;color:#1044ba;border-color:#cbdaff;font-weight:700}.kiosk-content{width:min(900px,88%);margin:auto;padding:40px 0 52px}.kiosk-eyebrow{font-size:11px;letter-spacing:2px;font-weight:700;color:#365caa;margin:0 0 20px}.kiosk-intro h1{font-size:clamp(40px,5.2vw,64px);line-height:1.2;letter-spacing:-2.7px;font-weight:800;margin:0 0 23px;color:#121c2d}.kiosk-description{font-size:15px;line-height:1.8;color:#637086;border-left:3px solid #1754e4;padding-left:16px;margin:0;max-width:540px;word-break:keep-all;overflow-wrap:anywhere}.kiosk-lot-choice{display:flex;align-items:center;gap:15px;margin:32px 0 20px}.kiosk-lot-choice label{font-size:12px;color:#64728a;display:flex;align-items:center;gap:7px;white-space:nowrap}.kiosk-lot-choice .icon{width:17px;height:17px}.kiosk-lot-choice select{font:inherit;font-size:14px;color:#263d67;background:#fff;border:1px solid #dce3ef;border-radius:8px;padding:12px 38px 12px 13px;max-width:100%;min-width:0}.kiosk-services{display:grid;grid-template-columns:1.15fr 1fr;grid-template-rows:110px 110px;gap:15px}.kiosk-services button{font:inherit;cursor:pointer;border:0;text-align:left}.kiosk-payment{position:relative;grid-row:span 2;border-radius:16px;background:linear-gradient(125deg,#0847e9,#0039bd);color:white;padding:28px 32px;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;transition:background .15s,box-shadow .15s}.kiosk-payment:hover{box-shadow:0 10px 28px #164ac52b}.kiosk-payment>.icon{width:36px;height:36px;margin-bottom:20px;flex-shrink:0}.kiosk-payment-title{display:flex;flex-direction:column;align-items:flex-start;font-size:29px;line-height:1.27;letter-spacing:-.8px;font-weight:800}.kiosk-payment-title>span{display:block;text-align:left;white-space:nowrap}.kiosk-payment-note{font-size:12px;line-height:1.6;margin-top:10px;padding-right:36px;opacity:.85}.kiosk-payment-arrow{position:absolute;right:25px;bottom:25px;display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:#fff;color:#1648cc;font-size:24px}.kiosk-secondary{display:flex;align-items:center;gap:20px;border-radius:14px;background:#edf1f7;color:#16346d;padding:24px 28px;transition:background .15s}.kiosk-secondary:hover{background:#e2eafb}.kiosk-secondary>.icon{width:33px;height:33px;flex-shrink:0}.kiosk-secondary>span{font-size:19px;font-weight:700;line-height:1.4;word-break:keep-all}.kiosk-secondary>b{margin-left:auto;font-size:28px;font-weight:400}.kiosk-mobile{display:inline-block;margin-top:22px;color:#687b9a;text-decoration:none;font-size:12px;padding:8px 0}.kiosk-footer{width:min(1100px,88%);margin:0 auto;padding:23px 0;border-top:1px solid #e0e6f0;display:flex;flex-direction:row;justify-content:space-between;flex-wrap:wrap;gap:12px;color:#8290a7;font-size:10px;line-height:1.6}.kiosk-footer>span:first-child{font-weight:700;letter-spacing:1px}.kiosk-welcome button:focus-visible,.kiosk-welcome a:focus-visible,.kiosk-welcome select:focus-visible{outline:3px solid #6f9cff;outline-offset:4px}.kiosk-help{width:min(500px,90vw);max-height:85svh;overflow:auto;background:#fff;color:#20304b;border:1px solid #dce3ef;border-radius:18px;padding:30px;font:inherit}.kiosk-help::backdrop{background:#0d1e3c80}.kiosk-help h2{margin:0 0 20px;font-size:24px}.kiosk-help ol{padding-left:23px;font-size:14px;line-height:1.8}.kiosk-help li{margin-bottom:12px}.kiosk-help p{font-size:12px;color:#687b9a;line-height:1.8}.kiosk-help form{margin-top:24px}.kiosk-help button{background:#0e49d5;color:white;font:inherit;border:0;border-radius:8px;padding:12px 25px;cursor:pointer}.kiosk-welcome[lang=en] .kiosk-intro h1{letter-spacing:-1.5px}.kiosk-welcome[lang=ja] .kiosk-intro h1{font-size:clamp(29px,4.2vw,54px);letter-spacing:-1px}@media(min-width:1400px){.kiosk-content{padding-top:64px;padding-bottom:64px}.kiosk-services{grid-template-rows:125px 125px}.kiosk-payment{padding-top:30px}.kiosk-payment-title{font-size:33px}}@media(max-width:600px){.kiosk-header{width:88%;padding-top:20px;min-height:105px;align-items:flex-start;gap:12px;flex-direction:column}.kiosk-header>a{font-size:25px}.kiosk-languages{gap:3px}.kiosk-languages button{padding:9px 13px;font-size:12px}.kiosk-content{padding:30px 0;width:88%}.kiosk-eyebrow{margin-bottom:15px;font-size:10px}.kiosk-intro h1{font-size:41px;letter-spacing:-2px;margin-bottom:18px}.kiosk-description{font-size:13px;padding-left:12px}.kiosk-lot-choice{display:block;margin:24px 0 16px}.kiosk-lot-choice label{margin-bottom:8px}.kiosk-lot-choice select{width:100%;font-size:16px}.kiosk-services{grid-template-columns:1fr;grid-template-rows:auto;gap:12px}.kiosk-payment{grid-row:auto;min-height:245px;padding:25px}.kiosk-payment-title{font-size:29px}.kiosk-payment>.icon{margin-bottom:18px}.kiosk-secondary{min-height:88px;padding:20px 24px;gap:17px}.kiosk-secondary>span{font-size:17px}.kiosk-secondary>.icon{width:28px;height:28px}.kiosk-footer{padding:18px 0;font-size:10px}.kiosk-welcome[lang=en] .kiosk-intro h1{font-size:40px}.kiosk-welcome[lang=ja] .kiosk-intro h1{font-size:29px}}@media(prefers-reduced-motion:reduce){.kiosk-services button{transition:none}}
+.kiosk-welcome{min-height:100svh;isolation:isolate;position:relative;display:flex;flex-direction:column;overflow:hidden;background:#f8faff;color:#101c35;font-family:Arial,'Malgun Gothic',sans-serif}.kiosk-welcome *{box-sizing:border-box}.kiosk-welcome:before{content:'';position:absolute;z-index:-1;right:-130px;top:-290px;width:650px;height:650px;background:linear-gradient(140deg,#eff3ff,#dfe9ff);border-radius:50%;pointer-events:none}.kiosk-header{width:min(1100px,88%);margin:0 auto;min-height:100px;display:flex;align-items:center;justify-content:space-between;gap:24px}.kiosk-brand{font-size:30px;font-weight:900;letter-spacing:-1.4px;text-decoration:none;color:#092f92}.kiosk-brand span{color:#164cce}.kiosk-languages{display:flex;flex-wrap:wrap;gap:5px}.kiosk-languages button{min-height:44px;padding:10px 13px;border:1px solid transparent;border-radius:8px;background:transparent;color:#60708a;font:inherit;font-size:12px;cursor:pointer}.kiosk-languages button[aria-pressed=true]{background:#e5edff;color:#1044ba;border-color:#cbdaff;font-weight:700}.kiosk-content{width:min(900px,88%);margin:auto;padding:40px 0 52px}.kiosk-eyebrow{font-size:11px;letter-spacing:2px;font-weight:700;color:#365caa;margin:0 0 20px}.kiosk-intro h1{font-size:clamp(40px,5.2vw,64px);line-height:1.2;letter-spacing:-2.7px;font-weight:800;margin:0 0 23px;color:#121c2d}.kiosk-description{font-size:15px;line-height:1.8;color:#637086;border-left:3px solid #1754e4;padding-left:16px;margin:0;max-width:540px;word-break:keep-all;overflow-wrap:anywhere}.kiosk-lot-choice{display:flex;align-items:center;gap:15px;margin:32px 0 20px}.kiosk-lot-choice label{font-size:12px;color:#64728a;display:flex;align-items:center;gap:7px;white-space:nowrap}.kiosk-lot-choice .icon{width:17px;height:17px}.kiosk-lot-choice select{font:inherit;font-size:14px;color:#263d67;background:#fff;border:1px solid #dce3ef;border-radius:8px;padding:12px 38px 12px 13px;max-width:100%;min-width:0}.kiosk-services{display:grid;grid-template-columns:1.15fr 1fr;grid-template-rows:110px 110px;gap:15px}.kiosk-services button{font:inherit;cursor:pointer;border:0;text-align:left}.kiosk-payment{position:relative;grid-row:span 2;border-radius:16px;background:linear-gradient(125deg,#0847e9,#0039bd);color:white;padding:28px 32px;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;transition:background .15s,box-shadow .15s}.kiosk-payment:hover{box-shadow:0 10px 28px #164ac52b}.kiosk-payment>.icon{width:36px;height:36px;margin-bottom:20px;flex-shrink:0}.kiosk-payment-title{display:flex;flex-direction:column;align-items:flex-start;font-size:29px;line-height:1.27;letter-spacing:-.8px;font-weight:800}.kiosk-payment-title>span{display:block;text-align:left;white-space:nowrap}.kiosk-payment-note{font-size:12px;line-height:1.6;margin-top:10px;padding-right:36px;opacity:.85}.kiosk-payment-arrow{position:absolute;right:25px;bottom:25px;display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:#fff;color:#1648cc;font-size:24px}.kiosk-secondary{display:flex;align-items:center;gap:20px;border-radius:14px;background:#edf1f7;color:#16346d;padding:24px 28px;transition:background .15s}.kiosk-secondary:hover{background:#e2eafb}.kiosk-secondary>.icon{width:33px;height:33px;flex-shrink:0}.kiosk-secondary>span{font-size:19px;font-weight:700;line-height:1.4;word-break:keep-all}.kiosk-secondary>b{margin-left:auto;font-size:28px;font-weight:400}.kiosk-mobile{display:inline-block;margin-top:22px;color:#687b9a;text-decoration:none;font-size:12px;padding:8px 0}.kiosk-footer{width:min(1100px,88%);margin:0 auto;padding:23px 0;border-top:1px solid #e0e6f0;display:flex;flex-direction:row;justify-content:space-between;flex-wrap:wrap;gap:12px;color:#8290a7;font-size:10px;line-height:1.6}.kiosk-footer>span:first-child{font-weight:700;letter-spacing:1px}.kiosk-welcome button:focus-visible,.kiosk-welcome a:focus-visible,.kiosk-welcome select:focus-visible{outline:3px solid #6f9cff;outline-offset:4px}.kiosk-help{width:min(500px,90vw);max-height:85svh;overflow:auto;background:#fff;color:#20304b;border:1px solid #dce3ef;border-radius:18px;padding:30px;font:inherit}.kiosk-help::backdrop{background:#0d1e3c80}.kiosk-help h2{margin:0 0 20px;font-size:24px}.kiosk-help ol{padding-left:23px;font-size:14px;line-height:1.8}.kiosk-help li{margin-bottom:12px}.kiosk-help p{font-size:12px;color:#687b9a;line-height:1.8}.kiosk-help form{margin-top:24px}.kiosk-help button{background:#0e49d5;color:white;font:inherit;border:0;border-radius:8px;padding:12px 25px;cursor:pointer}.kiosk-welcome[lang=en] .kiosk-intro h1{letter-spacing:-1.5px}.kiosk-welcome[lang=ja] .kiosk-intro h1{font-size:clamp(29px,4.2vw,54px);letter-spacing:-1px}@media(min-width:1400px){.kiosk-content{padding-top:64px;padding-bottom:64px}.kiosk-services{grid-template-rows:125px 125px}.kiosk-payment{padding-top:30px}.kiosk-payment-title{font-size:33px}}@media(max-width:600px){.kiosk-header{width:88%;padding-top:20px;min-height:105px;align-items:flex-start;gap:12px;flex-direction:column}.kiosk-brand{font-size:25px}.kiosk-languages{gap:3px}.kiosk-languages button{padding:9px 13px;font-size:12px}.kiosk-content{padding:30px 0;width:88%}.kiosk-eyebrow{margin-bottom:15px;font-size:10px}.kiosk-intro h1{font-size:41px;letter-spacing:-2px;margin-bottom:18px}.kiosk-description{font-size:13px;padding-left:12px}.kiosk-lot-choice{display:block;margin:24px 0 16px}.kiosk-lot-choice label{margin-bottom:8px}.kiosk-lot-choice select{width:100%;font-size:16px}.kiosk-services{grid-template-columns:1fr;grid-template-rows:auto;gap:12px}.kiosk-payment{grid-row:auto;min-height:245px;padding:25px}.kiosk-payment-title{font-size:29px}.kiosk-payment>.icon{margin-bottom:18px}.kiosk-secondary{min-height:88px;padding:20px 24px;gap:17px}.kiosk-secondary>span{font-size:17px}.kiosk-secondary>.icon{width:28px;height:28px}.kiosk-footer{padding:18px 0;font-size:10px}.kiosk-welcome[lang=en] .kiosk-intro h1{font-size:40px}.kiosk-welcome[lang=ja] .kiosk-intro h1{font-size:29px}}@media(prefers-reduced-motion:reduce){.kiosk-services button{transition:none}}
+
+.kiosk-welcome .kiosk-header { width: 100%; min-height: 0; margin: 0 0 24px; padding: 0; align-items: flex-start; gap: 12px 24px; }
+.kiosk-welcome .kiosk-brand { display: inline-block; margin-bottom: 8px; font-size: 22px; }
+.kiosk-welcome .kiosk-intro h1 { margin-bottom: 0; }
+
+.kiosk-welcome:is([data-preview=list],[data-preview=cards]) {
+  background: #f3f6fb;
+}
+.kiosk-welcome:is([data-preview=list],[data-preview=cards])::before,
+.kiosk-welcome:is([data-preview=list],[data-preview=cards])::after { display: none; }
+.kiosk-welcome:is([data-preview=list],[data-preview=cards]) .kiosk-content {
+  width: min(960px, 92%);
+  padding: clamp(28px, 7vw, 82px) 0;
+}
+.kiosk-welcome:is([data-preview=list],[data-preview=cards]) .kiosk-header { margin-bottom: 20px; }
+.kiosk-welcome:is([data-preview=list],[data-preview=cards]) .kiosk-intro h1 { font-size: clamp(30px, 5vw, 48px); }
+.kiosk-welcome:is([data-preview=list],[data-preview=cards]) .kiosk-services > button {
+  background: #fff;
+  color: #193354;
+  border: 1px solid #d3deed;
+  border-radius: 14px;
+  box-shadow: none;
+  min-width: 0;
+}
+.kiosk-welcome:is([data-preview=list],[data-preview=cards]) .kiosk-services > button:hover { border-color: #3766b1; background: #edf4ff; }
+.kiosk-welcome:is([data-preview=list],[data-preview=cards]) .kiosk-payment-title { font-size: inherit; }
+.kiosk-welcome:is([data-preview=list],[data-preview=cards]) .kiosk-payment-title > span { display: inline; }
+.kiosk-welcome:is([data-preview=list],[data-preview=cards]) .kiosk-payment-title > span + span::before { content: ' '; }
+.kiosk-welcome:is([data-preview=list],[data-preview=cards]) .kiosk-payment-arrow,
+.kiosk-welcome:is([data-preview=list],[data-preview=cards]) .kiosk-payment-note { display: none; }
+
+.kiosk-welcome[data-preview=list] .kiosk-content {
+  display: grid;
+  grid-template-columns: minmax(225px, 1fr) minmax(0, 1.6fr);
+  gap: 16px 34px;
+}
+.kiosk-welcome[data-preview=list] .kiosk-header { grid-column: 1 / -1; }
+.kiosk-welcome[data-preview=list] .kiosk-lot-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  align-self: start;
+  padding: 20px;
+  margin: 0;
+  background: #e7effb;
+  border-radius: 14px;
+}
+.kiosk-welcome[data-preview=list] .kiosk-lot-choice select { width: 100%; }
+.kiosk-welcome[data-preview=list] .kiosk-services { display: grid; grid-template: none / 1fr; gap: 8px; }
+.kiosk-welcome[data-preview=list] .kiosk-services > button {
+  grid-area: auto;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 64px;
+  padding: 14px 18px;
+  font-size: 17px;
+  text-align: start;
+}
+.kiosk-welcome[data-preview=list] .kiosk-services > button > .icon { width: 24px; height: 24px; margin: 0; }
+.kiosk-welcome[data-preview=list] .kiosk-services > button > b { margin-left: auto; }
+
+.kiosk-welcome[data-preview=cards] .kiosk-lot-choice { margin-bottom: 20px; }
+.kiosk-welcome[data-preview=cards] .kiosk-services { display: grid; grid-template: none / repeat(3, minmax(0, 1fr)); gap: 12px; }
+.kiosk-welcome[data-preview=cards] .kiosk-services > button {
+  grid-area: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 12px;
+  min-height: 136px;
+  padding: 16px;
+  font-size: 17px;
+  text-align: start;
+}
+.kiosk-welcome[data-preview=cards] .kiosk-services > button > .icon { width: 28px; height: 28px; margin: 0; }
+.kiosk-welcome[data-preview=cards] .kiosk-services > button > b { display: none; }
+@media (max-width: 620px) {
+  .kiosk-welcome[data-preview=list] .kiosk-content,
+  .kiosk-welcome[data-preview=cards] .kiosk-services { grid-template-columns: 1fr; }
+  .kiosk-welcome[data-preview=cards] .kiosk-services > button { min-height: 72px; flex-direction: row; align-items: center; justify-content: flex-start; }
+}
+
+.kiosk-welcome .kiosk-intro .kiosk-service-title {
+  font-family: "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans CJK KR", sans-serif;
+  font-size: clamp(2.25rem, 6.8vw, 5rem);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -.045em;
+}
+.kiosk-welcome .kiosk-brand { font-size: 18px; }
+
+@media (min-width: 621px) {
+  .kiosk-welcome:not([data-preview]) .kiosk-languages { transform: translateY(-10px); }
+}
+
+.kiosk-welcome:not([data-preview]) .kiosk-payment-title {
+  font-size: clamp(2rem, 3.4vw, 2.5rem);
+}
+
+.kiosk-welcome:not([data-preview])::before {
+  opacity: .48;
+}
+.kiosk-welcome:not([data-preview]) .kiosk-header {
+  margin-bottom: clamp(22px, 3.2vw, 36px);
+}
+.kiosk-welcome:not([data-preview]) .kiosk-intro .kiosk-service-title {
+  font-size: clamp(2rem, 4.5vw, 3.375rem);
+  font-weight: 700;
+  line-height: 1.18;
+  letter-spacing: -.055em;
+}
+.kiosk-welcome:not([data-preview]) .kiosk-brand {
+  margin-bottom: 12px;
+}
+.kiosk-welcome:not([data-preview]) .kiosk-payment {
+  background: #2454b8;
+  border-radius: 14px;
+}
+.kiosk-welcome:not([data-preview]) .kiosk-payment-title {
+  font-size: clamp(1.75rem, 3vw, 2.125rem);
+  line-height: 1.2;
+}
+.kiosk-welcome:not([data-preview]) .kiosk-secondary {
+  background: #f6f8fc;
+  border: 1px solid #dce4f0;
+}
+.kiosk-welcome:not([data-preview]) .kiosk-secondary:hover {
+  background: #edf3ff;
+}
+
+@media (max-width: 650px) {
+  .kiosk-welcome:not([data-preview]) .kiosk-content {
+    width: min(480px, 92%);
+    padding: 14px 0;
+  }
+
+  .kiosk-welcome:not([data-preview]) .kiosk-header {
+    min-height: 0;
+    margin-bottom: 12px;
+    gap: 8px;
+  }
+
+  .kiosk-welcome:not([data-preview]) .kiosk-brand {
+    margin-bottom: 4px;
+  }
+
+  .kiosk-welcome:not([data-preview]) .kiosk-intro .kiosk-service-title {
+    font-size: clamp(22px, 6vw, 30px);
+  }
+
+  .kiosk-welcome:not([data-preview]) .kiosk-services {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
+    gap: 7px;
+  }
+
+  .kiosk-welcome:not([data-preview]) .kiosk-payment {
+    grid-row: auto;
+    min-height: 0;
+    padding: 12px 16px;
+  }
+
+  .kiosk-welcome:not([data-preview]) .kiosk-payment > .icon {
+    width: 23px;
+    height: 23px;
+    margin-bottom: 5px;
+  }
+
+  .kiosk-welcome:not([data-preview]) .kiosk-payment-title {
+    font-size: 23px;
+  }
+
+  .kiosk-welcome:not([data-preview]) .kiosk-payment-note {
+    margin-top: 4px;
+  }
+
+  .kiosk-welcome:not([data-preview]) .kiosk-secondary {
+    min-height: 44px;
+    padding: 6px 12px;
+  }
+
+  .kiosk-welcome:not([data-preview]) .kiosk-secondary > span {
+    font-size: 15px;
+  }
+
+  .kiosk-welcome:not([data-preview]) .kiosk-mobile {
+    margin-top: 10px;
+  }
+
+  .kiosk-welcome:not([data-preview]) .kiosk-footer {
+    padding-block: 8px;
+  }
+}

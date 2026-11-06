@@ -45,7 +45,7 @@ MOCK_FIRE_LEVEL = int(os.getenv("ALERT_MOCK_FIRE_LEVEL", "2"))
 LOT_NAMES: dict[str, str] = {
     "A": "개발원주차장",
     "B": "부산역주차장",
-    "C": "북항주차장",
+    "C": "김해공항 주차장",
     "D": "신세계백화점주차장",
 }
 

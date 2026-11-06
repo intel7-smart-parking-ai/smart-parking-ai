@@ -1,0 +1,22 @@
+.parking-availability { padding: 10px 14px; margin-bottom: 12px; }
+.parking-availability-summary, .parking-availability dl, .parking-availability dl > div {
+  display: flex;
+  align-items: center;
+}
+.parking-availability-summary { flex-wrap: wrap; gap: 6px 14px; }
+.parking-availability h3 { margin: 0; font-size: .9rem; }
+.parking-availability dl { flex-wrap: wrap; gap: 4px 12px; margin: 0; font-size: .8rem; }
+.parking-availability dl > div { gap: 5px; white-space: nowrap; }
+.parking-availability dd { margin: 0; font-weight: 750; font-variant-numeric: tabular-nums; }
+.parking-availability-summary + h3 { margin-top: 12px; }
+
+.parking-availability-summary > .report-scope {
+  margin: 0 0 0 auto;
+  text-align: right;
+}
+
+@media (max-width: 600px) {
+  .parking-availability-summary > .report-scope {
+    flex-basis: 100%;
+  }
+}

@@ -1,0 +1,15 @@
+.airport-panel { margin-block: 16px; padding: 18px; }
+.airport-panel header, .airport-events li { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.airport-panel h2, .airport-panel h3, .airport-panel p { margin: 0 0 8px; }
+.airport-section { margin-top: 14px; padding-top: 14px; border-top: 1px solid currentColor; }
+.airport-forecast, .airport-form, .airport-actions { display: flex; align-items: end; flex-wrap: wrap; gap: 12px; margin: 10px 0; }
+.airport-forecast > div { flex: 1 1 145px; border: 1px solid currentColor; border-radius: 10px; padding: 10px; }
+.airport-forecast span, .airport-form label { display: block; }
+.airport-form input, .airport-form select { display: block; width: 100%; margin-top: 4px; padding: 8px; border-radius: 6px; }
+.airport-events { list-style: none; padding: 0; margin: 0; }
+.airport-events li { padding-block: 8px; }
+.airport-terminal { fill: #143962; }
+.airport-terminal-text { fill: #fff; font-weight: 700; font-size: 25px; }
+.airport-route { fill: none; stroke: #47a9ee; stroke-width: 6px; stroke-dasharray: 12 8; }
+.airport-landmark { width: 100%; height: 100%; object-fit: contain; }
+.airport-shuttle { fill: none; stroke: #f39a33; stroke-width: 7px; stroke-dasharray: 16 9; }

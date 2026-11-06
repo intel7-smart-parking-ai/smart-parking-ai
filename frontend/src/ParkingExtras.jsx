@@ -1,15 +1,22 @@
 import {useEffect, useState} from 'react';
 import {api} from './api.js';
+import './styles/parking-extras.css';
 import {evacuationRequired} from './uiState.js';
 
-export function ParkingExtras({lot, lots, alerts, onSelect}) {
+export function ParkingExtras({lot, lots, alerts, onSelect, syncStatus}) {
   const full = lot.spaces.length > 0 && lot.spaces.every(space => space.status !== 'empty');
   const alternatives = lots.filter(item => item.lot_id !== lot.lot_id &&
     !evacuationRequired(alerts, item.lot_id) && item.spaces.some(space => space.status === 'empty'));
-  return <section className="panel policy-panel" style={{marginBottom:20}}>
+  return <section className="panel parking-availability">
+    <div className="parking-availability-summary">
     <h3>구역별 빈자리</h3>
+    <dl>
+    <div><dt>전체</dt><dd>{lot.spaces.length}면</dd></div>
     {[['general', '일반'], ['ev', '전기차'], ['accessible', '장애인']].map(([type, name]) =>
-      <div className="policy-row" key={type}><strong>{name}</strong><span>{lot.spaces.filter(space => space.space_type === type && space.status === 'empty').length}면</span></div>)}
+      <div key={type}><dt>{name}</dt><dd>{lot.spaces.filter(space => space.space_type === type && space.status === 'empty').length}면</dd></div>)}
+    </dl>
+    {syncStatus}
+    </div>
     {full && <><h3>다른 주차장 확인</h3>{alternatives.map(item =>
       <button className="button white full" key={item.lot_id} onClick={() => onSelect(item.lot_id)}>
         {item.name} · {item.spaces.filter(space => space.status === 'empty').length}면
