@@ -44,7 +44,7 @@ def test_vision_to_kan16_demo(single_server):
             row = next(item for item in spaces["items"] if item["space_id"] == "A-01")
             assert row["status"] == status
             lots = client.get(LOTS).json()
-            assert [lot["total_spaces"] for lot in lots["items"]] == [12, 16, 12, 64]
+            assert [lot["total_spaces"] for lot in lots["items"]] == [12, 16, 64, 64]
             assert lots["items"][0]["empty_spaces"] == empty_count
             assert sum(item["status"] == "empty" for item in spaces["items"]) == empty_count
             return row

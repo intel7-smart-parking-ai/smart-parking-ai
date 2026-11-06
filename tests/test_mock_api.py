@@ -37,8 +37,8 @@ def test_lot_contract(client):
     for item in body["items"]:
         assert set(item) == {"lot_id", "name", "type", "total_spaces", "empty_spaces",
                              "uncertain_spaces", "unavailable_spaces"}
-        assert item['name'] == {'A': '개발원주차장', 'B': '부산역주차장', 'C': '북항주차장', 'D': '신세계백화점주차장'}[item['lot_id']]
-    assert sum(x['total_spaces'] for x in body['items']) == 104
+        assert item['name'] == {'A': '개발원주차장', 'B': '부산역주차장', 'C': '김해공항 주차장', 'D': '신세계백화점주차장'}[item['lot_id']]
+    assert sum(x['total_spaces'] for x in body['items']) == 156
 
 
 @pytest.mark.parametrize("lot", ["A", "B", "C", "D"])
@@ -46,7 +46,7 @@ def test_spaces_and_aggregates(client, lot):
     r = client.get(f"/api/v1/parking-lots/{lot}/spaces")
     assert r.status_code == 200
     spaces = r.json()["items"]
-    size = {'A': 12, 'B': 16, 'C': 12, 'D': 64}[lot]
+    size = {'A': 12, 'B': 16, 'C': 64, 'D': 64}[lot]
     assert len(spaces) == size
     assert len({s["space_id"] for s in spaces}) == size
     counts = Counter(s["status"] for s in spaces)
@@ -199,7 +199,7 @@ def test_layout_matches_pm_fixture_and_independent_keys(client):
         keys.update((lot['lot_id'], s['space_id']) for s in body['items'])
         if lot['lot_id'] in 'CD':
             assert all(s['car_id'] is None and s['vehicle_type'] is None for s in body['items'])
-    assert len(keys) == 104 and ('D', 'C-13') in keys and ('A', 'B-06') in keys
+    assert len(keys) == 156 and ('D', 'C-13') in keys and ('A', 'B-06') in keys
 
 
 @pytest.mark.parametrize('car', ['01', '09', '1', '100', '17가1724'])

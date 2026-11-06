@@ -21,7 +21,7 @@ uv로 생성해 pip가 없는 가상환경은 기존 uv의
 Swagger: http://127.0.0.1:8002/docs
 
 1. 기존 `GET /api/v1/health`를 실행한다. 기존 status/service/timestamp 응답을 유지한다.
-2. `GET /api/v1/parking-lots`를 실행해 개발원(A)·부산역(B)·북항(C)·신세계백화점(D)을 확인한다.
+2. `GET /api/v1/parking-lots`를 실행해 개발원(A)·부산역(B)·김해공항(C)·신세계백화점(D)을 확인한다.
 3. `GET /api/v1/parking-lots/{lot_id}/spaces`에 `A`, `B`, `C`, `D` 중 하나를 입력한다.
 4. `GET /api/v1/vehicles/{car_id}/location`에 합성 차량 문자열 `10`(A), `20`(B)을 입력한다.
 5. 없는 주차장 `Z` 또는 없는 차량은 공통 형식404다. 구형01~09를 새 차량으로 변환하지 않는다.
@@ -31,7 +31,7 @@ Swagger: http://127.0.0.1:8002/docs
 
 ## 합성 데이터와 응답
 
-- PM 도면은 A 개발원주차장12/B 부산역주차장16/C 북항주차장12/D 신세계백화점주차장64, 총104칸이다. 상태·차량은 모두 고정 합성 예시이며 실제 빈자리 정보나 DB 시드가 아니다.
+- PM 도면은 A 개발원주차장12/B 부산역주차장16/C 김해공항 주차장64(D-57, 11/06 북항12에서 변경)/D 신세계백화점주차장64, 총156칸이다. 상태·차량은 모두 고정 합성 예시이며 실제 빈자리 정보나 DB 시드가 아니다.
 - 주차장마다 occupied/uncertain/unavailable 각1칸, 나머지는empty다. 빈자리 A9/B13/C9/D61은 실험값이다. D는 A~D구역 각16칸, EV D-01~D-08·장애인 C-13~C-16이다. 항상 (lot_id,space_id)로 식별한다.
 - 빈자리는 empty만 포함한다. 목록의 items는 lot_id/name/type/total_spaces/empty_spaces/uncertain_spaces/unavailable_spaces를 담는다.
 - 칸 items는 기존 space_id/status/car_id/observed_at/confidence/version과 추가 space_type/vehicle_type/source/is_mock를 담는다. source=simulation·is_mock=true이며 칸 종류로 차량 종류를 추정하지 않는다.

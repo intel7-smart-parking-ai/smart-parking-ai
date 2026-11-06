@@ -26,11 +26,11 @@ const{chromium}=require('playwright');const assert=require('node:assert/strict')
   const full=p.locator('.row.bot').filter({hasText:'신세계백화점주차장이 만차가 됐어요'}).last();await full.waitFor();
   assert.ok(!(await full.locator('[data-chip^="wait"]').count()));
   await full.locator('.event-actions [data-chip="go:C"]').click();await p.waitForFunction(()=>!busy);
-  assert.ok((await p.locator('#destinationContext').innerText()).includes('북항주차장'));
+  assert.ok((await p.locator('#destinationContext').innerText()).includes('김해공항 주차장'));
   console.log('PASS panel fill makes destination full and alternative C can be chosen');
   await panel();await p.selectOption('#dLot','C');await p.fill('#restrictReason','점검 중');await p.click('#restrictOn');await p.waitForTimeout(250);
   assert.ok((await p.locator('#demoState').innerText()).includes('C: 운영 제한 (점검 중)'));await closePanel();await poll();
-  const restricted=p.locator('.row.bot').filter({hasText:'북항주차장을 지금 이용할 수 없게 됐어요. (점검 중)'}).last();await restricted.waitFor();
+  const restricted=p.locator('.row.bot').filter({hasText:'김해공항 주차장을 지금 이용할 수 없게 됐어요. (점검 중)'}).last();await restricted.waitFor();
   console.log('PASS panel restriction notifies with plain wording');
   await panel();await p.click('#restrictOff');await p.fill('#enterVehicle','14');await p.selectOption('#dLot','A');
   await send('14번 차 위치');await send('네');

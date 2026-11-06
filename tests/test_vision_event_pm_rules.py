@@ -33,7 +33,9 @@ def test_pm_input_rules(field, value, code):
 @pytest.mark.parametrize('lot,name,per_zone,zones,ev,accessible', [
     ('A', '개발원주차장', 6, 'AB', {'A-05', 'A-06'}, {'B-06'}),
     ('B', '부산역주차장', 8, 'AB', {'A-07', 'A-08'}, {'B-07', 'B-08'}),
-    ('C', '북항주차장', 6, 'AB', {'A-05', 'A-06'}, {'B-06'}),
+    # D-57 (11/06): C 김해공항 64칸 = A 24 · B 36 · C 4
+    ('C', '김해공항 주차장', (24, 36, 4), 'ABC',
+     {'A-05', 'A-06', 'A-23', 'A-24', 'B-35', 'B-36'}, {'A-01', 'B-06'}),
     ('D', '신세계백화점주차장', 16, 'ABCD',
      {f'D-{i:02}' for i in range(1, 9)}, {f'C-{i:02}' for i in range(13, 17)}),
 ])
@@ -41,21 +43,22 @@ def test_pm_lot_layout(lot, name, per_zone, zones, ev, accessible):
     item, = [item for item in LAYOUT['lots'] if item['lot_id'] == lot]
     assert item['name'] == name
     spaces = item['spaces']
-    assert len(spaces) == per_zone * len(zones)
+    sizes = (per_zone,) * len(zones) if isinstance(per_zone, int) else per_zone
+    assert len(spaces) == sum(sizes)
     assert {s['space_id'] for s in spaces} == {
-        f'{zone}-{i:02}' for zone in zones for i in range(1, per_zone + 1)}
+        f'{zone}-{i:02}' for zone, size in zip(zones, sizes) for i in range(1, size + 1)}
     assert {s['space_id'] for s in spaces if s['space_type'] == 'ev'} == ev
     assert {s['space_id'] for s in spaces if s['space_type'] == 'accessible'} == accessible
     assert {s['space_id'] for s in spaces if s['space_type'] == 'general'} == {
         s['space_id'] for s in spaces} - ev - accessible
 
 
-def test_104_composite_keys_and_virtual_plate_example():
+def test_156_composite_keys_and_virtual_plate_example():
     assert [lot['lot_id'] for lot in LAYOUT['lots']] == ['A', 'B', 'C', 'D']
     keys = [(lot['lot_id'], s['space_id']) for lot in LAYOUT['lots'] for s in lot['spaces']]
-    assert len(keys) == len(set(keys)) == 104
+    assert len(keys) == len(set(keys)) == 156  # D-57: 104 → 156 (C 12 → 64)
     assert sum(lot in ('A', 'B') for lot, space in keys) == 28
-    assert sum(lot in ('C', 'D') for lot, space in keys) == 76
+    assert sum(lot in ('C', 'D') for lot, space in keys) == 128
     assert sum(space == 'A-01' for lot, space in keys) == 4
     assert ('A', 'B-06') in keys and ('B', 'A-08') in keys
     assert LAYOUT['virtual_plate_example']['plate_number'] == '17가1724'
