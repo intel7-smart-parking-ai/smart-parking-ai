@@ -1,6 +1,6 @@
-# EPIC06 주차장 안내 챗봇 v2.15.8 — 연결 경계 안정화 준비본
+# EPIC06 주차장 안내 챗봇 v2.16.1 — 대화 맥락·데이터 활용 준비본
 
-최신 변경과 담당별 연결 검수는 [v2.15.8 통합 검토](docs/v2158_integration_review.md)를 참고하세요. main `9265c12` 기준 로컬 준비본이며 원격 반영·배포 완료와 구분합니다. v2.15.7의 안전 응답·명부 갱신 수정도 포함합니다.
+최신 변경은 [v2.16.1 대화 맥락·데이터 활용](docs/v2161_dialog_context.md)(지시어·생략·선택형 후속 질문, 가장 여유 있는 곳·비교·점유율·구역별 빈자리·요금 정책 비교, 대화 평가 `tests/run_dialog_eval.py`)을 참고하세요. 그 전 변경은 [v2.16.0 자연스러운 답변 보완](docs/v2160_natural_replies.md)(주차장 미지정 빈자리 요약·선택, 별칭, 시설·거리·혼잡 예측 질문 안내, 시설 안내 설정집 `guide`)을 참고하세요. 직전 변경은 [v2.15.9 질문 처리 수정](docs/v2159_question_routing.md)입니다. main `90f6afc`에 병합된 v2.15.8을 기준으로 존재 여부·도움말·번호 범위의 안내를 보완한 로컬 준비본입니다. 원격 반영·시연 서버 적용은 별도입니다. 앞선 연결 안정화 근거는 [v2.15.8 통합 검토](docs/v2158_integration_review.md)에 있습니다.
 
 이전 준비본 변경은 [v2.15.7 변경 요약](docs/v2157_change_summary.md), 내일 준비는 [11/06 준비·인계](docs/preparation_1106.md)를 참고하세요. 번호 해석은 [v2.15.6](docs/v2156_change_summary.md), 음성 연결은 [전사문 입력 기준](docs/voice_input_contract.md), 구현 기준은 [구현·검증 원칙](docs/validation_policy.md), 실행은 [11/06 대본](docs/demo_script_1106.md)에 있습니다. 팀 레포: https://github.com/intel7-smart-parking-ai/smart-parking-ai
 
@@ -52,7 +52,7 @@ python server_dev.py
 
 ## 선택 LangChain 라우터
 
-기본 `LLM_PROVIDER=none`에서는 설치·키 없이 버튼과 규칙으로 동작합니다. LLM 사용 시 Python 3.11 이상 환경에서 다음을 설치합니다.
+`.env.example`의 기본값은 OpenRouter + `anthropic/claude-haiku-5.5`입니다. 키(`OPENROUTER_API_KEY`)가 비어 있거나 `LLM_PROVIDER=none`이면 설치·키 없이 버튼과 규칙으로 동작합니다. `LLM_PROVIDER=openrouter`인데 `LLM_MODEL`을 비우면 Haiku 5.5를 씁니다. LLM 사용 시 Python 3.11 이상 환경에서 다음을 설치합니다.
 
 ```bash
 python -m pip install -r requirements-llm.txt
@@ -62,7 +62,7 @@ python -m pip install -r requirements-llm.txt
 
 | 제공자 | `LLM_PROVIDER` | 키 변수 | 비고 |
 |---|---|---|---|
-| OpenRouter (팀 결정 D-18) | `openrouter` | `OPENROUTER_API_KEY` | `LLM_MODEL=google/gemma-4-26b-a4b-it`. 주소는 `https://openrouter.ai/api/v1` 고정. 키마다 OpenRouter 사용 한도 설정 |
+| OpenRouter (팀 결정 D-18) | `openrouter` | `OPENROUTER_API_KEY` | 기본 `LLM_MODEL=anthropic/claude-haiku-5.5`(D-44 제안), 대안 `google/gemma-4-26b-a4b-it`(D-18). 주소는 `https://openrouter.ai/api/v1` 고정. 키마다 OpenRouter 사용 한도 설정 |
 | OpenAI | `openai` | `OPENAI_API_KEY` | |
 | Anthropic | `anthropic` | `ANTHROPIC_API_KEY` | |
 

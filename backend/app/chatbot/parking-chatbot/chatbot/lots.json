@@ -121,7 +121,8 @@
         "underground": null,
         "height_limit_m": null,
         "sprinkler": null
-      }
+      },
+      "guide": {}
     },
     {
       "lot_id": "B",
@@ -148,11 +149,20 @@
       "aliases": [
         "부산역",
         "부산역 주차장",
-        "비"
+        "비",
+        "기차",
+        "기차역",
+        "부산 역",
+        "부산역사",
+        "KTX",
+        "ktx"
       ],
       "order_alias": "나",
       "loose_aliases": [
-        "부산역"
+        "부산역",
+        "기차역",
+        "KTX",
+        "ktx"
       ],
       "exit": "부산역주차장 정문 출구",
       "mock_full": true,
@@ -222,7 +232,8 @@
         "underground": null,
         "height_limit_m": null,
         "sprinkler": null
-      }
+      },
+      "guide": {}
     },
     {
       "lot_id": "C",
@@ -301,12 +312,19 @@
         "공항",
         "공항 주차장",
         "씨",
-        "시"
+        "시",
+        "김해 공항",
+        "김해국제공항",
+        "김해 국제공항",
+        "국제공항",
+        "비행장"
       ],
       "order_alias": "다",
       "loose_aliases": [
         "김해공항",
-        "공항"
+        "공항",
+        "김해 공항",
+        "국제공항"
       ],
       "exit": "김해공항 주차장 출구",
       "mock_cars": [
@@ -363,7 +381,8 @@
         "underground": null,
         "height_limit_m": null,
         "sprinkler": null
-      }
+      },
+      "guide": {}
     },
     {
       "lot_id": "D",
@@ -440,13 +459,19 @@
         "신세계백화점",
         "백화점",
         "신세계 주차장",
-        "디"
+        "디",
+        "신세계 백화점",
+        "센텀",
+        "센텀시티",
+        "신세계센텀시티"
       ],
       "order_alias": "라",
       "loose_aliases": [
         "신세계",
         "신세계백화점",
-        "백화점"
+        "백화점",
+        "신세계 백화점",
+        "센텀시티"
       ],
       "exit": "신세계백화점주차장 출구",
       "mock_cars": [
@@ -497,7 +522,8 @@
         "underground": null,
         "height_limit_m": null,
         "sprinkler": null
-      }
+      },
+      "guide": {}
     }
   ],
   "ev_vehicles": [

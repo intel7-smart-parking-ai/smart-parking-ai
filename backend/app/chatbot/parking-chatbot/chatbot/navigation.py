@@ -81,6 +81,30 @@ def alternatives(snapshot,alert,lot=None,zone=None):
     return text,chips[:4]
 
 
+def order_lots(snapshot):
+    order = {key:i for i,key in enumerate(config.catalog.ids())}
+    return sorted(snapshot["lots"], key=lambda k: order.get(k, len(order)))
+
+
+def overview(snapshot,alert,zone=None):
+    """주차장을 지정하지 않은 빈자리 질문: 전체 합계 + 주차장별 한 줄 + 선택 요청."""
+    parts, total = [], 0
+    for key in order_lots(snapshot):
+        why = reason(snapshot,alert,key,zone)
+        n = count(snapshot["lots"][key],zone)
+        if why is None or why == "만차":
+            total += n or 0
+            parts.append(f"{config.catalog.name(key)} {n}자리" if n else f"{config.catalog.name(key)} 만차")
+        else:
+            short = "경보 중" if why == "경보" else "이용 제한" if why.startswith("운영 제한") else "확인 불가"
+            parts.append(f"{config.catalog.name(key)} {short}")
+    scope = f"{config.catalog.zone_name(zone)} 구역 " if zone else ""
+    return f"전체 주차장 {scope}빈자리는 총 {total}자리예요.\n" + " · ".join(parts), total
+
+
+OVERVIEW_QUESTION = "\n어느 주차장을 안내해 드릴까요?"
+
+
 def query(snapshot,alert,params):
     lot,zone=params.get("lot_id"),params.get("zone")
     view=card(snapshot,alert,lot,zone)
@@ -99,9 +123,11 @@ def query(snapshot,alert,params):
     else:
         best=candidates(snapshot,alert,zone)
         if best:
-            key=best[0];text=f"{label(key,zone)}에 {count(snapshot['lots'][key],zone)}자리 있어요."
-            actions=[go_id(k,zone) for k in best]
-            actions += ["zone:"+z["key"] for z in config.catalog.zones() if z.get("home") and z["key"]!=zone]
+            # 주차장을 말하지 않았으면 한 곳을 임의로 고르지 않고 전체를 요약한 뒤 고를 수 있게 한다.
+            text,total=overview(snapshot,alert,zone)
+            # 합계처럼 계산한 숫자도 카드에 근거로 남긴다(safety_check가 답의 숫자를 카드와 대조).
+            view["data"]["derived_counts"]={"total_empty":total}
+            actions=["lot_"+k for k in order_lots(snapshot)]
         elif zone and any(count(v,zone) is None for v in snapshot["lots"].values()):
             text="구역별 정보는 아직 제공되지 않아요.\n전체 빈자리는 카드에서 확인해 주세요.";actions=["empty_all"]
         else:
@@ -116,6 +142,7 @@ def query(snapshot,alert,params):
     else:
         pending = [f"{config.catalog.name(k)} {v['display_uncertain']}칸" for k,v in view["data"]["lots"].items() if v.get("display_uncertain")]
         if pending: text += f" (카메라 확인 중: {', '.join(pending)})"
+        if best: text += OVERVIEW_QUESTION
     return text,view,actions[:4],snapshot["updated_at"]
 
 
