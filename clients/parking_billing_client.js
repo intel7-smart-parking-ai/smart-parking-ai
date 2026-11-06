@@ -6,7 +6,7 @@
  * [사용 방법]:
  *   const billing = new ParkingBillingClient("http://<서버PC_IP>:8000");
  *   const fee = await billing.getFee("ses_0001");
- *   const pay = await billing.pay("ses_0001", "MOCK_CARD");
+ *   const pay = await billing.pay("ses_0001", fee.quote_id,  "MOCK_CARD");
  *   // 409 QUOTE_EXPIRED(견적 5분 만료)면 getFee()부터 다시 호출
  *   await billing.cancel(pay.payment_id, "고객 모의 환불");
  *   const rev = await billing.getRevenue("2026-11");
@@ -24,7 +24,7 @@ class ParkingBillingClient {
     return await res.json();
   }
 
-   async pay(sessionId, quoteId, paymentMethod = "MOCK_CARD", idempotencyKey = null) {
+  async pay(sessionId, quoteId, paymentMethod = "MOCK_CARD", idempotencyKey = null) {
     if (!quoteId) throw new Error("quote_id가 없습니다. getFee()로 견적을 먼저 받으세요.");
     // 같은 결제를 재시도할 때는 같은 idempotencyKey를 다시 넘겨야 중복 결제가 막힌다.
     const key = idempotencyKey || crypto.randomUUID();
@@ -38,7 +38,6 @@ class ParkingBillingClient {
         payment_method: paymentMethod
       })
     });
-
     const data = await res.json();
     if (!res.ok) {
       throw new Error(`[Billing API Error ${res.status}] ${data.error?.message || "결제 실패"}`);
