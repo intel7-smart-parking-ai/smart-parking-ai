@@ -17,7 +17,7 @@
  {"name":"H최상급","turns":[
    {"user":"자리 제일 많이 남은 데 어디야?","expect":{"unknown":false,"text_has":["가장 여유"]}}]},
  {"name":"H최상급-장애인","turns":[
-   {"user":"장애인 주차 자리 가장 많은 주차장은?","expect":{"text_has":["신세계백화점주차장","4자리"]}}]},
+   {"user":"장애인 주차 자리 가장 많은 주차장은?","expect":{"text_has":["김해공항 주차장","16자리"]}}]},
  {"name":"H비교","turns":[
    {"user":"공항이랑 신세계 중 어디가 더 여유 있어?","expect":{"unknown":false,"text_has":["김해공항 주차장","신세계백화점주차장"],"text_not":["여러 곳이에요"]}}]},
  {"name":"H점유율","turns":[
