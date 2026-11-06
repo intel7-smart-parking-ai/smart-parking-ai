@@ -65,7 +65,7 @@ function Bay({space, points, x, y, vertical, labelY, carY, carX, carRotation, st
     {admin && space.status === 'occupied' && <g className="bay-vehicle-card" transform={`translate(${geometry.centerX} ${cardTop})`}>
       <rect x={-cardWidth/2} y="0" width={cardWidth} height={compact?27:33} rx={compact?5:7} fill="#fff" stroke="#b5c5df" strokeWidth="1.5"/>
       <text x="0" y={compact?17:23} textAnchor="middle" fontSize={plateSize} fontWeight="750" fill="#1e3352">{space.plate_number||space.vehicle_number||(space.car_id?t('스티커 ')+space.car_id:t('번호 미제공'))}</text>
-      {['ev','accessible'].includes(space.space_type)&&<rect x={-cardWidth/2} y={compact?32:40} width={cardWidth} height={compact?20:29} rx="5" fill="#fff" fillOpacity=".94" stroke="none"/>}
+      <rect className="bay-fee-border" x={-cardWidth/2} y={compact?32:40} width={cardWidth} height={compact?20:29} rx={compact?5:7} fill="#fff" stroke="#b5c5df" strokeWidth="1.5"/>
       <text x="0" y={compact?46:61} textAnchor="middle" fontSize={compact?8.5:20} fontWeight="700">
         <tspan fill="#26384c">{fees?.[space.session_id]?.duration_minutes!=null ? fees[space.session_id].duration_minutes+t('분') : space.entry_at ? Math.max(0,Math.floor((Date.now()-Date.parse(space.entry_at))/60000))+t('분') : t('시간 미제공')}</tspan>
         <tspan fill="#929baa"> · </tspan>

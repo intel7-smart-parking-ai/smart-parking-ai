@@ -41,7 +41,7 @@ export default function ChatPanel({lots,alerts,voiceInput=false}) {
  const context=view?.vehicle_context;
  const contextState={parked:t('주차 중'),pending:t('입차 확인 중'),not_found:t('위치 확인 안 됨'),unavailable:t('정보 확인 불가'),stale:t('정보 갱신 필요')};
  return <section className="panel chat-panel">
-  <header className="chat-panel-heading"><div><h2>{t("주차 챗봇")}</h2><p>{t("빈자리와 차량 위치를 확인하고, 안내된 버튼으로 다음 단계를 진행하세요.")}</p></div><button className="button white" aria-expanded={showMap} onClick={()=>setShowMap(v=>!v)}>{showMap?t('전체 지도 닫기'):t('전체 주차장 지도 미리보기')}</button></header>
+  <header className="chat-panel-heading"><div><h2>{t("주차 챗봇")}</h2></div><button className="button white" aria-expanded={showMap} onClick={()=>setShowMap(v=>!v)}>{showMap?t('전체 지도 닫기'):t('전체 주차장 지도 미리보기')}</button></header>
   {view?.banner?.text&&<div ref={safetyNotice} className="chat-banner" data-level={view.banner.level} role="alert"><strong>{t("안전 안내")}</strong><span>{formatLotName(view.banner.text)}</span></div>}
   {view?.safety&&<div className="chat-safety" role="alert"><strong>{formatLotName(view.safety.title)||t('안전 안내')}</strong><p>{formatLotName(view.safety.guidance)}</p>{view.safety.vehicle_help&&<small>{formatLotName(view.safety.vehicle_help)}</small>}</div>}
   {context?.car_id&&<div className="chat-context">{t("지금 대화 중:")} <strong>{context.car_id}{t("번")}</strong> · {contextState[context.state]||context.state}</div>}

@@ -33,7 +33,7 @@ export default function ParkingWelcome({onStart}){
    {showLotChoice&&<div className="kiosk-lot-choice"><label htmlFor="welcome-lot"><Icon name="pin"/>{t.lot}</label><select id="welcome-lot" value={selected} onChange={e=>setSelected(e.target.value)}>{areas.map((id,i)=><option key={id} value={id}>{t.lots[i]}</option>)}</select></div>}
    <div className="kiosk-services"><button className="kiosk-payment" onClick={()=>onStart(selected,'fee',language)}><Icon name="wallet"/><span className="kiosk-payment-title">{t.payment.map(line=><span key={line}>{line}</span>)}</span><span className="kiosk-payment-note">{t.paymentNote}</span><span className="kiosk-payment-arrow" aria-hidden="true">→</span></button><button className="kiosk-secondary" onClick={()=>onStart(selected,'find',language)}><Icon name="car"/><span>{t.find}</span><b aria-hidden="true">›</b></button><button className="kiosk-secondary" onClick={()=>helpDialog.current.showModal()}><Icon name="info"/><span>{t.help}</span><b aria-hidden="true">›</b></button></div>
    <a className="kiosk-mobile" href={`/?app=1&lang=${language}`}>{t.mobile}<span aria-hidden="true"> ↗</span></a>
-  </section><footer className="kiosk-footer"><span>PARK:ON</span></footer></>}
+  </section></>}
   <dialog className="kiosk-help" ref={helpDialog} aria-labelledby="welcome-help-title"><h2 id="welcome-help-title">{t.help}</h2><ol>{(showLotChoice?t.helpSteps:t.helpSteps.slice(1)).map(step=><li key={step}>{step}</li>)}</ol><p>{t.demo}</p><form method="dialog"><button>{t.close}</button></form></dialog>
  </main>
 }

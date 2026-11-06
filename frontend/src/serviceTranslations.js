@@ -1,4 +1,6 @@
 export default {
+  "주차 예약": ["Parking reservations", "停车预约", "駐車予約"],
+  "예약 확정": ["Confirm reservation", "确认预约", "予約を確定"],
   "주차장 현황": [
     "Parking status",
     "停车场状态",
