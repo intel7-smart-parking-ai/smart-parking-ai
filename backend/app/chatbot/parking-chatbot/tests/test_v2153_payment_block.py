@@ -30,6 +30,10 @@ class ServerPaymentBlockTests(unittest.TestCase):
         self.assertTrue({'pay', 'confirm_yes'}.isdisjoint(c['id'] for c in result['chips']))
         self.assertIn('모의 화재', result['text'])
         self.assertIn('들어오지 마세요', result['text'])
+        self.assertIsNotNone(result['safety'])
+        self.assertIn('들어오지 마세요', result['safety']['guidance'])
+        self.assertIsNotNone(result['banner'])
+        self.assertIn('차단', result['banner']['text'])
         self.assertIsNone(e.get_session('s').pending)
         self.assertFalse(e._uncertain_payments)
 
