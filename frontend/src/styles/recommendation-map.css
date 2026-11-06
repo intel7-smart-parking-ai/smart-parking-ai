@@ -109,3 +109,66 @@
 .harbor-breakwater{right:-6px;top:10px;width:48px;height:4px;background:#a9b4b6;border-bottom:1px solid #7a949e;transform:rotate(0)}
 .harbor-sea-name{right:5px;bottom:14px;font-size:9px;letter-spacing:0;color:#d8ebef}
 .harbor .district-caption{left:5px;bottom:7px;width:72px;font-size:8px;background:#dbe1df;padding:4px}
+
+.airport-terminal-model,
+.airport-concourse-model {
+  position: absolute;
+  transform-style: preserve-3d;
+  border: 2px solid #e3edf2;
+  background: repeating-linear-gradient(90deg, #c7d9e3 0 12px, #789bad 12px 15px);
+}
+
+.airport-terminal-model {
+  --wall-height: 28px;
+  left: 18px;
+  top: 24px;
+  width: 135px;
+  height: 42px;
+  transform: translateZ(28px);
+}
+
+.airport-concourse-model {
+  --wall-height: 19px;
+  left: 68px;
+  top: 66px;
+  width: 35px;
+  height: 47px;
+  transform: translateZ(19px);
+}
+
+.airport-terminal-model::before,
+.airport-concourse-model::before {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: -2px;
+  right: -2px;
+  height: var(--wall-height);
+  transform-origin: top;
+  transform: rotateX(-90deg);
+  background: repeating-linear-gradient(90deg, #476e85 0 9px, #b8d7e3 9px 14px);
+  border: 1px solid #597b8c;
+}
+
+.airport-terminal-model::after,
+.airport-concourse-model::after {
+  content: '';
+  position: absolute;
+  left: 100%;
+  top: -2px;
+  bottom: -2px;
+  width: var(--wall-height);
+  transform-origin: left;
+  transform: rotateY(90deg);
+  background: #7897aa;
+  border: 1px solid #597b8c;
+}
+
+.airport-terminal-model > span {
+  position: absolute;
+  inset: 12px 0 auto;
+  text-align: center;
+  color: #23475e;
+  font-size: 10px;
+  font-weight: 800;
+}

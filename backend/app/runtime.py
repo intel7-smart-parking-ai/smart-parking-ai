@@ -15,6 +15,7 @@ from contextlib import asynccontextmanager, closing
 from copy import copy
 from datetime import datetime, timezone
 from pathlib import Path
+from random import choice
 from threading import RLock
 from typing import Literal
 from uuid import uuid4
@@ -39,6 +40,9 @@ from backend.app.alerts.router import (
 )
 from backend.app.chatbot.router import router as chatbot_router
 from backend.app.simulation.mock_data import SPACES
+from backend.app.simulation.vehicle_assignment import (
+    REGISTERED_VEHICLES, choose_entry_type, entry_vehicle_type,
+)
 
 
 def utcnow():
@@ -244,6 +248,7 @@ class SimulationCommand(BaseModel):
     space_id: str | None = None
     vehicle_number: str | None = Field(None, pattern=r"^[0-9]{4}$")
     interval_seconds: int = Field(8, ge=3, le=60)
+    vehicle_type: Literal["general", "ev", "accessible"] | None = None
 
 
 class MockAlertCommand(BaseModel):
@@ -453,60 +458,55 @@ def create_runtime_app(
     def state(lot: str):
         return simulation_state(lot)
 
-    def set_target(lot, action, body):
+    clearing_lots = set()
+
+    def set_target(lot, action, body, *, automatic=False):
         simulation_state(lot)
+        if lot in clearing_lots:
+            raise HTTPException(409, "전체 출차가 진행 중입니다.")
         with store.gate, closing(store.connection()) as conn:
             rows = store.spaces(lot, as_of=clock())
-            available = []
-            for row in rows:
-                target = conn.execute(
-                    "SELECT * FROM simulation_targets WHERE lot_id=? AND space_id=?",
-                    (lot, row["space_id"]),
-                ).fetchone()
-                if bool(target["occupied"]) != (action == "exit"):
-                    continue
-                if row["status"] != ("occupied" if action == "exit" else "empty"):
-                    continue
-                if action == "entry" and row["space_type"] != "general":
-                    continue
-                if body.space_id and row["space_id"] != body.space_id:
-                    continue
-                available.append((row, target))
+            targets = {r["space_id"]: dict(r) for r in conn.execute(
+                "SELECT * FROM simulation_targets WHERE lot_id=?", (lot,)
+            )}
+            available = [row for row in rows
+                         if bool(targets[row["space_id"]]["occupied"]) == (action == "exit")
+                         and (action == "exit" or row["status"] == "empty")
+                         and (not body.space_id or row["space_id"] == body.space_id)]
+            kind = None
+            if action == "entry":
+                try:
+                    kind = (choose_entry_type(rows, targets, available) if automatic and available
+                            else entry_vehicle_type(body.vehicle_number, body.vehicle_type))
+                except ValueError as exc:
+                    raise HTTPException(409, str(exc)) from exc
+                available = [row for row in available if row["space_type"] == kind]
             if not available:
-                raise HTTPException(409, "입출차할 주차칸이 없습니다.")
-            row, target = available[0]
+                raise HTTPException(409, "차량 종류에 맞는 빈자리 또는 출차할 차량이 없습니다.")
+            row = choice(available) if automatic and action == "exit" else available[0]
+            target = targets[row["space_id"]]
             number = target["vehicle_number"]
             if action == "entry":
                 number = body.vehicle_number
                 if not number:
-                    number = next(
-                        (
-                            f"{i:04}"
-                            for i in range(2000, 10000)
-                            if not conn.execute(
-                                "SELECT 1 FROM simulation_targets WHERE vehicle_number=? AND occupied=1",
-                                (f"{i:04}",),
-                            ).fetchone()
-                        ),
-                        None,
-                    )
+                    used = {r[0] for r in conn.execute(
+                        "SELECT vehicle_number FROM simulation_targets WHERE occupied=1"
+                    )}
+                    number = next((f"{i:04}" for i in range(2000, 10000)
+                                   if f"{i:04}" not in used
+                                   and f"{i:04}" not in REGISTERED_VEHICLES), None)
+                    if number is None:
+                        raise HTTPException(409, "생성할 수 있는 차량번호가 없습니다.")
                 if conn.execute(
                     "SELECT 1 FROM simulation_targets WHERE vehicle_number=? AND occupied=1",
                     (number,),
                 ).fetchone():
                     raise HTTPException(409, "이미 주차 중인 차량번호입니다.")
             conn.execute(
-                (
-                    'UPDATE simulation_targets SET occupied=?,vehicle_number=?,plate_number=? WHERE lot_id'
-                    '=? AND space_id=?'
-                ),
-                (
-                    action == "entry",
-                    number,
-                    "88가" + number if number else None,
-                    lot,
-                    row["space_id"],
-                ),
+                "UPDATE simulation_targets SET occupied=?,vehicle_number=?,plate_number=?,"
+                "vehicle_type=? WHERE lot_id=? AND space_id=?",
+                (action == "entry", number, "88가" + number if number else None,
+                 kind if action == "entry" else target["vehicle_type"], lot, row["space_id"]),
             )
             conn.commit()
             return row["space_id"], number
@@ -514,10 +514,38 @@ def create_runtime_app(
     @route.post("/simulation/{lot}/{action}")
     async def command(
         lot: str,
-        action: Literal["entry", "exit", "start", "stop"],
+        action: Literal["entry", "exit", "start", "stop", "clear"],
         body: SimulationCommand = SimulationCommand(),
     ):
         simulation_state(lot)
+        if lot in clearing_lots:
+            raise HTTPException(409, "전체 출차가 진행 중입니다.")
+        if action == "clear":
+            with store.gate, closing(store.connection()) as conn:
+                control = conn.execute("SELECT running FROM simulation_controls WHERE lot_id=?", (lot,)).fetchone()
+                if control["running"]:
+                    raise HTTPException(409, "자동 실행을 정지한 뒤 전체 출차해주세요.")
+                conn.execute("UPDATE simulation_targets SET occupied=0 WHERE lot_id=?", (lot,))
+                conn.commit()
+                clearing_lots.add(lot)
+            try:
+                # Empty evidence closes sessions normally; payment/history rows are retained.
+                deadline = asyncio.get_running_loop().time() + 15
+                while asyncio.get_running_loop().time() < deadline:
+                    rows = store.spaces(lot, as_of=clock())
+                    with closing(store.connection()) as conn:
+                        active = conn.execute(
+                            "SELECT 1 FROM parking_sessions WHERE lot_id=? AND status='active' LIMIT 1", (lot,)
+                        ).fetchone()
+                    if all(row["status"] == "empty" for row in rows) and not active:
+                        with closing(store.connection()) as conn:
+                            conn.execute("UPDATE simulation_controls SET last_error=NULL WHERE lot_id=?", (lot,))
+                            conn.commit()
+                        return simulation_state(lot)
+                    await asyncio.sleep(0.15)
+                raise HTTPException(503, "전체 출차 관측을 기다리고 있습니다. 현황 확인 후 다시 시도해주세요.")
+            finally:
+                clearing_lots.discard(lot)
         if action in ("start", "stop"):
             with closing(store.connection()) as conn:
                 conn.execute(
@@ -584,7 +612,7 @@ def create_runtime_app(
                     camera_id=None,
                     space_id=target["space_id"],
                     car_id=None,
-                    vehicle_type="general" if target["occupied"] else None,
+                    vehicle_type=target["vehicle_type"] if target["occupied"] else None,
                     confidence=0.99,
                     bbox_xyxy=None,
                     observed_at=clock(),
@@ -615,7 +643,7 @@ def create_runtime_app(
                         if count > len([s for s in SPACES if s.lot_id == control["lot_id"]]) // 2
                         else "entry"
                     )
-                    space_id, number = set_target(control["lot_id"], action, SimulationCommand())
+                    space_id, number = set_target(control["lot_id"], action, SimulationCommand(), automatic=True)
                     error = None
                 except Exception as exc:
                     error = str(exc)
@@ -651,6 +679,11 @@ def create_runtime_app(
                 conn.execute(
                     "ALTER TABLE pipeline_events ADD COLUMN applied INTEGER NOT NULL DEFAULT 1"
                 )
+            if "vehicle_type" not in {
+                r["name"] for r in conn.execute("PRAGMA table_info(simulation_targets)")
+            }:
+                # Old vehicles remain general until explicitly exited, never relabel to fit a bay.
+                conn.execute("ALTER TABLE simulation_targets ADD COLUMN vehicle_type TEXT NOT NULL DEFAULT 'general'")
             for lot in ("C", "D"):
                 conn.execute("INSERT OR IGNORE INTO simulation_controls(lot_id) VALUES(?)", (lot,))
                 for space in [s for s in SPACES if s.lot_id == lot]:

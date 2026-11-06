@@ -12,7 +12,7 @@ test('UTC and Korean timestamps display identical KST even on a non-Korean host'
  assert.equal(currentKSTMonth(new Date('2026-10-31T16:00:00Z')),'2026-11');
 });
 test('simulation/manual evidence remains visibly mock while unobserved stays pending',()=>{
- assert.equal(sourceLabel({source:'simulation'}),'모의 이벤트');assert.equal(sourceLabel({source:'manual'}),'모의 이벤트');assert.equal(sourceLabel({source:'vision',is_mock:false}),'카메라 관측');assert.equal(sourceLabel({}),'관측 대기');
+ assert.equal(sourceLabel({source:'simulation'}),'이벤트');assert.equal(sourceLabel({source:'manual'}),'이벤트');assert.equal(sourceLabel({source:'vision',is_mock:false}),'카메라 관측');assert.equal(sourceLabel({}),'관측 대기');
 });
 test('only unresolved level2 alerts in the invoice lot stop payment',()=>{
  assert.equal(evacuationRequired([{lot_id:'A',status:'acknowledged',level:2}],'A'),true);

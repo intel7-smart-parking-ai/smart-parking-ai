@@ -11,7 +11,7 @@ export default function PaymentChooser({amount, busy, error, onPay, onBack, bloc
   const [method, setMethod] = useState('');
   const [fail, setFail] = useState(false);
   return <section className="payment-chooser" aria-label="결제 수단 선택">
-    <div className="payment-chooser-heading"><span>PAYMENT</span><h3>결제 수단을 선택해주세요</h3><p>선택한 수단으로 모의 결제를 진행합니다.</p></div>
+    <div className="payment-chooser-heading"><span>PAYMENT</span><h3>결제 수단을 선택해주세요</h3><p>선택한 수단으로 결제를 진행합니다.</p></div>
     {blocked&&<p className="operation-error" role="alert">대피 안내 중 · 결제 중단</p>}
     <fieldset disabled={busy||blocked} className="payment-methods">
       <legend>결제 수단</legend>
@@ -25,7 +25,7 @@ export default function PaymentChooser({amount, busy, error, onPay, onBack, bloc
     <p className="payment-demo-note">실제 청구 없이 진행되는 시연입니다. 카드번호 입력이나 외부 앱 연결은 필요하지 않습니다.</p>
     <label className="failure-toggle"><input type="checkbox" checked={fail} disabled={busy||blocked} onChange={event => setFail(event.target.checked)}/>실패 상황 체험 (서버 요청 없음)</label>
     {error && <div className="payment-inline-error" role="alert">{error}</div>}
-    <button className="button primary full" disabled={busy || blocked || !method} onClick={() => onPay(fail, method)}>{busy ? '모의 결제 처리 중…' : method ? `${paymentMethods[method]}로 ${money(amount)} 모의 결제` : '결제 수단을 선택해주세요'}</button>
+    <button className="button primary full" disabled={busy || blocked || !method} onClick={() => onPay(fail, method)}>{busy ? '결제 처리 중…' : method ? `${paymentMethods[method]}로 ${money(amount)} 결제` : '결제 수단을 선택해주세요'}</button>
     <button className="button white full payment-back" disabled={busy} onClick={onBack}>이전으로</button>
   </section>;
 }

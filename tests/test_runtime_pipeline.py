@@ -140,7 +140,7 @@ def test_confirming_event_recovers_after_side_effect_before_applied_flag(tmp_pat
 def test_simulator_rejects_dedicated_bay_and_real_mode_button(tmp_path):
     app=create_runtime_app(token=TOKEN,database=tmp_path/'dedicated.db',mode='demo')
     with TestClient(app) as c:
-        assert c.post('/api/v1/simulation/D/entry',json={'space_id':'D-01'}).status_code==409
+        assert c.post('/api/v1/simulation/D/entry',json={'space_id':'D-05'}).status_code==409
     app=create_runtime_app(token=TOKEN,database=tmp_path/'real.db',mode='real')
     with TestClient(app) as c:
         assert c.post('/api/v1/demo/alerts',json={'lot_id':'A'}).status_code==403

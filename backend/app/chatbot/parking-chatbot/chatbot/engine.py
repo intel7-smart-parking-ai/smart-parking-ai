@@ -20,6 +20,7 @@ from pathlib import Path
 from datetime import timedelta
 
 from . import config, incidents, navigation as N, templates as T
+from . import dialog_context as DC, insights as I
 from .contracts import LOCATION_PENDING, timestamp, alerts_source
 from .adapters import ApiAdapter, request_gets, request_lot, DataUnavailable, PaymentNotSent, build_adapter, iso, now, request_deadline, request_timeout
 from .parser import parse
@@ -418,11 +419,49 @@ def _space_answer(s, p, snapshot):
     return f"{config.catalog.name(lot)} {label}은 {SPACE_STATE_TEXT[state]}.{special}", None, ["lot_" + lot, "empty_all"], snapshot.get("updated_at")
 
 
+def _insight_answer(s, p, snapshot, alert):
+    """데이터 집계형 질문(insights.py). 해당 없으면 None."""
+    lot, zone = p.get("lot_id"), p.get("zone")
+    if lot == "ambiguous":
+        return None
+    if p.get("section") and lot:
+        text, chips, derived = I.section(snapshot, alert, lot, p["section"])
+        return text, _with_derived(N.card(snapshot, alert, lot), derived), chips, snapshot["updated_at"]
+    if p.get("rank") == "compare" and p.get("lots"):
+        text, focus, chips = I.compare(snapshot, alert, p["lots"], zone)
+        DC.remember(s, focus, offered_lots=[] if focus else p["lots"])
+        return text, N.card(snapshot, alert, focus, zone), chips, snapshot["updated_at"]
+    if p.get("rank") == "most":
+        if lot and not zone:
+            text, chips, derived = I.section_rank(snapshot, alert, lot)
+            return text, _with_derived(N.card(snapshot, alert, lot), derived), chips, snapshot["updated_at"]
+        text, focus, tied, chips = I.most(snapshot, alert, zone)
+        DC.remember(s, focus, offered_lots=tied)
+        return text, N.card(snapshot, alert, focus, zone), chips, snapshot["updated_at"]
+    if p.get("occupancy"):
+        text, chips, derived = I.occupancy(snapshot, alert, lot, zone)
+        return text, _with_derived(N.card(snapshot, alert, lot, zone), derived), chips, snapshot["updated_at"]
+    return None
+
+
+def _with_derived(card, derived):
+    """계산한 숫자(합계·구역별)를 카드 근거로 남긴다. 기존 카드 키는 그대로이고 키 하나만 더한다."""
+    if derived:
+        card["data"]["derived_counts"] = derived
+    return card
+
+
 def h_get_empty_spots(s,p):
     snapshot, alert = _occupancy(), current_alert()
     _answer_evidence.set(snapshot)
     if p.get("space_id") and not p.get("zone"):
         return _space_answer(s, p, snapshot)
+    answer = _insight_answer(s, p, snapshot, alert)
+    if answer is not None:
+        return answer
+    if not p.get("lot_id"):
+        # '어느 주차장?' 다음 턴의 '공항'·'세 번째' 선택을 위해 제시한 순서를 기억한다.
+        DC.remember(s, offered_lots=N.order_lots(snapshot))
     text, card, chips, updated = N.query(snapshot, alert, p)
     if isinstance(data.inner, ApiAdapter) and alert.get("unavailable") and alerts_source(alert) != "not_provided" and (not p.get("lot_id") or p["lot_id"] in snapshot["lots"]):
         selected = snapshot["lots"].items() if not p.get("lot_id") else [(p["lot_id"], snapshot["lots"][p["lot_id"]])]
@@ -431,6 +470,13 @@ def h_get_empty_spots(s,p):
         chips = ["empty_all", "call_admin"]
     if p.get("vacancy_notice"):
         text = "자리가 나면 알려드리는 기능은 없어요.\n" + text.replace("\n", " ")
+    if p.get("info_gap"):
+        from . import info_gaps
+        note, tail = info_gaps.prefix(p), info_gaps.suffix(p)
+        if note:
+            text = f"{note} {text}" if note.endswith("기준으로") else f"{note}\n{text}"
+        if tail:
+            text = f"{text}\n{tail}"
     selected_lots = [p["lot_id"]] if p.get("lot_id") else snapshot["lots"]
     if p.get("zone") and any(snapshot["lots"].get(k, {}).get("zone_partial") for k in selected_lots):
         text += "\n구역 정보가 일부 칸만 설정돼 있어요"
@@ -553,6 +599,8 @@ def h_fee_rule(s, p):
     _answer_evidence.set(result if isinstance(result, dict) else None)
     if not policies:
         return "요금 정책을 확인할 수 없어요. 차량 요금 조회를 선택해 주세요.", None, ["fee", "call_admin"], None
+    if p.get("fee_rank"):
+        return I.fee_rank(policies, high=p["fee_rank"] == "high"), None, "after_fee_rule", None
     return T.fee_rule(policies, p.get("lot_id")), None, "after_fee_rule", None
 
 
@@ -882,6 +930,23 @@ def h_evacuate(s, p):
 
 
 
+def h_help(s, p):
+    if p.get("info_gap") == "facility":
+        from . import info_gaps
+        text, chips = info_gaps.facility_answer(p)
+        return text, None, chips, None
+    scope = p.get("vehicle_query_help")
+    if scope == "range":
+        text = "차량 번호 범위나 번호대별 목록 조회는 아직 지원하지 않아요. 두 자리 차량 번호 하나를 알려주시면 현재 위치를 확인해 드릴게요."
+    elif scope == "list":
+        text = "입차한 차량 전체의 번호 목록은 아직 제공하지 않아요. 두 자리 차량 번호 하나의 위치나 주차장 빈자리를 확인할 수 있어요."
+    else:
+        text = T.HELP
+    if scope or p.get("help_examples"):
+        text += "\n예: ‘30번 차량은 있나요?’, ‘23번 차 어디 있어?’, ‘A 주차장 빈자리’, ‘요금 얼마야?’\n결제는 실제 청구 없는 모의 결제이며, 차량과 요금을 확인한 뒤 화면에서 승인해 주세요."
+    return text, None, "default", None
+
+
 HANDLERS = {
     "admin_help": lambda s, p: ("관리자 호출 비용·도착 시간 정보는 연결되지 않았어요. 실제 요청할 때 ‘관리자 불러줘’를 선택해 주세요.", None, ["call_status", "call_admin"], None),
     "payment_help": lambda s, p: ("현재는 모의 결제 시연만 지원해요. 실제 카드·현금 결제 수단은 연결되지 않았어요.", None, ["fee", "call_admin"], None),
@@ -891,7 +956,7 @@ HANDLERS = {
     "fee_rule": h_fee_rule, "pay_fee": h_pay_fee,
     "exit_help": h_exit_help, "get_violations": h_violations, "call_admin": h_call_admin, "get_alerts": h_get_alerts,
     "alert_near_my_car": h_alert_near, "evacuation_guide": h_evacuate,
-    "help": lambda s, p: (T.HELP, None, "default", None),
+    "help": h_help,
     "thanks": lambda s, p: (T.THANKS, None, "default", None),
 }
 
@@ -967,7 +1032,10 @@ def _validate_dispatch_input(s, intent, params, vno):
     if params.get("lot_id")=="ambiguous":
         s.clear()
         s.query_context = {}
-        return False, _respond(s,"주차장이 여러 곳이에요. 안내받을 곳 하나를 골라 주세요.",chip_set=["lot_"+k for k in config.catalog.ids()][:4])
+        # 방금 동률로 제시한 주차장이 있으면 그 후보만 버튼으로 보여 준다.
+        choices = DC.offered(s) or config.catalog.ids()
+        chips = [("go:" if intent == "set_destination" else "lot_") + k for k in choices]
+        return False, _respond(s,"주차장이 여러 곳이에요. 안내받을 곳 하나를 골라 주세요.",chip_set=chips[:4])
     expired = s.expire()
     if vno == "invalid":
         s.clear()
@@ -1128,6 +1196,8 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
     else:
         text = (text or "").strip()[:200]
         s.history.append(("user", text))
+        # 대화 맥락으로 지시어·생략·선택을 완성한 문장을 해석한다(기록에는 원문). dialog_context.py 참고.
+        text = DC.rewrite(s, text)
         r = parse(text, allow_llm=current_alert().get("level", 0) < 2)
         if r.source == "llm":
             # 분류를 기다리는 동안 경보가 바뀌었으면 늦은 선택을 실행하지 않는다.
@@ -1136,6 +1206,7 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
             if current_alert().get("level", 0) >= 2:
                 _apply_alert_policy(s)
                 r = parse(text, allow_llm=False)
+        r = DC.fill(s, r, text)
         intent, params, source, vehicle_only = r.intent, r.params, r.source, r.vehicle_only
     intent,params = N.resolve_context(s,intent,params,text,source)
     try:
@@ -1149,6 +1220,8 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
     except DataUnavailable:
         s.clear()
         resp = _respond(s, T.REQUEST_UNAVAILABLE, meta={"unavailable": True})
+    if intent in DC.LOT_INTENTS and params.get("lot_id") in config.catalog.ids():
+        DC.remember(s, params["lot_id"])
     resp["meta"].update({"intent": intent, "source": source})
     return resp
 

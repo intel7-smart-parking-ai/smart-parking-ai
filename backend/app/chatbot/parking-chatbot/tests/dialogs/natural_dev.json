@@ -1,0 +1,559 @@
+[
+ {
+  "name": "지시어-안내",
+  "turns": [
+   {
+    "user": "김해공항 빈자리",
+    "expect": {
+     "intent": "get_empty_spots",
+     "focus": "C"
+    }
+   },
+   {
+    "user": "거기로 안내해줘",
+    "expect": {
+     "intent": "set_destination",
+     "text_has": [
+      "김해공항 주차장을 목적지로"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "지시어-요금기준",
+  "turns": [
+   {
+    "user": "신세계 주차장 자리 있어?",
+    "expect": {
+     "focus": "D"
+    }
+   },
+   {
+    "user": "거기 요금은 어떻게 돼?",
+    "expect": {
+     "intent": "fee_rule",
+     "text_has": [
+      "신세계백화점주차장"
+     ],
+     "text_not": [
+      "개발원"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "지시어-시설",
+  "turns": [
+   {
+    "user": "공항 주차장 빈자리",
+    "expect": {
+     "focus": "C"
+    }
+   },
+   {
+    "user": "거기 화장실 있어?",
+    "expect": {
+     "intent": "help",
+     "text_has": [
+      "김해공항 주차장의 화장실"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "지시어-구역",
+  "turns": [
+   {
+    "user": "신세계 빈자리 알려줘",
+    "expect": {
+     "focus": "D"
+    }
+   },
+   {
+    "user": "그 주차장 전기차 자리는?",
+    "expect": {
+     "intent": "get_empty_spots",
+     "focus": "D",
+     "text_has": [
+      "충전"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "생략-다른주차장",
+  "turns": [
+   {
+    "user": "부산역 빈자리",
+    "expect": {
+     "focus": "B"
+    }
+   },
+   {
+    "user": "신세계는?",
+    "expect": {
+     "intent": "get_empty_spots",
+     "focus": "D"
+    }
+   }
+  ]
+ },
+ {
+  "name": "생략-구역",
+  "turns": [
+   {
+    "user": "김해공항 빈자리",
+    "expect": {
+     "focus": "C"
+    }
+   },
+   {
+    "user": "장애인 자리는?",
+    "expect": {
+     "intent": "get_empty_spots",
+     "focus": "C",
+     "text_has": [
+      "장애인"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "선택-이름만",
+  "turns": [
+   {
+    "user": "빈자리 몇 개 있어?",
+    "expect": {
+     "text_has": [
+      "어느 주차장"
+     ]
+    }
+   },
+   {
+    "user": "공항",
+    "expect": {
+     "intent": "get_empty_spots",
+     "focus": "C"
+    }
+   }
+  ]
+ },
+ {
+  "name": "선택-순서",
+  "turns": [
+   {
+    "chip": "empty_all",
+    "expect": {
+     "text_has": [
+      "어느 주차장"
+     ]
+    }
+   },
+   {
+    "user": "세 번째요",
+    "expect": {
+     "intent": "get_empty_spots",
+     "focus": "C"
+    }
+   }
+  ]
+ },
+ {
+  "name": "선택-안내",
+  "turns": [
+   {
+    "user": "빈자리 몇 개 있어?",
+    "expect": {}
+   },
+   {
+    "user": "신세계로 갈게",
+    "expect": {
+     "intent": "set_destination",
+     "text_has": [
+      "신세계백화점주차장을 목적지로"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "최상급-여유",
+  "turns": [
+   {
+    "user": "어디가 제일 널널해?",
+    "expect": {
+     "intent": "get_empty_spots",
+     "unknown": false,
+     "text_has": [
+      "가장 여유"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "최상급-빈자리",
+  "turns": [
+   {
+    "user": "빈자리 제일 많은 주차장 어디야",
+    "expect": {
+     "text_has": [
+      "가장 여유",
+      "62자리"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "최상급-추천",
+  "turns": [
+   {
+    "user": "덜 붐비는 곳 추천해줘",
+    "expect": {
+     "unknown": false,
+     "text_has": [
+      "가장 여유"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "최상급-충전",
+  "turns": [
+   {
+    "user": "전기차 충전 자리 제일 많은 곳 어디야?",
+    "expect": {
+     "text_has": [
+      "신세계백화점주차장",
+      "8자리"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "최상급-동률이면-되묻기",
+  "turns": [
+   {
+    "user": "어디가 제일 한산해?",
+    "expect": {
+     "unknown": false
+    }
+   },
+   {
+    "user": "거기로 가줘",
+    "expect": {
+     "text_has": [
+      "골라"
+     ],
+     "chips_has": [
+      "go:C",
+      "go:D"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "비교-두곳",
+  "turns": [
+   {
+    "user": "개발원이랑 부산역 중에 어디가 자리 많아?",
+    "expect": {
+     "unknown": false,
+     "text_has": [
+      "개발원주차장",
+      "부산역주차장"
+     ],
+     "text_not": [
+      "여러 곳이에요"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "점유율",
+  "turns": [
+   {
+    "user": "개발원 주차장 얼마나 찼어?",
+    "expect": {
+     "unknown": false,
+     "text_has": [
+      "12칸 중",
+      "7칸"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "점유율-퍼센트",
+  "turns": [
+   {
+    "user": "공항 주차장 몇 퍼센트 차 있어?",
+    "expect": {
+     "text_has": [
+      "%"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "만차여부",
+  "turns": [
+   {
+    "user": "부산역 만차야?",
+    "expect": {
+     "intent": "get_empty_spots",
+     "text_has": [
+      "만차"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "구역-공항B",
+  "turns": [
+   {
+    "user": "김해공항 B구역 빈자리 몇 개야?",
+    "expect": {
+     "unknown": false,
+     "text_has": [
+      "김해공항 주차장 B 구역"
+     ],
+     "text_not": [
+      "부산역"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "구역-신세계C",
+  "turns": [
+   {
+    "user": "신세계 주차장 C 구역 자리 있어?",
+    "expect": {
+     "text_has": [
+      "신세계백화점주차장 C 구역"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "구역-맥락",
+  "turns": [
+   {
+    "user": "공항 주차장 빈자리",
+    "expect": {
+     "focus": "C"
+    }
+   },
+   {
+    "user": "A 구역은?",
+    "expect": {
+     "text_has": [
+      "김해공항 주차장 A 구역"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "요금비교-최저",
+  "turns": [
+   {
+    "user": "어디가 제일 싸?",
+    "expect": {
+     "unknown": false,
+     "text_has": [
+      "개발원주차장",
+      "가장 저렴"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "요금비교-주차비",
+  "turns": [
+   {
+    "user": "주차비 가장 저렴한 주차장 알려줘",
+    "expect": {
+     "text_has": [
+      "개발원주차장",
+      "가장 저렴"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "요금-지시어-하루",
+  "turns": [
+   {
+    "user": "공항 주차장 빈자리",
+    "expect": {}
+   },
+   {
+    "user": "거기 하루 최대 요금은?",
+    "expect": {
+     "intent": "fee_rule",
+     "text_has": [
+      "김해공항 주차장"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "구어체-잇어",
+  "turns": [
+   {
+    "user": "빈자리 잇어?",
+    "expect": {
+     "intent": "get_empty_spots"
+    }
+   }
+  ]
+ },
+ {
+  "name": "구어체-남았냐",
+  "turns": [
+   {
+    "user": "공항 자리 남았냐",
+    "expect": {
+     "intent": "get_empty_spots",
+     "focus": "C"
+    }
+   }
+  ]
+ },
+ {
+  "name": "맥락-붐벼",
+  "turns": [
+   {
+    "user": "김해공항 빈자리",
+    "expect": {}
+   },
+   {
+    "user": "지금 붐벼?",
+    "expect": {
+     "intent": "get_empty_spots",
+     "focus": "C"
+    }
+   }
+  ]
+ },
+ {
+  "name": "맥락-가까운구역",
+  "turns": [
+   {
+    "user": "김해공항 빈자리",
+    "expect": {}
+   },
+   {
+    "user": "국제선 청사랑 제일 가까운 구역은?",
+    "expect": {
+     "text_has": [
+      "국제선 청사까지의 거리 정보"
+     ],
+     "focus": "C"
+    }
+   }
+  ]
+ },
+ {
+  "name": "안전-지시어경보",
+  "turns": [
+   {
+    "user": "신세계 빈자리",
+    "expect": {}
+   },
+   {
+    "user": "거기 불났어?",
+    "expect": {
+     "intent": "get_alerts"
+    }
+   }
+  ]
+ },
+ {
+  "name": "안전-결제흐름",
+  "turns": [
+   {
+    "user": "공항 주차장 빈자리",
+    "expect": {}
+   },
+   {
+    "user": "결제할래",
+    "expect": {
+     "intent": "pay_fee"
+    }
+   }
+  ]
+ },
+ {
+  "name": "최상급-단독1위-이후안내",
+  "turns": [
+   {
+    "user": "충전 자리 제일 많은 곳?",
+    "expect": {
+     "text_has": [
+      "신세계백화점주차장이 8자리"
+     ]
+    }
+   },
+   {
+    "user": "거기로 안내해줘",
+    "expect": {
+     "intent": "set_destination",
+     "text_has": [
+      "신세계백화점주차장을 목적지로"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "구역순위",
+  "turns": [
+   {
+    "user": "공항 주차장에서 제일 빈 구역은 어디야?",
+    "expect": {
+     "unknown": false,
+     "text_has": [
+      "구역이",
+      "가장 여유"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "맥락만료-다른주제",
+  "turns": [
+   {
+    "user": "공항 주차장 빈자리",
+    "expect": {}
+   },
+   {
+    "user": "23번 차 어디 있어?",
+    "expect": {
+     "intent": "find_my_car"
+    }
+   }
+  ]
+ }
+]

@@ -370,3 +370,99 @@ html[data-theme] .locations-list .location-meta {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+.rail-drawer {
+  --drawer-width: max(62px, var(--rail));
+  position: fixed;
+  inset: var(--header) auto 0 0;
+  width: 24px;
+  z-index: 26;
+  touch-action: pan-y;
+  pointer-events: none;
+}
+
+.rail-drawer[data-open=true] {
+  width: calc(var(--drawer-width) + 24px);
+}
+
+.rail-drawer .icon-rail {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--drawer-width);
+  height: auto;
+  padding: 64px 0 16px;
+  border-top: 0;
+  justify-content: flex-start;
+  transform: translateX(-100%);
+  visibility: hidden;
+}
+
+.rail-drawer[data-open=true] .icon-rail {
+  transform: none;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.rail-drawer .icon-rail nav {
+  width: auto;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rail-drawer-toggle {
+  position: absolute;
+  top: 12px;
+  left: 0;
+  z-index: 1;
+  width: 24px;
+  height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 0 8px 8px 0;
+  color: var(--ink);
+  background: var(--panel);
+  font-size: 22px;
+  pointer-events: auto;
+}
+
+.rail-drawer::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 12px;
+  pointer-events: auto;
+}
+
+.rail-drawer ~ :is(.locations, .main-shell) {
+  margin-left: 0;
+}
+
+.rail-drawer ~ .locations {
+  padding-left: 32px;
+}
+
+.rail-drawer ~ .main-shell {
+  padding-top: var(--header);
+}
+
+.main-shell .locations-below-map {
+  position: relative;
+  inset: auto;
+  width: auto;
+  margin: 14px 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: visible;
+}
+
+.web-chatbot-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+}
+
+.rail-button .web-chatbot-icon {
+  width: 23px;
+  height: 23px;
+}

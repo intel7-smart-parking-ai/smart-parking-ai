@@ -1,0 +1,39 @@
+[
+ {"name":"H지시어-안내","turns":[
+   {"user":"개발원 주차장 몇 자리 있어?","expect":{"focus":"A"}},
+   {"user":"그쪽으로 안내 부탁해","expect":{"intent":"set_destination","text_has":["개발원주차장을 목적지로"]}}]},
+ {"name":"H지시어-요금","turns":[
+   {"user":"공항 주차장 자리 있나요","expect":{"focus":"C"}},
+   {"user":"여기 주차비 기준이 어떻게 돼요?","expect":{"intent":"fee_rule","text_has":["김해공항 주차장"]}}]},
+ {"name":"H생략-구역","turns":[
+   {"user":"신세계 빈자리 몇 개?","expect":{"focus":"D"}},
+   {"user":"충전 자리는?","expect":{"focus":"D","text_has":["충전"]}}]},
+ {"name":"H선택-이름","turns":[
+   {"user":"주차할 데 있어?","expect":{}},
+   {"user":"신세계","expect":{"intent":"get_empty_spots","focus":"D"}}]},
+ {"name":"H선택-첫번째","turns":[
+   {"user":"빈자리 몇 개 있어?","expect":{}},
+   {"user":"첫 번째","expect":{"focus":"A"}}]},
+ {"name":"H최상급","turns":[
+   {"user":"자리 제일 많이 남은 데 어디야?","expect":{"unknown":false,"text_has":["가장 여유"]}}]},
+ {"name":"H최상급-장애인","turns":[
+   {"user":"장애인 주차 자리 가장 많은 주차장은?","expect":{"text_has":["김해공항 주차장","16자리"]}}]},
+ {"name":"H비교","turns":[
+   {"user":"공항이랑 신세계 중 어디가 더 여유 있어?","expect":{"unknown":false,"text_has":["김해공항 주차장","신세계백화점주차장"],"text_not":["여러 곳이에요"]}}]},
+ {"name":"H점유율","turns":[
+   {"user":"신세계 주차장 꽉 찼어?","expect":{"intent":"get_empty_spots","focus":"D"}}]},
+ {"name":"H점유율2","turns":[
+   {"user":"김해공항 주차장 얼마나 차 있어?","expect":{"text_has":["64칸 중"]}}]},
+ {"name":"H구역","turns":[
+   {"user":"신세계 D구역 빈자리","expect":{"text_has":["신세계백화점주차장 D 구역"]}}]},
+ {"name":"H요금비교","turns":[
+   {"user":"제일 비싼 주차장은 어디야?","expect":{"unknown":false,"text_has":["신세계백화점주차장"]}}]},
+ {"name":"H구어체","turns":[
+   {"user":"신세계 자리 잇나요","expect":{"focus":"D"}}]},
+ {"name":"H맥락-시설","turns":[
+   {"user":"신세계 빈자리","expect":{}},
+   {"user":"엘리베이터는 어디 있어?","expect":{"text_has":["신세계백화점주차장의 엘리베이터"]}}]},
+ {"name":"H안전","turns":[
+   {"user":"공항 빈자리","expect":{}},
+   {"user":"거기 연기 나요","expect":{"intent":"get_alerts"}}]}
+]

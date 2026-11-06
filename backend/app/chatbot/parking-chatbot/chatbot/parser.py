@@ -154,15 +154,11 @@ def extract_vehicle(text: str) -> tuple[str | None, bool]:
     return None, False
 
 
-_PARKING_CONTEXT = re.compile(r"주차|자리|빈|만차|칸|요금|얼마|결제|정산|안내|출구|경보|화재|대피|차\s*(?:어디|위치)|널널|여유|가득|붐비|혼잡|들어가|댈|세울")
+_PARKING_CONTEXT = re.compile(r"주차|자리|빈|만차|칸|요금|얼마|결제|정산|안내|출구|경보|화재|대피|차\s*(?:어디|위치)|널널|여유|가득|붐비|붐벼|붐빌|혼잡|들어가|댈|세울")
 
 
-def extract_lot(text: str) -> str | None:
-    """주차장 지정. 칸 이름(B-06)의 글자는 주차장이 아니다. 한 글자 이름(가·나·다·라)은 바로 뒤에 '주차장'이 있을 때만,
-    여러 글자 별칭(개발원·부산역·북항·신세계…)은 주차장 질문 맥락에서만 인정한다."""
-    if "말고" in text:
-        replacement=extract_lot(text.rsplit("말고",1)[1])
-        if replacement:return replacement
+def extract_lots(text: str) -> list[str]:
+    """문장에 나온 주차장 전부(비교 질문용). 규칙은 extract_lot과 같다."""
     text = mask_spaces(text)
     context = bool(_PARKING_CONTEXT.search(text))
     found = []
@@ -171,7 +167,34 @@ def extract_lot(text: str) -> str | None:
                 or (context and any(pattern.search(text) for pattern in contextual))
                 or any(name in text for name in names)):
             found.append(key)
+    return found
+
+
+def extract_lot(text: str) -> str | None:
+    """주차장 지정. 칸 이름(B-06)의 글자는 주차장이 아니다. 한 글자 이름(가·나·다·라)은 바로 뒤에 '주차장'이 있을 때만,
+    여러 글자 별칭(개발원·부산역·북항·신세계…)은 주차장 질문 맥락에서만 인정한다."""
+    if "말고" in text:
+        replacement=extract_lot(text.rsplit("말고",1)[1])
+        if replacement:return replacement
+    found = extract_lots(text)
     return found[0] if len(found) == 1 else ("ambiguous" if found else None)
+
+
+_SECTION = re.compile(r"(?<![A-Za-z0-9])([A-Za-z])\s*구역")
+
+
+def extract_section(text: str):
+    """'김해공항 B구역' → ('C', 'B'). 다른 주차장 이름과 함께 쓴 경우에만 글자를 주차장 안 구역으로 본다.
+    'B구역'만 쓰면 기존처럼 B 주차장으로 해석한다(맥락 보완은 dialog_context)."""
+    m = _SECTION.search(text)
+    if not m:
+        return None
+    letter = m[1].upper()
+    lot = extract_lot(text[:m.start()] + " 구역 " + text[m.end():])
+    if not lot or lot == "ambiguous":
+        return None
+    prefix = letter + "-"
+    return (lot, letter) if any(x.startswith(prefix) for x in config.catalog.spaces(lot)) else None
 
 
 def extract_space(text: str) -> str | None:
@@ -208,7 +231,7 @@ RULES: list[tuple[str, re.Pattern]] = [
     ("find_my_car", re.compile(r"(이용|주차|내)\s*(현황|상태)|진행\s*(상황|상태)|어디까지\s*(됐|했)")),
     ("get_fee", re.compile(r"(?:결제|정산).{0,8}(상태|했|됐|된|완료|여부|확인|내역)")),
     ("pay_fee", re.compile(r"결제|정산|계산\s*(할|해)|지불|내고\s*싶|낼게|낼래|납부")),
-    ("fee_rule", re.compile(r"요금\s*(기준|표|체계|정책|계산\s*기준)|얼마씩|기본\s*요금|무료\s*시간|무료\s*주차|몇\s*분.{0,4}무료|요금.{0,8}어떻게|\d+\s*분에\s*얼마|시간당")),
+    ("fee_rule", re.compile(r"요금\s*(기준|표|체계|정책|계산\s*기준)|주차비\s*(?:기준|표|체계|정책)|(?:하루|일일)\s*최대|최대\s*(?:요금|주차비)|요금\s*상한|얼마씩|기본\s*요금|무료\s*시간|무료\s*주차|몇\s*분.{0,4}무료|요금.{0,8}어떻게|\d+\s*분에\s*얼마|시간당")),
     ("get_fee", re.compile(r"요금|얼마|비용|주차비|돈|금액")),
     ("find_my_car", re.compile(r"(내|제)\s*차.{0,6}(어디|위치|찾|몇\s*번)|어디\s*(에\s*)?(주차|댔|세웠)|차(?:량)?\s*(위치|찾|어디)|차가?\s*안\s*보")),
     ("get_empty_spots", re.compile(r"빈\s*자리|빈\s*칸|자리|비었|비어|주차\s*(가능|할\s*수|할\s*(곳|데))|만차|남았|남은|공간|댈\s*(곳|데)")),
@@ -265,6 +288,37 @@ def guarded_intent(text):
 KNOWN_INTENTS.update({"admin_help", "payment_help", "payment_issue", "set_destination", "cancel_destination"})
 
 
+_QUERY_NUMBER = r"(?:\d{1,3}|[일이삼사오육칠팔구십]+(?:\s*[일이삼사오육칠팔구십]+)*)"
+_VEHICLE_RANGE = re.compile(
+    rf"(?<![\d.]){_QUERY_NUMBER}\s*번\s*대|"
+    rf"(?<![\d.]){_QUERY_NUMBER}\s*(?:번\s*)?(?:[~～〜∼–-]|부터)\s*{_QUERY_NUMBER}(?!\d)"
+)
+_CAPABILITY_QUESTION = re.compile(
+    r"(?:무슨|어떤)\s*질문|(?:뭘|뭐(?:를)?)\s*(?:물어|질문)|"
+    r"(?:질문할|물어볼)\s*수\s*있는\s*(?:내용|것|게|항목)|"
+    r"(?:할|물어볼)\s*수\s*있는\s*(?:게|것|내용).{0,8}(?:뭐|무엇)|"
+    r"질문\s*(?:예시|목록|종류)"
+)
+_VEHICLE_PRESENCE = re.compile(
+    r"(?:번\s*(?:차량|차)?|차량|차)(?:은|는|이|가)?\s*(?:(?:지금|현재)\s*)?"
+    r"(?:(?:주차(?:돼|되어|해)?\s*|입차(?:해|돼|되어)?\s*|들어와\s*)?있|주차\s*중)"
+    r"(?:나(?:요)?|니|어(?:요)?|어요|습니까|을까(?:요)?|는지(?:\s*(?:확인|알려)\s*(?:해\s*)?줘)?)?"
+    r"[\s?？!！.]*$"
+)
+
+
+def _vehicle_query_scope(text):
+    """Do not turn a vehicle range/list into one sticker or a bulk action."""
+    query = mask_spaces(text)
+    vehicle_context = re.search(r"차량|차들|차\s*번호|번호|번\s*대|번(?:\s|은|는|이|가|까|안|있|[?？]|$)", query)
+    if vehicle_context and not re.search(r"번\s*(?:칸|자리)|\d\s*(?:원|분|시|초|층|%)", query) and _VEHICLE_RANGE.search(query):
+        return "range"
+    if re.search(r"(?:차량|차들).{0,18}(?:목록|리스트|번호들|뭐\s*(?:있|있는|야)|어떤|전부|전체)|"
+                 r"(?:어떤|무슨|모든|전체)\s*(?:차량|차들)", query):
+        return "list"
+    return None
+
+
 @dataclass
 class ParseResult:
     intent: str
@@ -273,7 +327,93 @@ class ParseResult:
     vehicle_only: bool = False    # "07"처럼 번호만 말한 경우
 
 
+_COLLOQUIAL = ((re.compile(r"잇(?=[어나니는을냐음습])"), "있"),)
+
+
+def normalize_colloquial(text: str) -> str:
+    """흔한 구어체 오타만 보정한다(잇어→있어). 차량 번호·주차장 이름은 바꾸지 않는다."""
+    for pattern, repl in _COLLOQUIAL:
+        text = pattern.sub(repl, text)
+    return text
+
+
 def parse_rules(text: str) -> ParseResult:
+    text = normalize_colloquial(text)
+    return _with_info_gap(text, _with_analytics(text, _parse_rules_core(text)))
+
+
+# 우리 데이터(점유 스냅샷·요금 정책)로 계산해 답할 수 있는 질문: 최다/비교/점유율/구역/요금 비교
+_FEE_RANK = re.compile(r"(?:제일|가장|젤|최고로)\s*(?:싼|싸|저렴|비싼|비싸)|(?:싼|저렴한|비싼)\s*(?:곳|데|주차장)|"
+                       r"(?:요금|주차비)\s*비교|어디가\s*(?:더\s*|제일\s*|가장\s*)?(?:싸|저렴|비싸)")
+_RANK = re.compile(r"(?:제일|가장|젤|최고로)\s*(?:널널|한산|여유|비어|비었|빈|많이?\s*(?:남|비)|많은|많아|많이)|(?:덜|안)\s*붐비|"
+                   r"(?:빈\s*자리|자리|빈\s*칸|칸)\s*(?:가|이)?\s*(?:제일|가장|젤|더)\s*많|"
+                   r"어디가\s*(?:더\s*|제일\s*|가장\s*)?(?:널널|한산|여유|나아|낫|좋|비었|비어|많|덜)|어디로\s*가(?:야|면|는\s*게)|"
+                   r"(?:주차장|주차\s*할\s*(?:곳|데)|빈\s*자리)\s*(?:좀\s*|하나\s*)?추천")
+_COMPARE = re.compile(r"중에|중\s|(?:이)?랑|하고|비교|vs|어디가|어느\s*(?:곳|쪽|주차장)|더\s*(?:많|여유|널널|한산|비)", re.I)
+_OCCUPANCY = re.compile(r"얼마나\s*(?:찼|차\s*있|차있|들어\s*차|붐비|사람)|몇\s*(?:퍼센트|%|프로)|점유율|이용률|혼잡도|"
+                        r"꽉\s*(?:찼|차\s*있)|몇\s*대\s*(?:있|주차|들어|세워)")
+_SAFETY = re.compile(r"경보|화재|불\s*났|연기|대피|피난|비상|관리자|직원|호출|결제|정산")
+
+
+def _with_analytics(text: str, result: ParseResult) -> ParseResult:
+    """데이터 집계형 질문을 표시한다. 새 intent는 없고 기존 get_empty_spots/fee_rule에 params만 더한다."""
+    if result.intent not in ("unknown", "get_empty_spots", "get_fee", "fee_rule") or result.vehicle_only:
+        return result
+    if result.params.get("car_id") or result.params.get("virtual_vehicle") or result.params.get("vacancy_notice") or _SAFETY.search(text):
+        return result
+    params = {k: v for k, v in result.params.items() if k in ("lot_id", "zone")}
+    lots = extract_lots(text)
+    if _FEE_RANK.search(text):
+        return ParseResult("fee_rule", {"fee_rank": "high" if re.search(r"비싼|비싸", text) else "low"}, "rule")
+    occupancy = bool(_OCCUPANCY.search(text)) and params.get("lot_id") != "ambiguous"
+    if result.intent in ("get_fee", "fee_rule"):
+        # '얼마나 찼어'의 '얼마'는 요금이 아니다. 돈 관련 단어가 없을 때만 점유율로 본다.
+        if result.intent == "get_fee" and occupancy and not re.search(r"요금|비용|주차비|돈|금액|\d\s*원", text):
+            return ParseResult("get_empty_spots", {**params, "occupancy": True}, "rule")
+        return result
+    section = extract_section(text)
+    if section:
+        return ParseResult("get_empty_spots", {**params, "lot_id": section[0], "section": section[1]}, "rule")
+    if len(lots) >= 2 and (_COMPARE.search(text) or _RANK.search(text)):
+        params.pop("lot_id", None)
+        return ParseResult("get_empty_spots", {**params, "rank": "compare", "lots": lots}, "rule")
+    if _RANK.search(text):
+        return ParseResult("get_empty_spots", {**params, "rank": "most"}, "rule")
+    if occupancy:
+        return ParseResult("get_empty_spots", {**params, "occupancy": True}, "rule")
+    return result
+
+
+def _with_info_gap(text: str, result: ParseResult) -> ParseResult:
+    """시설·거리·혼잡 예측처럼 데이터가 없는 주차장 질문을 일반 실패 대신 정직한 안내로 보낸다.
+
+    지원 기능(경보·요금·결제·차량 등)으로 이미 분류된 문장은 건드리지 않는다. 새 intent·칩·카드 type은 없다.
+    """
+    if result.intent not in ("unknown", "get_empty_spots") or result.vehicle_only:
+        return result
+    if any(k in result.params for k in ("car_id", "space_id", "vacancy_notice", "virtual_vehicle",
+                                        "rank", "occupancy", "section", "fee_rank")):
+        return result
+    from . import info_gaps
+    found = info_gaps.classify(text)
+    if not found:
+        return result
+    gap, key, label = found
+    params = {k: v for k, v in result.params.items() if k in ("lot_id", "zone")}
+    if not params.get("lot_id"):
+        hinted = info_gaps.hinted_lot(text)
+        if hinted:
+            params["lot_id"] = hinted
+    if gap == "crowd_now":
+        # 주차장을 알 때만 현재 빈자리로 답한다. 비교 질문('어디가 덜 붐벼?')은 기존 LLM 분류 경로를 유지한다.
+        return ParseResult("get_empty_spots", params, "rule") if params.get("lot_id") else result
+    params.update({"info_gap": gap, **({"info_topic": key, "info_label": label} if key else {})})
+    if gap == "facility":
+        return ParseResult("help", params, "rule")
+    return ParseResult("get_empty_spots", params, "rule")
+
+
+def _parse_rules_core(text: str) -> ParseResult:
     excluded = ADMIN_INSTEAD.search(text)
     if excluded:
         tail = text[excluded.end():].strip()
@@ -303,6 +443,16 @@ def parse_rules(text: str) -> ParseResult:
     if lot and re.search(r"안내|(?:로|으로)\s*(?:갈|가겠|가줘)",text) and not re.search(r"경보|대피|호출|관리자|결제",text):
         return ParseResult("set_destination",params,"rule")
     guarded = guarded_intent(text)
+    scope = _vehicle_query_scope(text)
+    if scope:
+        params.pop("car_id", None)
+        # Cancellation and alarm guidance retain priority over query limitations.
+        if guarded != "cancel_action":
+            if re.search(r"대피|피난", text):
+                return ParseResult("evacuation_guide", params, "rule")
+            if re.search(r"경보|화재|연기|비상", text):
+                return ParseResult("get_alerts", params, "rule")
+            return ParseResult("help", {**params, "vehicle_query_help": scope}, "rule")
     if guarded:
         if guarded == "cancel_action":
             if ADMIN.search(text) or ADMIN_NEGATIVE.search(text):
@@ -312,10 +462,15 @@ def parse_rules(text: str) -> ParseResult:
                 params["refund_info"] = bool(re.search(r"취소|환불", text))
         return ParseResult(guarded, params, "rule")
 
+    if _CAPABILITY_QUESTION.search(text):
+        # Examples of supported questions must not become a payment/admin request.
+        return ParseResult("help", {"help_examples": True}, "rule")
     for intent, rx in RULES:
         if rx.search(text):
             return ParseResult(intent, params, "rule")
     if normalize_car_id(vehicle) and re.search(r"번\s*위치(?:\s*(?:알려\s*줘|알려\s*주세요|확인\s*해\s*줘))?[\s?？!！.]*$", text):
+        return ParseResult("find_my_car", params, "rule")
+    if (vehicle or re.search(r"(?:내|제)\s*차", text)) and _VEHICLE_PRESENCE.search(text):
         return ParseResult("find_my_car", params, "rule")
     if zone:
         return ParseResult("get_empty_spots",params,"rule")

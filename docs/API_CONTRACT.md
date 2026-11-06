@@ -51,8 +51,17 @@ lot_id/session_id/entry_at/plate_number/vehicle_number/lookup_type=plate를 포�
 ### 가상 제어 `/api/v1/simulation/{lot}` (demo 모드, C/D만)
 
 - GET: lot_id/running/interval_seconds/next_tick/last_error/events(최근 최대30개).
-- POST `/{action}`: entry/exit/start/stop. body는 선택적으로 space_id,
-  vehicle_number(4자리 문자열), interval_seconds(3~60, 기본8).
+- POST `/{action}`: entry/exit/start/stop/clear. body는 선택적으로 space_id,
+  vehicle_number(4자리 문자열), interval_seconds(3~60, 기본8),
+  vehicle_type(general/ev/accessible). 종류 생략 시 일반차(등록 번호 9001=ev, 9002=accessible).
+- D-17 보완: 수동 입차는 차량 종류와 같은 space_type의 빈칸만 선택하며,
+  맞는 칸 없음·등록 번호의 종류 충돌·중복 차량번호는 409. 자동 입차는 종류별
+  점유율이 낮은 가용 종류를 선택해 전용칸도 채운다. 차종은 내부 target에 저장해
+  재시작 후에도 관측 vehicle_type을 유지한다. 기존 DB target은 general로 이관한다.
+- clear는 자동 실행 정지 후에만 허용(실행 중 409), 대상 C/D 전체 차량에 empty 관측을
+  보내 정상 출차·세션 종료를 기다린다. 이력/결제는 삭제하지 않고 성공 시 GET과 같은
+  제어 상태를 반환한다. 처리 중 추가 제어는 409, 15초 내 안정화 미완료는 503.
+  배치 변경 후 운영 순서: stop → clear → start. API/내부 DB 추가 사항은 D-17 리뷰 대상.
 - entry/exit 응답은 event_id/lot_id/space_id/action/vehicle_number/session_id/occurred_at
   (안정화 대기 시 일부 식별자는 없을 수 있음), start/stop은 GET과 같은 제어 상태.
 - 사용할 수 없는 lot/real 모드는 403. 안정화 시간 초과는 503(같은 상태 재조회).
@@ -118,11 +127,12 @@ LLM_PROVIDER=none. 원격 카메라를 받을 때 API_HOST=0.0.0.0, 같은 VISIO
 | --- | --- | --- | --- | --- | :-: | --- | --- | --- |
 | 가 | **개발원주차장** | `A` | 실물 | 기본형 | 12 | A-01~A-06, B-01~B-06 | A-05, A-06 | B-06 |
 | 나 | **부산역주차장** | `B` | 실물 | 사선형 | 16 | A-01~A-08, B-01~B-08 | A-07, A-08 | B-07, B-08 |
-| 다 | **김해공항 주차장** | `C` | 가상 | 공항형 3구역 | **64** | A-01~A-24, B-01~B-36, C-01~C-04 | A-05, A-06, A-23, A-24, B-35, B-36 | A-01, B-06 |
-| 라 | **신세계백화점주차장** | `D` | 가상 | 대형 4구역 | **64** | A-01~A-16, B-01~B-16, C-01~C-16, D-01~D-16 | D-01~D-08 | C-13~C-16 |
+| 다 | **김해공항 주차장** | `C` | 가상 | 공항형 3구역 | **64** | A-01~A-24, B-01~B-36, C-01~C-04 | A-11, A-12, B-11, B-12, B-31, B-32 | A-01~A-06, B-01~B-06, B-25~B-28 |
+| 라 | **신세계백화점주차장** | `D` | 가상 | 대형 4구역 | **64** | A-01~A-16, B-01~B-16, C-01~C-16, D-01~D-16 | C-05~C-08, D-05~D-08 | A-05~A-08, B-05~B-08 |
 
 - 합계 **156칸** (실물 28 / 가상 128). 미니카는 최대 30대 (D-54)
 - D-57 (11/06 PM): C는 북항주차장 12칸 → **김해공항 주차장 64칸**(구역 A 24 · B 36 · C 4)으로 변경. 구역 C는 `lot_id`와 무관 (예: `lot_id=C, space_id=C-02`)
+- 11/06 사용자 최종 배치 요청 반영: C 전기차 6·장애인 16, D 전기차 8·장애인 8. 기존 배포본과 일치시키며 공통 명부 변경은 담당자 리뷰 대상으로 남긴다. P1=A-01~24(24칸), P2=B-01~24(24칸), P3=B-25~36+C-01~04(16칸); 서버 space_id와 세션은 유지한다.
 - 라 주차장의 구역 C·D는 `lot_id`와 무관 (예: `lot_id=D, space_id=C-13` = 라 주차장 C구역 13번)
 - 전기차·장애인 전용 칸은 일반 차량 주차 불가 (D-05). 위반 처리 방식은 **미정**(박해준)
 

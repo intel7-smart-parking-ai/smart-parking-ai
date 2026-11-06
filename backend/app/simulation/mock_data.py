@@ -24,8 +24,8 @@ LOT_NAMES = {'A': '개발원주차장', 'B': '부산역주차장', 'C': '김해�
 LAYOUT = {
     'A': ('AB', 6, {'A-05', 'A-06'}, {'B-06'}),
     'B': ('AB', 8, {'A-07', 'A-08'}, {'B-07', 'B-08'}),
-    'C': ('ABC', (24, 36, 4), {'A-05', 'A-06', 'A-23', 'A-24', 'B-35', 'B-36'}, {'A-01', 'B-06'}),
-    'D': ('ABCD', 16, {f'D-{i:02}' for i in range(1, 9)}, {f'C-{i:02}' for i in range(13, 17)}),
+    'C': ('ABC', (24, 36, 4), {'A-11', 'A-12', 'B-11', 'B-12', 'B-31', 'B-32'}, {f'{zone}-{i:02}' for zone in 'AB' for i in range(1, 7)} | {f'B-{i:02}' for i in range(25, 29)}),
+    'D': ('ABCD', 16, {f'{zone}-{i:02}' for zone in 'CD' for i in range(5, 9)}, {f'{zone}-{i:02}' for zone in 'AB' for i in range(5, 9)}),
 }
 
 
