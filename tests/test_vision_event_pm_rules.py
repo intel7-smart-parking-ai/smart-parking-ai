@@ -35,9 +35,9 @@ def test_pm_input_rules(field, value, code):
     ('B', '부산역주차장', 8, 'AB', {'A-07', 'A-08'}, {'B-07', 'B-08'}),
     # D-57 (11/06): C 김해공항 64칸 = A 24 · B 36 · C 4
     ('C', '김해공항 주차장', (24, 36, 4), 'ABC',
-     {'A-05', 'A-06', 'A-23', 'A-24', 'B-35', 'B-36'}, {'A-01', 'B-06'}),
+     {'A-11', 'A-12', 'B-11', 'B-12', 'B-31', 'B-32'}, {f'{z}-{i:02}' for z in 'AB' for i in range(1,7)} | {f'B-{i:02}' for i in range(25,29)}),
     ('D', '신세계백화점주차장', 16, 'ABCD',
-     {f'D-{i:02}' for i in range(1, 9)}, {f'C-{i:02}' for i in range(13, 17)}),
+     {f'{z}-{i:02}' for z in 'CD' for i in range(5,9)}, {f'{z}-{i:02}' for z in 'AB' for i in range(5,9)}),
 ])
 def test_pm_lot_layout(lot, name, per_zone, zones, ev, accessible):
     item, = [item for item in LAYOUT['lots'] if item['lot_id'] == lot]

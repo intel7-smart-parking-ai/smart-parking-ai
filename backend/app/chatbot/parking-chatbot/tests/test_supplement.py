@@ -29,7 +29,7 @@ class SupplementTests(unittest.TestCase):
             self.assertIn('들어오지',m['safety']['guidance'])
 
     def test_briefing_charge_zone_and_electric_adjacent(self):
-        e.data.set_alert(2,'C',2);e.current_alert()
+        e.data.set_alert(2,'C',10);e.current_alert()  # A-10 옆 A-11 전기차 57
         b=incidents.list_public()[0]['briefing']
         self.assertIn('57번 · 전기차',' / '.join(b['adjacent']))
         self.assertIn('질식소화덮개',b['equipment'])
