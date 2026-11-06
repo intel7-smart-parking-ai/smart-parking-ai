@@ -1,0 +1,5055 @@
+{
+  "제품": "V48",
+  "자료설명": "기존 실물 스틸 사진별 재생과 그 디지털 변형, 합성 입력에 실제 로컬 OCR을 사용했다. 모드 간 같은 픽셀과 반복 차량을 독립 표본으로 합산하지 않는다.",
+  "기존사진_원본SHA256": {
+    "A": "6b282dde09dca952ba6971ba0a0959422322d758f383caf6b0b490a8d3edfa05",
+    "B": "b55ec0c7ac74f084274453b715955bd1d5bae687aeed750f561dad35133828c6"
+  },
+  "기존사진_조명과방향": {
+    "source": "smart_parking_v48",
+    "conditions": {
+      "A_base": {
+        "counts": {
+          "direct": 1,
+          "estimated": 4,
+          "held": 0,
+          "wrong": 0,
+          "empty_false_number": 0
+        },
+        "rows": [
+          {
+            "space": "A-01",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 7949,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.000629,
+                "contrast_p90_p10": 27.0
+              },
+              "analysis": {
+                "pixels": 7949,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.000629,
+                "contrast_p90_p10": 27.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-02",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 8663,
+                "white_clip_ratio": 0.000231,
+                "channel_clip_ratio": 0.000923,
+                "contrast_p90_p10": 32.0
+              },
+              "analysis": {
+                "pixels": 8663,
+                "white_clip_ratio": 0.000231,
+                "channel_clip_ratio": 0.000923,
+                "contrast_p90_p10": 32.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-03",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 9097,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.001209,
+                "contrast_p90_p10": 30.0
+              },
+              "analysis": {
+                "pixels": 9097,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.001209,
+                "contrast_p90_p10": 30.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-04",
+            "number": "87",
+            "color": "white",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 178,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.011236,
+                "contrast_p90_p10": 127.0
+              },
+              "analysis": {
+                "pixels": 178,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.011236,
+                "contrast_p90_p10": 127.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-05",
+            "number": "11",
+            "color": "green",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 183,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 95.2
+              },
+              "analysis": {
+                "pixels": 183,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 95.2
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-06",
+            "number": "28",
+            "color": "green",
+            "grade": "direct",
+            "status": "candidate",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 172,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 53.7
+              },
+              "analysis": {
+                "pixels": 172,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 53.7
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-01",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 9113,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 32.0
+              },
+              "analysis": {
+                "pixels": 9113,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 32.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-02",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 9152,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.000437,
+                "contrast_p90_p10": 26.0
+              },
+              "analysis": {
+                "pixels": 9152,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.000437,
+                "contrast_p90_p10": 26.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-03",
+            "number": "34",
+            "color": "white",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 149,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 131.0
+              },
+              "analysis": {
+                "pixels": 149,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 131.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-04",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 9976,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0002,
+                "contrast_p90_p10": 27.5
+              },
+              "analysis": {
+                "pixels": 9976,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0002,
+                "contrast_p90_p10": 27.5
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-05",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 10508,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.000571,
+                "contrast_p90_p10": 26.0
+              },
+              "analysis": {
+                "pixels": 10508,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.000571,
+                "contrast_p90_p10": 26.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-06",
+            "number": "77",
+            "color": "blue",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 225,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 71.8
+              },
+              "analysis": {
+                "pixels": 225,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 71.8
+              },
+              "status": "no_clip_evidence"
+            }
+          }
+        ],
+        "verified_space_pairs": 12,
+        "errors": []
+      },
+      "A_dark": {
+        "counts": {
+          "direct": 1,
+          "estimated": 4,
+          "held": 0,
+          "wrong": 0,
+          "empty_false_number": 0
+        },
+        "rows": [
+          {
+            "space": "A-01",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 7949,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 21.0
+              },
+              "analysis": {
+                "pixels": 7949,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.000755,
+                "contrast_p90_p10": 27.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-02",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 8663,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 23.8
+              },
+              "analysis": {
+                "pixels": 8663,
+                "white_clip_ratio": 0.000231,
+                "channel_clip_ratio": 0.000923,
+                "contrast_p90_p10": 31.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-03",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 9097,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 23.0
+              },
+              "analysis": {
+                "pixels": 9097,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.001429,
+                "contrast_p90_p10": 30.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-04",
+            "number": "87",
+            "color": "white",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 177,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 95.4
+              },
+              "analysis": {
+                "pixels": 177,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.016949,
+                "contrast_p90_p10": 127.4
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-05",
+            "number": "11",
+            "color": "green",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 183,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 70.8
+              },
+              "analysis": {
+                "pixels": 183,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 95.2
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-06",
+            "number": "28",
+            "color": "green",
+            "grade": "direct",
+            "status": "candidate",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 162,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 38.9
+              },
+              "analysis": {
+                "pixels": 162,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 52.8
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-01",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 9113,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 24.0
+              },
+              "analysis": {
+                "pixels": 9113,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 32.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-02",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 9152,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 20.0
+              },
+              "analysis": {
+                "pixels": 9152,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.000437,
+                "contrast_p90_p10": 26.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-03",
+            "number": "34",
+            "color": "white",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 151,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 99.0
+              },
+              "analysis": {
+                "pixels": 151,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 132.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-04",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 9976,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 21.0
+              },
+              "analysis": {
+                "pixels": 9976,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.000401,
+                "contrast_p90_p10": 27.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-05",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 10508,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 19.0
+              },
+              "analysis": {
+                "pixels": 10508,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.000761,
+                "contrast_p90_p10": 26.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-06",
+            "number": "77",
+            "color": "blue",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 210,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 50.0
+              },
+              "analysis": {
+                "pixels": 210,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 66.1
+              },
+              "status": "no_clip_evidence"
+            }
+          }
+        ],
+        "verified_space_pairs": 12,
+        "errors": []
+      },
+      "A_bright": {
+        "counts": {
+          "direct": 1,
+          "estimated": 4,
+          "held": 0,
+          "wrong": 0,
+          "empty_false_number": 0
+        },
+        "rows": [
+          {
+            "space": "A-01",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 7949,
+                "white_clip_ratio": 0.00868,
+                "channel_clip_ratio": 0.018367,
+                "contrast_p90_p10": 31.0
+              },
+              "analysis": {
+                "pixels": 7949,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 27.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-02",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 8663,
+                "white_clip_ratio": 0.012121,
+                "channel_clip_ratio": 0.023664,
+                "contrast_p90_p10": 36.0
+              },
+              "analysis": {
+                "pixels": 8663,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 32.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-03",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 9097,
+                "white_clip_ratio": 0.010333,
+                "channel_clip_ratio": 0.019567,
+                "contrast_p90_p10": 35.4
+              },
+              "analysis": {
+                "pixels": 9097,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 30.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-04",
+            "number": "87",
+            "color": "white",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 177,
+                "white_clip_ratio": 0.361582,
+                "channel_clip_ratio": 0.446328,
+                "contrast_p90_p10": 124.0
+              },
+              "analysis": {
+                "pixels": 177,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 107.0
+              },
+              "status": "highlight_present"
+            }
+          },
+          {
+            "space": "A-05",
+            "number": "11",
+            "color": "green",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 184,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.005435,
+                "contrast_p90_p10": 109.0
+              },
+              "analysis": {
+                "pixels": 184,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 95.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-06",
+            "number": "28",
+            "color": "green",
+            "grade": "direct",
+            "status": "candidate",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 162,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.012346,
+                "contrast_p90_p10": 61.9
+              },
+              "analysis": {
+                "pixels": 162,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 53.9
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-01",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 9113,
+                "white_clip_ratio": 0.00417,
+                "channel_clip_ratio": 0.01635,
+                "contrast_p90_p10": 36.0
+              },
+              "analysis": {
+                "pixels": 9113,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 32.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-02",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 9152,
+                "white_clip_ratio": 0.003278,
+                "channel_clip_ratio": 0.009397,
+                "contrast_p90_p10": 30.0
+              },
+              "analysis": {
+                "pixels": 9152,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 26.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-03",
+            "number": "34",
+            "color": "white",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 160,
+                "white_clip_ratio": 0.04375,
+                "channel_clip_ratio": 0.3375,
+                "contrast_p90_p10": 142.4
+              },
+              "analysis": {
+                "pixels": 160,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 123.4
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-04",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 9976,
+                "white_clip_ratio": 0.003508,
+                "channel_clip_ratio": 0.015738,
+                "contrast_p90_p10": 31.0
+              },
+              "analysis": {
+                "pixels": 9976,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 28.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-05",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 10508,
+                "white_clip_ratio": 0.003426,
+                "channel_clip_ratio": 0.009897,
+                "contrast_p90_p10": 29.0
+              },
+              "analysis": {
+                "pixels": 10508,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 26.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-06",
+            "number": "77",
+            "color": "blue",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 225,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 82.8
+              },
+              "analysis": {
+                "pixels": 225,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 71.8
+              },
+              "status": "no_clip_evidence"
+            }
+          }
+        ],
+        "verified_space_pairs": 12,
+        "errors": []
+      },
+      "B_base": {
+        "counts": {
+          "direct": 1,
+          "estimated": 5,
+          "held": 0,
+          "wrong": 0,
+          "empty_false_number": 0
+        },
+        "rows": [
+          {
+            "space": "A-01",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 8359,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.000837,
+                "contrast_p90_p10": 22.0
+              },
+              "analysis": {
+                "pixels": 8359,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.000837,
+                "contrast_p90_p10": 22.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-02",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 8609,
+                "white_clip_ratio": 0.000232,
+                "channel_clip_ratio": 0.004298,
+                "contrast_p90_p10": 42.0
+              },
+              "analysis": {
+                "pixels": 8609,
+                "white_clip_ratio": 0.000232,
+                "channel_clip_ratio": 0.004298,
+                "contrast_p90_p10": 42.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-03",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 8935,
+                "white_clip_ratio": 0.000448,
+                "channel_clip_ratio": 0.002126,
+                "contrast_p90_p10": 88.0
+              },
+              "analysis": {
+                "pixels": 8935,
+                "white_clip_ratio": 0.000448,
+                "channel_clip_ratio": 0.002126,
+                "contrast_p90_p10": 88.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-04",
+            "number": "87",
+            "color": "white",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 196,
+                "white_clip_ratio": 0.25,
+                "channel_clip_ratio": 0.357143,
+                "contrast_p90_p10": 101.0
+              },
+              "analysis": {
+                "pixels": 196,
+                "white_clip_ratio": 0.25,
+                "channel_clip_ratio": 0.357143,
+                "contrast_p90_p10": 101.0
+              },
+              "status": "highlight_present"
+            }
+          },
+          {
+            "space": "A-05",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 8671,
+                "white_clip_ratio": 0.001153,
+                "channel_clip_ratio": 0.004382,
+                "contrast_p90_p10": 59.0
+              },
+              "analysis": {
+                "pixels": 8671,
+                "white_clip_ratio": 0.001153,
+                "channel_clip_ratio": 0.004382,
+                "contrast_p90_p10": 59.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-06",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 8878,
+                "white_clip_ratio": 0.000788,
+                "channel_clip_ratio": 0.003267,
+                "contrast_p90_p10": 46.3
+              },
+              "analysis": {
+                "pixels": 8878,
+                "white_clip_ratio": 0.000788,
+                "channel_clip_ratio": 0.003267,
+                "contrast_p90_p10": 46.3
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-07",
+            "number": "11",
+            "color": "green",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 152,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 78.8
+              },
+              "analysis": {
+                "pixels": 152,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 78.8
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-08",
+            "number": "28",
+            "color": "green",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 156,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 67.0
+              },
+              "analysis": {
+                "pixels": 156,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 67.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-01",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 11016,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.000182,
+                "contrast_p90_p10": 21.0
+              },
+              "analysis": {
+                "pixels": 11016,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.000182,
+                "contrast_p90_p10": 21.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-02",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 11508,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 8.7e-05,
+                "contrast_p90_p10": 22.0
+              },
+              "analysis": {
+                "pixels": 11508,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 8.7e-05,
+                "contrast_p90_p10": 22.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-03",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 11560,
+                "white_clip_ratio": 0.000779,
+                "channel_clip_ratio": 0.002768,
+                "contrast_p90_p10": 24.0
+              },
+              "analysis": {
+                "pixels": 11560,
+                "white_clip_ratio": 0.000779,
+                "channel_clip_ratio": 0.002768,
+                "contrast_p90_p10": 24.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-04",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 11614,
+                "white_clip_ratio": 0.000775,
+                "channel_clip_ratio": 0.004047,
+                "contrast_p90_p10": 28.0
+              },
+              "analysis": {
+                "pixels": 11614,
+                "white_clip_ratio": 0.000775,
+                "channel_clip_ratio": 0.004047,
+                "contrast_p90_p10": 28.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-05",
+            "number": "34",
+            "color": "white",
+            "grade": "direct",
+            "status": "candidate",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 205,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.019512,
+                "contrast_p90_p10": 124.8
+              },
+              "analysis": {
+                "pixels": 205,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.019512,
+                "contrast_p90_p10": 124.8
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-06",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 11142,
+                "white_clip_ratio": 0.000269,
+                "channel_clip_ratio": 0.002872,
+                "contrast_p90_p10": 23.0
+              },
+              "analysis": {
+                "pixels": 11142,
+                "white_clip_ratio": 0.000269,
+                "channel_clip_ratio": 0.002872,
+                "contrast_p90_p10": 23.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-07",
+            "number": "49",
+            "color": "blue",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 178,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 85.6
+              },
+              "analysis": {
+                "pixels": 178,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 85.6
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-08",
+            "number": "77",
+            "color": "blue",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 240,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 70.1
+              },
+              "analysis": {
+                "pixels": 240,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 70.1
+              },
+              "status": "no_clip_evidence"
+            }
+          }
+        ],
+        "verified_space_pairs": 16,
+        "errors": []
+      },
+      "B_dark": {
+        "counts": {
+          "direct": 0,
+          "estimated": 6,
+          "held": 0,
+          "wrong": 0,
+          "empty_false_number": 0
+        },
+        "rows": [
+          {
+            "space": "A-01",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 8359,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 17.0
+              },
+              "analysis": {
+                "pixels": 8359,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.001196,
+                "contrast_p90_p10": 23.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-02",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 8609,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 31.0
+              },
+              "analysis": {
+                "pixels": 8609,
+                "white_clip_ratio": 0.000232,
+                "channel_clip_ratio": 0.004879,
+                "contrast_p90_p10": 42.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-03",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 8935,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 66.0
+              },
+              "analysis": {
+                "pixels": 8935,
+                "white_clip_ratio": 0.000672,
+                "channel_clip_ratio": 0.002238,
+                "contrast_p90_p10": 88.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-04",
+            "number": "87",
+            "color": "white",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 211,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 81.0
+              },
+              "analysis": {
+                "pixels": 211,
+                "white_clip_ratio": 0.2891,
+                "channel_clip_ratio": 0.402844,
+                "contrast_p90_p10": 108.0
+              },
+              "status": "highlight_present"
+            }
+          },
+          {
+            "space": "A-05",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 8671,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 44.0
+              },
+              "analysis": {
+                "pixels": 8671,
+                "white_clip_ratio": 0.001615,
+                "channel_clip_ratio": 0.005997,
+                "contrast_p90_p10": 60.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-06",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 8878,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 35.0
+              },
+              "analysis": {
+                "pixels": 8878,
+                "white_clip_ratio": 0.001239,
+                "channel_clip_ratio": 0.004506,
+                "contrast_p90_p10": 47.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-07",
+            "number": "11",
+            "color": "green",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 162,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 59.8
+              },
+              "analysis": {
+                "pixels": 162,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 80.7
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-08",
+            "number": "28",
+            "color": "green",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 148,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 49.3
+              },
+              "analysis": {
+                "pixels": 148,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 66.3
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-01",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 11016,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 15.0
+              },
+              "analysis": {
+                "pixels": 11016,
+                "white_clip_ratio": 9.1e-05,
+                "channel_clip_ratio": 0.000182,
+                "contrast_p90_p10": 21.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-02",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 11508,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 17.0
+              },
+              "analysis": {
+                "pixels": 11508,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.000174,
+                "contrast_p90_p10": 23.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-03",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 11560,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 19.0
+              },
+              "analysis": {
+                "pixels": 11560,
+                "white_clip_ratio": 0.000865,
+                "channel_clip_ratio": 0.003028,
+                "contrast_p90_p10": 25.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-04",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 11614,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 21.0
+              },
+              "analysis": {
+                "pixels": 11614,
+                "white_clip_ratio": 0.001033,
+                "channel_clip_ratio": 0.004908,
+                "contrast_p90_p10": 28.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-05",
+            "number": "34",
+            "color": "white",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 205,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 93.2
+              },
+              "analysis": {
+                "pixels": 205,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.02439,
+                "contrast_p90_p10": 125.4
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-06",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 11142,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 17.0
+              },
+              "analysis": {
+                "pixels": 11142,
+                "white_clip_ratio": 0.000269,
+                "channel_clip_ratio": 0.004039,
+                "contrast_p90_p10": 23.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-07",
+            "number": "49",
+            "color": "blue",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 172,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 64.8
+              },
+              "analysis": {
+                "pixels": 172,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 85.9
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-08",
+            "number": "77",
+            "color": "blue",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 275,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 47.2
+              },
+              "analysis": {
+                "pixels": 275,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 63.2
+              },
+              "status": "no_clip_evidence"
+            }
+          }
+        ],
+        "verified_space_pairs": 16,
+        "errors": []
+      },
+      "B_bright": {
+        "counts": {
+          "direct": 0,
+          "estimated": 5,
+          "held": 1,
+          "wrong": 0,
+          "empty_false_number": 0
+        },
+        "rows": [
+          {
+            "space": "A-01",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 8359,
+                "white_clip_ratio": 0.004666,
+                "channel_clip_ratio": 0.015313,
+                "contrast_p90_p10": 26.0
+              },
+              "analysis": {
+                "pixels": 8359,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 22.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-02",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 8609,
+                "white_clip_ratio": 0.005924,
+                "channel_clip_ratio": 0.016843,
+                "contrast_p90_p10": 48.0
+              },
+              "analysis": {
+                "pixels": 8609,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 42.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-03",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 8935,
+                "white_clip_ratio": 0.008954,
+                "channel_clip_ratio": 0.021824,
+                "contrast_p90_p10": 101.0
+              },
+              "analysis": {
+                "pixels": 8935,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 87.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-04",
+            "number": "87",
+            "color": "white",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 182,
+                "white_clip_ratio": 0.648352,
+                "channel_clip_ratio": 0.71978,
+                "contrast_p90_p10": 68.8
+              },
+              "analysis": {
+                "pixels": 182,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 58.9
+              },
+              "status": "highlight_present"
+            }
+          },
+          {
+            "space": "A-05",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 8671,
+                "white_clip_ratio": 0.024219,
+                "channel_clip_ratio": 0.040364,
+                "contrast_p90_p10": 68.0
+              },
+              "analysis": {
+                "pixels": 8671,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 58.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-06",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 8878,
+                "white_clip_ratio": 0.023091,
+                "channel_clip_ratio": 0.039649,
+                "contrast_p90_p10": 54.0
+              },
+              "analysis": {
+                "pixels": 8878,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 46.3
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "A-07",
+            "number": null,
+            "color": "unknown",
+            "grade": "held",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 8208,
+                "white_clip_ratio": 0.204191,
+                "channel_clip_ratio": 0.311282,
+                "contrast_p90_p10": 205.0
+              },
+              "analysis": {
+                "pixels": 8208,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 177.0
+              },
+              "status": "highlight_present"
+            }
+          },
+          {
+            "space": "A-08",
+            "number": "28",
+            "color": "green",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 160,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 75.2
+              },
+              "analysis": {
+                "pixels": 160,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 65.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-01",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 11016,
+                "white_clip_ratio": 0.004448,
+                "channel_clip_ratio": 0.010439,
+                "contrast_p90_p10": 25.0
+              },
+              "analysis": {
+                "pixels": 11016,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 20.5
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-02",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 11508,
+                "white_clip_ratio": 0.007039,
+                "channel_clip_ratio": 0.01651,
+                "contrast_p90_p10": 26.0
+              },
+              "analysis": {
+                "pixels": 11508,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 22.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-03",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 11560,
+                "white_clip_ratio": 0.009256,
+                "channel_clip_ratio": 0.023529,
+                "contrast_p90_p10": 29.0
+              },
+              "analysis": {
+                "pixels": 11560,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 25.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-04",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 11614,
+                "white_clip_ratio": 0.014551,
+                "channel_clip_ratio": 0.029275,
+                "contrast_p90_p10": 32.0
+              },
+              "analysis": {
+                "pixels": 11614,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 29.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-05",
+            "number": "34",
+            "color": "white",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 205,
+                "white_clip_ratio": 0.2,
+                "channel_clip_ratio": 0.478049,
+                "contrast_p90_p10": 137.4
+              },
+              "analysis": {
+                "pixels": 205,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 118.8
+              },
+              "status": "highlight_present"
+            }
+          },
+          {
+            "space": "B-06",
+            "number": null,
+            "color": "unknown",
+            "grade": "empty",
+            "status": "round_sticker_unread",
+            "diagnostic": {
+              "scope": "bay_polygon",
+              "raw": {
+                "pixels": 11142,
+                "white_clip_ratio": 0.008078,
+                "channel_clip_ratio": 0.025848,
+                "contrast_p90_p10": 26.0
+              },
+              "analysis": {
+                "pixels": 11142,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 22.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-07",
+            "number": "49",
+            "color": "blue",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 171,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.02924,
+                "contrast_p90_p10": 98.0
+              },
+              "analysis": {
+                "pixels": 171,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 84.0
+              },
+              "status": "no_clip_evidence"
+            }
+          },
+          {
+            "space": "B-08",
+            "number": "77",
+            "color": "blue",
+            "grade": "estimated",
+            "status": "estimated",
+            "diagnostic": {
+              "scope": "sticker_polygon",
+              "raw": {
+                "pixels": 225,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.031111,
+                "contrast_p90_p10": 78.6
+              },
+              "analysis": {
+                "pixels": 225,
+                "white_clip_ratio": 0.0,
+                "channel_clip_ratio": 0.0,
+                "contrast_p90_p10": 68.2
+              },
+              "status": "no_clip_evidence"
+            }
+          }
+        ],
+        "verified_space_pairs": 16,
+        "errors": []
+      }
+    },
+    "direction": [
+      {
+        "printed": "66",
+        "rotation": 0,
+        "mode": "physical",
+        "number": null,
+        "status": "sticker_number_unread",
+        "color": "white"
+      },
+      {
+        "printed": "66",
+        "rotation": 0,
+        "mode": "virtual",
+        "number": null,
+        "status": "sticker_number_unread",
+        "color": "white"
+      },
+      {
+        "printed": "66",
+        "rotation": 90,
+        "mode": "physical",
+        "number": null,
+        "status": "sticker_number_unread",
+        "color": "white"
+      },
+      {
+        "printed": "66",
+        "rotation": 90,
+        "mode": "virtual",
+        "number": null,
+        "status": "sticker_number_unread",
+        "color": "white"
+      },
+      {
+        "printed": "66",
+        "rotation": 180,
+        "mode": "physical",
+        "number": null,
+        "status": "sticker_number_unread",
+        "color": "white"
+      },
+      {
+        "printed": "66",
+        "rotation": 180,
+        "mode": "virtual",
+        "number": null,
+        "status": "sticker_number_unread",
+        "color": "white"
+      },
+      {
+        "printed": "66",
+        "rotation": 270,
+        "mode": "physical",
+        "number": null,
+        "status": "sticker_number_unread",
+        "color": "white"
+      },
+      {
+        "printed": "66",
+        "rotation": 270,
+        "mode": "virtual",
+        "number": null,
+        "status": "sticker_number_unread",
+        "color": "white"
+      },
+      {
+        "printed": "99",
+        "rotation": 0,
+        "mode": "physical",
+        "number": null,
+        "status": "sticker_number_unread",
+        "color": "white"
+      },
+      {
+        "printed": "99",
+        "rotation": 0,
+        "mode": "virtual",
+        "number": null,
+        "status": "sticker_number_unread",
+        "color": "white"
+      },
+      {
+        "printed": "99",
+        "rotation": 90,
+        "mode": "physical",
+        "number": null,
+        "status": "sticker_number_unread",
+        "color": "white"
+      },
+      {
+        "printed": "99",
+        "rotation": 90,
+        "mode": "virtual",
+        "number": null,
+        "status": "sticker_number_unread",
+        "color": "white"
+      },
+      {
+        "printed": "99",
+        "rotation": 180,
+        "mode": "physical",
+        "number": null,
+        "status": "sticker_number_unread",
+        "color": "white"
+      },
+      {
+        "printed": "99",
+        "rotation": 180,
+        "mode": "virtual",
+        "number": null,
+        "status": "sticker_number_unread",
+        "color": "white"
+      },
+      {
+        "printed": "99",
+        "rotation": 270,
+        "mode": "physical",
+        "number": null,
+        "status": "sticker_number_unread",
+        "color": "white"
+      },
+      {
+        "printed": "99",
+        "rotation": 270,
+        "mode": "virtual",
+        "number": null,
+        "status": "sticker_number_unread",
+        "color": "white"
+      }
+    ],
+    "physical_camera": false,
+    "digital_perturbations": true,
+    "saturated_digits": {
+      "number": null,
+      "status": "round_sticker_unread"
+    },
+    "unreviewed_training_samples": 0
+  },
+  "기존합성24": {
+    "source": "smart_parking_v48",
+    "kind": "synthetic",
+    "counts": {
+      "direct": 15,
+      "estimated": 3,
+      "held": 6,
+      "wrong": 0,
+      "empty_false_number": 0
+    },
+    "rows": [
+      {
+        "camera": "A",
+        "space": "A-01",
+        "truth": [
+          "16",
+          "green"
+        ],
+        "number": "16",
+        "color": "green",
+        "grade": "estimated"
+      },
+      {
+        "camera": "A",
+        "space": "A-02",
+        "truth": [
+          "18",
+          "white"
+        ],
+        "number": null,
+        "color": "white",
+        "grade": "held"
+      },
+      {
+        "camera": "A",
+        "space": "A-03",
+        "truth": [
+          "19",
+          "blue"
+        ],
+        "number": "19",
+        "color": "blue",
+        "grade": "direct"
+      },
+      {
+        "camera": "A",
+        "space": "A-04",
+        "truth": [
+          "21",
+          "green"
+        ],
+        "number": "21",
+        "color": "green",
+        "grade": "direct"
+      },
+      {
+        "camera": "A",
+        "space": "A-05",
+        "truth": [
+          "24",
+          "white"
+        ],
+        "number": "24",
+        "color": "white",
+        "grade": "direct"
+      },
+      {
+        "camera": "A",
+        "space": "A-06",
+        "truth": [
+          "26",
+          "blue"
+        ],
+        "number": "26",
+        "color": "blue",
+        "grade": "direct"
+      },
+      {
+        "camera": "A",
+        "space": "B-01",
+        "truth": [
+          "29",
+          "green"
+        ],
+        "number": "29",
+        "color": "green",
+        "grade": "direct"
+      },
+      {
+        "camera": "A",
+        "space": "B-02",
+        "truth": [
+          "31",
+          "white"
+        ],
+        "number": "31",
+        "color": "white",
+        "grade": "direct"
+      },
+      {
+        "camera": "A",
+        "space": "B-03",
+        "truth": [
+          "36",
+          "blue"
+        ],
+        "number": "36",
+        "color": "blue",
+        "grade": "estimated"
+      },
+      {
+        "camera": "A",
+        "space": "B-04",
+        "truth": [
+          "38",
+          "green"
+        ],
+        "number": "38",
+        "color": "green",
+        "grade": "direct"
+      },
+      {
+        "camera": "A",
+        "space": "B-05",
+        "truth": null,
+        "number": null,
+        "color": "unknown",
+        "grade": "empty"
+      },
+      {
+        "camera": "A",
+        "space": "B-06",
+        "truth": null,
+        "number": null,
+        "color": "unknown",
+        "grade": "empty"
+      },
+      {
+        "camera": "B",
+        "space": "A-01",
+        "truth": [
+          "39",
+          "green"
+        ],
+        "number": "39",
+        "color": "green",
+        "grade": "estimated"
+      },
+      {
+        "camera": "B",
+        "space": "A-02",
+        "truth": [
+          "41",
+          "white"
+        ],
+        "number": "41",
+        "color": "white",
+        "grade": "direct"
+      },
+      {
+        "camera": "B",
+        "space": "A-03",
+        "truth": [
+          "46",
+          "blue"
+        ],
+        "number": null,
+        "color": "blue",
+        "grade": "held"
+      },
+      {
+        "camera": "B",
+        "space": "A-04",
+        "truth": [
+          "48",
+          "green"
+        ],
+        "number": "48",
+        "color": "green",
+        "grade": "direct"
+      },
+      {
+        "camera": "B",
+        "space": "A-05",
+        "truth": [
+          "51",
+          "white"
+        ],
+        "number": "51",
+        "color": "white",
+        "grade": "direct"
+      },
+      {
+        "camera": "B",
+        "space": "A-06",
+        "truth": [
+          "53",
+          "blue"
+        ],
+        "number": "53",
+        "color": "blue",
+        "grade": "direct"
+      },
+      {
+        "camera": "B",
+        "space": "A-07",
+        "truth": [
+          "56",
+          "green"
+        ],
+        "number": "56",
+        "color": "green",
+        "grade": "direct"
+      },
+      {
+        "camera": "B",
+        "space": "A-08",
+        "truth": [
+          "61",
+          "white"
+        ],
+        "number": null,
+        "color": "white",
+        "grade": "held"
+      },
+      {
+        "camera": "B",
+        "space": "B-01",
+        "truth": [
+          "63",
+          "blue"
+        ],
+        "number": "63",
+        "color": "blue",
+        "grade": "direct"
+      },
+      {
+        "camera": "B",
+        "space": "B-02",
+        "truth": [
+          "68",
+          "green"
+        ],
+        "number": null,
+        "color": "green",
+        "grade": "held"
+      },
+      {
+        "camera": "B",
+        "space": "B-03",
+        "truth": [
+          "71",
+          "white"
+        ],
+        "number": "71",
+        "color": "white",
+        "grade": "direct"
+      },
+      {
+        "camera": "B",
+        "space": "B-04",
+        "truth": [
+          "73",
+          "blue"
+        ],
+        "number": "73",
+        "color": "blue",
+        "grade": "direct"
+      },
+      {
+        "camera": "B",
+        "space": "B-05",
+        "truth": [
+          "81",
+          "green"
+        ],
+        "number": null,
+        "color": "green",
+        "grade": "held"
+      },
+      {
+        "camera": "B",
+        "space": "B-06",
+        "truth": [
+          "99",
+          "white"
+        ],
+        "number": null,
+        "color": "white",
+        "grade": "held"
+      },
+      {
+        "camera": "B",
+        "space": "B-07",
+        "truth": null,
+        "number": null,
+        "color": "unknown",
+        "grade": "empty"
+      },
+      {
+        "camera": "B",
+        "space": "B-08",
+        "truth": null,
+        "number": null,
+        "color": "unknown",
+        "grade": "empty"
+      }
+    ],
+    "pixels": {
+      "A": "5cd9aca4eb21a4f8a88c11c85c9ae0023085d3fd24154029d4dd2313afcd12ef",
+      "B": "99fd5f42140931adc43500b8bb9fca0eda4f47796ea6ab120c7e46458840faf3"
+    }
+  },
+  "추가합성_각24": {
+    "challenge": {
+      "project": "smart_parking_v48",
+      "input_sha256": {
+        "A": "c1e8614a5d67a3c6f780d424a652d2ce0c8089aa53cc7610964d37fe549db3b6",
+        "B": "d1ee3d925d9b13444cc551caf2cd0c86c5fb3fad6d41d47d865ca9705bcded64"
+      },
+      "rows": [
+        {
+          "channel": "A",
+          "space": "A-01",
+          "truth": {
+            "number": "12",
+            "color": "white",
+            "font": "arial.ttf",
+            "angle": -15
+          },
+          "number": "12",
+          "color": "white",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "A",
+          "space": "A-02",
+          "truth": {
+            "number": "14",
+            "color": "green",
+            "font": "arial.ttf",
+            "angle": 0
+          },
+          "number": "14",
+          "color": "green",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "A",
+          "space": "A-03",
+          "truth": {
+            "number": "17",
+            "color": "blue",
+            "font": "arial.ttf",
+            "angle": 15
+          },
+          "number": "17",
+          "color": "blue",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "A",
+          "space": "A-04",
+          "truth": {
+            "number": "20",
+            "color": "white",
+            "font": "arial.ttf",
+            "angle": 90
+          },
+          "number": "20",
+          "color": "white",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "A",
+          "space": "A-05",
+          "truth": {
+            "number": "22",
+            "color": "green",
+            "font": "timesbd.ttf",
+            "angle": -15
+          },
+          "number": "22",
+          "color": "green",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "A",
+          "space": "A-06",
+          "truth": {
+            "number": "25",
+            "color": "blue",
+            "font": "timesbd.ttf",
+            "angle": 0
+          },
+          "number": null,
+          "color": "unknown",
+          "method": "held",
+          "ocr_status": "round_sticker_unread"
+        },
+        {
+          "channel": "A",
+          "space": "B-01",
+          "truth": {
+            "number": "27",
+            "color": "white",
+            "font": "timesbd.ttf",
+            "angle": 15
+          },
+          "number": "27",
+          "color": "white",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "A",
+          "space": "B-02",
+          "truth": {
+            "number": "30",
+            "color": "green",
+            "font": "timesbd.ttf",
+            "angle": 90
+          },
+          "number": "30",
+          "color": "green",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "A",
+          "space": "B-03",
+          "truth": {
+            "number": "32",
+            "color": "blue",
+            "font": "arial.ttf",
+            "angle": -15
+          },
+          "number": "32",
+          "color": "blue",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "A",
+          "space": "B-04",
+          "truth": {
+            "number": "33",
+            "color": "white",
+            "font": "arial.ttf",
+            "angle": 0
+          },
+          "number": "33",
+          "color": "white",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "A",
+          "space": "B-05",
+          "truth": null,
+          "number": null,
+          "color": "unknown",
+          "method": "held",
+          "ocr_status": "pending"
+        },
+        {
+          "channel": "A",
+          "space": "B-06",
+          "truth": null,
+          "number": null,
+          "color": "unknown",
+          "method": "held",
+          "ocr_status": "pending"
+        },
+        {
+          "channel": "B",
+          "space": "A-01",
+          "truth": {
+            "number": "35",
+            "color": "green",
+            "font": "arial.ttf",
+            "angle": 15
+          },
+          "number": "35",
+          "color": "green",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "B",
+          "space": "A-02",
+          "truth": {
+            "number": "37",
+            "color": "blue",
+            "font": "arial.ttf",
+            "angle": 90
+          },
+          "number": "37",
+          "color": "blue",
+          "method": "estimate",
+          "ocr_status": "estimated"
+        },
+        {
+          "channel": "B",
+          "space": "A-03",
+          "truth": {
+            "number": "40",
+            "color": "white",
+            "font": "timesbd.ttf",
+            "angle": -15
+          },
+          "number": "40",
+          "color": "white",
+          "method": "estimate",
+          "ocr_status": "estimated"
+        },
+        {
+          "channel": "B",
+          "space": "A-04",
+          "truth": {
+            "number": "43",
+            "color": "green",
+            "font": "timesbd.ttf",
+            "angle": 0
+          },
+          "number": "43",
+          "color": "green",
+          "method": "estimate",
+          "ocr_status": "estimated"
+        },
+        {
+          "channel": "B",
+          "space": "A-05",
+          "truth": {
+            "number": "44",
+            "color": "blue",
+            "font": "timesbd.ttf",
+            "angle": 15
+          },
+          "number": "44",
+          "color": "blue",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "B",
+          "space": "A-06",
+          "truth": {
+            "number": "45",
+            "color": "white",
+            "font": "timesbd.ttf",
+            "angle": 90
+          },
+          "number": null,
+          "color": "white",
+          "method": "held",
+          "ocr_status": "sticker_number_unread"
+        },
+        {
+          "channel": "B",
+          "space": "A-07",
+          "truth": {
+            "number": "47",
+            "color": "green",
+            "font": "arial.ttf",
+            "angle": -15
+          },
+          "number": "47",
+          "color": "green",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "B",
+          "space": "A-08",
+          "truth": {
+            "number": "50",
+            "color": "blue",
+            "font": "arial.ttf",
+            "angle": 0
+          },
+          "number": "50",
+          "color": "blue",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "B",
+          "space": "B-01",
+          "truth": {
+            "number": "52",
+            "color": "white",
+            "font": "arial.ttf",
+            "angle": 15
+          },
+          "number": "52",
+          "color": "white",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "B",
+          "space": "B-02",
+          "truth": {
+            "number": "54",
+            "color": "green",
+            "font": "arial.ttf",
+            "angle": 90
+          },
+          "number": "54",
+          "color": "green",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "B",
+          "space": "B-03",
+          "truth": {
+            "number": "55",
+            "color": "blue",
+            "font": "timesbd.ttf",
+            "angle": -15
+          },
+          "number": "55",
+          "color": "blue",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "B",
+          "space": "B-04",
+          "truth": {
+            "number": "57",
+            "color": "white",
+            "font": "timesbd.ttf",
+            "angle": 0
+          },
+          "number": "57",
+          "color": "white",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "B",
+          "space": "B-05",
+          "truth": {
+            "number": "58",
+            "color": "green",
+            "font": "timesbd.ttf",
+            "angle": 15
+          },
+          "number": null,
+          "color": "green",
+          "method": "held",
+          "ocr_status": "sticker_number_unread"
+        },
+        {
+          "channel": "B",
+          "space": "B-06",
+          "truth": {
+            "number": "59",
+            "color": "blue",
+            "font": "timesbd.ttf",
+            "angle": 90
+          },
+          "number": null,
+          "color": "blue",
+          "method": "held",
+          "ocr_status": "sticker_number_unread"
+        },
+        {
+          "channel": "B",
+          "space": "B-07",
+          "truth": null,
+          "number": null,
+          "color": "unknown",
+          "method": "held",
+          "ocr_status": "pending"
+        },
+        {
+          "channel": "B",
+          "space": "B-08",
+          "truth": null,
+          "number": null,
+          "color": "unknown",
+          "method": "held",
+          "ocr_status": "pending"
+        }
+      ],
+      "counts": {
+        "direct_correct": 17,
+        "estimate_correct": 3,
+        "direct_wrong": 0,
+        "estimate_wrong": 0,
+        "held": 4,
+        "empty_false_number": 0
+      }
+    },
+    "holdout": {
+      "project": "smart_parking_v48",
+      "input_sha256": {
+        "A": "33556731414bdab47b5c6d7ead7f332e3fda2ae3173fc2d6f02020dd17b1bba7",
+        "B": "e8fe985c4abf2ad0b1686e8bd8b7d2dc95bd68237b2e1589f646727555b83f80"
+      },
+      "rows": [
+        {
+          "channel": "A",
+          "space": "A-01",
+          "truth": {
+            "number": "60",
+            "color": "white",
+            "font": "segoeui.ttf",
+            "angle": -30
+          },
+          "number": "60",
+          "color": "white",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "A",
+          "space": "A-02",
+          "truth": {
+            "number": "62",
+            "color": "green",
+            "font": "segoeui.ttf",
+            "angle": 12
+          },
+          "number": null,
+          "color": "green",
+          "method": "held",
+          "ocr_status": "sticker_number_unread"
+        },
+        {
+          "channel": "A",
+          "space": "A-03",
+          "truth": {
+            "number": "64",
+            "color": "blue",
+            "font": "segoeui.ttf",
+            "angle": 80
+          },
+          "number": "64",
+          "color": "blue",
+          "method": "estimate",
+          "ocr_status": "estimated"
+        },
+        {
+          "channel": "A",
+          "space": "A-04",
+          "truth": {
+            "number": "65",
+            "color": "white",
+            "font": "segoeui.ttf",
+            "angle": 180
+          },
+          "number": null,
+          "color": "unknown",
+          "method": "held",
+          "ocr_status": "round_sticker_unread"
+        },
+        {
+          "channel": "A",
+          "space": "A-05",
+          "truth": {
+            "number": "67",
+            "color": "green",
+            "font": "georgia.ttf",
+            "angle": -30
+          },
+          "number": null,
+          "color": "unknown",
+          "method": "held",
+          "ocr_status": "round_sticker_unread"
+        },
+        {
+          "channel": "A",
+          "space": "A-06",
+          "truth": {
+            "number": "70",
+            "color": "blue",
+            "font": "georgia.ttf",
+            "angle": 12
+          },
+          "number": "70",
+          "color": "blue",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "A",
+          "space": "B-01",
+          "truth": {
+            "number": "72",
+            "color": "white",
+            "font": "georgia.ttf",
+            "angle": 80
+          },
+          "number": null,
+          "color": "unknown",
+          "method": "held",
+          "ocr_status": "round_sticker_unread"
+        },
+        {
+          "channel": "A",
+          "space": "B-02",
+          "truth": {
+            "number": "74",
+            "color": "green",
+            "font": "georgia.ttf",
+            "angle": 180
+          },
+          "number": "74",
+          "color": "green",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "A",
+          "space": "B-03",
+          "truth": {
+            "number": "75",
+            "color": "blue",
+            "font": "segoeui.ttf",
+            "angle": -30
+          },
+          "number": "75",
+          "color": "blue",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "A",
+          "space": "B-04",
+          "truth": {
+            "number": "76",
+            "color": "white",
+            "font": "segoeui.ttf",
+            "angle": 12
+          },
+          "number": "76",
+          "color": "white",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "A",
+          "space": "B-05",
+          "truth": null,
+          "number": null,
+          "color": "unknown",
+          "method": "held",
+          "ocr_status": "pending"
+        },
+        {
+          "channel": "A",
+          "space": "B-06",
+          "truth": null,
+          "number": null,
+          "color": "unknown",
+          "method": "held",
+          "ocr_status": "pending"
+        },
+        {
+          "channel": "B",
+          "space": "A-01",
+          "truth": {
+            "number": "78",
+            "color": "green",
+            "font": "segoeui.ttf",
+            "angle": 80
+          },
+          "number": "78",
+          "color": "green",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "B",
+          "space": "A-02",
+          "truth": {
+            "number": "79",
+            "color": "blue",
+            "font": "segoeui.ttf",
+            "angle": 180
+          },
+          "number": null,
+          "color": "blue",
+          "method": "held",
+          "ocr_status": "sticker_number_unread"
+        },
+        {
+          "channel": "B",
+          "space": "A-03",
+          "truth": {
+            "number": "80",
+            "color": "white",
+            "font": "georgia.ttf",
+            "angle": -30
+          },
+          "number": "80",
+          "color": "white",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "B",
+          "space": "A-04",
+          "truth": {
+            "number": "82",
+            "color": "green",
+            "font": "georgia.ttf",
+            "angle": 12
+          },
+          "number": null,
+          "color": "green",
+          "method": "held",
+          "ocr_status": "sticker_number_unread"
+        },
+        {
+          "channel": "B",
+          "space": "A-05",
+          "truth": {
+            "number": "83",
+            "color": "blue",
+            "font": "georgia.ttf",
+            "angle": 80
+          },
+          "number": "83",
+          "color": "blue",
+          "method": "estimate",
+          "ocr_status": "estimated"
+        },
+        {
+          "channel": "B",
+          "space": "A-06",
+          "truth": {
+            "number": "84",
+            "color": "white",
+            "font": "georgia.ttf",
+            "angle": 180
+          },
+          "number": "84",
+          "color": "white",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "B",
+          "space": "A-07",
+          "truth": {
+            "number": "85",
+            "color": "green",
+            "font": "segoeui.ttf",
+            "angle": -30
+          },
+          "number": "85",
+          "color": "green",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "B",
+          "space": "A-08",
+          "truth": {
+            "number": "86",
+            "color": "blue",
+            "font": "segoeui.ttf",
+            "angle": 12
+          },
+          "number": null,
+          "color": "blue",
+          "method": "held",
+          "ocr_status": "sticker_number_unread"
+        },
+        {
+          "channel": "B",
+          "space": "B-01",
+          "truth": {
+            "number": "88",
+            "color": "white",
+            "font": "segoeui.ttf",
+            "angle": 80
+          },
+          "number": "88",
+          "color": "white",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "B",
+          "space": "B-02",
+          "truth": {
+            "number": "89",
+            "color": "green",
+            "font": "segoeui.ttf",
+            "angle": 180
+          },
+          "number": null,
+          "color": "green",
+          "method": "held",
+          "ocr_status": "sticker_number_unread"
+        },
+        {
+          "channel": "B",
+          "space": "B-03",
+          "truth": {
+            "number": "90",
+            "color": "blue",
+            "font": "georgia.ttf",
+            "angle": -30
+          },
+          "number": "90",
+          "color": "blue",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "B",
+          "space": "B-04",
+          "truth": {
+            "number": "92",
+            "color": "white",
+            "font": "georgia.ttf",
+            "angle": 12
+          },
+          "number": null,
+          "color": "unknown",
+          "method": "held",
+          "ocr_status": "round_sticker_unread"
+        },
+        {
+          "channel": "B",
+          "space": "B-05",
+          "truth": {
+            "number": "93",
+            "color": "green",
+            "font": "georgia.ttf",
+            "angle": 80
+          },
+          "number": "93",
+          "color": "green",
+          "method": "estimate",
+          "ocr_status": "estimated"
+        },
+        {
+          "channel": "B",
+          "space": "B-06",
+          "truth": {
+            "number": "95",
+            "color": "blue",
+            "font": "georgia.ttf",
+            "angle": 180
+          },
+          "number": null,
+          "color": "blue",
+          "method": "held",
+          "ocr_status": "sticker_number_unread"
+        },
+        {
+          "channel": "B",
+          "space": "B-07",
+          "truth": null,
+          "number": null,
+          "color": "unknown",
+          "method": "held",
+          "ocr_status": "pending"
+        },
+        {
+          "channel": "B",
+          "space": "B-08",
+          "truth": null,
+          "number": null,
+          "color": "unknown",
+          "method": "held",
+          "ocr_status": "pending"
+        }
+      ],
+      "counts": {
+        "direct_correct": 11,
+        "estimate_correct": 3,
+        "direct_wrong": 0,
+        "estimate_wrong": 0,
+        "held": 10,
+        "empty_false_number": 0
+      }
+    },
+    "blind": {
+      "project": "smart_parking_v48",
+      "input_sha256": {
+        "A": "b8b58147cddee1a1e686d58749e4ca792fb801c480cdf1c1ec6364e3c854991a",
+        "B": "ff13d138c647ca53ca7ea59fa75d6bfa623aeec209d22ba6ee972883e6daa7d9"
+      },
+      "rows": [
+        {
+          "channel": "A",
+          "space": "A-01",
+          "truth": {
+            "number": "84",
+            "color": "white",
+            "font": "trebuc.ttf",
+            "angle": -72
+          },
+          "number": "84",
+          "color": "white",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "A",
+          "space": "A-02",
+          "truth": {
+            "number": "14",
+            "color": "green",
+            "font": "trebuc.ttf",
+            "angle": -8
+          },
+          "number": "14",
+          "color": "green",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "A",
+          "space": "A-03",
+          "truth": {
+            "number": "40",
+            "color": "blue",
+            "font": "trebuc.ttf",
+            "angle": 39
+          },
+          "number": "40",
+          "color": "blue",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "A",
+          "space": "A-04",
+          "truth": {
+            "number": "41",
+            "color": "white",
+            "font": "trebuc.ttf",
+            "angle": 152
+          },
+          "number": "41",
+          "color": "white",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "A",
+          "space": "A-05",
+          "truth": {
+            "number": "98",
+            "color": "green",
+            "font": "consolab.ttf",
+            "angle": -72
+          },
+          "number": null,
+          "color": "green",
+          "method": "held",
+          "ocr_status": "sticker_number_unread"
+        },
+        {
+          "channel": "A",
+          "space": "A-06",
+          "truth": {
+            "number": "97",
+            "color": "blue",
+            "font": "consolab.ttf",
+            "angle": -8
+          },
+          "number": "97",
+          "color": "blue",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "A",
+          "space": "B-01",
+          "truth": {
+            "number": "10",
+            "color": "white",
+            "font": "consolab.ttf",
+            "angle": 39
+          },
+          "number": null,
+          "color": "white",
+          "method": "held",
+          "ocr_status": "sticker_number_unread"
+        },
+        {
+          "channel": "A",
+          "space": "B-02",
+          "truth": {
+            "number": "87",
+            "color": "green",
+            "font": "consolab.ttf",
+            "angle": 152
+          },
+          "number": "87",
+          "color": "green",
+          "method": "estimate",
+          "ocr_status": "estimated"
+        },
+        {
+          "channel": "A",
+          "space": "B-03",
+          "truth": {
+            "number": "25",
+            "color": "blue",
+            "font": "trebuc.ttf",
+            "angle": -72
+          },
+          "number": "25",
+          "color": "blue",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "A",
+          "space": "B-04",
+          "truth": {
+            "number": "79",
+            "color": "white",
+            "font": "trebuc.ttf",
+            "angle": -8
+          },
+          "number": "79",
+          "color": "white",
+          "method": "estimate",
+          "ocr_status": "estimated"
+        },
+        {
+          "channel": "A",
+          "space": "B-05",
+          "truth": null,
+          "number": null,
+          "color": "unknown",
+          "method": "held",
+          "ocr_status": "pending"
+        },
+        {
+          "channel": "A",
+          "space": "B-06",
+          "truth": null,
+          "number": null,
+          "color": "unknown",
+          "method": "held",
+          "ocr_status": "pending"
+        },
+        {
+          "channel": "B",
+          "space": "A-01",
+          "truth": {
+            "number": "61",
+            "color": "green",
+            "font": "trebuc.ttf",
+            "angle": 39
+          },
+          "number": null,
+          "color": "unknown",
+          "method": "held",
+          "ocr_status": "round_sticker_unread"
+        },
+        {
+          "channel": "B",
+          "space": "A-02",
+          "truth": {
+            "number": "69",
+            "color": "blue",
+            "font": "trebuc.ttf",
+            "angle": 152
+          },
+          "number": "69",
+          "color": "blue",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "B",
+          "space": "A-03",
+          "truth": {
+            "number": "23",
+            "color": "white",
+            "font": "consolab.ttf",
+            "angle": -72
+          },
+          "number": "23",
+          "color": "white",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "B",
+          "space": "A-04",
+          "truth": {
+            "number": "36",
+            "color": "green",
+            "font": "consolab.ttf",
+            "angle": -8
+          },
+          "number": null,
+          "color": "green",
+          "method": "held",
+          "ocr_status": "sticker_number_unread"
+        },
+        {
+          "channel": "B",
+          "space": "A-05",
+          "truth": {
+            "number": "67",
+            "color": "blue",
+            "font": "consolab.ttf",
+            "angle": 39
+          },
+          "number": "67",
+          "color": "blue",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "B",
+          "space": "A-06",
+          "truth": {
+            "number": "12",
+            "color": "white",
+            "font": "consolab.ttf",
+            "angle": 152
+          },
+          "number": null,
+          "color": "unknown",
+          "method": "held",
+          "ocr_status": "round_sticker_unread"
+        },
+        {
+          "channel": "B",
+          "space": "A-07",
+          "truth": {
+            "number": "66",
+            "color": "green",
+            "font": "trebuc.ttf",
+            "angle": -72
+          },
+          "number": null,
+          "color": "green",
+          "method": "held",
+          "ocr_status": "sticker_number_unread"
+        },
+        {
+          "channel": "B",
+          "space": "A-08",
+          "truth": {
+            "number": "32",
+            "color": "blue",
+            "font": "trebuc.ttf",
+            "angle": -8
+          },
+          "number": "32",
+          "color": "blue",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "B",
+          "space": "B-01",
+          "truth": {
+            "number": "37",
+            "color": "white",
+            "font": "trebuc.ttf",
+            "angle": 39
+          },
+          "number": "37",
+          "color": "white",
+          "method": "estimate",
+          "ocr_status": "estimated"
+        },
+        {
+          "channel": "B",
+          "space": "B-02",
+          "truth": {
+            "number": "35",
+            "color": "green",
+            "font": "trebuc.ttf",
+            "angle": 152
+          },
+          "number": null,
+          "color": "unknown",
+          "method": "held",
+          "ocr_status": "round_sticker_unread"
+        },
+        {
+          "channel": "B",
+          "space": "B-03",
+          "truth": {
+            "number": "46",
+            "color": "blue",
+            "font": "consolab.ttf",
+            "angle": -72
+          },
+          "number": "46",
+          "color": "blue",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "B",
+          "space": "B-04",
+          "truth": {
+            "number": "77",
+            "color": "white",
+            "font": "consolab.ttf",
+            "angle": -8
+          },
+          "number": "77",
+          "color": "white",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "B",
+          "space": "B-05",
+          "truth": {
+            "number": "71",
+            "color": "green",
+            "font": "consolab.ttf",
+            "angle": 39
+          },
+          "number": "71",
+          "color": "green",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "B",
+          "space": "B-06",
+          "truth": {
+            "number": "88",
+            "color": "blue",
+            "font": "consolab.ttf",
+            "angle": 152
+          },
+          "number": "88",
+          "color": "blue",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "B",
+          "space": "B-07",
+          "truth": null,
+          "number": null,
+          "color": "unknown",
+          "method": "held",
+          "ocr_status": "pending"
+        },
+        {
+          "channel": "B",
+          "space": "B-08",
+          "truth": null,
+          "number": null,
+          "color": "unknown",
+          "method": "held",
+          "ocr_status": "pending"
+        }
+      ],
+      "counts": {
+        "direct_correct": 14,
+        "estimate_correct": 3,
+        "direct_wrong": 0,
+        "estimate_wrong": 0,
+        "held": 7,
+        "empty_false_number": 0
+      }
+    },
+    "finalcheck": {
+      "project": "smart_parking_v48",
+      "input_sha256": {
+        "A": "5503f875263b2ef761c98c465f686bbe36651b7fd765e4ede28745c3018cc34a",
+        "B": "ee0fe9c1b16b9c29d3f04594d4badd1d224decc0c84ade6335a7612a59d6c67d"
+      },
+      "rows": [
+        {
+          "channel": "A",
+          "space": "A-01",
+          "truth": {
+            "number": "27",
+            "color": "white",
+            "font": "verdana.ttf",
+            "angle": -12
+          },
+          "number": "27",
+          "color": "white",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "A",
+          "space": "A-02",
+          "truth": {
+            "number": "72",
+            "color": "green",
+            "font": "verdana.ttf",
+            "angle": 0
+          },
+          "number": "72",
+          "color": "green",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "A",
+          "space": "A-03",
+          "truth": {
+            "number": "80",
+            "color": "blue",
+            "font": "verdana.ttf",
+            "angle": 22
+          },
+          "number": "80",
+          "color": "blue",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "A",
+          "space": "A-04",
+          "truth": {
+            "number": "13",
+            "color": "white",
+            "font": "verdana.ttf",
+            "angle": 90
+          },
+          "number": "13",
+          "color": "white",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "A",
+          "space": "A-05",
+          "truth": {
+            "number": "55",
+            "color": "green",
+            "font": "cambriab.ttf",
+            "angle": -12
+          },
+          "number": "55",
+          "color": "green",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "A",
+          "space": "A-06",
+          "truth": {
+            "number": "53",
+            "color": "blue",
+            "font": "cambriab.ttf",
+            "angle": 0
+          },
+          "number": "53",
+          "color": "blue",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "A",
+          "space": "B-01",
+          "truth": {
+            "number": "16",
+            "color": "white",
+            "font": "cambriab.ttf",
+            "angle": 22
+          },
+          "number": "16",
+          "color": "white",
+          "method": "estimate",
+          "ocr_status": "estimated"
+        },
+        {
+          "channel": "A",
+          "space": "B-02",
+          "truth": {
+            "number": "48",
+            "color": "green",
+            "font": "cambriab.ttf",
+            "angle": 90
+          },
+          "number": null,
+          "color": "green",
+          "method": "held",
+          "ocr_status": "sticker_number_unread"
+        },
+        {
+          "channel": "A",
+          "space": "B-03",
+          "truth": {
+            "number": "12",
+            "color": "blue",
+            "font": "verdana.ttf",
+            "angle": -12
+          },
+          "number": "12",
+          "color": "blue",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "A",
+          "space": "B-04",
+          "truth": {
+            "number": "64",
+            "color": "white",
+            "font": "verdana.ttf",
+            "angle": 0
+          },
+          "number": "64",
+          "color": "white",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "A",
+          "space": "B-05",
+          "truth": null,
+          "number": null,
+          "color": "unknown",
+          "method": "held",
+          "ocr_status": "pending"
+        },
+        {
+          "channel": "A",
+          "space": "B-06",
+          "truth": null,
+          "number": null,
+          "color": "unknown",
+          "method": "held",
+          "ocr_status": "pending"
+        },
+        {
+          "channel": "B",
+          "space": "A-01",
+          "truth": {
+            "number": "92",
+            "color": "green",
+            "font": "verdana.ttf",
+            "angle": 22
+          },
+          "number": "92",
+          "color": "green",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "B",
+          "space": "A-02",
+          "truth": {
+            "number": "52",
+            "color": "blue",
+            "font": "verdana.ttf",
+            "angle": 90
+          },
+          "number": "52",
+          "color": "blue",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "B",
+          "space": "A-03",
+          "truth": {
+            "number": "78",
+            "color": "white",
+            "font": "cambriab.ttf",
+            "angle": -12
+          },
+          "number": "78",
+          "color": "white",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "B",
+          "space": "A-04",
+          "truth": {
+            "number": "49",
+            "color": "green",
+            "font": "cambriab.ttf",
+            "angle": 0
+          },
+          "number": "49",
+          "color": "green",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "B",
+          "space": "A-05",
+          "truth": {
+            "number": "33",
+            "color": "blue",
+            "font": "cambriab.ttf",
+            "angle": 22
+          },
+          "number": "33",
+          "color": "blue",
+          "method": "estimate",
+          "ocr_status": "estimated"
+        },
+        {
+          "channel": "B",
+          "space": "A-06",
+          "truth": {
+            "number": "30",
+            "color": "white",
+            "font": "cambriab.ttf",
+            "angle": 90
+          },
+          "number": "30",
+          "color": "white",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "B",
+          "space": "A-07",
+          "truth": {
+            "number": "14",
+            "color": "green",
+            "font": "verdana.ttf",
+            "angle": -12
+          },
+          "number": "14",
+          "color": "green",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "B",
+          "space": "A-08",
+          "truth": {
+            "number": "79",
+            "color": "blue",
+            "font": "verdana.ttf",
+            "angle": 0
+          },
+          "number": "79",
+          "color": "blue",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "B",
+          "space": "B-01",
+          "truth": {
+            "number": "74",
+            "color": "white",
+            "font": "verdana.ttf",
+            "angle": 22
+          },
+          "number": "74",
+          "color": "white",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "B",
+          "space": "B-02",
+          "truth": {
+            "number": "57",
+            "color": "green",
+            "font": "verdana.ttf",
+            "angle": 90
+          },
+          "number": "57",
+          "color": "green",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "B",
+          "space": "B-03",
+          "truth": {
+            "number": "85",
+            "color": "blue",
+            "font": "cambriab.ttf",
+            "angle": -12
+          },
+          "number": "85",
+          "color": "blue",
+          "method": "estimate",
+          "ocr_status": "estimated"
+        },
+        {
+          "channel": "B",
+          "space": "B-04",
+          "truth": {
+            "number": "65",
+            "color": "white",
+            "font": "cambriab.ttf",
+            "angle": 0
+          },
+          "number": "65",
+          "color": "white",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "B",
+          "space": "B-05",
+          "truth": {
+            "number": "23",
+            "color": "green",
+            "font": "cambriab.ttf",
+            "angle": 22
+          },
+          "number": "23",
+          "color": "green",
+          "method": "direct",
+          "ocr_status": "candidate"
+        },
+        {
+          "channel": "B",
+          "space": "B-06",
+          "truth": {
+            "number": "39",
+            "color": "blue",
+            "font": "cambriab.ttf",
+            "angle": 90
+          },
+          "number": null,
+          "color": "blue",
+          "method": "held",
+          "ocr_status": "sticker_number_unread"
+        },
+        {
+          "channel": "B",
+          "space": "B-07",
+          "truth": null,
+          "number": null,
+          "color": "unknown",
+          "method": "held",
+          "ocr_status": "pending"
+        },
+        {
+          "channel": "B",
+          "space": "B-08",
+          "truth": null,
+          "number": null,
+          "color": "unknown",
+          "method": "held",
+          "ocr_status": "pending"
+        }
+      ],
+      "counts": {
+        "direct_correct": 19,
+        "estimate_correct": 3,
+        "direct_wrong": 0,
+        "estimate_wrong": 0,
+        "held": 2,
+        "empty_false_number": 0
+      }
+    }
+  },
+  "비교결과": "기존 실물 6조건과 방향 시험, 기존 합성 5세트의 칸별 판정이 V47 재생 기록과 같다.",
+  "한칸_복수스티커_요약": {
+    "V47": {
+      "physical": {
+        "단독12장_번호직접일치": 12,
+        "두장동시_배치수": 6,
+        "복수인데_번호선택": 3,
+        "복수보류": 3
+      },
+      "virtual": {
+        "단독12장_번호직접일치": 12,
+        "두장동시_배치수": 6,
+        "복수인데_번호선택": 3,
+        "복수보류": 3
+      }
+    },
+    "V48": {
+      "physical": {
+        "단독12장_번호직접일치": 12,
+        "두장동시_배치수": 6,
+        "복수인데_번호선택": 0,
+        "복수보류": 6
+      },
+      "virtual": {
+        "단독12장_번호직접일치": 12,
+        "두장동시_배치수": 6,
+        "복수인데_번호선택": 0,
+        "복수보류": 6
+      }
+    }
+  },
+  "한칸_복수스티커_같은18장": {
+    "V47": [
+      {
+        "labels": [
+          "24",
+          "71"
+        ],
+        "visible": "left",
+        "pixels": "9d8b9298140adf33abdbe7fbba6c87a9c5f89ee921b7e1a0e126810957c18db4",
+        "physical": {
+          "status": "candidate",
+          "number": "24",
+          "evidence_numbers": [
+            "24"
+          ],
+          "color": "green"
+        },
+        "virtual": {
+          "status": "candidate",
+          "number": "24",
+          "evidence_numbers": [
+            "24"
+          ],
+          "color": "green"
+        }
+      },
+      {
+        "labels": [
+          "24",
+          "71"
+        ],
+        "visible": "right",
+        "pixels": "9d983b11fc0eeab22ec0369d7e64f8ebaf9ddc9d891518f9e42dcdb8b7d13981",
+        "physical": {
+          "status": "candidate",
+          "number": "71",
+          "evidence_numbers": [
+            "71"
+          ],
+          "color": "white"
+        },
+        "virtual": {
+          "status": "candidate",
+          "number": "71",
+          "evidence_numbers": [
+            "71"
+          ],
+          "color": "white"
+        }
+      },
+      {
+        "labels": [
+          "24",
+          "71"
+        ],
+        "visible": "both",
+        "pixels": "f04f6798a30b6dccde83c1558f42240e4427a23e867743605992a13aa00877ba",
+        "physical": {
+          "status": "candidate",
+          "number": "24",
+          "evidence_numbers": [
+            "24"
+          ],
+          "color": "green"
+        },
+        "virtual": {
+          "status": "candidate",
+          "number": "24",
+          "evidence_numbers": [
+            "24"
+          ],
+          "color": "green"
+        }
+      },
+      {
+        "labels": [
+          "17",
+          "32"
+        ],
+        "visible": "left",
+        "pixels": "a309c16d65f196c3d64f07af4ec2336a4c06bd697071a2db72ef1eb337b81032",
+        "physical": {
+          "status": "candidate",
+          "number": "17",
+          "evidence_numbers": [
+            "17"
+          ],
+          "color": "green"
+        },
+        "virtual": {
+          "status": "candidate",
+          "number": "17",
+          "evidence_numbers": [
+            "17"
+          ],
+          "color": "green"
+        }
+      },
+      {
+        "labels": [
+          "17",
+          "32"
+        ],
+        "visible": "right",
+        "pixels": "9947e460e03c35e7b7343c3a7784df436d8aa859851550ef7525eb25389460b3",
+        "physical": {
+          "status": "candidate",
+          "number": "32",
+          "evidence_numbers": [
+            "32"
+          ],
+          "color": "white"
+        },
+        "virtual": {
+          "status": "candidate",
+          "number": "32",
+          "evidence_numbers": [
+            "32"
+          ],
+          "color": "white"
+        }
+      },
+      {
+        "labels": [
+          "17",
+          "32"
+        ],
+        "visible": "both",
+        "pixels": "61750cc11c90572a798d9d6fb32e4fa59b16a29087bec664338e73d6296707d3",
+        "physical": {
+          "status": "candidate",
+          "number": "17",
+          "evidence_numbers": [
+            "17"
+          ],
+          "color": "green"
+        },
+        "virtual": {
+          "status": "candidate",
+          "number": "17",
+          "evidence_numbers": [
+            "17"
+          ],
+          "color": "green"
+        }
+      },
+      {
+        "labels": [
+          "22",
+          "33"
+        ],
+        "visible": "left",
+        "pixels": "68406a7d763193f4c895c9f920e46dc371306a14667604366d6f1d2c6126882e",
+        "physical": {
+          "status": "candidate",
+          "number": "22",
+          "evidence_numbers": [
+            "22"
+          ],
+          "color": "green"
+        },
+        "virtual": {
+          "status": "candidate",
+          "number": "22",
+          "evidence_numbers": [
+            "22"
+          ],
+          "color": "green"
+        }
+      },
+      {
+        "labels": [
+          "22",
+          "33"
+        ],
+        "visible": "right",
+        "pixels": "cd3295eb5bc4fd6a37dd396c4194b76d0f33dcb13bcef34e353bc0a412a7020c",
+        "physical": {
+          "status": "candidate",
+          "number": "33",
+          "evidence_numbers": [
+            "33"
+          ],
+          "color": "white"
+        },
+        "virtual": {
+          "status": "candidate",
+          "number": "33",
+          "evidence_numbers": [
+            "33"
+          ],
+          "color": "white"
+        }
+      },
+      {
+        "labels": [
+          "22",
+          "33"
+        ],
+        "visible": "both",
+        "pixels": "813148e8c27f17bb8448b235b926a53e0655e62cbba5de29fc303c9426edfc62",
+        "physical": {
+          "status": "multiple_stickers",
+          "number": null,
+          "evidence_numbers": [],
+          "color": null
+        },
+        "virtual": {
+          "status": "multiple_stickers",
+          "number": null,
+          "evidence_numbers": [],
+          "color": null
+        }
+      },
+      {
+        "labels": [
+          "50",
+          "64"
+        ],
+        "visible": "left",
+        "pixels": "48b082dec43721d58832e71576b58d3acd9e7c7f5c5b9dc2e0bb18a09953d36e",
+        "physical": {
+          "status": "candidate",
+          "number": "50",
+          "evidence_numbers": [
+            "50"
+          ],
+          "color": "green"
+        },
+        "virtual": {
+          "status": "candidate",
+          "number": "50",
+          "evidence_numbers": [
+            "50"
+          ],
+          "color": "green"
+        }
+      },
+      {
+        "labels": [
+          "50",
+          "64"
+        ],
+        "visible": "right",
+        "pixels": "c41d16316f65ced94dfea737852f2d5969e8128e4717e2e5beb921944408caba",
+        "physical": {
+          "status": "candidate",
+          "number": "64",
+          "evidence_numbers": [
+            "64"
+          ],
+          "color": "white"
+        },
+        "virtual": {
+          "status": "candidate",
+          "number": "64",
+          "evidence_numbers": [
+            "64"
+          ],
+          "color": "white"
+        }
+      },
+      {
+        "labels": [
+          "50",
+          "64"
+        ],
+        "visible": "both",
+        "pixels": "2af435f71da521f0fd2a76993f294b5a72099474c81d2b6cb0bf59894a716fff",
+        "physical": {
+          "status": "multiple_stickers",
+          "number": null,
+          "evidence_numbers": [],
+          "color": null
+        },
+        "virtual": {
+          "status": "multiple_stickers",
+          "number": null,
+          "evidence_numbers": [],
+          "color": null
+        }
+      },
+      {
+        "labels": [
+          "47",
+          "35"
+        ],
+        "visible": "left",
+        "pixels": "3dbb718d94d8415aaffdafead8b60b559d6ab8da3bf5418d02bc6c39c2f3e828",
+        "physical": {
+          "status": "candidate",
+          "number": "47",
+          "evidence_numbers": [
+            "47"
+          ],
+          "color": "green"
+        },
+        "virtual": {
+          "status": "candidate",
+          "number": "47",
+          "evidence_numbers": [
+            "47"
+          ],
+          "color": "green"
+        }
+      },
+      {
+        "labels": [
+          "47",
+          "35"
+        ],
+        "visible": "right",
+        "pixels": "b8065a499bad1630c253263b0f837f623bc0455c31586c36ce374278ac6936dd",
+        "physical": {
+          "status": "candidate",
+          "number": "35",
+          "evidence_numbers": [
+            "35"
+          ],
+          "color": "white"
+        },
+        "virtual": {
+          "status": "candidate",
+          "number": "35",
+          "evidence_numbers": [
+            "35"
+          ],
+          "color": "white"
+        }
+      },
+      {
+        "labels": [
+          "47",
+          "35"
+        ],
+        "visible": "both",
+        "pixels": "d936027f7e1ab4dd2af1c6ddd7bcc1ecb7f58afcf752f86cf5cfff0927b6ccc2",
+        "physical": {
+          "status": "candidate",
+          "number": "47",
+          "evidence_numbers": [
+            "47"
+          ],
+          "color": "green"
+        },
+        "virtual": {
+          "status": "candidate",
+          "number": "47",
+          "evidence_numbers": [
+            "47"
+          ],
+          "color": "green"
+        }
+      },
+      {
+        "labels": [
+          "30",
+          "14"
+        ],
+        "visible": "left",
+        "pixels": "a567ae251dc71e9ce45c977205efad93e3c1482a89df32ca10e13d5f61012931",
+        "physical": {
+          "status": "candidate",
+          "number": "30",
+          "evidence_numbers": [
+            "30"
+          ],
+          "color": "green"
+        },
+        "virtual": {
+          "status": "candidate",
+          "number": "30",
+          "evidence_numbers": [
+            "30"
+          ],
+          "color": "green"
+        }
+      },
+      {
+        "labels": [
+          "30",
+          "14"
+        ],
+        "visible": "right",
+        "pixels": "39c8f1aa1fef3e5fc326fbde1b050c0df167d50eebb5f73dd0aaad60a0c35a07",
+        "physical": {
+          "status": "candidate",
+          "number": "14",
+          "evidence_numbers": [
+            "14"
+          ],
+          "color": "white"
+        },
+        "virtual": {
+          "status": "candidate",
+          "number": "14",
+          "evidence_numbers": [
+            "14"
+          ],
+          "color": "white"
+        }
+      },
+      {
+        "labels": [
+          "30",
+          "14"
+        ],
+        "visible": "both",
+        "pixels": "41853d2ea9a0631be1a0a868334cbd93d371a2fa502473df15f41cca837c1db3",
+        "physical": {
+          "status": "multiple_stickers",
+          "number": null,
+          "evidence_numbers": [],
+          "color": null
+        },
+        "virtual": {
+          "status": "multiple_stickers",
+          "number": null,
+          "evidence_numbers": [],
+          "color": null
+        }
+      }
+    ],
+    "V48": [
+      {
+        "labels": [
+          "24",
+          "71"
+        ],
+        "visible": "left",
+        "pixels": "9d8b9298140adf33abdbe7fbba6c87a9c5f89ee921b7e1a0e126810957c18db4",
+        "physical": {
+          "status": "candidate",
+          "number": "24",
+          "evidence_numbers": [
+            "24"
+          ],
+          "color": "green"
+        },
+        "virtual": {
+          "status": "candidate",
+          "number": "24",
+          "evidence_numbers": [
+            "24"
+          ],
+          "color": "green"
+        }
+      },
+      {
+        "labels": [
+          "24",
+          "71"
+        ],
+        "visible": "right",
+        "pixels": "9d983b11fc0eeab22ec0369d7e64f8ebaf9ddc9d891518f9e42dcdb8b7d13981",
+        "physical": {
+          "status": "candidate",
+          "number": "71",
+          "evidence_numbers": [
+            "71"
+          ],
+          "color": "white"
+        },
+        "virtual": {
+          "status": "candidate",
+          "number": "71",
+          "evidence_numbers": [
+            "71"
+          ],
+          "color": "white"
+        }
+      },
+      {
+        "labels": [
+          "24",
+          "71"
+        ],
+        "visible": "both",
+        "pixels": "f04f6798a30b6dccde83c1558f42240e4427a23e867743605992a13aa00877ba",
+        "physical": {
+          "status": "multiple_stickers",
+          "number": null,
+          "evidence_numbers": [
+            "24",
+            "71"
+          ],
+          "color": null
+        },
+        "virtual": {
+          "status": "multiple_stickers",
+          "number": null,
+          "evidence_numbers": [
+            "24",
+            "71"
+          ],
+          "color": null
+        }
+      },
+      {
+        "labels": [
+          "17",
+          "32"
+        ],
+        "visible": "left",
+        "pixels": "a309c16d65f196c3d64f07af4ec2336a4c06bd697071a2db72ef1eb337b81032",
+        "physical": {
+          "status": "candidate",
+          "number": "17",
+          "evidence_numbers": [
+            "17"
+          ],
+          "color": "green"
+        },
+        "virtual": {
+          "status": "candidate",
+          "number": "17",
+          "evidence_numbers": [
+            "17"
+          ],
+          "color": "green"
+        }
+      },
+      {
+        "labels": [
+          "17",
+          "32"
+        ],
+        "visible": "right",
+        "pixels": "9947e460e03c35e7b7343c3a7784df436d8aa859851550ef7525eb25389460b3",
+        "physical": {
+          "status": "candidate",
+          "number": "32",
+          "evidence_numbers": [
+            "32"
+          ],
+          "color": "white"
+        },
+        "virtual": {
+          "status": "candidate",
+          "number": "32",
+          "evidence_numbers": [
+            "32"
+          ],
+          "color": "white"
+        }
+      },
+      {
+        "labels": [
+          "17",
+          "32"
+        ],
+        "visible": "both",
+        "pixels": "61750cc11c90572a798d9d6fb32e4fa59b16a29087bec664338e73d6296707d3",
+        "physical": {
+          "status": "multiple_stickers",
+          "number": null,
+          "evidence_numbers": [
+            "17",
+            "32",
+            "78"
+          ],
+          "color": null
+        },
+        "virtual": {
+          "status": "multiple_stickers",
+          "number": null,
+          "evidence_numbers": [
+            "17",
+            "32",
+            "78"
+          ],
+          "color": null
+        }
+      },
+      {
+        "labels": [
+          "22",
+          "33"
+        ],
+        "visible": "left",
+        "pixels": "68406a7d763193f4c895c9f920e46dc371306a14667604366d6f1d2c6126882e",
+        "physical": {
+          "status": "candidate",
+          "number": "22",
+          "evidence_numbers": [
+            "22"
+          ],
+          "color": "green"
+        },
+        "virtual": {
+          "status": "candidate",
+          "number": "22",
+          "evidence_numbers": [
+            "22"
+          ],
+          "color": "green"
+        }
+      },
+      {
+        "labels": [
+          "22",
+          "33"
+        ],
+        "visible": "right",
+        "pixels": "cd3295eb5bc4fd6a37dd396c4194b76d0f33dcb13bcef34e353bc0a412a7020c",
+        "physical": {
+          "status": "candidate",
+          "number": "33",
+          "evidence_numbers": [
+            "33"
+          ],
+          "color": "white"
+        },
+        "virtual": {
+          "status": "candidate",
+          "number": "33",
+          "evidence_numbers": [
+            "33"
+          ],
+          "color": "white"
+        }
+      },
+      {
+        "labels": [
+          "22",
+          "33"
+        ],
+        "visible": "both",
+        "pixels": "813148e8c27f17bb8448b235b926a53e0655e62cbba5de29fc303c9426edfc62",
+        "physical": {
+          "status": "multiple_stickers",
+          "number": null,
+          "evidence_numbers": [
+            "22",
+            "33"
+          ],
+          "color": null
+        },
+        "virtual": {
+          "status": "multiple_stickers",
+          "number": null,
+          "evidence_numbers": [
+            "22",
+            "33"
+          ],
+          "color": null
+        }
+      },
+      {
+        "labels": [
+          "50",
+          "64"
+        ],
+        "visible": "left",
+        "pixels": "48b082dec43721d58832e71576b58d3acd9e7c7f5c5b9dc2e0bb18a09953d36e",
+        "physical": {
+          "status": "candidate",
+          "number": "50",
+          "evidence_numbers": [
+            "50"
+          ],
+          "color": "green"
+        },
+        "virtual": {
+          "status": "candidate",
+          "number": "50",
+          "evidence_numbers": [
+            "50"
+          ],
+          "color": "green"
+        }
+      },
+      {
+        "labels": [
+          "50",
+          "64"
+        ],
+        "visible": "right",
+        "pixels": "c41d16316f65ced94dfea737852f2d5969e8128e4717e2e5beb921944408caba",
+        "physical": {
+          "status": "candidate",
+          "number": "64",
+          "evidence_numbers": [
+            "64"
+          ],
+          "color": "white"
+        },
+        "virtual": {
+          "status": "candidate",
+          "number": "64",
+          "evidence_numbers": [
+            "64"
+          ],
+          "color": "white"
+        }
+      },
+      {
+        "labels": [
+          "50",
+          "64"
+        ],
+        "visible": "both",
+        "pixels": "2af435f71da521f0fd2a76993f294b5a72099474c81d2b6cb0bf59894a716fff",
+        "physical": {
+          "status": "multiple_stickers",
+          "number": null,
+          "evidence_numbers": [
+            "50",
+            "64"
+          ],
+          "color": null
+        },
+        "virtual": {
+          "status": "multiple_stickers",
+          "number": null,
+          "evidence_numbers": [
+            "50",
+            "64"
+          ],
+          "color": null
+        }
+      },
+      {
+        "labels": [
+          "47",
+          "35"
+        ],
+        "visible": "left",
+        "pixels": "3dbb718d94d8415aaffdafead8b60b559d6ab8da3bf5418d02bc6c39c2f3e828",
+        "physical": {
+          "status": "candidate",
+          "number": "47",
+          "evidence_numbers": [
+            "47"
+          ],
+          "color": "green"
+        },
+        "virtual": {
+          "status": "candidate",
+          "number": "47",
+          "evidence_numbers": [
+            "47"
+          ],
+          "color": "green"
+        }
+      },
+      {
+        "labels": [
+          "47",
+          "35"
+        ],
+        "visible": "right",
+        "pixels": "b8065a499bad1630c253263b0f837f623bc0455c31586c36ce374278ac6936dd",
+        "physical": {
+          "status": "candidate",
+          "number": "35",
+          "evidence_numbers": [
+            "35"
+          ],
+          "color": "white"
+        },
+        "virtual": {
+          "status": "candidate",
+          "number": "35",
+          "evidence_numbers": [
+            "35"
+          ],
+          "color": "white"
+        }
+      },
+      {
+        "labels": [
+          "47",
+          "35"
+        ],
+        "visible": "both",
+        "pixels": "d936027f7e1ab4dd2af1c6ddd7bcc1ecb7f58afcf752f86cf5cfff0927b6ccc2",
+        "physical": {
+          "status": "multiple_stickers",
+          "number": null,
+          "evidence_numbers": [
+            "35",
+            "47"
+          ],
+          "color": null
+        },
+        "virtual": {
+          "status": "multiple_stickers",
+          "number": null,
+          "evidence_numbers": [
+            "35",
+            "47"
+          ],
+          "color": null
+        }
+      },
+      {
+        "labels": [
+          "30",
+          "14"
+        ],
+        "visible": "left",
+        "pixels": "a567ae251dc71e9ce45c977205efad93e3c1482a89df32ca10e13d5f61012931",
+        "physical": {
+          "status": "candidate",
+          "number": "30",
+          "evidence_numbers": [
+            "30"
+          ],
+          "color": "green"
+        },
+        "virtual": {
+          "status": "candidate",
+          "number": "30",
+          "evidence_numbers": [
+            "30"
+          ],
+          "color": "green"
+        }
+      },
+      {
+        "labels": [
+          "30",
+          "14"
+        ],
+        "visible": "right",
+        "pixels": "39c8f1aa1fef3e5fc326fbde1b050c0df167d50eebb5f73dd0aaad60a0c35a07",
+        "physical": {
+          "status": "candidate",
+          "number": "14",
+          "evidence_numbers": [
+            "14"
+          ],
+          "color": "white"
+        },
+        "virtual": {
+          "status": "candidate",
+          "number": "14",
+          "evidence_numbers": [
+            "14"
+          ],
+          "color": "white"
+        }
+      },
+      {
+        "labels": [
+          "30",
+          "14"
+        ],
+        "visible": "both",
+        "pixels": "41853d2ea9a0631be1a0a868334cbd93d371a2fa502473df15f41cca837c1db3",
+        "physical": {
+          "status": "multiple_stickers",
+          "number": null,
+          "evidence_numbers": [
+            "14",
+            "30"
+          ],
+          "color": null
+        },
+        "virtual": {
+          "status": "multiple_stickers",
+          "number": null,
+          "evidence_numbers": [
+            "14",
+            "30"
+          ],
+          "color": null
+        }
+      }
+    ]
+  },
+  "중단복구_실제자식프로세스종료": {
+    "47": {
+      "source": "smart_parking_v47",
+      "child_exit": 47,
+      "raw_count": 2,
+      "journal_count_before": 2,
+      "control_pairs": 1,
+      "control_exported_bays": 28,
+      "conflict_complete": 1,
+      "conflict_held": 0,
+      "conflict_exported_pairs": 1,
+      "conflicting_prediction_preserved": true,
+      "journal_preserved": false,
+      "raw_hashes_preserved": true
+    },
+    "48": {
+      "source": "smart_parking_v48",
+      "child_exit": 47,
+      "raw_count": 2,
+      "journal_count_before": 2,
+      "control_pairs": 1,
+      "control_exported_bays": 28,
+      "conflict_complete": 0,
+      "conflict_held": 1,
+      "conflict_exported_pairs": 0,
+      "conflicting_prediction_preserved": true,
+      "journal_preserved": true,
+      "raw_hashes_preserved": true,
+      "after_explicit_restoration": 1,
+      "after_second_recovery": 1,
+      "after_repair_exported_bays": 28
+    }
+  },
+  "신규회귀_같은시험": {
+    "V47": {
+      "실행": 18,
+      "통과": 2,
+      "기대미충족": 16,
+      "건너뜀": 0,
+      "기대미충족_시험": [
+        "CameraEvidence.test_ambiguous_virtual_pair_reaches_original_storage_and_held_labels",
+        "CameraEvidence.test_api_events_reject_mixed_camera_and_roi",
+        "CameraEvidence.test_cached_latest_pair_is_ineligible_after_disconnect_or_new_epoch",
+        "CameraEvidence.test_camera_serial_and_channel_must_match_roi_before_analysis",
+        "CameraEvidence.test_saved_candidate_cannot_be_enriched_with_other_camera_pixels",
+        "DurableEvidence.test_changed_split_metadata_is_not_an_accepted_number_delivery",
+        "DurableEvidence.test_duplicate_manifest_sample_cannot_multiply_field_result",
+        "DurableEvidence.test_duplicate_receipt_paths_do_not_count_as_verified_files",
+        "DurableEvidence.test_low_score_selected_observation_rejected_even_if_two_other_views_agree",
+        "DurableEvidence.test_manual_rebuild_cannot_remove_conflicting_journal",
+        "DurableEvidence.test_recovery_preserves_disagreeing_but_valid_saved_prediction",
+        "DurableEvidence.test_reformatting_an_old_review_does_not_destroy_its_exported_revision",
+        "DurableEvidence.test_truth_verification_distinguishes_present_from_correct",
+        "DurableEvidence.test_valid_number_is_counted_once_as_verified",
+        "StickerAssignment.test_two_distinct_readable_stickers_in_one_bay_hold",
+        "StickerAssignment.test_virtual_retry_preserves_same_disc_conflict_evidence"
+      ]
+    },
+    "V48": {
+      "실행": 18,
+      "통과": 18,
+      "기대미충족": 0,
+      "건너뜀": 0,
+      "기대미충족_시험": []
+    }
+  },
+  "기존자료호환": {
+    "V47_원본및기록_해시동일_파일수": 102,
+    "V48_복구검사_완료쌍": 1,
+    "V48_내보냄": {
+      "scenes": 2,
+      "space_pairs": 28,
+      "images": 32,
+      "json_files": 30,
+      "originals": 2,
+      "measurements": 1
+    },
+    "이전정답표_실물비교칸": 28,
+    "이전정답표_대조규격": "동시측정현장대조-v2"
+  },
+  "빈기준사진재생": {
+    "실물장비_사용": false,
+    "빈사진_스티커후보": {
+      "A": [
+        "A-03"
+      ],
+      "B": []
+    },
+    "수평이동_px": {
+      "0": {
+        "빈칸": 12,
+        "경계경고": 0
+      },
+      "1": {
+        "빈칸": 12,
+        "경계경고": 0
+      },
+      "2": {
+        "보류": "빈 기준과 주차선 위치 이동 · 구도를 확인하고 두 빈 기준을 다시 등록하세요."
+      },
+      "4": {
+        "보류": "빈 기준과 주차선 위치 이동 · 구도를 확인하고 두 빈 기준을 다시 등록하세요."
+      },
+      "6": {
+        "보류": "빈 기준과 주차선 위치 이동 · 구도를 확인하고 두 빈 기준을 다시 등록하세요."
+      },
+      "12": {
+        "보류": "빈 기준과 주차선 위치 이동 · 구도를 확인하고 두 빈 기준을 다시 등록하세요."
+      }
+    },
+    "재확인근거_대조채널": [
+      "A",
+      "B"
+    ],
+    "재연결후_측정": "주차장·시점·연결 변경 · 두 빈 주차장 기준을 다시 등록하세요."
+  },
+  "RealSense_SDK_열거": {
+    "장치수": 0,
+    "장치": [],
+    "조회_UTC": "2026-11-05T20:43:36.639965+00:00"
+  }
+}

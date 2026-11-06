@@ -1,0 +1,33 @@
+{
+  "A": {
+    "slots": 12,
+    "previous_unknown": 12,
+    "same_photo_vacant": 12,
+    "quality_pass_bays": 9,
+    "hold": {
+      "A-01": [
+        "주차칸 선명도 부족"
+      ],
+      "A-02": [
+        "주차칸 선명도 부족"
+      ],
+      "A-03": [
+        "주차칸 선명도 부족"
+      ]
+    },
+    "scene_quality": "보류"
+  },
+  "B": {
+    "slots": 16,
+    "previous_unknown": 16,
+    "same_photo_vacant": 16,
+    "quality_pass_bays": 15,
+    "hold": {
+      "B-08": [
+        "주차칸 선명도 부족"
+      ]
+    },
+    "scene_quality": "보류"
+  },
+  "scope": "Stored single photos replayed as their own empty reference. No new exposure, physical pair, or D39 truth."
+}

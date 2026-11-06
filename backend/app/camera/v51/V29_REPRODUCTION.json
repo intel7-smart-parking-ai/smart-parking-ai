@@ -1,0 +1,12 @@
+{
+  "source_version": "V29",
+  "tests": 3,
+  "failures": 3,
+  "errors": 0,
+  "reproduced": true,
+  "scope": [
+    "NumberPixels.test_flat_number_inside_sharp_sticker_is_held",
+    "NumberPixels.test_disjoint_number_and_sticker_in_same_bay_is_held",
+    "CurrentQuality.test_old_pass_is_unassessed_in_current_ui_counts"
+  ]
+}

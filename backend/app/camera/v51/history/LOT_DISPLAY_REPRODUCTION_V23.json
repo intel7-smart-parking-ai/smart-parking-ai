@@ -1,0 +1,12 @@
+{
+  "product_version": "V23",
+  "selected_lot": "A",
+  "cards": 12,
+  "previous_b_photo_still_present": false,
+  "first_b_row_card_position": {
+    "row": 1,
+    "column": 0
+  },
+  "old_number_still_visible": false,
+  "detail": "칸을 선택하세요."
+}

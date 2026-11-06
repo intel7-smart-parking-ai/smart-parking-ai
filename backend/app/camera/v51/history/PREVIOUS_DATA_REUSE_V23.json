@@ -1,0 +1,33 @@
+{
+  "product_version": "V23",
+  "dataset": "<local-path>",
+  "source": "historical V21 synthetic sample; no new OCR run",
+  "results": [
+    {
+      "lot": "A",
+      "id": "55e87f751fbd4ec696b793d8edc1ff53",
+      "roi_count": 12,
+      "prediction_rows": 12,
+      "source": {
+        "kind": "synthetic"
+      },
+      "first_bay_number": "23",
+      "first_bay_color": "green",
+      "warnings": []
+    },
+    {
+      "lot": "B",
+      "id": "a8c9217f9392412bb7bc996f1b53c4fa",
+      "roi_count": 16,
+      "prediction_rows": 16,
+      "source": {
+        "kind": "synthetic"
+      },
+      "first_bay_number": "23",
+      "first_bay_color": "green",
+      "warnings": []
+    }
+  ],
+  "all_original_files_unchanged": true,
+  "compared_files": 171
+}

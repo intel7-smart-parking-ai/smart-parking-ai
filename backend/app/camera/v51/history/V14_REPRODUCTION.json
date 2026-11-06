@@ -1,0 +1,40 @@
+{
+  "baseline": "unmodified V14",
+  "regressions_run": 8,
+  "failures": 2,
+  "errors": 6,
+  "cases": [
+    {
+      "test": "test_failed_readback_cannot_report_success (v15_baseline_unit.Fixes.test_failed_readback_cannot_report_success)",
+      "traceback": "<local-path>"
+    },
+    {
+      "test": "test_worker_skips_cancelled_settings (v15_baseline_unit.Fixes.test_worker_skips_cancelled_settings)",
+      "traceback": "<local-path>"
+    },
+    {
+      "test": "test_automatic_read_only_unlocked_before_manual (v15_baseline_unit.Fixes.test_automatic_read_only_unlocked_before_manual)",
+      "traceback": "<local-path>"
+    },
+    {
+      "test": "test_disconnect_discards_pending_settings (v15_baseline_unit.Fixes.test_disconnect_discards_pending_settings)",
+      "traceback": "<local-path>"
+    },
+    {
+      "test": "test_atomic_json_retries_temporary_windows_lock (v15_baseline_unit.Fixes.test_atomic_json_retries_temporary_windows_lock)",
+      "traceback": "<local-path>"
+    },
+    {
+      "test": "test_v15_closed_settings_cancel_pending_receipt (v15_baseline_gui.GUIRegressions.test_v15_closed_settings_cancel_pending_receipt)",
+      "traceback": "<local-path>"
+    },
+    {
+      "test": "test_v15_auto_mode_readonly_fields_sent_when_switching_manual (v15_baseline_gui.GUIRegressions.test_v15_auto_mode_readonly_fields_sent_when_switching_manual)",
+      "traceback": "<local-path>"
+    },
+    {
+      "test": "test_v15_settings_window_blocks_capture_confirmation (v15_baseline_gui.GUIRegressions.test_v15_settings_window_blocks_capture_confirmation)",
+      "traceback": "<local-path>"
+    }
+  ]
+}

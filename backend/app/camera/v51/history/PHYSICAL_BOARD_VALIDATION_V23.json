@@ -1,0 +1,2069 @@
+{
+  "product_version": "V23",
+  "source": "Two user-provided empty physical parking-board JPEGs",
+  "bay_name_ocr": "Actual local CPU EasyOCR, seven reads initially performed in this task; cached identical pixels/parameters reused during geometry regression.",
+  "number_ocr": "28 real local CPU full-bay OCR reads performed with the identity pipeline; final run reuses identical cached observations.",
+  "full_number_ocr_executed": true,
+  "final_run_fresh_reads": 0,
+  "final_run_cached_reads": 35,
+  "dataset": "<local-path>",
+  "export_path": "<local-path>",
+  "counts": {
+    "originals": 2,
+    "spaces": 28,
+    "stickers": 0,
+    "label_files": 0,
+    "label_rows": 0,
+    "occupancy_approved": 0,
+    "number_approved": 0,
+    "color_approved": 0,
+    "occupancy_ready": 0,
+    "number_ready": 0,
+    "color_ready": 0,
+    "bytes": 47898263,
+    "partial": 0,
+    "annotated_spaces": 28,
+    "korean_labels": 28,
+    "annotated_scenes": 2,
+    "scene_labels": 2,
+    "collection_pairs": 28,
+    "information_complete": 0,
+    "needs_attention": 28,
+    "quality_warning_labels": 1
+  },
+  "export_counts": {
+    "scenes": 2,
+    "space_pairs": 28,
+    "images": 32,
+    "json_files": 30,
+    "originals": 2
+  },
+  "source_images_unchanged": true,
+  "vehicle_accuracy_measured": false,
+  "results": [
+    {
+      "lot": "A",
+      "file": "<local-path>",
+      "source_sha256": "e5fb270fa6bdc2c5316fecbb2988cfd342576f49f6a3f3c0bc9cbd5bb3af1ce1",
+      "image_size": [
+        4000,
+        3000
+      ],
+      "registered": 12,
+      "open_u": 12,
+      "unknown_occupancy": 12,
+      "vehicle_numbers": 0,
+      "vehicle_colors": 0,
+      "inference_errors": [],
+      "diagnostic": "<local-path>",
+      "spaces": [
+        {
+          "space_id": "B-01",
+          "space_type": "general",
+          "polygon": [
+            [
+              2908,
+              2396
+            ],
+            [
+              3171,
+              2365
+            ],
+            [
+              3144,
+              1777
+            ],
+            [
+              2882,
+              1791
+            ]
+          ],
+          "boundary_kind": "open_u",
+          "painted_edges": [
+            [
+              [
+                2882,
+                1791
+              ],
+              [
+                2908,
+                2396
+              ]
+            ],
+            [
+              [
+                2908,
+                2396
+              ],
+              [
+                3171,
+                2365
+              ]
+            ],
+            [
+              [
+                3171,
+                2365
+              ],
+              [
+                3144,
+                1777
+              ]
+            ]
+          ],
+          "entrance_edge": [
+            [
+              3144,
+              1777
+            ],
+            [
+              2882,
+              1791
+            ]
+          ],
+          "line_support": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "boundary_inset_px": 2.0
+        },
+        {
+          "space_id": "A-01",
+          "space_type": "general",
+          "polygon": [
+            [
+              2833,
+              313
+            ],
+            [
+              3092,
+              341
+            ],
+            [
+              3110,
+              905
+            ],
+            [
+              2850,
+              894
+            ]
+          ],
+          "boundary_kind": "open_u",
+          "painted_edges": [
+            [
+              [
+                2850,
+                894
+              ],
+              [
+                2833,
+                313
+              ]
+            ],
+            [
+              [
+                2833,
+                313
+              ],
+              [
+                3092,
+                341
+              ]
+            ],
+            [
+              [
+                3092,
+                341
+              ],
+              [
+                3110,
+                905
+              ]
+            ]
+          ],
+          "entrance_edge": [
+            [
+              3110,
+              905
+            ],
+            [
+              2850,
+              894
+            ]
+          ],
+          "line_support": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "boundary_inset_px": 2.0
+        },
+        {
+          "space_id": "B-02",
+          "space_type": "general",
+          "polygon": [
+            [
+              2625,
+              2429
+            ],
+            [
+              2904,
+              2396
+            ],
+            [
+              2878,
+              1791
+            ],
+            [
+              2602,
+              1804
+            ]
+          ],
+          "boundary_kind": "open_u",
+          "painted_edges": [
+            [
+              [
+                2602,
+                1804
+              ],
+              [
+                2625,
+                2429
+              ]
+            ],
+            [
+              [
+                2625,
+                2429
+              ],
+              [
+                2904,
+                2396
+              ]
+            ],
+            [
+              [
+                2904,
+                2396
+              ],
+              [
+                2878,
+                1791
+              ]
+            ]
+          ],
+          "entrance_edge": [
+            [
+              2878,
+              1791
+            ],
+            [
+              2602,
+              1804
+            ]
+          ],
+          "line_support": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "boundary_inset_px": 2.0
+        },
+        {
+          "space_id": "A-02",
+          "space_type": "general",
+          "polygon": [
+            [
+              2554,
+              284
+            ],
+            [
+              2827,
+              313
+            ],
+            [
+              2847,
+              894
+            ],
+            [
+              2573,
+              882
+            ]
+          ],
+          "boundary_kind": "open_u",
+          "painted_edges": [
+            [
+              [
+                2573,
+                882
+              ],
+              [
+                2554,
+                284
+              ]
+            ],
+            [
+              [
+                2554,
+                284
+              ],
+              [
+                2827,
+                313
+              ]
+            ],
+            [
+              [
+                2827,
+                313
+              ],
+              [
+                2847,
+                894
+              ]
+            ]
+          ],
+          "entrance_edge": [
+            [
+              2847,
+              894
+            ],
+            [
+              2573,
+              882
+            ]
+          ],
+          "line_support": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "boundary_inset_px": 2.0
+        },
+        {
+          "space_id": "B-03",
+          "space_type": "general",
+          "polygon": [
+            [
+              2324,
+              2464
+            ],
+            [
+              2621,
+              2429
+            ],
+            [
+              2598,
+              1804
+            ],
+            [
+              2302,
+              1818
+            ]
+          ],
+          "boundary_kind": "open_u",
+          "painted_edges": [
+            [
+              [
+                2302,
+                1818
+              ],
+              [
+                2324,
+                2464
+              ]
+            ],
+            [
+              [
+                2324,
+                2464
+              ],
+              [
+                2621,
+                2429
+              ]
+            ],
+            [
+              [
+                2621,
+                2429
+              ],
+              [
+                2598,
+                1804
+              ]
+            ]
+          ],
+          "entrance_edge": [
+            [
+              2598,
+              1804
+            ],
+            [
+              2302,
+              1818
+            ]
+          ],
+          "line_support": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "boundary_inset_px": 2.0
+        },
+        {
+          "space_id": "A-03",
+          "space_type": "general",
+          "polygon": [
+            [
+              2262,
+              253
+            ],
+            [
+              2550,
+              284
+            ],
+            [
+              2567,
+              882
+            ],
+            [
+              2278,
+              871
+            ]
+          ],
+          "boundary_kind": "open_u",
+          "painted_edges": [
+            [
+              [
+                2278,
+                871
+              ],
+              [
+                2262,
+                253
+              ]
+            ],
+            [
+              [
+                2262,
+                253
+              ],
+              [
+                2550,
+                284
+              ]
+            ],
+            [
+              [
+                2550,
+                284
+              ],
+              [
+                2567,
+                882
+              ]
+            ]
+          ],
+          "entrance_edge": [
+            [
+              2567,
+              882
+            ],
+            [
+              2278,
+              871
+            ]
+          ],
+          "line_support": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "boundary_inset_px": 2.0
+        },
+        {
+          "space_id": "B-04",
+          "space_type": "general",
+          "polygon": [
+            [
+              2004,
+              2501
+            ],
+            [
+              2320,
+              2464
+            ],
+            [
+              2296,
+              1818
+            ],
+            [
+              1989,
+              1838
+            ]
+          ],
+          "boundary_kind": "open_u",
+          "painted_edges": [
+            [
+              [
+                1989,
+                1838
+              ],
+              [
+                2004,
+                2501
+              ]
+            ],
+            [
+              [
+                2004,
+                2501
+              ],
+              [
+                2320,
+                2464
+              ]
+            ],
+            [
+              [
+                2320,
+                2464
+              ],
+              [
+                2296,
+                1818
+              ]
+            ]
+          ],
+          "entrance_edge": [
+            [
+              2296,
+              1818
+            ],
+            [
+              1989,
+              1838
+            ]
+          ],
+          "line_support": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "boundary_inset_px": 2.0
+        },
+        {
+          "space_id": "A-04",
+          "space_type": "general",
+          "polygon": [
+            [
+              1956,
+              221
+            ],
+            [
+              2258,
+              253
+            ],
+            [
+              2274,
+              871
+            ],
+            [
+              1967,
+              858
+            ]
+          ],
+          "boundary_kind": "open_u",
+          "painted_edges": [
+            [
+              [
+                1967,
+                858
+              ],
+              [
+                1956,
+                221
+              ]
+            ],
+            [
+              [
+                1956,
+                221
+              ],
+              [
+                2258,
+                253
+              ]
+            ],
+            [
+              [
+                2258,
+                253
+              ],
+              [
+                2274,
+                871
+              ]
+            ]
+          ],
+          "entrance_edge": [
+            [
+              2274,
+              871
+            ],
+            [
+              1967,
+              858
+            ]
+          ],
+          "line_support": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "boundary_inset_px": 2.0
+        },
+        {
+          "space_id": "B-05",
+          "space_type": "general",
+          "polygon": [
+            [
+              1997,
+              2501
+            ],
+            [
+              1660,
+              2541
+            ],
+            [
+              1654,
+              1853
+            ],
+            [
+              1984,
+              1838
+            ]
+          ],
+          "boundary_kind": "open_u",
+          "painted_edges": [
+            [
+              [
+                1984,
+                1838
+              ],
+              [
+                1997,
+                2501
+              ]
+            ],
+            [
+              [
+                1997,
+                2501
+              ],
+              [
+                1660,
+                2541
+              ]
+            ],
+            [
+              [
+                1660,
+                2541
+              ],
+              [
+                1654,
+                1853
+              ]
+            ]
+          ],
+          "entrance_edge": [
+            [
+              1654,
+              1853
+            ],
+            [
+              1984,
+              1838
+            ]
+          ],
+          "line_support": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "boundary_inset_px": 2.0
+        },
+        {
+          "space_id": "A-05",
+          "space_type": "electric",
+          "polygon": [
+            [
+              1623,
+              184
+            ],
+            [
+              1951,
+              220
+            ],
+            [
+              1962,
+              858
+            ],
+            [
+              1636,
+              842
+            ]
+          ],
+          "boundary_kind": "open_u",
+          "painted_edges": [
+            [
+              [
+                1636,
+                842
+              ],
+              [
+                1623,
+                184
+              ]
+            ],
+            [
+              [
+                1623,
+                184
+              ],
+              [
+                1951,
+                220
+              ]
+            ],
+            [
+              [
+                1951,
+                220
+              ],
+              [
+                1962,
+                858
+              ]
+            ]
+          ],
+          "entrance_edge": [
+            [
+              1962,
+              858
+            ],
+            [
+              1636,
+              842
+            ]
+          ],
+          "line_support": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "boundary_inset_px": 2.0
+        },
+        {
+          "space_id": "A-06",
+          "space_type": "electric",
+          "polygon": [
+            [
+              1269,
+              148
+            ],
+            [
+              1619,
+              186
+            ],
+            [
+              1631,
+              842
+            ],
+            [
+              1279,
+              822
+            ]
+          ],
+          "boundary_kind": "open_u",
+          "painted_edges": [
+            [
+              [
+                1279,
+                822
+              ],
+              [
+                1269,
+                148
+              ]
+            ],
+            [
+              [
+                1269,
+                148
+              ],
+              [
+                1619,
+                186
+              ]
+            ],
+            [
+              [
+                1619,
+                186
+              ],
+              [
+                1631,
+                842
+              ]
+            ]
+          ],
+          "entrance_edge": [
+            [
+              1631,
+              842
+            ],
+            [
+              1279,
+              822
+            ]
+          ],
+          "line_support": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "boundary_inset_px": 2.0
+        },
+        {
+          "space_id": "B-06",
+          "space_type": "accessible",
+          "polygon": [
+            [
+              1297,
+              2583
+            ],
+            [
+              1656,
+              2541
+            ],
+            [
+              1650,
+              1853
+            ],
+            [
+              1292,
+              1873
+            ]
+          ],
+          "boundary_kind": "open_u",
+          "painted_edges": [
+            [
+              [
+                1292,
+                1873
+              ],
+              [
+                1297,
+                2583
+              ]
+            ],
+            [
+              [
+                1297,
+                2583
+              ],
+              [
+                1656,
+                2541
+              ]
+            ],
+            [
+              [
+                1656,
+                2541
+              ],
+              [
+                1650,
+                1853
+              ]
+            ]
+          ],
+          "entrance_edge": [
+            [
+              1650,
+              1853
+            ],
+            [
+              1292,
+              1873
+            ]
+          ],
+          "line_support": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "boundary_inset_px": 2.0
+        }
+      ]
+    },
+    {
+      "lot": "B",
+      "file": "<local-path>",
+      "source_sha256": "395219c5cc34cb34c85669a1fbf166159266e17cb90a5b3b886cac41b73897a4",
+      "image_size": [
+        3000,
+        4000
+      ],
+      "registered": 16,
+      "open_u": 16,
+      "unknown_occupancy": 16,
+      "vehicle_numbers": 0,
+      "vehicle_colors": 0,
+      "inference_errors": [],
+      "diagnostic": "<local-path>",
+      "spaces": [
+        {
+          "space_id": "A-06",
+          "space_type": "general",
+          "polygon": [
+            [
+              2498,
+              2755
+            ],
+            [
+              2478,
+              2402
+            ],
+            [
+              2002,
+              2078
+            ],
+            [
+              2012,
+              2425
+            ]
+          ],
+          "boundary_kind": "open_u",
+          "painted_edges": [
+            [
+              [
+                2012,
+                2425
+              ],
+              [
+                2498,
+                2755
+              ]
+            ],
+            [
+              [
+                2498,
+                2755
+              ],
+              [
+                2478,
+                2402
+              ]
+            ],
+            [
+              [
+                2478,
+                2402
+              ],
+              [
+                2002,
+                2078
+              ]
+            ]
+          ],
+          "entrance_edge": [
+            [
+              2002,
+              2078
+            ],
+            [
+              2012,
+              2425
+            ]
+          ],
+          "line_support": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "boundary_inset_px": 2.0
+        },
+        {
+          "space_id": "A-07",
+          "space_type": "electric",
+          "polygon": [
+            [
+              2518,
+              3123
+            ],
+            [
+              2498,
+              2760
+            ],
+            [
+              2012,
+              2430
+            ],
+            [
+              2025,
+              2787
+            ]
+          ],
+          "boundary_kind": "open_u",
+          "painted_edges": [
+            [
+              [
+                2025,
+                2787
+              ],
+              [
+                2518,
+                3123
+              ]
+            ],
+            [
+              [
+                2518,
+                3123
+              ],
+              [
+                2498,
+                2760
+              ]
+            ],
+            [
+              [
+                2498,
+                2760
+              ],
+              [
+                2012,
+                2430
+              ]
+            ]
+          ],
+          "entrance_edge": [
+            [
+              2012,
+              2430
+            ],
+            [
+              2025,
+              2787
+            ]
+          ],
+          "line_support": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "boundary_inset_px": 2.0
+        },
+        {
+          "space_id": "A-08",
+          "space_type": "electric",
+          "polygon": [
+            [
+              2538,
+              3508
+            ],
+            [
+              2518,
+              3129
+            ],
+            [
+              2025,
+              2793
+            ],
+            [
+              2040,
+              3161
+            ]
+          ],
+          "boundary_kind": "open_u",
+          "painted_edges": [
+            [
+              [
+                2040,
+                3161
+              ],
+              [
+                2538,
+                3508
+              ]
+            ],
+            [
+              [
+                2538,
+                3508
+              ],
+              [
+                2518,
+                3129
+              ]
+            ],
+            [
+              [
+                2518,
+                3129
+              ],
+              [
+                2025,
+                2793
+              ]
+            ]
+          ],
+          "entrance_edge": [
+            [
+              2025,
+              2793
+            ],
+            [
+              2040,
+              3161
+            ]
+          ],
+          "line_support": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "boundary_inset_px": 2.0
+        },
+        {
+          "space_id": "A-02",
+          "space_type": "general",
+          "polygon": [
+            [
+              2423,
+              1369
+            ],
+            [
+              2411,
+              1053
+            ],
+            [
+              1964,
+              749
+            ],
+            [
+              1971,
+              1067
+            ]
+          ],
+          "boundary_kind": "open_u",
+          "painted_edges": [
+            [
+              [
+                1971,
+                1067
+              ],
+              [
+                2423,
+                1369
+              ]
+            ],
+            [
+              [
+                2423,
+                1369
+              ],
+              [
+                2411,
+                1053
+              ]
+            ],
+            [
+              [
+                2411,
+                1053
+              ],
+              [
+                1964,
+                749
+              ]
+            ]
+          ],
+          "entrance_edge": [
+            [
+              1964,
+              749
+            ],
+            [
+              1971,
+              1067
+            ]
+          ],
+          "line_support": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "boundary_inset_px": 2.0
+        },
+        {
+          "space_id": "A-03",
+          "space_type": "general",
+          "polygon": [
+            [
+              2442,
+              1707
+            ],
+            [
+              2423,
+              1374
+            ],
+            [
+              1971,
+              1072
+            ],
+            [
+              1981,
+              1395
+            ]
+          ],
+          "boundary_kind": "open_u",
+          "painted_edges": [
+            [
+              [
+                1981,
+                1395
+              ],
+              [
+                2442,
+                1707
+              ]
+            ],
+            [
+              [
+                2442,
+                1707
+              ],
+              [
+                2423,
+                1374
+              ]
+            ],
+            [
+              [
+                2423,
+                1374
+              ],
+              [
+                1971,
+                1072
+              ]
+            ]
+          ],
+          "entrance_edge": [
+            [
+              1971,
+              1072
+            ],
+            [
+              1981,
+              1395
+            ]
+          ],
+          "line_support": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "boundary_inset_px": 2.0
+        },
+        {
+          "space_id": "A-04",
+          "space_type": "general",
+          "polygon": [
+            [
+              2459,
+              2043
+            ],
+            [
+              2441,
+              1711
+            ],
+            [
+              1980,
+              1403
+            ],
+            [
+              1991,
+              1732
+            ]
+          ],
+          "boundary_kind": "open_u",
+          "painted_edges": [
+            [
+              [
+                1991,
+                1732
+              ],
+              [
+                2459,
+                2043
+              ]
+            ],
+            [
+              [
+                2459,
+                2043
+              ],
+              [
+                2441,
+                1711
+              ]
+            ],
+            [
+              [
+                2441,
+                1711
+              ],
+              [
+                1980,
+                1403
+              ]
+            ]
+          ],
+          "entrance_edge": [
+            [
+              1980,
+              1403
+            ],
+            [
+              1991,
+              1732
+            ]
+          ],
+          "line_support": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "boundary_inset_px": 2.0
+        },
+        {
+          "space_id": "A-05",
+          "space_type": "general",
+          "polygon": [
+            [
+              2478,
+              2397
+            ],
+            [
+              2459,
+              2048
+            ],
+            [
+              1991,
+              1737
+            ],
+            [
+              2002,
+              2073
+            ]
+          ],
+          "boundary_kind": "open_u",
+          "painted_edges": [
+            [
+              [
+                2002,
+                2073
+              ],
+              [
+                2478,
+                2397
+              ]
+            ],
+            [
+              [
+                2478,
+                2397
+              ],
+              [
+                2459,
+                2048
+              ]
+            ],
+            [
+              [
+                2459,
+                2048
+              ],
+              [
+                1991,
+                1737
+              ]
+            ]
+          ],
+          "entrance_edge": [
+            [
+              1991,
+              1737
+            ],
+            [
+              2002,
+              2073
+            ]
+          ],
+          "line_support": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "boundary_inset_px": 2.0
+        },
+        {
+          "space_id": "A-01",
+          "space_type": "general",
+          "polygon": [
+            [
+              2411,
+              1048
+            ],
+            [
+              2399,
+              734
+            ],
+            [
+              1956,
+              428
+            ],
+            [
+              1964,
+              744
+            ]
+          ],
+          "boundary_kind": "open_u",
+          "painted_edges": [
+            [
+              [
+                1964,
+                744
+              ],
+              [
+                2411,
+                1048
+              ]
+            ],
+            [
+              [
+                2411,
+                1048
+              ],
+              [
+                2399,
+                734
+              ]
+            ],
+            [
+              [
+                2399,
+                734
+              ],
+              [
+                1956,
+                428
+              ]
+            ]
+          ],
+          "entrance_edge": [
+            [
+              1956,
+              428
+            ],
+            [
+              1964,
+              744
+            ]
+          ],
+          "line_support": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "boundary_inset_px": 2.0
+        },
+        {
+          "space_id": "B-01",
+          "space_type": "general",
+          "polygon": [
+            [
+              693,
+              389
+            ],
+            [
+              691,
+              719
+            ],
+            [
+              1152,
+              1038
+            ],
+            [
+              1152,
+              714
+            ]
+          ],
+          "boundary_kind": "open_u",
+          "painted_edges": [
+            [
+              [
+                1152,
+                714
+              ],
+              [
+                693,
+                389
+              ]
+            ],
+            [
+              [
+                693,
+                389
+              ],
+              [
+                691,
+                719
+              ]
+            ],
+            [
+              [
+                691,
+                719
+              ],
+              [
+                1152,
+                1038
+              ]
+            ]
+          ],
+          "entrance_edge": [
+            [
+              1152,
+              1038
+            ],
+            [
+              1152,
+              714
+            ]
+          ],
+          "line_support": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "boundary_inset_px": 2.0
+        },
+        {
+          "space_id": "B-02",
+          "space_type": "general",
+          "polygon": [
+            [
+              688,
+              1052
+            ],
+            [
+              691,
+              724
+            ],
+            [
+              1152,
+              1043
+            ],
+            [
+              1158,
+              1374
+            ]
+          ],
+          "boundary_kind": "open_u",
+          "painted_edges": [
+            [
+              [
+                1158,
+                1374
+              ],
+              [
+                688,
+                1052
+              ]
+            ],
+            [
+              [
+                688,
+                1052
+              ],
+              [
+                691,
+                724
+              ]
+            ],
+            [
+              [
+                691,
+                724
+              ],
+              [
+                1152,
+                1043
+              ]
+            ]
+          ],
+          "entrance_edge": [
+            [
+              1152,
+              1043
+            ],
+            [
+              1158,
+              1374
+            ]
+          ],
+          "line_support": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "boundary_inset_px": 2.0
+        },
+        {
+          "space_id": "B-04",
+          "space_type": "general",
+          "polygon": [
+            [
+              685,
+              1737
+            ],
+            [
+              687,
+              1398
+            ],
+            [
+              1159,
+              1720
+            ],
+            [
+              1159,
+              2062
+            ]
+          ],
+          "boundary_kind": "open_u",
+          "painted_edges": [
+            [
+              [
+                1159,
+                2062
+              ],
+              [
+                685,
+                1737
+              ]
+            ],
+            [
+              [
+                685,
+                1737
+              ],
+              [
+                687,
+                1398
+              ]
+            ],
+            [
+              [
+                687,
+                1398
+              ],
+              [
+                1159,
+                1720
+              ]
+            ]
+          ],
+          "entrance_edge": [
+            [
+              1159,
+              1720
+            ],
+            [
+              1159,
+              2062
+            ]
+          ],
+          "line_support": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "boundary_inset_px": 2.0
+        },
+        {
+          "space_id": "B-05",
+          "space_type": "general",
+          "polygon": [
+            [
+              683,
+              2093
+            ],
+            [
+              685,
+              1742
+            ],
+            [
+              1159,
+              2067
+            ],
+            [
+              1161,
+              2416
+            ]
+          ],
+          "boundary_kind": "open_u",
+          "painted_edges": [
+            [
+              [
+                1161,
+                2416
+              ],
+              [
+                683,
+                2093
+              ]
+            ],
+            [
+              [
+                683,
+                2093
+              ],
+              [
+                685,
+                1742
+              ]
+            ],
+            [
+              [
+                685,
+                1742
+              ],
+              [
+                1159,
+                2067
+              ]
+            ]
+          ],
+          "entrance_edge": [
+            [
+              1159,
+              2067
+            ],
+            [
+              1161,
+              2416
+            ]
+          ],
+          "line_support": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "boundary_inset_px": 2.0
+        },
+        {
+          "space_id": "B-06",
+          "space_type": "general",
+          "polygon": [
+            [
+              675,
+              2454
+            ],
+            [
+              681,
+              2097
+            ],
+            [
+              1161,
+              2421
+            ],
+            [
+              1159,
+              2784
+            ]
+          ],
+          "boundary_kind": "open_u",
+          "painted_edges": [
+            [
+              [
+                1159,
+                2784
+              ],
+              [
+                675,
+                2454
+              ]
+            ],
+            [
+              [
+                675,
+                2454
+              ],
+              [
+                681,
+                2097
+              ]
+            ],
+            [
+              [
+                681,
+                2097
+              ],
+              [
+                1161,
+                2421
+              ]
+            ]
+          ],
+          "entrance_edge": [
+            [
+              1161,
+              2421
+            ],
+            [
+              1159,
+              2784
+            ]
+          ],
+          "line_support": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "boundary_inset_px": 2.0
+        },
+        {
+          "space_id": "B-07",
+          "space_type": "accessible",
+          "polygon": [
+            [
+              669,
+              2827
+            ],
+            [
+              675,
+              2459
+            ],
+            [
+              1159,
+              2789
+            ],
+            [
+              1159,
+              3164
+            ]
+          ],
+          "boundary_kind": "open_u",
+          "painted_edges": [
+            [
+              [
+                1159,
+                3164
+              ],
+              [
+                669,
+                2827
+              ]
+            ],
+            [
+              [
+                669,
+                2827
+              ],
+              [
+                675,
+                2459
+              ]
+            ],
+            [
+              [
+                675,
+                2459
+              ],
+              [
+                1159,
+                2789
+              ]
+            ]
+          ],
+          "entrance_edge": [
+            [
+              1159,
+              2789
+            ],
+            [
+              1159,
+              3164
+            ]
+          ],
+          "line_support": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "boundary_inset_px": 2.0
+        },
+        {
+          "space_id": "B-08",
+          "space_type": "accessible",
+          "polygon": [
+            [
+              662,
+              3207
+            ],
+            [
+              669,
+              2832
+            ],
+            [
+              1159,
+              3169
+            ],
+            [
+              1160,
+              3556
+            ]
+          ],
+          "boundary_kind": "open_u",
+          "painted_edges": [
+            [
+              [
+                1160,
+                3556
+              ],
+              [
+                662,
+                3207
+              ]
+            ],
+            [
+              [
+                662,
+                3207
+              ],
+              [
+                669,
+                2832
+              ]
+            ],
+            [
+              [
+                669,
+                2832
+              ],
+              [
+                1159,
+                3169
+              ]
+            ]
+          ],
+          "entrance_edge": [
+            [
+              1159,
+              3169
+            ],
+            [
+              1160,
+              3556
+            ]
+          ],
+          "line_support": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "boundary_inset_px": 2.0
+        },
+        {
+          "space_id": "B-03",
+          "space_type": "general",
+          "polygon": [
+            [
+              687,
+              1393
+            ],
+            [
+              689,
+              1060
+            ],
+            [
+              1157,
+              1380
+            ],
+            [
+              1159,
+              1715
+            ]
+          ],
+          "boundary_kind": "open_u",
+          "painted_edges": [
+            [
+              [
+                1159,
+                1715
+              ],
+              [
+                687,
+                1393
+              ]
+            ],
+            [
+              [
+                687,
+                1393
+              ],
+              [
+                689,
+                1060
+              ]
+            ],
+            [
+              [
+                689,
+                1060
+              ],
+              [
+                1157,
+                1380
+              ]
+            ]
+          ],
+          "entrance_edge": [
+            [
+              1157,
+              1380
+            ],
+            [
+              1159,
+              1715
+            ]
+          ],
+          "line_support": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "boundary_inset_px": 2.0
+        }
+      ]
+    }
+  ]
+}

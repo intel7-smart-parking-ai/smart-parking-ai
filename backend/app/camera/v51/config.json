@@ -1,0 +1,56 @@
+{
+  "dataset_directory": "datasets",
+  "save_interval": 2.0,
+  "warmup_seconds": 3.0,
+  "device": "auto",
+  "download_models": true,
+  "ocr_min_score": 0.7,
+  "physical_sticker_set": "round-10-99-v1",
+  "allowed_numbers": null,
+  "color_to_type": {
+    "white": "general",
+    "green": "electric",
+    "blue": "accessible"
+  },
+  "installation": {
+    "lighting": "indoor_fluorescent",
+    "light_to_surface_cm": 184,
+    "camera_below_light_cm": [
+      10,
+      30
+    ]
+  },
+  "camera_pose": {
+    "A": "fixed-v1",
+    "B": "fixed-v1"
+  },
+  "ocr_languages": [
+    "ko",
+    "en"
+  ],
+  "camera_lots": {
+    "A": "A",
+    "B": "B"
+  },
+  "color_target": "number_sticker_background",
+  "sticker_region_mode": "per_image_polygon",
+  "sticker_assignment_status": "read_background_from_round_sticker",
+  "number_policy": {
+    "physical": "10_to_99",
+    "virtual": "four_digit_display_or_full_plate",
+    "auto_zero_padding": false
+  },
+  "analysis_interval": 1.0,
+  "difference_threshold": 35,
+  "empty_ratio": 0.025,
+  "occupied_ratio": 0.12,
+  "occupancy_model": null,
+  "quality_selection": {
+    "min_bay_short_side": 32,
+    "min_sticker_short_side": 16,
+    "min_number_short_side": 16,
+    "min_sharpness": 60.0,
+    "max_dark_ratio": 0.98,
+    "max_bright_ratio": 0.98
+  }
+}

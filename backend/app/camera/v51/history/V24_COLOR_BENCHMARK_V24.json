@@ -1,0 +1,27 @@
+{
+  "scope": "Local 4000x3000 synthetic image, four fixed polygons incl. image borders; color function only, not full inference FPS",
+  "outputs_identical": true,
+  "timings": {
+    "V23": {
+      "four_sticker_calls_ms": [
+        493.9083999488503,
+        491.96829996071756,
+        491.41259980387986,
+        486.99939996004105,
+        492.8156000096351
+      ],
+      "median_ms": 491.96829996071756
+    },
+    "V24": {
+      "four_sticker_calls_ms": [
+        1.4085001312196255,
+        1.1482001282274723,
+        1.0995001066476107,
+        1.0718000121414661,
+        1.0718000121414661
+      ],
+      "median_ms": 1.0995001066476107
+    }
+  },
+  "median_speedup": 447.4472507881195
+}

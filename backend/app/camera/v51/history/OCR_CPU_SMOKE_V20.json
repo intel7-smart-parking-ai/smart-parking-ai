@@ -1,0 +1,100 @@
+{
+  "product_version": "V20",
+  "synthetic_only": true,
+  "small_green_sticker": {
+    "product_version": "V20",
+    "synthetic_image_only": true,
+    "engine": {
+      "engine": "easyocr",
+      "version": "1.7.2",
+      "torch": "2.15.0+xpu",
+      "languages": [
+        "ko",
+        "en"
+      ],
+      "requested_device": "cpu",
+      "device": "cpu",
+      "gpu": null,
+      "fallback_reason": null
+    },
+    "seconds_including_load": 4.33,
+    "occupancy": "occupied",
+    "number": null,
+    "color": "green",
+    "stage": "complete",
+    "errors": [],
+    "ocr_candidates": [
+      {
+        "text": "8",
+        "number_candidate": null,
+        "score": 0.9446099746892287,
+        "text_bbox": [
+          54,
+          90,
+          91,
+          116
+        ],
+        "status": "invalid_number",
+        "color_candidate": {
+          "name": "unknown",
+          "ratios": {},
+          "method": "sticker_interior_hsv_v1",
+          "status": "sticker_region_required",
+          "polygon": null,
+          "sample_pixels": 0
+        },
+        "vehicle_type_candidate": null
+      }
+    ],
+    "passed": false
+  },
+  "large_white_sticker": {
+    "product_version": "V20",
+    "synthetic_image_only": true,
+    "engine": {
+      "engine": "easyocr",
+      "version": "1.7.2",
+      "torch": "2.15.0+xpu",
+      "languages": [
+        "ko",
+        "en"
+      ],
+      "requested_device": "cpu",
+      "device": "cpu",
+      "gpu": null,
+      "fallback_reason": null
+    },
+    "seconds_including_load": 5.645,
+    "occupancy": "occupied",
+    "number": "23",
+    "color": "white",
+    "stage": "complete",
+    "errors": [],
+    "ocr_candidates": [
+      {
+        "text": "23",
+        "number_candidate": "23",
+        "score": 0.8678344333200907,
+        "text_bbox": [
+          194,
+          283,
+          319,
+          368
+        ],
+        "status": "candidate",
+        "color_candidate": {
+          "name": "unknown",
+          "ratios": {},
+          "method": "sticker_interior_hsv_v1",
+          "status": "sticker_region_required",
+          "polygon": null,
+          "sample_pixels": 0
+        },
+        "vehicle_type_candidate": null
+      }
+    ],
+    "passed": true
+  },
+  "field_accuracy_evaluated": false,
+  "sandbox_torch_dll_denied_then_local_approved_run": true
+}

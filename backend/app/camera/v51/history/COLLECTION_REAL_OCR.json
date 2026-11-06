@@ -1,0 +1,1640 @@
+{
+  "product_version": "V21",
+  "source": "synthetic only",
+  "engine": {
+    "engine": "easyocr",
+    "version": "1.7.2",
+    "torch": "2.15.0+xpu",
+    "languages": [
+      "ko",
+      "en"
+    ],
+    "requested_device": "cpu",
+    "device": "cpu",
+    "gpu": null,
+    "fallback_reason": null
+  },
+  "cases": [
+    {
+      "lot": "A",
+      "setup_ready": true,
+      "record": "55e87f751fbd4ec696b793d8edc1ff53",
+      "receipt": {
+        "image_id": "55e87f751fbd4ec696b793d8edc1ff53",
+        "items": [
+          {
+            "path": "<image-path>",
+            "kind": "space",
+            "space_id": "A-01",
+            "sha256": "006555a27f3d638d38d6fbfc10a1815d5cc9b1ec8b2850a132e3eac1699a5f5d",
+            "status": "complete",
+            "origin": [
+              10,
+              10
+            ],
+            "polygon": [
+              [
+                12,
+                10
+              ],
+              [
+                185,
+                11
+              ],
+              [
+                184,
+                245
+              ],
+              [
+                10,
+                244
+              ]
+            ],
+            "mask_outside": "white"
+          },
+          {
+            "path": "<image-path>",
+            "kind": "space",
+            "space_id": "A-02",
+            "sha256": "99cea719be3165b569da00c45aa2374203770f69ab5f2ec61f58f2e13f508034",
+            "status": "complete",
+            "origin": [
+              210,
+              10
+            ],
+            "polygon": [
+              [
+                212,
+                10
+              ],
+              [
+                385,
+                11
+              ],
+              [
+                384,
+                245
+              ],
+              [
+                210,
+                244
+              ]
+            ],
+            "mask_outside": "white"
+          },
+          {
+            "path": "<image-path>",
+            "kind": "space",
+            "space_id": "A-03",
+            "sha256": "bfbba3abad39cba0d666d595521376f90cd3651727f0a0229217bfd64acbdc1e",
+            "status": "complete",
+            "origin": [
+              410,
+              10
+            ],
+            "polygon": [
+              [
+                412,
+                10
+              ],
+              [
+                585,
+                11
+              ],
+              [
+                584,
+                245
+              ],
+              [
+                410,
+                244
+              ]
+            ],
+            "mask_outside": "white"
+          },
+          {
+            "path": "<image-path>",
+            "kind": "space",
+            "space_id": "A-05",
+            "sha256": "476dbb8bb71aed0794ecef75b0544cd6df1f3ea52cf5b622b25ae13b3aaa353d",
+            "status": "complete",
+            "origin": [
+              810,
+              10
+            ],
+            "polygon": [
+              [
+                812,
+                10
+              ],
+              [
+                985,
+                11
+              ],
+              [
+                984,
+                245
+              ],
+              [
+                810,
+                244
+              ]
+            ],
+            "mask_outside": "white"
+          },
+          {
+            "path": "<image-path>",
+            "kind": "space",
+            "space_id": "A-06",
+            "sha256": "2cf0006b4becf1719f52005faed1bd779fa60696c22211ce46107f3ddb72d708",
+            "status": "complete",
+            "origin": [
+              1010,
+              10
+            ],
+            "polygon": [
+              [
+                1012,
+                10
+              ],
+              [
+                1185,
+                11
+              ],
+              [
+                1184,
+                245
+              ],
+              [
+                1010,
+                244
+              ]
+            ],
+            "mask_outside": "white"
+          },
+          {
+            "path": "<image-path>",
+            "kind": "space",
+            "space_id": "B-01",
+            "sha256": "e1e7241b8050d70ef48d0f5ad7bac3582f1d5f2d186476469e9a4cb93e6c152b",
+            "status": "complete",
+            "origin": [
+              10,
+              270
+            ],
+            "polygon": [
+              [
+                12,
+                270
+              ],
+              [
+                185,
+                271
+              ],
+              [
+                184,
+                505
+              ],
+              [
+                10,
+                504
+              ]
+            ],
+            "mask_outside": "white"
+          },
+          {
+            "path": "<image-path>",
+            "kind": "space",
+            "space_id": "B-02",
+            "sha256": "a62c498698be49be8d322a4c90d5b8c1b0bcfb717240fd24a2a4495955a0e764",
+            "status": "complete",
+            "origin": [
+              210,
+              270
+            ],
+            "polygon": [
+              [
+                212,
+                270
+              ],
+              [
+                385,
+                271
+              ],
+              [
+                384,
+                505
+              ],
+              [
+                210,
+                504
+              ]
+            ],
+            "mask_outside": "white"
+          },
+          {
+            "path": "<image-path>",
+            "kind": "space",
+            "space_id": "B-03",
+            "sha256": "b6391e15763d0ac19bc63a1fdab0489a18b4e0f60a0da1c932397e4f29bf1640",
+            "status": "complete",
+            "origin": [
+              410,
+              270
+            ],
+            "polygon": [
+              [
+                412,
+                270
+              ],
+              [
+                585,
+                271
+              ],
+              [
+                584,
+                505
+              ],
+              [
+                410,
+                504
+              ]
+            ],
+            "mask_outside": "white"
+          },
+          {
+            "path": "<image-path>",
+            "kind": "space",
+            "space_id": "B-04",
+            "sha256": "8bf0e72f8914e158e4e98c1a76fc38d3d3a2562974c25c0aaf889300db9e6be2",
+            "status": "complete",
+            "origin": [
+              610,
+              270
+            ],
+            "polygon": [
+              [
+                612,
+                270
+              ],
+              [
+                785,
+                271
+              ],
+              [
+                784,
+                505
+              ],
+              [
+                610,
+                504
+              ]
+            ],
+            "mask_outside": "white"
+          },
+          {
+            "path": "<image-path>",
+            "kind": "space",
+            "space_id": "B-06",
+            "sha256": "05597b7100840ddb9906046d5fcc0aa99488a0e52c2e0270b61b270802b4b366",
+            "status": "complete",
+            "origin": [
+              1010,
+              270
+            ],
+            "polygon": [
+              [
+                1012,
+                270
+              ],
+              [
+                1185,
+                271
+              ],
+              [
+                1184,
+                505
+              ],
+              [
+                1010,
+                504
+              ]
+            ],
+            "mask_outside": "white"
+          },
+          {
+            "path": "<image-path>",
+            "kind": "space",
+            "space_id": "A-04",
+            "sha256": "8493f52a22c92f285288229570daaa3622b4a8f56d65242a20750982c1efae77",
+            "status": "complete",
+            "origin": [
+              610,
+              10
+            ],
+            "polygon": [
+              [
+                612,
+                10
+              ],
+              [
+                785,
+                11
+              ],
+              [
+                784,
+                245
+              ],
+              [
+                610,
+                244
+              ]
+            ],
+            "mask_outside": "white"
+          },
+          {
+            "path": "<image-path>",
+            "kind": "space",
+            "space_id": "B-05",
+            "sha256": "4de9e089e9d03e9d172e5f40faa477e6af0403dc6e1aa70d231cce60d3cda35d",
+            "status": "complete",
+            "origin": [
+              810,
+              270
+            ],
+            "polygon": [
+              [
+                812,
+                270
+              ],
+              [
+                985,
+                271
+              ],
+              [
+                984,
+                505
+              ],
+              [
+                810,
+                504
+              ]
+            ],
+            "mask_outside": "white"
+          },
+          {
+            "path": "<image-path>",
+            "kind": "sticker",
+            "space_id": "A-01",
+            "sha256": "532384314a4c9e49eb0627ac24d45c9eb4691c446c8e8e5cd9d6fb330a4a77fd",
+            "status": "complete"
+          }
+        ],
+        "errors": [],
+        "status": "complete",
+        "collection_counts": {
+          "annotated_space": 12,
+          "korean_label": 12,
+          "annotated_scene": 1,
+          "scene_label": 1
+        }
+      },
+      "first_space": {
+        "space_id": "A-01",
+        "occupancy": "occupied",
+        "occupancy_score": null,
+        "occupancy_reason": "인쇄 흔적이 있는 스티커 검출 기반 점유 후보 · 차량 여부 확인 필요",
+        "score_kind": "sticker_presence",
+        "number": "23",
+        "color": "green",
+        "sticker_polygon": [
+          [
+            66,
+            148
+          ],
+          [
+            57,
+            81
+          ],
+          [
+            124,
+            72
+          ],
+          [
+            133,
+            139
+          ]
+        ],
+        "plate_bbox": [
+          71,
+          96,
+          114,
+          127
+        ],
+        "vehicle_type": "electric",
+        "zone_rule": "allowed",
+        "issues": [],
+        "geometry_status": "위치 자동검사 불가",
+        "color_method": "independent_color_shape_candidate",
+        "ocr_status": "candidate",
+        "review_status": "pending",
+        "quality": {
+          "laplacian_variance": 1938.7831531794648,
+          "dark_ratio": 0.2760015408320493,
+          "bright_ratio": 0.0,
+          "width": 176,
+          "height": 236,
+          "warnings": [],
+          "assessment": "참고용 지표 · 번호 인식 가능 여부를 보장하지 않음"
+        },
+        "selected_ocr": {
+          "text": "23",
+          "number_candidate": "23",
+          "score": 0.9998614239745245,
+          "text_bbox": [
+            71,
+            96,
+            114,
+            127
+          ],
+          "status": "candidate",
+          "method": "sticker_color",
+          "rotation_degrees": 0,
+          "selected_in_view": true
+        },
+        "ocr_candidates": [
+          {
+            "text": "23",
+            "number_candidate": "23",
+            "score": 0.9998614239745245,
+            "text_bbox": [
+              71,
+              96,
+              114,
+              127
+            ],
+            "status": "candidate",
+            "method": "sticker_color",
+            "rotation_degrees": 0,
+            "selected_in_view": true
+          },
+          {
+            "text": "23",
+            "number_candidate": "23",
+            "score": 0.6122253996028685,
+            "text_bbox": [
+              71,
+              97,
+              114,
+              126
+            ],
+            "status": "low_score",
+            "method": "sticker_value_normalized",
+            "rotation_degrees": 0,
+            "selected_in_view": false
+          },
+          {
+            "text": "8",
+            "number_candidate": null,
+            "score": 0.9939366976687438,
+            "text_bbox": [
+              69,
+              94,
+              115,
+              129
+            ],
+            "status": "invalid_number",
+            "method": "sticker_value_normalized",
+            "rotation_degrees": 90,
+            "selected_in_view": false
+          },
+          {
+            "text": "97",
+            "number_candidate": null,
+            "score": 0.6155942970374148,
+            "text_bbox": [
+              70,
+              96,
+              114,
+              127
+            ],
+            "status": "invalid_number",
+            "method": "sticker_value_normalized",
+            "rotation_degrees": 180,
+            "selected_in_view": false
+          },
+          {
+            "text": "8",
+            "number_candidate": null,
+            "score": 0.45187362699016376,
+            "text_bbox": [
+              68,
+              97,
+              114,
+              127
+            ],
+            "status": "invalid_number",
+            "method": "sticker_value_normalized",
+            "rotation_degrees": 270,
+            "selected_in_view": false
+          },
+          {
+            "text": "23",
+            "number_candidate": "23",
+            "score": 0.9998530792474449,
+            "text_bbox": [
+              67,
+              91,
+              116,
+              131
+            ],
+            "status": "candidate",
+            "method": "sticker_value_binary",
+            "rotation_degrees": 0,
+            "selected_in_view": true
+          }
+        ],
+        "ocr_method": "sticker_multi_view_agreement"
+      },
+      "unknown_slots": 11
+    },
+    {
+      "lot": "B",
+      "setup_ready": true,
+      "record": "a8c9217f9392412bb7bc996f1b53c4fa",
+      "receipt": {
+        "image_id": "a8c9217f9392412bb7bc996f1b53c4fa",
+        "items": [
+          {
+            "path": "<image-path>",
+            "kind": "space",
+            "space_id": "A-01",
+            "sha256": "728cc156311f2bc6a5d7240f2061bea4b77c9d18c2e4d5a58209bdcfec8e4cb4",
+            "status": "complete",
+            "origin": [
+              11,
+              10
+            ],
+            "polygon": [
+              [
+                32,
+                10
+              ],
+              [
+                185,
+                11
+              ],
+              [
+                164,
+                245
+              ],
+              [
+                11,
+                244
+              ]
+            ],
+            "mask_outside": "white"
+          },
+          {
+            "path": "<image-path>",
+            "kind": "space",
+            "space_id": "A-02",
+            "sha256": "e8e30a32a33130ddfb049319c5471dbec67ea959942e316e09574e86975e5a03",
+            "status": "complete",
+            "origin": [
+              211,
+              10
+            ],
+            "polygon": [
+              [
+                232,
+                10
+              ],
+              [
+                385,
+                11
+              ],
+              [
+                364,
+                245
+              ],
+              [
+                211,
+                244
+              ]
+            ],
+            "mask_outside": "white"
+          },
+          {
+            "path": "<image-path>",
+            "kind": "space",
+            "space_id": "A-03",
+            "sha256": "9652d9c8c966cf5971d2eccb15dda4ac47c2ebbdaa1ed5ed2cb8780124dae570",
+            "status": "complete",
+            "origin": [
+              411,
+              10
+            ],
+            "polygon": [
+              [
+                432,
+                10
+              ],
+              [
+                585,
+                11
+              ],
+              [
+                564,
+                245
+              ],
+              [
+                411,
+                244
+              ]
+            ],
+            "mask_outside": "white"
+          },
+          {
+            "path": "<image-path>",
+            "kind": "space",
+            "space_id": "A-05",
+            "sha256": "85e6b1ca9c97127c8e55354500e21b0c85083985cda1abc77fe2c4eac5cd3326",
+            "status": "complete",
+            "origin": [
+              811,
+              10
+            ],
+            "polygon": [
+              [
+                832,
+                10
+              ],
+              [
+                985,
+                11
+              ],
+              [
+                964,
+                245
+              ],
+              [
+                811,
+                244
+              ]
+            ],
+            "mask_outside": "white"
+          },
+          {
+            "path": "<image-path>",
+            "kind": "space",
+            "space_id": "A-06",
+            "sha256": "e27ec505cab4138a6c6d87093e92102b792464801ce8ea78c590959c2ea83955",
+            "status": "complete",
+            "origin": [
+              1011,
+              10
+            ],
+            "polygon": [
+              [
+                1032,
+                10
+              ],
+              [
+                1185,
+                11
+              ],
+              [
+                1164,
+                245
+              ],
+              [
+                1011,
+                244
+              ]
+            ],
+            "mask_outside": "white"
+          },
+          {
+            "path": "<image-path>",
+            "kind": "space",
+            "space_id": "A-07",
+            "sha256": "6885839a8bc491b41cb39039c9d155b87348d5278045f38c47280be35c2dcbf6",
+            "status": "complete",
+            "origin": [
+              1211,
+              10
+            ],
+            "polygon": [
+              [
+                1232,
+                10
+              ],
+              [
+                1385,
+                11
+              ],
+              [
+                1364,
+                245
+              ],
+              [
+                1211,
+                244
+              ]
+            ],
+            "mask_outside": "white"
+          },
+          {
+            "path": "<image-path>",
+            "kind": "space",
+            "space_id": "A-08",
+            "sha256": "7bc43a74a51c5f022d6e57d1ed91488c1bc932dcfc26f59db499b05ea434e0a7",
+            "status": "complete",
+            "origin": [
+              1411,
+              10
+            ],
+            "polygon": [
+              [
+                1432,
+                10
+              ],
+              [
+                1585,
+                11
+              ],
+              [
+                1564,
+                245
+              ],
+              [
+                1411,
+                244
+              ]
+            ],
+            "mask_outside": "white"
+          },
+          {
+            "path": "<image-path>",
+            "kind": "space",
+            "space_id": "B-01",
+            "sha256": "13ff0049e3de8e8fac5f78262e95b4864797e6eb9ff3e9e59556783a203ae0ac",
+            "status": "complete",
+            "origin": [
+              11,
+              270
+            ],
+            "polygon": [
+              [
+                32,
+                270
+              ],
+              [
+                185,
+                271
+              ],
+              [
+                164,
+                505
+              ],
+              [
+                11,
+                504
+              ]
+            ],
+            "mask_outside": "white"
+          },
+          {
+            "path": "<image-path>",
+            "kind": "space",
+            "space_id": "B-02",
+            "sha256": "34216c60b3b0569362169f99ca24e0afcaf468b7f4e3a67472eca7d885d2ce62",
+            "status": "complete",
+            "origin": [
+              211,
+              270
+            ],
+            "polygon": [
+              [
+                232,
+                270
+              ],
+              [
+                385,
+                271
+              ],
+              [
+                364,
+                505
+              ],
+              [
+                211,
+                504
+              ]
+            ],
+            "mask_outside": "white"
+          },
+          {
+            "path": "<image-path>",
+            "kind": "space",
+            "space_id": "B-03",
+            "sha256": "02881fc85aa4a3c9fac54cee623b8ed33cfdbb7902b7b018a650180d6f7c8db2",
+            "status": "complete",
+            "origin": [
+              411,
+              270
+            ],
+            "polygon": [
+              [
+                432,
+                270
+              ],
+              [
+                585,
+                271
+              ],
+              [
+                564,
+                505
+              ],
+              [
+                411,
+                504
+              ]
+            ],
+            "mask_outside": "white"
+          },
+          {
+            "path": "<image-path>",
+            "kind": "space",
+            "space_id": "B-04",
+            "sha256": "f2bbcf4ca9fd455c712301434ab62e35125fb2483d3f962acc8c9a6e519bab30",
+            "status": "complete",
+            "origin": [
+              611,
+              270
+            ],
+            "polygon": [
+              [
+                632,
+                270
+              ],
+              [
+                785,
+                271
+              ],
+              [
+                764,
+                505
+              ],
+              [
+                611,
+                504
+              ]
+            ],
+            "mask_outside": "white"
+          },
+          {
+            "path": "<image-path>",
+            "kind": "space",
+            "space_id": "B-06",
+            "sha256": "3df05ea2ca437c217183e1bd52c297789a57acab484cf674d87899412e4e0705",
+            "status": "complete",
+            "origin": [
+              1011,
+              270
+            ],
+            "polygon": [
+              [
+                1032,
+                270
+              ],
+              [
+                1185,
+                271
+              ],
+              [
+                1164,
+                505
+              ],
+              [
+                1011,
+                504
+              ]
+            ],
+            "mask_outside": "white"
+          },
+          {
+            "path": "<image-path>",
+            "kind": "space",
+            "space_id": "B-07",
+            "sha256": "d5da29ff826622f89b22b3e28760a18d554b3802e6583e015fc64da6c5b799e3",
+            "status": "complete",
+            "origin": [
+              1211,
+              270
+            ],
+            "polygon": [
+              [
+                1232,
+                270
+              ],
+              [
+                1385,
+                271
+              ],
+              [
+                1364,
+                505
+              ],
+              [
+                1211,
+                504
+              ]
+            ],
+            "mask_outside": "white"
+          },
+          {
+            "path": "<image-path>",
+            "kind": "space",
+            "space_id": "B-08",
+            "sha256": "56e299285c6b3ade37cb4fdc527db4ba486e6acf40fec9b04bc99c22a08eb507",
+            "status": "complete",
+            "origin": [
+              1411,
+              270
+            ],
+            "polygon": [
+              [
+                1432,
+                270
+              ],
+              [
+                1585,
+                271
+              ],
+              [
+                1564,
+                505
+              ],
+              [
+                1411,
+                504
+              ]
+            ],
+            "mask_outside": "white"
+          },
+          {
+            "path": "<image-path>",
+            "kind": "space",
+            "space_id": "A-04",
+            "sha256": "769fd1c2bf9a2cdf94e6c0040526b4171909e8dbf3aeb1fd24d7f87e05c99240",
+            "status": "complete",
+            "origin": [
+              611,
+              10
+            ],
+            "polygon": [
+              [
+                632,
+                10
+              ],
+              [
+                785,
+                11
+              ],
+              [
+                764,
+                245
+              ],
+              [
+                611,
+                244
+              ]
+            ],
+            "mask_outside": "white"
+          },
+          {
+            "path": "<image-path>",
+            "kind": "space",
+            "space_id": "B-05",
+            "sha256": "24c1d4d8e0723312033339c32ff72ee60c1c7ee68484e84ddd86bba549ad7f03",
+            "status": "complete",
+            "origin": [
+              811,
+              270
+            ],
+            "polygon": [
+              [
+                832,
+                270
+              ],
+              [
+                985,
+                271
+              ],
+              [
+                964,
+                505
+              ],
+              [
+                811,
+                504
+              ]
+            ],
+            "mask_outside": "white"
+          },
+          {
+            "path": "<image-path>",
+            "kind": "sticker",
+            "space_id": "A-01",
+            "sha256": "532384314a4c9e49eb0627ac24d45c9eb4691c446c8e8e5cd9d6fb330a4a77fd",
+            "status": "complete"
+          }
+        ],
+        "errors": [],
+        "status": "complete",
+        "collection_counts": {
+          "annotated_space": 16,
+          "korean_label": 16,
+          "annotated_scene": 1,
+          "scene_label": 1
+        }
+      },
+      "first_space": {
+        "space_id": "A-01",
+        "occupancy": "occupied",
+        "occupancy_score": null,
+        "occupancy_reason": "인쇄 흔적이 있는 스티커 검출 기반 점유 후보 · 차량 여부 확인 필요",
+        "score_kind": "sticker_presence",
+        "number": "23",
+        "color": "green",
+        "sticker_polygon": [
+          [
+            66,
+            148
+          ],
+          [
+            57,
+            81
+          ],
+          [
+            124,
+            72
+          ],
+          [
+            133,
+            139
+          ]
+        ],
+        "plate_bbox": [
+          71,
+          96,
+          114,
+          127
+        ],
+        "vehicle_type": "electric",
+        "zone_rule": "allowed",
+        "issues": [],
+        "geometry_status": "위치 자동검사 불가",
+        "color_method": "independent_color_shape_candidate",
+        "ocr_status": "candidate",
+        "review_status": "pending",
+        "quality": {
+          "laplacian_variance": 2584.1681916995467,
+          "dark_ratio": 0.27757869249394673,
+          "bright_ratio": 0.0,
+          "width": 175,
+          "height": 236,
+          "warnings": [],
+          "assessment": "참고용 지표 · 번호 인식 가능 여부를 보장하지 않음"
+        },
+        "selected_ocr": {
+          "text": "23",
+          "number_candidate": "23",
+          "score": 0.9998614239745245,
+          "text_bbox": [
+            71,
+            96,
+            114,
+            127
+          ],
+          "status": "candidate",
+          "method": "sticker_color",
+          "rotation_degrees": 0,
+          "selected_in_view": true
+        },
+        "ocr_candidates": [
+          {
+            "text": "23",
+            "number_candidate": "23",
+            "score": 0.9998614239745245,
+            "text_bbox": [
+              71,
+              96,
+              114,
+              127
+            ],
+            "status": "candidate",
+            "method": "sticker_color",
+            "rotation_degrees": 0,
+            "selected_in_view": true
+          },
+          {
+            "text": "23",
+            "number_candidate": "23",
+            "score": 0.6122253996028685,
+            "text_bbox": [
+              71,
+              97,
+              114,
+              126
+            ],
+            "status": "low_score",
+            "method": "sticker_value_normalized",
+            "rotation_degrees": 0,
+            "selected_in_view": false
+          },
+          {
+            "text": "8",
+            "number_candidate": null,
+            "score": 0.9939366976687438,
+            "text_bbox": [
+              69,
+              94,
+              115,
+              129
+            ],
+            "status": "invalid_number",
+            "method": "sticker_value_normalized",
+            "rotation_degrees": 90,
+            "selected_in_view": false
+          },
+          {
+            "text": "97",
+            "number_candidate": null,
+            "score": 0.6155942970374148,
+            "text_bbox": [
+              70,
+              96,
+              114,
+              127
+            ],
+            "status": "invalid_number",
+            "method": "sticker_value_normalized",
+            "rotation_degrees": 180,
+            "selected_in_view": false
+          },
+          {
+            "text": "8",
+            "number_candidate": null,
+            "score": 0.45187362699016376,
+            "text_bbox": [
+              68,
+              97,
+              114,
+              127
+            ],
+            "status": "invalid_number",
+            "method": "sticker_value_normalized",
+            "rotation_degrees": 270,
+            "selected_in_view": false
+          },
+          {
+            "text": "23",
+            "number_candidate": "23",
+            "score": 0.9998530792474449,
+            "text_bbox": [
+              67,
+              91,
+              116,
+              131
+            ],
+            "status": "candidate",
+            "method": "sticker_value_binary",
+            "rotation_degrees": 0,
+            "selected_in_view": true
+          }
+        ],
+        "ocr_method": "sticker_multi_view_agreement"
+      },
+      "unknown_slots": 15
+    }
+  ],
+  "disk_counts": {
+    "originals": 2,
+    "spaces": 28,
+    "stickers": 2,
+    "label_files": 0,
+    "label_rows": 0,
+    "occupancy_approved": 0,
+    "number_approved": 0,
+    "color_approved": 0,
+    "occupancy_ready": 0,
+    "number_ready": 0,
+    "color_ready": 0,
+    "bytes": 920200,
+    "partial": 0,
+    "annotated_spaces": 28,
+    "korean_labels": 28,
+    "annotated_scenes": 2,
+    "scene_labels": 2,
+    "collection_pairs": 28
+  },
+  "export": {
+    "schema": "automatic-export-v1",
+    "scope": {
+      "lot": null,
+      "session": null
+    },
+    "counts": {
+      "scenes": 2,
+      "space_pairs": 28,
+      "images": 32,
+      "json_files": 30,
+      "originals": 2
+    },
+    "skipped": [],
+    "scenes": [
+      {
+        "image_id": "55e87f751fbd4ec696b793d8edc1ff53",
+        "lot_id": "A",
+        "items": [
+          {
+            "path": "<image-path>",
+            "sha256": "c6f3fb9f0395ee3569d5583d48755929439fa35872b75e07766cb940bb2b84f7",
+            "kind": "annotated_space",
+            "space_id": "A-01"
+          },
+          {
+            "path": "collected/A/A-01/A-01__20261104T105624010126__55e87f751fbd4ec696b793d8edc1ff53.json",
+            "sha256": "b4adbdbe0b2da1ef317196e0944912e67e6826415121ba020f1aea06bc54d852",
+            "kind": "korean_label",
+            "space_id": "A-01"
+          },
+          {
+            "path": "<image-path>",
+            "sha256": "decf057cb096ab67325bf2e573e4e5eadc8745e53f73f13f877646430b620a2e",
+            "kind": "annotated_space",
+            "space_id": "A-02"
+          },
+          {
+            "path": "collected/A/A-02/A-02__20261104T105624010126__55e87f751fbd4ec696b793d8edc1ff53.json",
+            "sha256": "d295c7abc32dd40656d140d633cb001ac073aa11a083c99b059cb6c4b15cccbd",
+            "kind": "korean_label",
+            "space_id": "A-02"
+          },
+          {
+            "path": "<image-path>",
+            "sha256": "5bd304a73b030e38473794a5bf9987ff94e167f09b785b73caa4012b2f62f9cc",
+            "kind": "annotated_space",
+            "space_id": "A-03"
+          },
+          {
+            "path": "collected/A/A-03/A-03__20261104T105624010126__55e87f751fbd4ec696b793d8edc1ff53.json",
+            "sha256": "e253e156c9e493f646be2c325881a509357b1f9cf1cc8d4f942a9d0af8ae7baa",
+            "kind": "korean_label",
+            "space_id": "A-03"
+          },
+          {
+            "path": "<image-path>",
+            "sha256": "97b40a7c6d104dbb17a1a91db75082f01ea21da83343f2d0dad4677ad1076102",
+            "kind": "annotated_space",
+            "space_id": "A-05"
+          },
+          {
+            "path": "collected/A/A-05/A-05__20261104T105624010126__55e87f751fbd4ec696b793d8edc1ff53.json",
+            "sha256": "570435d26f6115ed5ae0c352d6d8242929c03e20c9c7f4000e6eba2cdfac235c",
+            "kind": "korean_label",
+            "space_id": "A-05"
+          },
+          {
+            "path": "<image-path>",
+            "sha256": "82adc0f1ebf8a39ecec0aa1b47215329bce1e26885f8b02393932f7ecdba6396",
+            "kind": "annotated_space",
+            "space_id": "A-06"
+          },
+          {
+            "path": "collected/A/A-06/A-06__20261104T105624010126__55e87f751fbd4ec696b793d8edc1ff53.json",
+            "sha256": "0adf222879283e0debe550ca112d8fbc9bca42b64f3cdffc79cb7e0988fd687d",
+            "kind": "korean_label",
+            "space_id": "A-06"
+          },
+          {
+            "path": "<image-path>",
+            "sha256": "45408c51ad1fc67a1ef4a82ab6d21ef29571cc9db4c4a1c1403d1eeb3dcef123",
+            "kind": "annotated_space",
+            "space_id": "B-01"
+          },
+          {
+            "path": "collected/A/B-01/B-01__20261104T105624010126__55e87f751fbd4ec696b793d8edc1ff53.json",
+            "sha256": "1747a9633ee734e474d5c7189db4572a1eacba9c86f9cf74d54eb4476d8eebf3",
+            "kind": "korean_label",
+            "space_id": "B-01"
+          },
+          {
+            "path": "<image-path>",
+            "sha256": "5509ff27378cf42f26a741b1b55a7604692d12e44d1e12cedb8f874c1e9f7e06",
+            "kind": "annotated_space",
+            "space_id": "B-02"
+          },
+          {
+            "path": "collected/A/B-02/B-02__20261104T105624010126__55e87f751fbd4ec696b793d8edc1ff53.json",
+            "sha256": "fb9fe21b0d66793baf1b6c829447a17d085709dc2a8397165859054a1159c47e",
+            "kind": "korean_label",
+            "space_id": "B-02"
+          },
+          {
+            "path": "<image-path>",
+            "sha256": "fb8c14bf8b8d9c5a57ddc29c798e4cb88ff8e1f49d05a6833c9fd199a31236f9",
+            "kind": "annotated_space",
+            "space_id": "B-03"
+          },
+          {
+            "path": "collected/A/B-03/B-03__20261104T105624010126__55e87f751fbd4ec696b793d8edc1ff53.json",
+            "sha256": "37d5c012ccf8318fa331a4a98d6b4dad79e84502d37b30860aad3cec8bac0762",
+            "kind": "korean_label",
+            "space_id": "B-03"
+          },
+          {
+            "path": "<image-path>",
+            "sha256": "9cd8361c6a6cce0f881eb483c5f812003b7d9f5b156dc4a8cd24e2c91b14adbf",
+            "kind": "annotated_space",
+            "space_id": "B-04"
+          },
+          {
+            "path": "collected/A/B-04/B-04__20261104T105624010126__55e87f751fbd4ec696b793d8edc1ff53.json",
+            "sha256": "f8c53416319bc1df775a787ac10fd85877625c6873c59d6bfc1b63400e3c3aa1",
+            "kind": "korean_label",
+            "space_id": "B-04"
+          },
+          {
+            "path": "<image-path>",
+            "sha256": "fe1c5ec06ce630a84310e25304c9437d62e1cc09771fd743c2cd147148a0eb2e",
+            "kind": "annotated_space",
+            "space_id": "B-06"
+          },
+          {
+            "path": "collected/A/B-06/B-06__20261104T105624010126__55e87f751fbd4ec696b793d8edc1ff53.json",
+            "sha256": "d9b0fc6a4e176f90074ab63c827887937549680cdc01158c8fe345bfa1789b3f",
+            "kind": "korean_label",
+            "space_id": "B-06"
+          },
+          {
+            "path": "<image-path>",
+            "sha256": "8be40dbf2d4d3a1b5656919492a0750d4490387e7cdf2cf01cf3611c95f43c7e",
+            "kind": "annotated_space",
+            "space_id": "A-04"
+          },
+          {
+            "path": "collected/A/A-04/A-04__20261104T105624010126__55e87f751fbd4ec696b793d8edc1ff53.json",
+            "sha256": "dc14fff8b0da5b9320ab6ca8d75ee5265adfd404227478f1bbd495af63848d2d",
+            "kind": "korean_label",
+            "space_id": "A-04"
+          },
+          {
+            "path": "<image-path>",
+            "sha256": "852d2d8b5986184edd4e2d98f40c1d75d750ece390e9d0e4552646c509a34990",
+            "kind": "annotated_space",
+            "space_id": "B-05"
+          },
+          {
+            "path": "collected/A/B-05/B-05__20261104T105624010126__55e87f751fbd4ec696b793d8edc1ff53.json",
+            "sha256": "118352493bd279cff2840bea57bbb74776b9bc6d7be2aee0ff8f975a0522cdcc",
+            "kind": "korean_label",
+            "space_id": "B-05"
+          },
+          {
+            "path": "<image-path>",
+            "sha256": "d8ae19a2a426c6cd07bcacef575e34b45e90788fb8dbc54a2bfa0104cea378bc",
+            "kind": "annotated_scene",
+            "space_id": null
+          },
+          {
+            "path": "scenes/A/A주차장__20261104T105624010126__55e87f751fbd4ec696b793d8edc1ff53.json",
+            "sha256": "eb9d1ecedc6d535d3a38d95c144609e11e7c7c06789b85b4b6cf83aad93adb6e",
+            "kind": "scene_label",
+            "space_id": null
+          }
+        ],
+        "raw_path": "<image-path>",
+        "raw_sha256": "d3fdd8c029edc05f5cca9817ec4f14e8f9ebc317c4b4f68e82553a0a187ce4d1"
+      },
+      {
+        "image_id": "a8c9217f9392412bb7bc996f1b53c4fa",
+        "lot_id": "B",
+        "items": [
+          {
+            "path": "<image-path>",
+            "sha256": "e5fc5f9367a49eeff4b42547cfa86ce97c29bda41bc39e33f7c8d52875fcac6b",
+            "kind": "annotated_space",
+            "space_id": "A-01"
+          },
+          {
+            "path": "collected/B/A-01/A-01__20261104T105632307794__a8c9217f9392412bb7bc996f1b53c4fa.json",
+            "sha256": "42be1f937826eea0fcd048da54728c8e9ffce6000c021d9b475b1c93cd47ef15",
+            "kind": "korean_label",
+            "space_id": "A-01"
+          },
+          {
+            "path": "<image-path>",
+            "sha256": "cb7abf9aefc835322285a04f75c745dcbb9f90ea675fa5dc28301585ffae5916",
+            "kind": "annotated_space",
+            "space_id": "A-02"
+          },
+          {
+            "path": "collected/B/A-02/A-02__20261104T105632307794__a8c9217f9392412bb7bc996f1b53c4fa.json",
+            "sha256": "d9ddc822fcaa506ee9224e8a06e081e20a7b5aa87186fbde6d8a9251e8e107f2",
+            "kind": "korean_label",
+            "space_id": "A-02"
+          },
+          {
+            "path": "<image-path>",
+            "sha256": "ba8fc57357113482c9333dff52aaf09cb989edca3669e1a130af60c425361f72",
+            "kind": "annotated_space",
+            "space_id": "A-03"
+          },
+          {
+            "path": "collected/B/A-03/A-03__20261104T105632307794__a8c9217f9392412bb7bc996f1b53c4fa.json",
+            "sha256": "8c9246024ef77ef9a9410e96d786dee25c3d82a364c0c72d6813fc899bf54da5",
+            "kind": "korean_label",
+            "space_id": "A-03"
+          },
+          {
+            "path": "<image-path>",
+            "sha256": "bdec077d13cec4fae272442ea34024b70c3760cb364737fcd9fdfb0e762c00ce",
+            "kind": "annotated_space",
+            "space_id": "A-05"
+          },
+          {
+            "path": "collected/B/A-05/A-05__20261104T105632307794__a8c9217f9392412bb7bc996f1b53c4fa.json",
+            "sha256": "63bc0cdc30ae568684ca7c6c379bebe1e771a9cc52fd06268d37af08ad48e2c7",
+            "kind": "korean_label",
+            "space_id": "A-05"
+          },
+          {
+            "path": "<image-path>",
+            "sha256": "3df7b3577d3bbbfc9fef875a8f67fae49c3a7cd491bacb54e0dc690e43a2a5ee",
+            "kind": "annotated_space",
+            "space_id": "A-06"
+          },
+          {
+            "path": "collected/B/A-06/A-06__20261104T105632307794__a8c9217f9392412bb7bc996f1b53c4fa.json",
+            "sha256": "332c09d576828d69c587b6648ab04466366143fbe04e5132ba9d23d356c50f1b",
+            "kind": "korean_label",
+            "space_id": "A-06"
+          },
+          {
+            "path": "<image-path>",
+            "sha256": "42742f80f361019c3953ef8d561806888a7ecd6e680771464416b609eff67ef8",
+            "kind": "annotated_space",
+            "space_id": "A-07"
+          },
+          {
+            "path": "collected/B/A-07/A-07__20261104T105632307794__a8c9217f9392412bb7bc996f1b53c4fa.json",
+            "sha256": "4c971c4761a8f18d9eca7672a77021ed3662226b5c6dcbe73bb2b04e57cbf9fa",
+            "kind": "korean_label",
+            "space_id": "A-07"
+          },
+          {
+            "path": "<image-path>",
+            "sha256": "64559d66bf1ea54cd1429f7168d5e01fac6cb63813c977fb1fa370ec81128dd0",
+            "kind": "annotated_space",
+            "space_id": "A-08"
+          },
+          {
+            "path": "collected/B/A-08/A-08__20261104T105632307794__a8c9217f9392412bb7bc996f1b53c4fa.json",
+            "sha256": "1ec73ff4a8f417907dbfbbd205a7a9fcf1c13f5af7ba90f84332e5775496c214",
+            "kind": "korean_label",
+            "space_id": "A-08"
+          },
+          {
+            "path": "<image-path>",
+            "sha256": "6abeba02adfde6e402313f19e7170734208f2e15339d3f7ae719d73a9c852952",
+            "kind": "annotated_space",
+            "space_id": "B-01"
+          },
+          {
+            "path": "collected/B/B-01/B-01__20261104T105632307794__a8c9217f9392412bb7bc996f1b53c4fa.json",
+            "sha256": "680c0119a29d64bde4d284e54b4b10fede07b83d52988e69931029473b5807d7",
+            "kind": "korean_label",
+            "space_id": "B-01"
+          },
+          {
+            "path": "<image-path>",
+            "sha256": "d0548e999bd1c0b0d99b49a3e3850e52eebcfb2cfff931b51ab8b8fe4171694c",
+            "kind": "annotated_space",
+            "space_id": "B-02"
+          },
+          {
+            "path": "collected/B/B-02/B-02__20261104T105632307794__a8c9217f9392412bb7bc996f1b53c4fa.json",
+            "sha256": "05661d47cc1cbed80069c00fdcc47290a423e73c3aa89da6463cf8317cba6dc2",
+            "kind": "korean_label",
+            "space_id": "B-02"
+          },
+          {
+            "path": "<image-path>",
+            "sha256": "bb98bdde73266f59839336ad1b2749946e2725e66fc8050945faa89fa653d880",
+            "kind": "annotated_space",
+            "space_id": "B-03"
+          },
+          {
+            "path": "collected/B/B-03/B-03__20261104T105632307794__a8c9217f9392412bb7bc996f1b53c4fa.json",
+            "sha256": "63ab322b34853f4f02cd2c5e927052677037d9a03c1d0e5d41c953929705e32d",
+            "kind": "korean_label",
+            "space_id": "B-03"
+          },
+          {
+            "path": "<image-path>",
+            "sha256": "43659bde270a95dbd9bb7706a06c64874367d0ce5b3b450ee77e9e7ba1558cb9",
+            "kind": "annotated_space",
+            "space_id": "B-04"
+          },
+          {
+            "path": "collected/B/B-04/B-04__20261104T105632307794__a8c9217f9392412bb7bc996f1b53c4fa.json",
+            "sha256": "018e9547809a2ceca2185461a7c70642b23960f324d6f4ef10a41642bc9954f1",
+            "kind": "korean_label",
+            "space_id": "B-04"
+          },
+          {
+            "path": "<image-path>",
+            "sha256": "b8e9df51f0826ddc0e28b7bc034f118618b81bd28520f9fe02c25287497511c5",
+            "kind": "annotated_space",
+            "space_id": "B-06"
+          },
+          {
+            "path": "collected/B/B-06/B-06__20261104T105632307794__a8c9217f9392412bb7bc996f1b53c4fa.json",
+            "sha256": "bd75ccba406c218fcb656e43a41bf51bf5cc168459a242c719fc5a4a05bd3400",
+            "kind": "korean_label",
+            "space_id": "B-06"
+          },
+          {
+            "path": "<image-path>",
+            "sha256": "946edc2618e785757d76d8829608a8a14b82aa2dab651602f8858f40d3a332a8",
+            "kind": "annotated_space",
+            "space_id": "B-07"
+          },
+          {
+            "path": "collected/B/B-07/B-07__20261104T105632307794__a8c9217f9392412bb7bc996f1b53c4fa.json",
+            "sha256": "d6e5e8c3c470db19246cea2e836b7a071f4e0a8c2603aa4023413b5855fea7fe",
+            "kind": "korean_label",
+            "space_id": "B-07"
+          },
+          {
+            "path": "<image-path>",
+            "sha256": "49422e90b220d499cf99704a6a602e9e04062eed6a2600491d85944e15b9b282",
+            "kind": "annotated_space",
+            "space_id": "B-08"
+          },
+          {
+            "path": "collected/B/B-08/B-08__20261104T105632307794__a8c9217f9392412bb7bc996f1b53c4fa.json",
+            "sha256": "e905b04b54c9d66334981919b6389ba50240130686517178d41834f8a732b7ac",
+            "kind": "korean_label",
+            "space_id": "B-08"
+          },
+          {
+            "path": "<image-path>",
+            "sha256": "576ede64ebab3b5c3a8f719864f110e9e3ad0d014562d672d1ffd7d3de9cbce4",
+            "kind": "annotated_space",
+            "space_id": "A-04"
+          },
+          {
+            "path": "collected/B/A-04/A-04__20261104T105632307794__a8c9217f9392412bb7bc996f1b53c4fa.json",
+            "sha256": "35c5227b0088709c8c672c5c9ce3bd49554325027abd25b84d2bf517a7f2b9c2",
+            "kind": "korean_label",
+            "space_id": "A-04"
+          },
+          {
+            "path": "<image-path>",
+            "sha256": "10d89487918699130b0878830c5e49108b1c3340c04fd435bb3ad800751b3337",
+            "kind": "annotated_space",
+            "space_id": "B-05"
+          },
+          {
+            "path": "collected/B/B-05/B-05__20261104T105632307794__a8c9217f9392412bb7bc996f1b53c4fa.json",
+            "sha256": "0b3236cba514c13ef4d77fbd07669bb1be7ade77fc0d5b804e136dfe8c100790",
+            "kind": "korean_label",
+            "space_id": "B-05"
+          },
+          {
+            "path": "<image-path>",
+            "sha256": "604620d49097150f1107c003d1d006bb5753c12e4f66d2d824dcdf5ec367dc8a",
+            "kind": "annotated_scene",
+            "space_id": null
+          },
+          {
+            "path": "scenes/B/B주차장__20261104T105632307794__a8c9217f9392412bb7bc996f1b53c4fa.json",
+            "sha256": "ccdbc54b916b6579164203f6fe959f7f011c7504cdaf6c94c3d51e7ee47f3659",
+            "kind": "scene_label",
+            "space_id": null
+          }
+        ],
+        "raw_path": "<image-path>",
+        "raw_sha256": "af2deb0ae7e7b5a9e9bf06d5f79caf190aae4f57065546db12f28c9807e37224"
+      }
+    ],
+    "설명": "원본은 유지하고 복사한 결과입니다. 자동 라벨 후보와 사람 승인 상태를 각 JSON에서 확인하세요. 표시사진을 학습 원본으로 쓰지 마세요."
+  },
+  "export_path": "<local-path>"
+}

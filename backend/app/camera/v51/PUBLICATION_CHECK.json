@@ -1,0 +1,45 @@
+{
+  "product_version": "V51",
+  "purpose": "KAN-52 public source archive",
+  "date_kst": "2026-11-06",
+  "base_commit": "d447a525b8fa3237eb6b7cf6ef043c92e5478018",
+  "python_source_files": 105,
+  "python_source_byte_identical_to_v51": true,
+  "changes": [
+    "Public README and separate camera requirements",
+    "Redacted camera serials, local paths and photo file references",
+    "Excluded images, videos, weights, local ROI files and binary reference assets",
+    "Launcher uses local .venv or SMART_PARKING_PYTHON; removed machine-specific fallback"
+  ],
+  "startup": {
+    "public_files_only": true,
+    "launcher_check": true,
+    "camera_opened": false,
+    "model_loaded": false,
+    "private_assets_restored": false
+  },
+  "regression": {
+    "tests": 709,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "product_version": "V51",
+    "passed": true,
+    "seconds": 147.312,
+    "scope": "Public V51 source; private reference assets restored only in isolated temporary test copies; no USB or server requests"
+  },
+  "regression_asset_scope": "Private board descriptors, sticker references and marker assets restored only in isolated local test copies",
+  "runtime_assets_required": [
+    "configs/board_print/A.npz",
+    "configs/board_print/B.npz",
+    "configs/sticker_print/*.png",
+    "OCR model files"
+  ],
+  "runtime_camera_serials": "Replace <serial-A>/<serial-B> after device discovery",
+  "history_records": "Public redacted summaries; replay needs original private records and files",
+  "live_usb_test": false,
+  "live_server_test": false,
+  "confidence_fix_status": "Follow-up; original V51 transport generates None and must be updated before API use",
+  "local_document_links_checked": 219,
+  "privacy_and_file_allowlist_checked": true
+}

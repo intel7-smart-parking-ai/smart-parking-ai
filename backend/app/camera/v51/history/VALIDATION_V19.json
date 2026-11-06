@@ -1,0 +1,74 @@
+{
+  "version": "19.0",
+  "product_version": "V19",
+  "display_name": "V19 주차장 통합 수집",
+  "based_on": "V18",
+  "date_kst": "2026-11-04",
+  "contract_revision": "20261104-d39-v3",
+  "tests": {
+    "product_version": "V19",
+    "tests": 52,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": true,
+    "seconds": 5.933,
+    "scope": "V19 synthetic geometry, inference guards, storage/review/export, Tk workflows, mocked HTTP transport; no physical camera or trained model accuracy test"
+  },
+  "tests_passed": 52,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "config_check_passed": true,
+  "ast_parsed_python_files": 37,
+  "v18_release_source_unchanged": true,
+  "v18_files_compared": 68,
+  "ocr_cpu_smoke": {
+    "engine": {
+      "engine": "easyocr",
+      "version": "1.7.2",
+      "torch": "2.15.0+xpu",
+      "languages": [
+        "ko",
+        "en"
+      ],
+      "requested_device": "cpu",
+      "device": "cpu",
+      "gpu": null,
+      "fallback_reason": null
+    },
+    "synthetic_image_only": true,
+    "detections": [
+      {
+        "text": "23",
+        "score": 0.9680674718230647
+      }
+    ],
+    "total_seconds": 4.58
+  },
+  "full_b_16_synthetic_pipeline_passed": true,
+  "hardware_camera_tested": false,
+  "visual_ui_inspection_completed": false,
+  "openvino_trained_model_tested": false,
+  "real_server_requests_sent": false,
+  "geti_import_tested": false,
+  "long_duration_performance_tested": false,
+  "limitations": [
+    "ROI is manually registered; parking lines are not automatically detected.",
+    "Reference differences and sticker proposals are candidates, not verified vehicle segmentation or ground truth.",
+    "No trained occupancy model is bundled; B mode stays unknown until a compatible model is configured.",
+    "RealSense enumeration showed a named-mutex error during preview; physical device acceptance remains pending.",
+    "No physical parking accuracy/FPS claim; synthetic CPU OCR score is not a field evaluation.",
+    "Historical tests and reports are retained separately and are not counted as V19 passes."
+  ],
+  "distribution_excludes": [
+    ".demo_output",
+    ".git",
+    ".test_tmp",
+    ".venv",
+    "__pycache__",
+    "datasets",
+    "logs",
+    "models"
+  ]
+}

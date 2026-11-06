@@ -1,0 +1,12 @@
+{
+  "product_version": "V22",
+  "selected_lot": "A",
+  "cards": 12,
+  "previous_b_photo_still_present": true,
+  "first_b_row_card_position": {
+    "row": 0,
+    "column": 6
+  },
+  "old_number_still_visible": true,
+  "detail": "B previous detail"
+}

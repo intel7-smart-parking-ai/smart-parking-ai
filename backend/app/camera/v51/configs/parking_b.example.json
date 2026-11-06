@@ -1,0 +1,90 @@
+{
+  "schema_version": 2,
+  "lot_id": "B",
+  "name": "나",
+  "kind": "physical",
+  "space_count": 16,
+  "spaces": [
+    {
+      "space_id": "A-01",
+      "space_type": "general",
+      "polygon": null
+    },
+    {
+      "space_id": "A-02",
+      "space_type": "general",
+      "polygon": null
+    },
+    {
+      "space_id": "A-03",
+      "space_type": "general",
+      "polygon": null
+    },
+    {
+      "space_id": "A-04",
+      "space_type": "general",
+      "polygon": null
+    },
+    {
+      "space_id": "A-05",
+      "space_type": "general",
+      "polygon": null
+    },
+    {
+      "space_id": "A-06",
+      "space_type": "general",
+      "polygon": null
+    },
+    {
+      "space_id": "A-07",
+      "space_type": "electric",
+      "polygon": null
+    },
+    {
+      "space_id": "A-08",
+      "space_type": "electric",
+      "polygon": null
+    },
+    {
+      "space_id": "B-01",
+      "space_type": "general",
+      "polygon": null
+    },
+    {
+      "space_id": "B-02",
+      "space_type": "general",
+      "polygon": null
+    },
+    {
+      "space_id": "B-03",
+      "space_type": "general",
+      "polygon": null
+    },
+    {
+      "space_id": "B-04",
+      "space_type": "general",
+      "polygon": null
+    },
+    {
+      "space_id": "B-05",
+      "space_type": "general",
+      "polygon": null
+    },
+    {
+      "space_id": "B-06",
+      "space_type": "general",
+      "polygon": null
+    },
+    {
+      "space_id": "B-07",
+      "space_type": "accessible",
+      "polygon": null
+    },
+    {
+      "space_id": "B-08",
+      "space_type": "accessible",
+      "polygon": null
+    }
+  ],
+  "calibrations": {}
+}

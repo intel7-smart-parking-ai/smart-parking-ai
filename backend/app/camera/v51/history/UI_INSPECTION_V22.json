@@ -1,0 +1,20 @@
+{
+  "product_version": "V22",
+  "date_kst": "2026-11-04",
+  "method": "Windows native UI inspection via computer-use skill and @oai/sky",
+  "fixture": "synthetic B16, one green 23 sticker; OCR mocked; no camera or HTTP",
+  "inspected": [
+    "basic controls and repair button",
+    "storage/export counts",
+    "default advanced controls",
+    "final compact 1060x780 basic layout",
+    "maximized basic layout"
+  ],
+  "fixes": [
+    "bay overlay text split across two lines",
+    "storage/status/cards allocated before canvas expansion"
+  ],
+  "all_resolutions_or_dpi_tested": false,
+  "final_compact_advanced_layout_retested": false,
+  "hardware_camera_tested": false
+}

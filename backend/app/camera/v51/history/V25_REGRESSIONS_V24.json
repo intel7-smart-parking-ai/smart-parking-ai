@@ -1,0 +1,28 @@
+{
+  "product_version": "V24",
+  "tests": 15,
+  "failures": 12,
+  "errors": 6,
+  "passed": false,
+  "seconds": 3.148,
+  "failed_tests": [
+    "test_automatic_export_verifies_written_bytes (v25_regressions.Exports.test_automatic_export_verifies_written_bytes)",
+    "test_review_export_has_one_transfer_folder (v25_regressions.Exports.test_review_export_has_one_transfer_folder)",
+    "test_review_export_raw_paths_are_portable (v25_regressions.Exports.test_review_export_raw_paths_are_portable)",
+    "test_training_final_manifest_failure_is_marked_failed (v25_regressions.Exports.test_training_final_manifest_failure_is_marked_failed)",
+    "test_training_silent_output_corruption_is_rejected (v25_regressions.Exports.test_training_silent_output_corruption_is_rejected)",
+    "test_training_write_failure_aborts_instead_of_input_skip (v25_regressions.Exports.test_training_write_failure_aborts_instead_of_input_skip)",
+    "test_resave_rejects_other_camera_serial_and_source (v25_regressions.InitialCapture.test_resave_rejects_other_camera_serial_and_source) (changes={'camera_id': 'B'})",
+    "test_resave_rejects_other_camera_serial_and_source (v25_regressions.InitialCapture.test_resave_rejects_other_camera_serial_and_source) (changes={'serial': 'other'})",
+    "test_resave_rejects_other_camera_serial_and_source (v25_regressions.InitialCapture.test_resave_rejects_other_camera_serial_and_source) (changes={'source_kind': 'import'})",
+    "test_retry_after_manifest_before_assets_reuses_same_capture (v25_regressions.InitialCapture.test_retry_after_manifest_before_assets_reuses_same_capture)",
+    "test_retry_after_raw_before_manifest_reuses_one_original (v25_regressions.InitialCapture.test_retry_after_raw_before_manifest_reuses_one_original)",
+    "test_retry_cannot_replace_pixels_of_interrupted_raw (v25_regressions.InitialCapture.test_retry_cannot_replace_pixels_of_interrupted_raw)",
+    "test_automatic_export_interruption_leaves_pending_status (v25_regressions.Exports.test_automatic_export_interruption_leaves_pending_status)",
+    "test_completed_exports_have_verified_file_inventory (v25_regressions.Exports.test_completed_exports_have_verified_file_inventory) (folder='automatic-defec2767bbe46d68c075c53d3081ba7')",
+    "test_completed_exports_have_verified_file_inventory (v25_regressions.Exports.test_completed_exports_have_verified_file_inventory) (folder='training-cf5ad70a31474e168d5baa783ab5ddec')",
+    "test_completed_exports_have_verified_file_inventory (v25_regressions.Exports.test_completed_exports_have_verified_file_inventory) (folder='exports')",
+    "test_training_bad_review_does_not_cancel_valid_scenes (v25_regressions.Exports.test_training_bad_review_does_not_cancel_valid_scenes)",
+    "test_training_missing_manifest_skips_only_that_review (v25_regressions.Exports.test_training_missing_manifest_skips_only_that_review)"
+  ]
+}

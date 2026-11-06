@@ -1,0 +1,31 @@
+{
+  "passed": true,
+  "baseline": {
+    "product_version": "V32",
+    "old_frame_blocked": false,
+    "new_batch_reused_old_record": true,
+    "fresh_frame_new_batch": true,
+    "wrong_frame_attached": true,
+    "wrong_group_was_accepted": true,
+    "rejected_without_input_changes": false,
+    "camera_source": "import",
+    "camera_retry_ok": false,
+    "cross_split_samples": 24,
+    "export_status": "완료"
+  },
+  "fixed": {
+    "product_version": "V33",
+    "old_frame_blocked": true,
+    "new_batch_reused_old_record": false,
+    "fresh_frame_new_batch": true,
+    "wrong_frame_attached": false,
+    "wrong_group_was_accepted": false,
+    "rejected_without_input_changes": true,
+    "camera_source": "camera",
+    "camera_retry_ok": true,
+    "cross_split_samples": 0,
+    "export_error": "동일 원본 분할 누수: 같은 픽셀의 7e69391a516f59fea3a472d335461ce6 (first/train) 및 be32c9144fcb5e8aba552d474267c9a2 (group1/validation). 배치를 확인하세요.",
+    "export_status": "실패"
+  },
+  "scope": "Isolated real Tk controller, I/O worker, manifests, selected training exporter; rendered window withdrawn, no camera."
+}

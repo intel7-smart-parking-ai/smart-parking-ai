@@ -1,0 +1,190 @@
+{
+  "product_version": "V31",
+  "passed": true,
+  "trials": 30,
+  "results": [
+    {
+      "cut_after": 1,
+      "write": "export_integrity.atomic_json",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 2,
+      "write": "collection_output.atomic_bytes",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 3,
+      "write": "collection_output.atomic_bytes",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 4,
+      "write": "collection_output.atomic_bytes",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 5,
+      "write": "collection_output.atomic_bytes",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 6,
+      "write": "collection_output.atomic_bytes",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 7,
+      "write": "collection_output.atomic_bytes",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 8,
+      "write": "collection_output.atomic_bytes",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 9,
+      "write": "collection_output.atomic_bytes",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 10,
+      "write": "collection_output.atomic_bytes",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 11,
+      "write": "collection_output.atomic_bytes",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 12,
+      "write": "collection_output.atomic_bytes",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 13,
+      "write": "collection_output.atomic_bytes",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 14,
+      "write": "collection_output.atomic_bytes",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 15,
+      "write": "collection_output.atomic_bytes",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 16,
+      "write": "collection_output.atomic_bytes",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 17,
+      "write": "collection_output.atomic_bytes",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 18,
+      "write": "collection_output.atomic_bytes",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 19,
+      "write": "collection_output.atomic_bytes",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 20,
+      "write": "collection_output.atomic_bytes",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 21,
+      "write": "collection_output.atomic_bytes",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 22,
+      "write": "collection_output.atomic_bytes",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 23,
+      "write": "collection_output.atomic_bytes",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 24,
+      "write": "collection_output.atomic_bytes",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 25,
+      "write": "collection_output.atomic_bytes",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 26,
+      "write": "collection_output.atomic_bytes",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 27,
+      "write": "collection_output.atomic_bytes",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 28,
+      "write": "collection_output.atomic_bytes",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 29,
+      "write": "collection_output.atomic_json",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 30,
+      "write": "export_integrity.atomic_json",
+      "state": "완료",
+      "sources_unchanged": true
+    }
+  ],
+  "automatic_vacant_pass_without_human_approval": true,
+  "seconds": 9.703,
+  "scope": "Generated full A12 reference fixture; SystemExit write boundaries, not actual vehicle accuracy or power loss"
+}

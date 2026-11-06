@@ -1,0 +1,261 @@
+{
+  "product_version": "V24",
+  "trials": 28,
+  "passed": true,
+  "seconds": 14.793,
+  "scope": "SystemExit after each durable write in resave/review; not a physical power-cut or cloud-sync test",
+  "results": [
+    {
+      "operation": "resave",
+      "cut_after": 1,
+      "write": "dataset19.atomic_json:547d8cfc28904ccabba6d723bb6b77c7.json",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "resave",
+      "cut_after": 2,
+      "write": "dataset19.atomic_json:0f70edff677c47818644cbc8376051ac.json",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "resave",
+      "cut_after": 3,
+      "write": "<image-path>",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "resave",
+      "cut_after": 4,
+      "write": "<image-path>",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "resave",
+      "cut_after": 5,
+      "write": "dataset19.atomic_json:efddbff251de43488af9497e93a94790.json",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "resave",
+      "cut_after": 6,
+      "write": "dataset19.atomic_json:2bab30d17ea54bf68729d7cf4dd0177a.json",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "resave",
+      "cut_after": 7,
+      "write": "<image-path>",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "resave",
+      "cut_after": 8,
+      "write": "<image-path>",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "resave",
+      "cut_after": 9,
+      "write": "collection_output.atomic_bytes:A-05__20261104T090000000000__56bc1263fc5a4e6cacb3e80d61819d73.json",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "resave",
+      "cut_after": 10,
+      "write": "<image-path>",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "resave",
+      "cut_after": 11,
+      "write": "collection_output.atomic_bytes:B-01__20261104T090000000000__5d5feb4a01bb4e4ca21582dbfc4cfaaa.json",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "resave",
+      "cut_after": 12,
+      "write": "<image-path>",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "resave",
+      "cut_after": 13,
+      "write": "collection_output.atomic_bytes:A주차장__20261104T090000000000__f45e636f3e26442da7f7258505d95b55.json",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "resave",
+      "cut_after": 14,
+      "write": "collection_output.atomic_json:dc24111ec2e74643bbd6073beb377f5c.json",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "resave",
+      "cut_after": 15,
+      "write": "dataset19.atomic_json:5314bdc56d2b4df7b01d0e7857fd6ea5.json",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "resave",
+      "cut_after": 16,
+      "write": "dataset19.atomic_json:8b38f6a49b9a4727b897ee91399c3694.json",
+      "exported_before_repair": 1,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "review",
+      "cut_after": 1,
+      "write": "review.atomic_json:7f0f2494421a406188995b9503785c7d.json",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "review",
+      "cut_after": 2,
+      "write": "review.atomic_json:e7b30e553b944aa5a438915e0ed344a0.json",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "review",
+      "cut_after": 3,
+      "write": "review.atomic_json:bd9314683a2b48e6a52606adba3ffd79-0544d0a2f78548969a3d242b72a3102d.json",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "review",
+      "cut_after": 4,
+      "write": "review.atomic_json:6baa6b250508496098662ddb388291f2.json",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "review",
+      "cut_after": 5,
+      "write": "<image-path>",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "review",
+      "cut_after": 6,
+      "write": "collection_output.atomic_bytes:A-05__20261104T090000000000__fb41f2992a6a4c9a8eb2fac70f9f93e2.json",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "review",
+      "cut_after": 7,
+      "write": "<image-path>",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "review",
+      "cut_after": 8,
+      "write": "collection_output.atomic_bytes:B-01__20261104T090000000000__6599732b32154db79d95c20918b76a6d.json",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "review",
+      "cut_after": 9,
+      "write": "<image-path>",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "review",
+      "cut_after": 10,
+      "write": "collection_output.atomic_bytes:A주차장__20261104T090000000000__30481fa030654658919ca326dce1c088.json",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "review",
+      "cut_after": 11,
+      "write": "collection_output.atomic_json:f6d797d5f148496f9f4cb4867e79d427.json",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "review",
+      "cut_after": 12,
+      "write": "review.atomic_json:96b8f6e512d746f29fd60d0a922041a4.json",
+      "exported_before_repair": 1,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    }
+  ]
+}

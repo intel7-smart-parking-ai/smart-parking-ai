@@ -1,0 +1,12 @@
+{
+  "source_version": "V28",
+  "tests": 3,
+  "failures": 3,
+  "errors": 0,
+  "reproduced": true,
+  "scope": [
+    "NumberCropQuality.test_one_pixel_number_crop_must_hold_scene",
+    "SelectedCounts.test_quality_held_approvals_are_not_selected_training_ready",
+    "UnknownViewUI.test_unknown_saved_view_does_not_appear_as_ceiling"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "product_version": "V29",
+  "tests": 347,
+  "failures": 0,
+  "errors": 1,
+  "skipped": 0,
+  "passed": false,
+  "seconds": 169.05,
+  "scope": "V19-V29 geometry/color, identity evidence and OCR mocks, automatic ROI/anchor guards, Korean paired assets, copy counts, data integrity/audit/export, one-start Tk workflow, split workers, mocked HTTP; no physical camera or live server"
+}

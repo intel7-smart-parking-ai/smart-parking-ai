@@ -1,0 +1,10 @@
+{
+  "tests": 687,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "product_version": "V50",
+  "passed": true,
+  "seconds": 169.533,
+  "scope": "V19–V50 all discovered test methods, three isolated module groups; hardware and photo replays are recorded separately"
+}

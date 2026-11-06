@@ -1,0 +1,3 @@
+# Optional: only for a trained two-class occupancy model.
+-r requirements.txt
+openvino

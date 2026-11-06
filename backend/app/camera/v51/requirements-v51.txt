@@ -1,0 +1,7 @@
+numpy
+opencv-python-headless>=4.7
+Pillow
+pyrealsense2
+easyocr==1.7.2
+torch
+torchvision

@@ -1,0 +1,9 @@
+{
+  "product_version": "V24",
+  "tests": 16,
+  "failures": 0,
+  "errors": 0,
+  "passed": true,
+  "seconds": 3.683,
+  "failed_tests": []
+}

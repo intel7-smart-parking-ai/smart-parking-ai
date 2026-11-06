@@ -1,0 +1,248 @@
+{
+  "product_version": "V47",
+  "version": "47.0",
+  "based_on": "V46",
+  "date_kst": "2026-11-06",
+  "previous_zip_sha256": "0a0e1a6cb26318dacbaa00c8b7cf9b41e9f260c7f6a476cd340640fa8fbb4ea6",
+  "tests": {
+    "product_version": "V47",
+    "tests": 627,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": true,
+    "seconds": 447.388,
+    "scope": "V19-V47 geometry/color, identity evidence and OCR mocks, automatic ROI/anchor guards, Korean paired assets, copy counts, data integrity/audit/export, one-start Tk workflow, split workers, mocked HTTP; no physical camera or live server"
+  },
+  "추가회귀_동일입력": {
+    "시험수": 22,
+    "V46_미충족_시험수": 16,
+    "V46_미충족_시험명": [
+      "CollectionClock.test_close_retains_first_stop_reason",
+      "CollectionClock.test_measurement_results_count_reconnect_no_sticker_and_manual_stop",
+      "CollectionClock.test_packets_after_stop_do_not_change_run_reconnection_counts",
+      "CollectionClock.test_stop_and_drain_do_not_make_29_minutes_into_31",
+      "DirectionEvidence.test_half_turn_pairs_held_even_when_font_template_favors_third_value",
+      "DirectionEvidence.test_local_detector_checks_both_turns_for_reversible_print",
+      "DirectionEvidence.test_matching_ink_views_at_one_angle_outweigh_an_unsupported_template",
+      "DirectionEvidence.test_second_reader_cannot_erase_conflicting_ink",
+      "DirectionEvidence.test_shape_and_independent_ink_block_contradictory_detector_for_other_numbers",
+      "DirectionEvidence.test_template_cannot_erase_conflicting_ink_on_small_disc",
+      "DirectionEvidence.test_three_weak_opposite_views_corroborating_shape_can_veto_but_not_promote",
+      "EmptyEvidence.test_reviewed_bay_substitution_is_detected",
+      "FieldReports.test_number_and_color_have_independent_outcomes",
+      "FieldReports.test_optional_truth_angle_is_independent_of_guessed_orientation",
+      "FieldReports.test_virtual_report_row_separates_observation_and_physical_result",
+      "TrainingLabels.test_conflicting_labels_in_same_split_abort_delivery"
+    ],
+    "V47_미충족_시험수": 0,
+    "집계": "subTest 여러 조건은 하나의 시험으로 집계. 기존 정상 사례 및 새 보고서 필드 포함."
+  },
+  "기존사진_조건별": {
+    "base": {
+      "direct": 2,
+      "estimated": 9,
+      "held": 0,
+      "wrong": 0,
+      "empty_false_number": 0
+    },
+    "dark": {
+      "direct": 1,
+      "estimated": 10,
+      "held": 0,
+      "wrong": 0,
+      "empty_false_number": 0
+    },
+    "bright": {
+      "direct": 1,
+      "estimated": 9,
+      "held": 1,
+      "wrong": 0,
+      "empty_false_number": 0
+    }
+  },
+  "기존합성24": {
+    "V46": {
+      "direct": 19,
+      "estimated": 3,
+      "held": 2,
+      "wrong": 0,
+      "empty_false_number": 0
+    },
+    "V47": {
+      "direct": 15,
+      "estimated": 3,
+      "held": 6,
+      "wrong": 0,
+      "empty_false_number": 0
+    }
+  },
+  "추가합성48": {
+    "46": {
+      "direct_correct": 30,
+      "estimate_correct": 5,
+      "direct_wrong": 7,
+      "estimate_wrong": 0,
+      "held": 6,
+      "empty_false_number": 0
+    },
+    "47": {
+      "direct_correct": 28,
+      "estimate_correct": 6,
+      "direct_wrong": 0,
+      "estimate_wrong": 0,
+      "held": 14,
+      "empty_false_number": 0
+    }
+  },
+  "추가합성48_판정변화": {
+    "correct_to_held": [
+      "62",
+      "82"
+    ],
+    "wrong_to_held": [
+      "45",
+      "59",
+      "79",
+      "86",
+      "89",
+      "95"
+    ],
+    "wrong_to_correct": [
+      "93"
+    ],
+    "held_to_correct": []
+  },
+  "세번째합성24": {
+    "46": {
+      "direct_correct": 14,
+      "estimate_correct": 4,
+      "direct_wrong": 1,
+      "estimate_wrong": 0,
+      "held": 5,
+      "empty_false_number": 0
+    },
+    "47": {
+      "direct_correct": 14,
+      "estimate_correct": 3,
+      "direct_wrong": 0,
+      "estimate_wrong": 0,
+      "held": 7,
+      "empty_false_number": 0
+    }
+  },
+  "수정에사용한_합성72": {
+    "46": {
+      "direct_correct": 44,
+      "estimate_correct": 9,
+      "direct_wrong": 8,
+      "estimate_wrong": 0,
+      "held": 11,
+      "empty_false_number": 0
+    },
+    "47": {
+      "direct_correct": 42,
+      "estimate_correct": 9,
+      "direct_wrong": 0,
+      "estimate_wrong": 0,
+      "held": 21,
+      "empty_false_number": 0
+    }
+  },
+  "코드고정후_합성24": {
+    "46": {
+      "direct_correct": 19,
+      "estimate_correct": 3,
+      "direct_wrong": 0,
+      "estimate_wrong": 0,
+      "held": 2,
+      "empty_false_number": 0
+    },
+    "47": {
+      "direct_correct": 19,
+      "estimate_correct": 3,
+      "direct_wrong": 0,
+      "estimate_wrong": 0,
+      "held": 2,
+      "empty_false_number": 0
+    }
+  },
+  "코드고정후_합성_오독": [],
+  "흰색66_99_방향16건_번호보류": 16,
+  "완전포화된_합성77_번호보류": true,
+  "미승인학습크롭수": 0,
+  "모의시각시험_초": {
+    "활성": 1740,
+    "정지후마무리": 120,
+    "전체경과": 1860
+  },
+  "실제장치검색": {
+    "장치수": 0,
+    "장치": []
+  },
+  "빈기준_기존사진검사": {
+    "실물장비_사용": false,
+    "빈사진_스티커후보": {
+      "A": [
+        "A-03"
+      ],
+      "B": []
+    },
+    "수평이동_px": {
+      "0": {
+        "빈칸": 12,
+        "경계경고": 0
+      },
+      "1": {
+        "빈칸": 12,
+        "경계경고": 0
+      },
+      "2": {
+        "보류": "빈 기준과 주차선 위치 이동 · 구도를 확인하고 두 빈 기준을 다시 등록하세요."
+      },
+      "4": {
+        "보류": "빈 기준과 주차선 위치 이동 · 구도를 확인하고 두 빈 기준을 다시 등록하세요."
+      },
+      "6": {
+        "보류": "빈 기준과 주차선 위치 이동 · 구도를 확인하고 두 빈 기준을 다시 등록하세요."
+      },
+      "12": {
+        "보류": "빈 기준과 주차선 위치 이동 · 구도를 확인하고 두 빈 기준을 다시 등록하세요."
+      }
+    },
+    "재확인근거_대조채널": [
+      "A",
+      "B"
+    ],
+    "재연결후_측정": "주차장·시점·연결 변경 · 두 빈 주차장 기준을 다시 등록하세요."
+  },
+  "기존자료호환": {
+    "V46_원본및기록_해시동일_파일수": 102,
+    "V47_복구검사_완료쌍": 1,
+    "V47_내보냄": {
+      "scenes": 2,
+      "space_pairs": 28,
+      "images": 32,
+      "json_files": 30,
+      "originals": 2,
+      "measurements": 1
+    },
+    "이전정답표_실물비교칸": 28,
+    "이전정답표_대조규격": "동시측정현장대조-v2"
+  },
+  "재생자료": "FIELD_REPLAY_V47.json",
+  "검증한계": "추가 합성 세 세트에서 오독을 재현했다. 별도 24개는 최종 판독 코드 고정 후 평가했다. 기존 차량 사진에 반복 관측이 있다.",
+  "미측정": {
+    "새실물24대_인식률": null,
+    "실물조명별_경계침범정확도": null,
+    "실물30분안정성": null,
+    "센서노출동기오차": null,
+    "Geti실제학습효과": null
+  },
+  "다음시험순서": [
+    "새 실물 차량 24대 동시 배치와 차량별 식별표 작성",
+    "조명·방향별 독립 정답 대조와 실제 선 침범 평가",
+    "실제 두 카메라 30분 연속 수집",
+    "Geti에 가져온 수·분할 확인 및 독립 시험 세트에서 학습 전후 비교"
+  ]
+}

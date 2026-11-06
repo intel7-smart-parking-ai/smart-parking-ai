@@ -1,0 +1,296 @@
+{
+  "product_version": "V32",
+  "trials": 41,
+  "passed": true,
+  "seconds": 18.419,
+  "scope": "SystemExit after durable helper writes and reviewed JSONL publication; not physical power loss or concurrent cloud writes",
+  "results": [
+    {
+      "operation": "initial",
+      "cut_after": 1,
+      "write": "capture_recovery.atomic_json",
+      "interrupted_state": "same capture recovered",
+      "retry_passed": true
+    },
+    {
+      "operation": "initial",
+      "cut_after": 2,
+      "write": "pipeline.atomic_json",
+      "interrupted_state": "same capture recovered",
+      "retry_passed": true
+    },
+    {
+      "operation": "initial",
+      "cut_after": 3,
+      "write": "dataset19.atomic_json",
+      "interrupted_state": "same capture recovered",
+      "retry_passed": true
+    },
+    {
+      "operation": "initial",
+      "cut_after": 4,
+      "write": "dataset19.atomic_json",
+      "interrupted_state": "same capture recovered",
+      "retry_passed": true
+    },
+    {
+      "operation": "initial",
+      "cut_after": 5,
+      "write": "dataset19.write_png",
+      "interrupted_state": "same capture recovered",
+      "retry_passed": true
+    },
+    {
+      "operation": "initial",
+      "cut_after": 6,
+      "write": "dataset19.write_png",
+      "interrupted_state": "same capture recovered",
+      "retry_passed": true
+    },
+    {
+      "operation": "initial",
+      "cut_after": 7,
+      "write": "dataset19.atomic_json",
+      "interrupted_state": "same capture recovered",
+      "retry_passed": true
+    },
+    {
+      "operation": "initial",
+      "cut_after": 8,
+      "write": "dataset19.write_png",
+      "interrupted_state": "same capture recovered",
+      "retry_passed": true
+    },
+    {
+      "operation": "initial",
+      "cut_after": 9,
+      "write": "collection_output.atomic_json",
+      "interrupted_state": "same capture recovered",
+      "retry_passed": true
+    },
+    {
+      "operation": "initial",
+      "cut_after": 10,
+      "write": "collection_output.atomic_bytes",
+      "interrupted_state": "same capture recovered",
+      "retry_passed": true
+    },
+    {
+      "operation": "initial",
+      "cut_after": 11,
+      "write": "collection_output.atomic_bytes",
+      "interrupted_state": "same capture recovered",
+      "retry_passed": true
+    },
+    {
+      "operation": "initial",
+      "cut_after": 12,
+      "write": "collection_output.atomic_bytes",
+      "interrupted_state": "same capture recovered",
+      "retry_passed": true
+    },
+    {
+      "operation": "initial",
+      "cut_after": 13,
+      "write": "collection_output.atomic_bytes",
+      "interrupted_state": "same capture recovered",
+      "retry_passed": true
+    },
+    {
+      "operation": "initial",
+      "cut_after": 14,
+      "write": "collection_output.atomic_bytes",
+      "interrupted_state": "same capture recovered",
+      "retry_passed": true
+    },
+    {
+      "operation": "initial",
+      "cut_after": 15,
+      "write": "collection_output.atomic_bytes",
+      "interrupted_state": "same capture recovered",
+      "retry_passed": true
+    },
+    {
+      "operation": "initial",
+      "cut_after": 16,
+      "write": "collection_output.atomic_json",
+      "interrupted_state": "same capture recovered",
+      "retry_passed": true
+    },
+    {
+      "operation": "initial",
+      "cut_after": 17,
+      "write": "dataset19.atomic_json",
+      "interrupted_state": "same capture recovered",
+      "retry_passed": true
+    },
+    {
+      "operation": "initial",
+      "cut_after": 18,
+      "write": "dataset19.atomic_json",
+      "interrupted_state": "same capture recovered",
+      "retry_passed": true
+    },
+    {
+      "operation": "automatic",
+      "cut_after": 1,
+      "write": "export_integrity.atomic_json",
+      "interrupted_state": "진행 중",
+      "retry_passed": true
+    },
+    {
+      "operation": "automatic",
+      "cut_after": 2,
+      "write": "collection_output.atomic_bytes",
+      "interrupted_state": "진행 중",
+      "retry_passed": true
+    },
+    {
+      "operation": "automatic",
+      "cut_after": 3,
+      "write": "collection_output.atomic_bytes",
+      "interrupted_state": "진행 중",
+      "retry_passed": true
+    },
+    {
+      "operation": "automatic",
+      "cut_after": 4,
+      "write": "collection_output.atomic_bytes",
+      "interrupted_state": "진행 중",
+      "retry_passed": true
+    },
+    {
+      "operation": "automatic",
+      "cut_after": 5,
+      "write": "collection_output.atomic_bytes",
+      "interrupted_state": "진행 중",
+      "retry_passed": true
+    },
+    {
+      "operation": "automatic",
+      "cut_after": 6,
+      "write": "collection_output.atomic_bytes",
+      "interrupted_state": "진행 중",
+      "retry_passed": true
+    },
+    {
+      "operation": "automatic",
+      "cut_after": 7,
+      "write": "collection_output.atomic_bytes",
+      "interrupted_state": "진행 중",
+      "retry_passed": true
+    },
+    {
+      "operation": "automatic",
+      "cut_after": 8,
+      "write": "collection_output.atomic_bytes",
+      "interrupted_state": "진행 중",
+      "retry_passed": true
+    },
+    {
+      "operation": "automatic",
+      "cut_after": 9,
+      "write": "collection_output.atomic_json",
+      "interrupted_state": "진행 중",
+      "retry_passed": true
+    },
+    {
+      "operation": "automatic",
+      "cut_after": 10,
+      "write": "export_integrity.atomic_json",
+      "interrupted_state": "완료",
+      "retry_passed": true
+    },
+    {
+      "operation": "training",
+      "cut_after": 1,
+      "write": "export_integrity.atomic_json",
+      "interrupted_state": "진행 중",
+      "retry_passed": true
+    },
+    {
+      "operation": "training",
+      "cut_after": 2,
+      "write": "dataset19.write_png",
+      "interrupted_state": "진행 중",
+      "retry_passed": true
+    },
+    {
+      "operation": "training",
+      "cut_after": 3,
+      "write": "dataset19.write_png",
+      "interrupted_state": "진행 중",
+      "retry_passed": true
+    },
+    {
+      "operation": "training",
+      "cut_after": 4,
+      "write": "dataset19.write_png",
+      "interrupted_state": "진행 중",
+      "retry_passed": true
+    },
+    {
+      "operation": "training",
+      "cut_after": 5,
+      "write": "dataset19.atomic_json",
+      "interrupted_state": "진행 중",
+      "retry_passed": true
+    },
+    {
+      "operation": "training",
+      "cut_after": 6,
+      "write": "export_integrity.atomic_json",
+      "interrupted_state": "완료",
+      "retry_passed": true
+    },
+    {
+      "operation": "reviewed",
+      "cut_after": 1,
+      "write": "export_integrity.atomic_json",
+      "interrupted_state": "진행 중",
+      "retry_passed": true
+    },
+    {
+      "operation": "reviewed",
+      "cut_after": 2,
+      "write": "export_images.atomic_bytes",
+      "interrupted_state": "진행 중",
+      "retry_passed": true
+    },
+    {
+      "operation": "reviewed",
+      "cut_after": 3,
+      "write": "export_images.atomic_bytes",
+      "interrupted_state": "진행 중",
+      "retry_passed": true
+    },
+    {
+      "operation": "reviewed",
+      "cut_after": 4,
+      "write": "multi_vehicle.group_reviewed",
+      "interrupted_state": "진행 중",
+      "retry_passed": true
+    },
+    {
+      "operation": "reviewed",
+      "cut_after": 5,
+      "write": "review.atomic_json",
+      "interrupted_state": "진행 중",
+      "retry_passed": true
+    },
+    {
+      "operation": "reviewed",
+      "cut_after": 6,
+      "write": "reviewed JSONL publish",
+      "interrupted_state": "진행 중",
+      "retry_passed": true
+    },
+    {
+      "operation": "reviewed",
+      "cut_after": 7,
+      "write": "export_integrity.atomic_json",
+      "interrupted_state": "완료",
+      "retry_passed": true
+    }
+  ]
+}

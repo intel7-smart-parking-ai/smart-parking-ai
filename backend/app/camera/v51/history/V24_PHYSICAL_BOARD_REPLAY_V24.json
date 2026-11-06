@@ -1,0 +1,68 @@
+{
+  "product_version": "V24",
+  "scope": "Original user photos; all current geometry/inference/storage/export code executed; historical V23 CPU OCR observations replayed for identical inputs.",
+  "fresh_ocr_calls": 0,
+  "historical_actual_ocr_calls_replayed": 35,
+  "dataset": "<local-path>",
+  "export_path": "<local-path>",
+  "export_counts": {
+    "scenes": 2,
+    "space_pairs": 28,
+    "images": 32,
+    "json_files": 30,
+    "originals": 2
+  },
+  "counts": {
+    "originals": 2,
+    "spaces": 28,
+    "stickers": 0,
+    "label_files": 0,
+    "label_rows": 0,
+    "occupancy_approved": 0,
+    "number_approved": 0,
+    "color_approved": 0,
+    "occupancy_ready": 0,
+    "number_ready": 0,
+    "color_ready": 0,
+    "bytes": 47895585,
+    "partial": 0,
+    "annotated_spaces": 28,
+    "korean_labels": 28,
+    "annotated_scenes": 2,
+    "scene_labels": 2,
+    "collection_pairs": 28,
+    "information_complete": 0,
+    "needs_attention": 28,
+    "quality_warning_labels": 1
+  },
+  "source_images_unchanged": true,
+  "actual_vehicle_accuracy_measured": false,
+  "results": [
+    {
+      "lot": "A",
+      "registered": 12,
+      "open_u": 12,
+      "geometry_identical_to_v23": true,
+      "source_sha256": "e5fb270fa6bdc2c5316fecbb2988cfd342576f49f6a3f3c0bc9cbd5bb3af1ce1",
+      "source_file": "<local-path>",
+      "inference_errors": [],
+      "unknown_occupancy": 12,
+      "vehicle_numbers": 0,
+      "vehicle_colors": 0,
+      "diagnostic_path": "<local-path>"
+    },
+    {
+      "lot": "B",
+      "registered": 16,
+      "open_u": 16,
+      "geometry_identical_to_v23": true,
+      "source_sha256": "395219c5cc34cb34c85669a1fbf166159266e17cb90a5b3b886cac41b73897a4",
+      "source_file": "<local-path>",
+      "inference_errors": [],
+      "unknown_occupancy": 16,
+      "vehicle_numbers": 0,
+      "vehicle_colors": 0,
+      "diagnostic_path": "<local-path>"
+    }
+  ]
+}

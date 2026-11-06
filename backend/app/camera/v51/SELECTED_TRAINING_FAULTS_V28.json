@@ -1,0 +1,100 @@
+{
+  "product_version": "V28",
+  "passed": true,
+  "trials": 15,
+  "results": [
+    {
+      "cut_after": 1,
+      "write": "export_integrity.atomic_json",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 2,
+      "write": "dataset19.write_png",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 3,
+      "write": "dataset19.write_png",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 4,
+      "write": "dataset19.write_png",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 5,
+      "write": "dataset19.write_png",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 6,
+      "write": "dataset19.write_png",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 7,
+      "write": "dataset19.write_png",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 8,
+      "write": "dataset19.write_png",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 9,
+      "write": "dataset19.write_png",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 10,
+      "write": "dataset19.write_png",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 11,
+      "write": "dataset19.write_png",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 12,
+      "write": "dataset19.write_png",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 13,
+      "write": "dataset19.write_png",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 14,
+      "write": "dataset19.atomic_json",
+      "state": "진행 중",
+      "sources_unchanged": true
+    },
+    {
+      "cut_after": 15,
+      "write": "export_integrity.atomic_json",
+      "state": "완료",
+      "sources_unchanged": true
+    }
+  ],
+  "only_quality_passed_human_approved_training": true,
+  "seconds": 4.438,
+  "scope": "Generated full A12 reference fixture; SystemExit write boundaries, not actual vehicle accuracy or power loss"
+}

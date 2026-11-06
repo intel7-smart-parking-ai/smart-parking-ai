@@ -1,0 +1,72 @@
+{
+  "project": "smart_parking_v16",
+  "executable": "<local-path>",
+  "baseline": true,
+  "full_suite": false,
+  "tests_run": 18,
+  "failures": [
+    [
+      "test_export_skips_unknown_approval_but_keeps_valid_sibling (test_v17_audit.ApprovalIntegrity.test_export_skips_unknown_approval_but_keeps_valid_sibling)",
+      "<local-path>"
+    ],
+    [
+      "test_old_unknown_approval_reopens_as_draft_without_mutating_source (test_v17_audit.ApprovalIntegrity.test_old_unknown_approval_reopens_as_draft_without_mutating_source)",
+      "<local-path>"
+    ],
+    [
+      "test_unknown_occupancy_cannot_be_approved (test_v17_audit.ApprovalIntegrity.test_unknown_occupancy_cannot_be_approved)",
+      "<local-path>"
+    ],
+    [
+      "test_import_metadata_matches_bytes_loaded_before_roi_dialog (test_v17_audit.GUIIntegrity.test_import_metadata_matches_bytes_loaded_before_roi_dialog)",
+      "<local-path>"
+    ],
+    [
+      "test_old_unknown_approval_window_opens_as_pending (test_v17_audit.GUIIntegrity.test_old_unknown_approval_window_opens_as_pending)",
+      "<local-path>"
+    ],
+    [
+      "test_unknown_approval_button_shows_error_and_does_not_save (test_v17_audit.GUIIntegrity.test_unknown_approval_button_shows_error_and_does_not_save)",
+      "<local-path>"
+    ],
+    [
+      "test_analyzer_rejects_same_size_replaced_original (test_v17_audit.OriginalIdentity.test_analyzer_rejects_same_size_replaced_original)",
+      "<local-path>"
+    ],
+    [
+      "test_bad_digest_shape_is_rejected (test_v17_audit.OriginalIdentity.test_bad_digest_shape_is_rejected)",
+      "<local-path>"
+    ],
+    [
+      "test_export_reports_replaced_original (test_v17_audit.OriginalIdentity.test_export_reports_replaced_original)",
+      "<local-path>"
+    ],
+    [
+      "test_new_capture_has_digest_of_exact_saved_bytes (test_v17_audit.OriginalIdentity.test_new_capture_has_digest_of_exact_saved_bytes)",
+      "<local-path>"
+    ],
+    [
+      "test_review_rejects_same_size_replaced_original (test_v17_audit.OriginalIdentity.test_review_rejects_same_size_replaced_original)",
+      "<local-path>"
+    ],
+    [
+      "test_number_candidate_does_not_reduce_human_review_count (test_v17_audit.SummaryIntegrity.test_number_candidate_does_not_reduce_human_review_count)",
+      "<local-path>"
+    ],
+    [
+      "test_old_summary_triggers_reanalysis (test_v17_audit.SummaryIntegrity.test_old_summary_triggers_reanalysis)",
+      "<local-path>"
+    ],
+    [
+      "test_summary_separates_missing_number_from_pending_review (test_v17_audit.SummaryIntegrity.test_summary_separates_missing_number_from_pending_review)",
+      "<local-path>"
+    ]
+  ],
+  "errors": [
+    [
+      "test_small_tall_image_preview_has_nonzero_width (test_v17_audit.GUIIntegrity.test_small_tall_image_preview_has_nonzero_width)",
+      "<local-path>"
+    ]
+  ],
+  "skipped": []
+}

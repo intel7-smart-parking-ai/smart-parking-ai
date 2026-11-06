@@ -1,0 +1,279 @@
+{
+  "product_version": "V30",
+  "trials": 30,
+  "passed": true,
+  "seconds": 21.68,
+  "scope": "SystemExit after each durable write in resave/review; not a physical power-cut or cloud-sync test",
+  "results": [
+    {
+      "operation": "resave",
+      "cut_after": 1,
+      "write": "dataset19.atomic_json:6ecdd1a5b4035a578171021a1b9b93b6.json",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "resave",
+      "cut_after": 2,
+      "write": "dataset19.atomic_json:6ecdd1a5b4035a578171021a1b9b93b6.json",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "resave",
+      "cut_after": 3,
+      "write": "<image-path>",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "resave",
+      "cut_after": 4,
+      "write": "<image-path>",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "resave",
+      "cut_after": 5,
+      "write": "dataset19.atomic_json:a2a7dfec03c04b02b8935fb375ffc8bd.json",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "resave",
+      "cut_after": 6,
+      "write": "dataset19.atomic_json:6ecdd1a5b4035a578171021a1b9b93b6.json",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "resave",
+      "cut_after": 7,
+      "write": "<image-path>",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "resave",
+      "cut_after": 8,
+      "write": "collection_output.atomic_json:6ecdd1a5b4035a578171021a1b9b93b6.json",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "resave",
+      "cut_after": 9,
+      "write": "<image-path>",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "resave",
+      "cut_after": 10,
+      "write": "collection_output.atomic_bytes:A-05__20261104T090000000000__6ecdd1a5b4035a578171021a1b9b93b6.json",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "resave",
+      "cut_after": 11,
+      "write": "<image-path>",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "resave",
+      "cut_after": 12,
+      "write": "collection_output.atomic_bytes:B-01__20261104T090000000000__6ecdd1a5b4035a578171021a1b9b93b6.json",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "resave",
+      "cut_after": 13,
+      "write": "<image-path>",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "resave",
+      "cut_after": 14,
+      "write": "collection_output.atomic_bytes:A주차장__20261104T090000000000__6ecdd1a5b4035a578171021a1b9b93b6.json",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "resave",
+      "cut_after": 15,
+      "write": "collection_output.atomic_json:6ecdd1a5b4035a578171021a1b9b93b6.json",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "resave",
+      "cut_after": 16,
+      "write": "dataset19.atomic_json:6ecdd1a5b4035a578171021a1b9b93b6.json",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "resave",
+      "cut_after": 17,
+      "write": "dataset19.atomic_json:6ecdd1a5b4035a578171021a1b9b93b6.json",
+      "exported_before_repair": 1,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "review",
+      "cut_after": 1,
+      "write": "review.atomic_json:6ecdd1a5b4035a578171021a1b9b93b6.json",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "review",
+      "cut_after": 2,
+      "write": "review.atomic_json:6ecdd1a5b4035a578171021a1b9b93b6.json",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "review",
+      "cut_after": 3,
+      "write": "review.atomic_json:6ecdd1a5b4035a578171021a1b9b93b6-6a8ed05e1c144f27a133c12f4e988b90.json",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "review",
+      "cut_after": 4,
+      "write": "review.atomic_json:6ecdd1a5b4035a578171021a1b9b93b6.json",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "review",
+      "cut_after": 5,
+      "write": "collection_output.atomic_json:6ecdd1a5b4035a578171021a1b9b93b6.json",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "review",
+      "cut_after": 6,
+      "write": "<image-path>",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "review",
+      "cut_after": 7,
+      "write": "collection_output.atomic_bytes:A-05__20261104T090000000000__6ecdd1a5b4035a578171021a1b9b93b6.json",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "review",
+      "cut_after": 8,
+      "write": "<image-path>",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "review",
+      "cut_after": 9,
+      "write": "collection_output.atomic_bytes:B-01__20261104T090000000000__6ecdd1a5b4035a578171021a1b9b93b6.json",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "review",
+      "cut_after": 10,
+      "write": "<image-path>",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "review",
+      "cut_after": 11,
+      "write": "collection_output.atomic_bytes:A주차장__20261104T090000000000__6ecdd1a5b4035a578171021a1b9b93b6.json",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "review",
+      "cut_after": 12,
+      "write": "collection_output.atomic_json:6ecdd1a5b4035a578171021a1b9b93b6.json",
+      "exported_before_repair": 0,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    },
+    {
+      "operation": "review",
+      "cut_after": 13,
+      "write": "review.atomic_json:6ecdd1a5b4035a578171021a1b9b93b6.json",
+      "exported_before_repair": 1,
+      "fresh_if_exported": true,
+      "repaired_without_duplicate_original": true,
+      "original_hash_unchanged": true
+    }
+  ]
+}

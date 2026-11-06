@@ -1,0 +1,25 @@
+{
+  "tested_version": "V31",
+  "all_reproduced": true,
+  "cases": [
+    {
+      "case": "numeric_number_approval_completeness_not_bound_to_evidence",
+      "reproduced": true,
+      "exported_scenes_with_invented_identity": 1
+    },
+    {
+      "case": "export_count_double_counts_shared_original",
+      "reproduced": true,
+      "reported_originals": 2,
+      "actual_original_files": 1
+    },
+    {
+      "case": "marker_inside_parking_bay_enrolled",
+      "reproduced": true
+    },
+    {
+      "case": "failed_enrollment_replaces_active_template",
+      "reproduced": true
+    }
+  ]
+}

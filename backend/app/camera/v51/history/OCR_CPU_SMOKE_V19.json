@@ -1,0 +1,23 @@
+{
+  "engine": {
+    "engine": "easyocr",
+    "version": "1.7.2",
+    "torch": "2.15.0+xpu",
+    "languages": [
+      "ko",
+      "en"
+    ],
+    "requested_device": "cpu",
+    "device": "cpu",
+    "gpu": null,
+    "fallback_reason": null
+  },
+  "synthetic_image_only": true,
+  "detections": [
+    {
+      "text": "23",
+      "score": 0.9680674718230647
+    }
+  ],
+  "total_seconds": 4.58
+}

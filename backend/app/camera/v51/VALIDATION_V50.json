@@ -1,0 +1,291 @@
+{
+  "product_version": "V50",
+  "version": "50.0",
+  "based_on": "V49",
+  "date_kst": "2026-11-06",
+  "previous_zip_sha256": "6bcc9dc9f8d32ee6fa78650509fe8171356624823829a28f429b7244479bdac1",
+  "tests": {
+    "tests": 687,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "product_version": "V50",
+    "passed": true,
+    "seconds": 169.533,
+    "scope": "V19–V50 all discovered test methods, three isolated module groups; hardware and photo replays are recorded separately"
+  },
+  "같은신규시험_수정전후": {
+    "49": {
+      "version": "49",
+      "total": 16,
+      "failures": [
+        "test_disagreeing_detector_views_keep_color_and_hold_number (targets.ConflictingDigits.test_disagreeing_detector_views_keep_color_and_hold_number)",
+        "test_corrupt_color_blocks_number_verification (targets.WholeDelivery.test_corrupt_color_blocks_number_verification)",
+        "test_matching_receipt_cannot_hide_a_non_png_color_file (targets.WholeDelivery.test_matching_receipt_cannot_hide_a_non_png_color_file)",
+        "test_missing_occupancy_blocks_number_verification (targets.WholeDelivery.test_missing_occupancy_blocks_number_verification)",
+        "test_reencoded_equal_pixels_with_conflicting_label_are_rejected (targets.WholeDelivery.test_reencoded_equal_pixels_with_conflicting_label_are_rejected)",
+        "test_unlisted_file_blocks_number_verification (targets.WholeDelivery.test_unlisted_file_blocks_number_verification)",
+        "test_both_monitor_tables_use_selected_lot_even_on_opposite_camera (zone_tests.DesignatedBays.test_both_monitor_tables_use_selected_lot_even_on_opposite_camera)"
+      ],
+      "errors": [
+        "test_device_clocks_do_not_change_pair_selection (targets.FrameEvidence.test_device_clocks_do_not_change_pair_selection)",
+        "test_import_invalid_metadata_and_legacy (targets.FrameEvidence.test_import_invalid_metadata_and_legacy)",
+        "test_rgb_sdk_values_are_read_from_one_frame (targets.FrameEvidence.test_rgb_sdk_values_are_read_from_one_frame)",
+        "test_saved_pair_roundtrip_and_mismatched_evidence (targets.FrameEvidence.test_saved_pair_roundtrip_and_mismatched_evidence)",
+        "test_all_three_tasks_are_opened (targets.WholeDelivery.test_all_three_tasks_are_opened)",
+        "test_old_form_infers_zone_and_edited_form_cannot_move_it (zone_tests.DesignatedBays.test_old_form_infers_zone_and_edited_form_cannot_move_it)",
+        "test_saved_labels_field_form_and_approved_training_export_all_28_bays (zone_tests.DesignatedBays.test_saved_labels_field_form_and_approved_training_export_all_28_bays)",
+        "test_wrong_and_missing_zone_on_new_training_manifest_are_rejected (zone_tests.DesignatedBays.test_wrong_and_missing_zone_on_new_training_manifest_are_rejected)"
+      ]
+    },
+    "50": {
+      "version": "50",
+      "total": 16,
+      "failures": [],
+      "errors": []
+    }
+  },
+  "지정주차구역_기존실물사진재생": {
+    "A": {
+      "일반": 9,
+      "전기차": 2,
+      "장애인": 1
+    },
+    "B": {
+      "일반": 12,
+      "전기차": 2,
+      "장애인": 2
+    }
+  },
+  "두카메라5분": {
+    "카메라": "RealSense D435 ×2",
+    "해상도_FPS": [
+      1920,
+      1080,
+      30
+    ],
+    "측정활성_초": 300.092,
+    "선택관측수": 2792,
+    "유효쌍_최대PC수신차_ms": 16.2122,
+    "표본쌍": 6,
+    "저장후재열람쌍": 4,
+    "스티커대기쌍": 2,
+    "연결회차변경": {
+      "A": 0,
+      "B": 0
+    },
+    "저장실패": 0,
+    "모드": "표본 전부 가상 안내선",
+    "검증파일": "HARDWARE_5MIN_V50.json"
+  },
+  "기존번호11칸": {
+    "직접일치": 2,
+    "추정일치": 9,
+    "오답": 0,
+    "보류": 0,
+    "고유차량독립시험": false
+  },
+  "새합성24": {
+    "49": {
+      "direct_correct": 15,
+      "estimate_correct": 5,
+      "direct_wrong": 0,
+      "estimate_wrong": 1,
+      "held": 3,
+      "empty_false_number": 0
+    },
+    "50": {
+      "direct_correct": 15,
+      "estimate_correct": 1,
+      "direct_wrong": 0,
+      "estimate_wrong": 0,
+      "held": 8,
+      "empty_false_number": 0
+    }
+  },
+  "기존합성5세트": {
+    "challenge": {
+      "V49": {
+        "direct_correct": 17,
+        "estimate_correct": 3,
+        "direct_wrong": 0,
+        "estimate_wrong": 0,
+        "held": 4,
+        "empty_false_number": 0
+      },
+      "V50": {
+        "direct_correct": 17,
+        "estimate_correct": 1,
+        "direct_wrong": 0,
+        "estimate_wrong": 0,
+        "held": 6,
+        "empty_false_number": 0
+      },
+      "input_sha256": {
+        "A": "c1e8614a5d67a3c6f780d424a652d2ce0c8089aa53cc7610964d37fe549db3b6",
+        "B": "d1ee3d925d9b13444cc551caf2cd0c86c5fb3fad6d41d47d865ca9705bcded64"
+      }
+    },
+    "holdout": {
+      "V49": {
+        "direct_correct": 11,
+        "estimate_correct": 3,
+        "direct_wrong": 0,
+        "estimate_wrong": 0,
+        "held": 10,
+        "empty_false_number": 0
+      },
+      "V50": {
+        "direct_correct": 11,
+        "estimate_correct": 1,
+        "direct_wrong": 0,
+        "estimate_wrong": 0,
+        "held": 12,
+        "empty_false_number": 0
+      },
+      "input_sha256": {
+        "A": "33556731414bdab47b5c6d7ead7f332e3fda2ae3173fc2d6f02020dd17b1bba7",
+        "B": "e8fe985c4abf2ad0b1686e8bd8b7d2dc95bd68237b2e1589f646727555b83f80"
+      }
+    },
+    "blind": {
+      "V49": {
+        "direct_correct": 14,
+        "estimate_correct": 3,
+        "direct_wrong": 0,
+        "estimate_wrong": 0,
+        "held": 7,
+        "empty_false_number": 0
+      },
+      "V50": {
+        "direct_correct": 14,
+        "estimate_correct": 2,
+        "direct_wrong": 0,
+        "estimate_wrong": 0,
+        "held": 8,
+        "empty_false_number": 0
+      },
+      "input_sha256": {
+        "A": "b8b58147cddee1a1e686d58749e4ca792fb801c480cdf1c1ec6364e3c854991a",
+        "B": "ff13d138c647ca53ca7ea59fa75d6bfa623aeec209d22ba6ee972883e6daa7d9"
+      }
+    },
+    "finalcheck": {
+      "V49": {
+        "direct_correct": 19,
+        "estimate_correct": 3,
+        "direct_wrong": 0,
+        "estimate_wrong": 0,
+        "held": 2,
+        "empty_false_number": 0
+      },
+      "V50": {
+        "direct_correct": 19,
+        "estimate_correct": 1,
+        "direct_wrong": 0,
+        "estimate_wrong": 0,
+        "held": 4,
+        "empty_false_number": 0
+      },
+      "input_sha256": {
+        "A": "5503f875263b2ef761c98c465f686bbe36651b7fd765e4ede28745c3018cc34a",
+        "B": "ee0fe9c1b16b9c29d3f04594d4badd1d224decc0c84ade6335a7612a59d6c67d"
+      }
+    },
+    "independent": {
+      "V49": {
+        "direct_correct": 15,
+        "estimate_correct": 5,
+        "direct_wrong": 0,
+        "estimate_wrong": 0,
+        "held": 4,
+        "empty_false_number": 0
+      },
+      "V50": {
+        "direct_correct": 15,
+        "estimate_correct": 2,
+        "direct_wrong": 0,
+        "estimate_wrong": 0,
+        "held": 7,
+        "empty_false_number": 0
+      },
+      "input_sha256": {
+        "A": "7c613a61b6436390d4f08287d1443b0340e647310d2b92c445a04a30d63135eb",
+        "B": "0cf4318f6bf7328ee32b6f7105f79db759bfd912fae414dc335a9d79c3cfa346"
+      }
+    }
+  },
+  "두카메라_중단복구": {
+    "source": "smart_parking_v50",
+    "child_exit": 47,
+    "raw_count": 2,
+    "journal_count_before": 2,
+    "control_pairs": 1,
+    "control_exported_bays": 28,
+    "conflict_complete": 0,
+    "conflict_held": 1,
+    "conflict_exported_pairs": 0,
+    "conflicting_prediction_preserved": true,
+    "journal_preserved": true,
+    "raw_hashes_preserved": true,
+    "after_explicit_restoration": 1,
+    "after_second_recovery": 1,
+    "after_repair_exported_bays": 28
+  },
+  "기존버전_호환": {
+    "V49_원본및기록_해시동일_파일수": 102,
+    "V50_복구검사_완료쌍": 1,
+    "V50_내보냄": {
+      "scenes": 2,
+      "space_pairs": 28,
+      "images": 32,
+      "json_files": 30,
+      "originals": 2,
+      "measurements": 1
+    },
+    "이전정답표_실물비교칸": 28,
+    "이전정답표_대조규격": "동시측정현장대조-v3"
+  },
+  "빈기준_구도변화": {
+    "input": "live_20261105T072144031106Z",
+    "real_device": false,
+    "suspects": {
+      "A": [],
+      "B": []
+    },
+    "shift_px": {
+      "0": {
+        "vacant": 12
+      },
+      "1": {
+        "vacant": 12
+      },
+      "2": {
+        "held": "빈 기준과 주차선 위치 이동 · 구도를 확인하고 두 빈 기준을 다시 등록하세요."
+      },
+      "4": {
+        "held": "빈 기준과 주차선 위치 이동 · 구도를 확인하고 두 빈 기준을 다시 등록하세요."
+      },
+      "6": {
+        "held": "빈 기준과 주차선 위치 이동 · 구도를 확인하고 두 빈 기준을 다시 등록하세요."
+      },
+      "12": {
+        "held": "빈 기준과 주차선 위치 이동 · 구도를 확인하고 두 빈 기준을 다시 등록하세요."
+      }
+    },
+    "reconnection_hold": "주차장·시점·연결 변경 · 두 빈 주차장 기준을 다시 등록하세요."
+  },
+  "미측정": [
+    "신규 실물 24대 독립 번호·색·방향 정답 대조",
+    "센서 노출 시차",
+    "30분 운전 및 기본 간격 저장 처리량",
+    "조명별 실물 차체의 경계 침범 정확도",
+    "Geti 서버의 가져오기·학습·독립 평가"
+  ],
+  "검증기록": [
+    "CODE_AUDIT_V50.md",
+    "HARDWARE_5MIN_V50.json",
+    "FIELD_REPLAY_V50.json",
+    "TEST_RESULTS_V50.json"
+  ]
+}

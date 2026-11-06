@@ -1,0 +1,15 @@
+{
+  "defaults": {
+    "exposure": null,
+    "gain": null,
+    "white_balance": null,
+    "power_line_frequency": 2,
+    "auto_exposure_priority": 0
+  },
+  "A": {
+    "sharpness": 70
+  },
+  "B": {
+    "sharpness": 70
+  }
+}
