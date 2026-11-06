@@ -88,3 +88,12 @@ test('HTTP 200 busy fallback retains the original request for retry',async()=>{
   ctx.calls.at(-1).resolve(response(2));await retry;
   assert.equal(ctx.chat.getSnapshot().retry,null);
 });
+
+test('reply language follows a detected foreign question through chips and retries',async()=>{
+ let id=0;const calls=[];
+ const chat=createChatSession({language:'ko',makeId:()=>String(++id),request:(path,options)=>new Promise((resolve,reject)=>calls.push({path,options,resolve,reject}))});
+ chat.edit('Where can I park?');const sent=chat.send();assert.equal(calls[0].options.body.language,'ko');calls[0].resolve(response(1,{language:'en',chips:[{id:'help',label:'Help'}]}));await sent;
+ const chosen=chat.choose({id:'help',label:'Help'},chat.getSnapshot().actionEpoch);assert.equal(calls[1].options.body.language,'en');const body=calls[1].options.body;calls[1].reject(new Error('network'));await chosen;
+ const retry=chat.retry();assert.deepEqual(calls[2].options.body,body);calls[2].resolve(response(2,{language:'en'}));await retry;
+ chat.edit('한국어로 질문');const korean=chat.send();assert.equal(calls[3].options.body.language,'ko');calls[3].resolve(response(3,{language:'ko'}));await korean;
+});

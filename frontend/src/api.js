@@ -19,7 +19,7 @@ export function feeView(fee) {
 }
 export async function request(path, options = {}, source = dataSource) {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), /^\/simulation\/[CD]\/clear$/.test(path) ? 20000 : 10000);
+  const timeout = setTimeout(() => controller.abort(), (/^\/simulation\/[CD]\/clear$/.test(path) || path.startsWith('/chat')) ? 20000 : 10000);
   try {
     const prefix = isAdmin() ? (source === 'demo' ? '/admin-api/demo/v1' : '/admin-api/team/v1') : (source === 'demo' ? '/demo-api/v1' : '/api/v1');
     const response = await fetch(prefix + path, {method: options.method || 'GET', cache:'no-store', headers:{'Content-Type':'application/json'}, signal:controller.signal, ...(options.body ? {body:JSON.stringify(options.body)} : {})});
