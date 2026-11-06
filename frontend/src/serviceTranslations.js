@@ -1,4 +1,6 @@
 export default {
+  "메세지를 입력하세요": ["Type a message", "请输入消息", "メッセージを入力してください"],
+  "주차요금": ["Parking fees", "停车费用", "駐車料金"],
   "김해공항 주차 예약": ["Gimhae Airport parking reservations", "金海机场停车预约", "金海空港の駐車予約"],
   "주차 예약": ["Parking reservations", "停车预约", "駐車予約"],
   "예약 확정": ["Confirm reservation", "确认预约", "予約を確定"],
@@ -1167,7 +1169,7 @@ export default {
     "1. 查看空余车位",
     "1. 空きスペースを確認"
   ],
-  "하단의 ‘주차 지도’에서 주차장을 선택하세요. ‘빈자리’, ‘전기차’, ‘장애인’ 버튼으로 원하는 칸을 찾을 수 있어요.": [
+  "하단의 ‘주차 지도’에서 주차장을 선택하세요.\n‘빈자리’, ‘전기차’, ‘장애인’ 버튼으로 원하는 칸을 찾을 수 있어요.": [
     "Select a lot under Parking map. Filter by available, electric or accessible spaces.",
     "在底部“停车地图”选择停车场，按空位、电动车或无障碍筛选车位。",
     "下の「駐車マップ」で駐車場を選び、空き・電気自動車・障害者用で絞り込めます。"
@@ -1177,22 +1179,18 @@ export default {
     "2. 查找车辆与费用",
     "2. 車と料金を確認"
   ],
-  "하단의 ‘내 차·요금’에서 개발원과 부산역은 스티커 번호로, 김해공항과 신세계 백화점은 차량번호 뒤 4자리로 검색하세요.": [
-    "Under My car & fees, use a sticker number for Development Center and Busan Station, or the last 4 plate digits for Gimhae Airport and Shinsegae.",
-    "在“车辆与费用”中，开发院和釜山站使用贴纸编号，金海机场和新世界百货使用车牌后4位。",
-    "「車・料金」で開発院と釜山駅はステッカー番号、金海空港と新世界百貨店はナンバー下4桁で検索します。"
+  "하단의 ‘주차요금’에서 개발원과 부산역은 스티커 번호로, 김해공항과 신세계 백화점은 차량번호 뒤 4자리로 검색하세요.": [
+    "Under Parking fees, use a sticker number for Development Center and Busan Station, or the last 4 plate digits for Gimhae Airport and Shinsegae.",
+    "在“停车费用”中，开发院和釜山站使用贴纸编号，金海机场和新世界百货使用车牌后4位。",
+    "「駐車料金」で開発院と釜山駅はステッカー番号、金海空港と新世界百貨店はナンバー下4桁で検索します。"
   ],
-  "검색 결과에서 주차 위치와 요금을 확인할 수 있어요. 결제는 시연용이며 실제로 청구되지 않아요.": [
-    "Search results show your parking location and fee. Demo payments make no actual charge.",
-    "查询结果显示停车位置与费用。演示支付不会实际扣费。",
-    "検索結果で駐車位置と料金を確認できます。デモ精算では請求は発生しません。"
-  ],
+  "검색 결과에서 주차 위치와 요금을 확인하고, 출차 전에 주차요금을 미리 정산할 수 있어요.": ["Check your parking location and fee, then prepay before leaving.", "可查看车辆位置和费用，并在离场前提前缴纳停车费。", "駐車位置と料金を確認し、出庫前に事前精算できます。"],
   "3. 주차 정보 다시 확인하기": [
     "3. Refresh parking information",
     "3. 刷新停车信息",
     "3. 駐車情報を更新"
   ],
-  "연결이 끊기면 이전에 조회한 정보가 표시돼요. 연결이 돌아오면 화면 오른쪽 위의 새로고침 버튼을 눌러 주세요.": [
+  "연결이 끊기면 이전에 조회한 정보가 표시돼요.\n연결이 돌아오면 화면 오른쪽 위의 새로고침 버튼을 눌러 주세요.": [
     "If disconnected, the last result remains visible. Tap Refresh at the top right after reconnecting.",
     "连接中断时会显示上次查询结果，恢复连接后请点击右上角刷新。",
     "接続が切れると前回の情報が表示されます。復旧後に右上の更新ボタンを押してください。"

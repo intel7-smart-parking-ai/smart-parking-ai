@@ -1,6 +1,7 @@
 """HTTP endpoints shared by the standalone and embedded FastAPI apps."""
 from contextlib import asynccontextmanager
 from functools import partial, wraps
+from typing import Literal
 
 import anyio
 from anyio.lowlevel import RunVar
@@ -9,6 +10,7 @@ from pydantic import BaseModel, Field, StrictBool
 
 from . import config, engine, incidents
 from .state import Conflict
+from .response_locale import localize_response, resolve_language
 from .adapters import DataUnavailable
 from .contracts import alerts_source
 from .http_api import change_report
@@ -49,7 +51,11 @@ async def _lifespan(app):
 router = APIRouter(prefix="/api/v1/chat", tags=["chatbot"], lifespan=_lifespan)
 
 
+Language = Literal["ko", "en", "zh-CN", "ja"]
+
+
 class ChatIn(BaseModel):
+    language: Language | None = None
     session_id: str = Field(min_length=1, max_length=128)
     text: str | None = Field(default=None, max_length=200)
     chip_id: str | None = Field(default=None, max_length=128)
@@ -111,8 +117,11 @@ def _team_chat_response(response):
 
 @router.post("")
 async def chat(body: ChatIn):
-    work = partial(_service, engine.handle, body.session_id, body.text, body.chip_id, body.event,
-                   body.request_id, body.confirmation_token, body.runtime_id)
+    language = resolve_language(body.language, body.text) if body.language else "ko"
+    def work():
+        response = _service(engine.handle, body.session_id, body.text, body.chip_id, body.event,
+                            body.request_id, body.confirmation_token, body.runtime_id)
+        return {**localize_response(response, language), "language": language} if body.language else response
     if not config.EMBEDDED:
         return await anyio.to_thread.run_sync(work)
     capacity = _chat_capacity.get(None)
@@ -146,8 +155,8 @@ def suggest(q: str = ""):
 
 @router.get("/updates")
 @_worker
-def updates(session_id: str = Query(min_length=1, max_length=128), since: int = Query(default=0, ge=0), cursor: int = Query(default=0, ge=0), runtime_id: str | None = None):
-    return _service(engine.updates, session_id, since, cursor, runtime_id)
+def updates(session_id: str = Query(min_length=1, max_length=128), since: int = Query(default=0, ge=0), cursor: int = Query(default=0, ge=0), runtime_id: str | None = None, language: Language | None = None):
+    return localize_response(_service(engine.updates, session_id, since, cursor, runtime_id), language or "ko")
 
 
 @router.get("/admin/calls", dependencies=[Depends(privileged)])

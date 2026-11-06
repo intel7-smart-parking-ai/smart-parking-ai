@@ -31,3 +31,7 @@ html .chat-panel .chat-form > .button.chat-voice-button[aria-pressed=true] {
   background: #edf2ff;
   color: #315fce;
 }
+
+.chat-transcript .chat-row { scroll-margin-top: 84px; }
+
+.chat-panel-heading { justify-content: flex-end; text-align: right; }

@@ -1,5 +1,5 @@
 import {t} from './serviceLocale.js';
-import {useEffect,useState} from 'react';
+import {useEffect,useRef,useState} from 'react';
 import {reservedParkingStatus} from './uiState.js';
 import {request} from './api.js';
 import {Icon, ParkingMap as FallbackMap, statuses, types} from './components.jsx';
@@ -83,6 +83,13 @@ export default function ParkingLayoutMap(props) {
   const activeAlerts=(props.alerts||[]).filter(alert=>alert.lot_id===lot.lot_id&&alert.status!=='resolved');
   const reservedIssues = props.admin ? lot.spaces.filter(space => reservedParkingStatus(space)) : [];
   const unknownLocation=activeAlerts.some(alert=>!alert.space_id);
+  const mapViewport=useRef(null);
+  useEffect(()=>{
+    if(!props.legendNearMap||!mapViewport.current)return;
+    const el=mapViewport.current;
+    const align=()=>{const svg=el.querySelector('svg.pdf-map-svg');if(!svg)return;const box=svg.viewBox.baseVal;const available=Math.max(0,el.clientHeight-28);const rendered=Math.min(available,el.clientWidth*box.height/box.width);el.style.setProperty('--legend-top',`${4+Math.max(0,(available-rendered)/2)}px`)};
+    const observer=new ResizeObserver(align);observer.observe(el);align();return()=>observer.disconnect();
+  },[lot.lot_id,props.legendNearMap]);
   const [zoomed, setZoomed] = useState(false);
   const [preview,setPreview]=useState(null);
   useEffect(()=>setPreview(null),[lot.lot_id]);
@@ -125,7 +132,8 @@ export default function ParkingLayoutMap(props) {
     {preview&&<p role="status" className="fee-note">시연용 샘플 · 선택한 유형의 첫 번째 칸에 123가 4567 / 90분 · 4,500원을 표시합니다. 실제 주차 데이터는 변경되지 않습니다.</p>}
     <div className="map-toolbar"><div className="filter-tabs">{[['all',t('전체 보기')],['empty',t('빈자리')],['ev',t('전기차')],['accessible',t('장애인')]].map(([id,label]) => <button key={id} onClick={() => setFilter(id)} className={filter === id ? 'active' : ''} aria-pressed={filter === id}>{label}</button>)}</div></div>
     <div className="pdf-map-heading">{!props.hideTitle && kind !== 'basic' && <strong>{kind === 'mall' ? t('주차 배치도') : names[kind]}</strong>}<button className="pdf-zoom-button" aria-pressed={zoomed} onClick={() => setZoomed(value => !value)}>{zoomed ? t('전체 도면 보기') : t('주차칸 확대')}</button></div>
-    <div className={`pdf-map-scroll ${zoomed ? 'is-zoomed' : 'fit-map'}`} tabIndex={0} aria-label={t("주차장 도면, 확대 상태에서는 좌우로 이동하세요")}>
+    <div ref={mapViewport} data-legend-near-map={props.legendNearMap||undefined} className={`pdf-map-scroll ${zoomed ? 'is-zoomed' : 'fit-map'}`} tabIndex={0} aria-label={t("주차장 도면, 확대 상태에서는 좌우로 이동하세요")}>
+      {props.legendNearMap&&<div className="map-legend">{Object.entries(statuses).map(([id,label]) => <span key={id}><i className={`legend-dot ${id}`}/>{label}</span>)}</div>}
       <svg className="pdf-map-svg" viewBox={kind === 'mall' ? '0 0 1536 1024' : kind === 'angled' ? '0 0 1200 760' : kind === 'airport' ? '0 0 1536 1024' : kind === 'loop' ? '0 0 1000 880' : kind === 'l_shape' ? '0 0 900 1100' : '0 0 1000 1040'} role="group" aria-label={t("{0} {1}면 배치도",lot.name,lot.spaces.length)}>
         {kind === 'mall' && <MallParkingMap lot={lot} bay={bay} Arrow={Arrow} Gate={Gate}/>}
         {kind === 'basic' && <>
@@ -187,7 +195,7 @@ export default function ParkingLayoutMap(props) {
         <EmergencyExit kind={kind}/>
       </svg>
     </div>
-    <div className="map-legend">{Object.entries(statuses).map(([id,label]) => <span key={id}><i className={`legend-dot ${id}`}/>{label}</span>)}</div>
+    {!props.legendNearMap&&<div className="map-legend">{Object.entries(statuses).map(([id,label]) => <span key={id}><i className={`legend-dot ${id}`}/>{label}</span>)}</div>}
     <p className="pdf-layout-note"><Icon name="info"/>{kind === 'mall' ? t('신세계 백화점 주차장 B1 가상 배치 · A–D는 신세계 백화점 주차장 내부 구역입니다. 차량번호는 주차칸 확대에서 확인하세요.') : t('첨부 도면 기준 · A/B는 이 주차장 내부 구역입니다.')}<br/>{t("주차칸 선택으로 상세 조회 · 초록색 전기차 / 파란색 장애인")}</p>
   </section>;
 }

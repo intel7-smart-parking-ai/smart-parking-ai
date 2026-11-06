@@ -1,6 +1,7 @@
 // One session and immutable request envelope for both typed and transcribed input.
-export function createChatSession({request, makeId}) {
+export function createChatSession({request, makeId, language}) {
   let state = {draft: '', rows: [], view: null, busy: false, error: '', retry: null, restartRequired: false, actionEpoch: 0};
+  let conversationLanguage = language;
   let sessionId = makeId(), runtimeId = null, version = -1, sequence = 0, generation = 0;
   let polling = false, cursor = 0, alertVersion = 0, alertEpoch = 0, alertKey = '';
   const listeners = new Set(), events = new Set();
@@ -12,6 +13,7 @@ export function createChatSession({request, makeId}) {
       return false;
     }
     if (Number.isFinite(result.state_version) && result.state_version < version) return false;
+    if (result.language) conversationLanguage = result.language;
     runtimeId = result.runtime_id || runtimeId;
     version = Number.isFinite(result.state_version) ? result.state_version : version;
     alertVersion = Math.max(alertVersion, result.alert_version || 0);
@@ -45,7 +47,7 @@ export function createChatSession({request, makeId}) {
   }
   function submit(body, label) {
     if (state.busy || state.restartRequired) return Promise.resolve();
-    const task = {body: Object.freeze({session_id: sessionId, ...body, request_id: makeId(), ...(runtimeId ? {runtime_id: runtimeId} : {})}), label};
+    const task = {body: Object.freeze({session_id: sessionId, ...(language ? {language: body.text ? language : conversationLanguage} : {}), ...body, request_id: makeId(), ...(runtimeId ? {runtime_id: runtimeId} : {})}), label};
     emit({rows: [...state.rows, {who: 'user', text: label}], view: state.view ? {...state.view, chips: []} : null, actionEpoch: state.actionEpoch + 1});
     return transmit(task);
   }
@@ -83,7 +85,7 @@ export function createChatSession({request, makeId}) {
       polling = true;
       const turn = sequence, life = generation, safetyAtStart = alertEpoch;
       try {
-        const query = new URLSearchParams({session_id: sessionId, runtime_id: runtimeId, cursor: String(cursor), since: String(alertVersion)});
+        const query = new URLSearchParams({...(conversationLanguage ? {language: conversationLanguage} : {}), session_id: sessionId, runtime_id: runtimeId, cursor: String(cursor), since: String(alertVersion)});
         const result = await request('/chat/updates?' + query, {}, 'team');
         if (life !== generation || turn !== sequence || safetyAtStart !== alertEpoch || !accept(result)) return;
         cursor = result.cursor ?? cursor;
@@ -102,6 +104,7 @@ export function createChatSession({request, makeId}) {
       finally {polling = false;}
     },
     reset() {
+      conversationLanguage = language;
       generation++; sequence++; sessionId = makeId(); runtimeId = null; version = -1; cursor = 0; alertVersion = 0; events.clear();
       emit({rows: [], view: null, busy: false, error: '', retry: null, restartRequired: false, actionEpoch: state.actionEpoch + 1});
       if (alertKey) {const key = alertKey; alertKey = ''; controller.invalidateAlerts([{alert_id: key, level: 2}]);}
