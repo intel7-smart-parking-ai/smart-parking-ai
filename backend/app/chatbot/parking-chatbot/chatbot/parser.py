@@ -315,6 +315,8 @@ def parse_rules(text: str) -> ParseResult:
     for intent, rx in RULES:
         if rx.search(text):
             return ParseResult(intent, params, "rule")
+    if normalize_car_id(vehicle) and re.search(r"번\s*위치(?:\s*(?:알려\s*줘|알려\s*주세요|확인\s*해\s*줘))?[\s?？!！.]*$", text):
+        return ParseResult("find_my_car", params, "rule")
     if zone:
         return ParseResult("get_empty_spots",params,"rule")
     if vehicle:

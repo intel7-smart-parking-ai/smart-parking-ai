@@ -298,6 +298,24 @@ def _apply_alert_policy(s):
     return False
 
 
+def _payment_blocked(evidence):
+    return bool(evidence and (evidence.get("payment_blocked") is True
+                             or evidence.get("error_code") == "EVACUATION_ACTIVE"))
+
+
+def _safety_response(alert, evidence=None):
+    banner = T.banner(alert)
+    if alert.get("level", 0) >= 2:
+        return T.safety_card(alert), banner
+    if _payment_blocked(evidence):
+        # A payment prohibition is authoritative, but does not supply alarm facts.
+        text = "서버에서 모의 결제를 차단했어요. 대피 안내를 먼저 확인해 주세요."
+        if banner:
+            text += "\n" + banner["text"]
+        return T.safety_card(evidence), {"level": (banner or alert).get("level", 0), "text": text}
+    return None, banner
+
+
 def _respond(s: Session, text: str, card=None, chip_set="default", updated_at=None, meta=None, *, input_error=False) -> dict:
     alert = current_alert()
     level = alert.get("level", 0)
@@ -317,12 +335,13 @@ def _respond(s: Session, text: str, card=None, chip_set="default", updated_at=No
     context = vehicle_context(s)
     if context.get("state")=="parked" and s.destination:
         N.clear(s)
+    safety, banner = _safety_response(alert, _answer_evidence.get())
     return {
         "text": text,
-        "safety": T.safety_card(alert) if level >= 2 else None,
+        "safety": safety,
         "card": card,
         "chips": _response_chips(s, chip_set),
-        "banner": T.banner(alert),
+        "banner": banner,
         "updated_at": updated_at or iso(now()),
         "alert_version": alert.get("version", 0),
         "meta": meta or {},
@@ -495,6 +514,13 @@ def _candidate_location(s, token):
         {"type":"unrecognized_candidates","data":{"cars":[car],"notice":"차량 번호와 연결되지 않은 위치 후보입니다."}},["candidate_admin","change_vehicle"])
 
 
+def _fee_card(d):
+    receipt = d.get("payment")
+    if d.get("paid") and receipt and not d.get("stale") and not d.get("payment_blocked"):
+        return {"type": "payment", "data": {**receipt, "car_id": d["car_id"]}}
+    return {"type": "fee", "data": {**d, "journey": journey(d)}}
+
+
 def h_get_fee(s, p):
     d = data.get_fee(s.car_id)
     _answer_evidence.set(d)
@@ -502,7 +528,7 @@ def h_get_fee(s, p):
         return T.CAR_NOT_FOUND.format(no=s.car_id), None, ["change_vehicle", "call_admin"], None
     if d.get("status") in {"unavailable", "error", "conflict"}:
         return T.fee_unavailable(d), None, ["fee", "call_admin"], None
-    card = {"type": "fee", "data": {**d, "journey": journey(d)}}
+    card = _fee_card(d)
     if d.get("payment_blocked") is True:
         text, _, chips, updated = _server_payment_blocked(s, d)
         return T.fee(d) + "\n" + text, card, chips, updated
@@ -512,6 +538,7 @@ def h_get_fee(s, p):
 def _server_payment_blocked(s, evidence):
     """Use the server's payment prohibition without inferring an alarm location."""
     s.clear()
+    _answer_evidence.set(evidence)
     # Reuse established mock-fire guidance; do not invent a level, time or spot.
     return (T.safety_card(evidence)["title"] + "\n" + T.safety_guidance(evidence),
             None, "alert", evidence.get("updated_at"))
@@ -545,7 +572,7 @@ def h_pay_fee(s, p):
     visit = (s.car_id, d["entry_at"])
     if d["paid"]:
         _uncertain_payments.discard(visit)
-        return T.fee(d), None, "after_pay_fee", d["updated_at"]
+        return T.fee(d), _fee_card(d) if d.get("payment") else None, "after_pay_fee", d["updated_at"]
     if visit in _uncertain_payments:
         return "이전 결제의 처리 결과가 아직 불확실해요. 중복 결제를 막기 위해 관리자 확인이 필요해요.", None, ["fee", "call_admin"], None
     if d["fee"] == 0:
@@ -616,7 +643,7 @@ def _execute_payment_locked(s, pending):
     if isinstance(data.inner, ApiAdapter) and d.get("session_id") != pending.params.get("session_id"):
         return T.pay({"status": "unavailable"}, pending.car_id), None, ["fee", "call_admin"], None
     if d["paid"]:
-        return T.fee(d), None, "after_pay_fee", d["updated_at"]
+        return T.fee(d), _fee_card(d) if d.get("payment") else None, "after_pay_fee", d["updated_at"]
     if not isinstance(data.inner, ApiAdapter) and (d["fee"], d["entry_at"]) != (pending.params["amount"], pending.params["entry_at"]):
         result = h_pay_fee(s, {})
         return ("확인 중 요금 또는 입차 기록이 바뀌었어요. " + result[0], *result[1:])
@@ -1041,9 +1068,11 @@ def handle(session_id: str, text=None, chip_id=None, event=None, request_id=None
             raise Conflict("같은 request_id를 다른 요청에 사용할 수 없습니다.")
         saved = deepcopy(record["response"])
         alert = current_alert()
-        saved.update(destination=N.public(s), catalog=config.catalog.public_snapshot(), banner=T.banner(alert), alert_version=alert.get("version", 0),
-                     safety=T.safety_card(alert) if alert.get("level", 0) >= 2 else None,
-                     vehicle_context=vehicle_context(s), chips=_response_chips(s, "default"),
+        blocked = record.get("payment_block_evidence") if not s.pending else None
+        safety, banner = _safety_response(alert, blocked)
+        saved.update(destination=N.public(s), catalog=config.catalog.public_snapshot(), banner=banner, alert_version=alert.get("version", 0),
+                     safety=safety,
+                     vehicle_context=vehicle_context(s), chips=_response_chips(s, "alert" if blocked else "default"),
                      flow=s.flow.value, confirmation_token=s.pending.token if s.pending else None)
         saved["meta"]["replayed"] = True
         if saved["meta"].get("admin_suggestion") and not s.pending:
@@ -1059,6 +1088,8 @@ def handle(session_id: str, text=None, chip_id=None, event=None, request_id=None
     resp = _handle_message(s, session_id, text, chip_id, event, confirmation_token)
     if request_id:
         s.requests[request_id] = {"at": time.monotonic(), "fingerprint": fingerprint, "response": deepcopy(resp)}
+        if _payment_blocked(_answer_evidence.get()):
+            s.requests[request_id]["payment_block_evidence"] = deepcopy(_answer_evidence.get())
         while len(s.requests) > 100:
             s.requests.popitem(last=False)
     return resp

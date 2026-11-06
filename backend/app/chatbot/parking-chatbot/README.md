@@ -1,6 +1,8 @@
-# EPIC06 주차장 안내 챗봇 v2.15.6 — 음성 전사 번호 해석 보완
+# EPIC06 주차장 안내 챗봇 v2.15.8 — 연결 경계 안정화 준비본
 
-최신 변경은 [v2.15.6 변경 요약](docs/v2156_change_summary.md), 음성 연결은 [전사문 입력 기준](docs/voice_input_contract.md)을 참고하세요. 구현 기준은 [구현·검증 원칙](docs/validation_policy.md), 이전 검증 기준은 [v2.15.5 변경 요약](docs/v2155_change_summary.md), 목업 배정은 [D-39 대응표](docs/d39_mock_migration.md), 실행은 [11/06 대본](docs/demo_script_1106.md)에 있습니다. 팀 레포: https://github.com/intel7-smart-parking-ai/smart-parking-ai
+최신 변경과 담당별 연결 검수는 [v2.15.8 통합 검토](docs/v2158_integration_review.md)를 참고하세요. main `9265c12` 기준 로컬 준비본이며 원격 반영·배포 완료와 구분합니다. v2.15.7의 안전 응답·명부 갱신 수정도 포함합니다.
+
+이전 준비본 변경은 [v2.15.7 변경 요약](docs/v2157_change_summary.md), 내일 준비는 [11/06 준비·인계](docs/preparation_1106.md)를 참고하세요. 번호 해석은 [v2.15.6](docs/v2156_change_summary.md), 음성 연결은 [전사문 입력 기준](docs/voice_input_contract.md), 구현 기준은 [구현·검증 원칙](docs/validation_policy.md), 실행은 [11/06 대본](docs/demo_script_1106.md)에 있습니다. 팀 레포: https://github.com/intel7-smart-parking-ai/smart-parking-ai
 
 전체 검사는 팀 레포의 `backend/app/chatbot/parking-chatbot` 배치에서 실행합니다. ZIP만 단독으로 풀면 팀 등록 경로를 검사하는 일부 테스트에서 `backend`를 찾지 못할 수 있습니다. 이 납품본의 실제 실행 결과와 미검증 범위는 변경 요약을 참고하세요.
 
