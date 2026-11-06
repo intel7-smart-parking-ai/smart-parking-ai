@@ -68,7 +68,7 @@ class RepoV28Tests(unittest.TestCase):
                 'session_id':None,'status':'occupied','observed_at':iso(now())},{})):
                 car=self.f.api.find_car('11')
             self.assertIn('개발원주차장 A-16',T.car_location(car))
-        self.assertEqual([lot['capacity'] for lot in config.catalog.settings['lots']], [12,16,12,64])
+        self.assertEqual([lot['capacity'] for lot in config.catalog.settings['lots']], [12,16,64,64])
 
     def test_current_out_of_range_server_identifier_is_not_rewritten(self):
         self.f.adapter.get_empty_spots()

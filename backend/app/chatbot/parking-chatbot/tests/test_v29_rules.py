@@ -34,7 +34,7 @@ class ParserV29Tests(unittest.TestCase):
                 self.assertNotIn("car_id", parser.parse_rules(text).params)
 
     def test_lot_names_and_everyday_words(self):
-        cases = {"개발원주차장 자리 있어?": "A", "부산역 주차장 빈자리": "B", "북항 자리 있어?": "C", "신세계 빈자리": "D",
+        cases = {"개발원주차장 자리 있어?": "A", "부산역 주차장 빈자리": "B", "김해공항 자리 있어?": "C", "공항 주차장 빈자리": "C", "신세계 빈자리": "D",
                  "가 주차장": "A", "나 주차장 빈자리": "B", "라 주차장 C-13": "D", "B주차장": "B",
                  "나 주차했어": None, "어디 가?": None, "차 빼야 하는데 다 찼어?": None, "부산역 가는 길 알려줘": None}
         for text, expected in cases.items():

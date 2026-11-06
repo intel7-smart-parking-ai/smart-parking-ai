@@ -1,5 +1,5 @@
 {
-  "basis": "2026-11-03 PM 확정 104칸·최신 사용자 확정 명칭, 테스트 전용·DB 시드 아님",
+  "basis": "2026-11-03 PM 확정 104칸 → 2026-11-06 D-57 C 김해공항 64칸(A24·B36·C4) 반영, 총 156칸·테스트 전용·DB 시드 아님",
   "virtual_plate_example": {
     "plate_number": "17가1724",
     "display": "1724",
@@ -132,11 +132,11 @@
     },
     {
       "lot_id": "C",
-      "name": "북항주차장",
+      "name": "김해공항 주차장",
       "spaces": [
         {
           "space_id": "A-01",
-          "space_type": "general"
+          "space_type": "accessible"
         },
         {
           "space_id": "A-02",
@@ -156,6 +156,78 @@
         },
         {
           "space_id": "A-06",
+          "space_type": "ev"
+        },
+        {
+          "space_id": "A-07",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-08",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-09",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-10",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-11",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-12",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-13",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-14",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-15",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-16",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-17",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-18",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-19",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-20",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-21",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-22",
+          "space_type": "general"
+        },
+        {
+          "space_id": "A-23",
+          "space_type": "ev"
+        },
+        {
+          "space_id": "A-24",
           "space_type": "ev"
         },
         {
@@ -181,6 +253,142 @@
         {
           "space_id": "B-06",
           "space_type": "accessible"
+        },
+        {
+          "space_id": "B-07",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-08",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-09",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-10",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-11",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-12",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-13",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-14",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-15",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-16",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-17",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-18",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-19",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-20",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-21",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-22",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-23",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-24",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-25",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-26",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-27",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-28",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-29",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-30",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-31",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-32",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-33",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-34",
+          "space_type": "general"
+        },
+        {
+          "space_id": "B-35",
+          "space_type": "ev"
+        },
+        {
+          "space_id": "B-36",
+          "space_type": "ev"
+        },
+        {
+          "space_id": "C-01",
+          "space_type": "general"
+        },
+        {
+          "space_id": "C-02",
+          "space_type": "general"
+        },
+        {
+          "space_id": "C-03",
+          "space_type": "general"
+        },
+        {
+          "space_id": "C-04",
+          "space_type": "general"
         }
       ]
     },

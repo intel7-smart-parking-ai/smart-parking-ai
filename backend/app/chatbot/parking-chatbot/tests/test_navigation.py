@@ -53,7 +53,7 @@ class NavigationTests(unittest.TestCase):
         r=self.choose('B')
         self.assertIsNone(r['destination'])
         self.assertIn('만차',r['text'])
-        self.assertEqual([x['id']for x in r['chips']][:2],['go:D','go:C'])  # 빈자리 많은 순(D 64칸)
+        self.assertEqual([x['id']for x in r['chips']][:2],['go:C','go:D'])  # 빈자리 많은 순 (D-57: C 김해공항 64칸 > D)
 
     def test_selected_lot_full_edge_only_once(self):
         self.empty('B');self.choose('B');self.full('B')

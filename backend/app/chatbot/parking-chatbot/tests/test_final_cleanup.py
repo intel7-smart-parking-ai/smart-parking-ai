@@ -42,7 +42,7 @@ class FinalCleanupTests(unittest.TestCase):
 
     def test_all_full_offers_current_lookup_and_admin(self):
         for lot in e.data.inner.capacity: e.data.fill_lot(lot)
-        r = e.handle("s", text="북항주차장 자리 있어?")
+        r = e.handle("s", text="김해공항 주차장 자리 있어?")
         self.assertIn("empty_all", ids(r))
         self.assertIn("call_admin", ids(r))
         self.assertFalse(any(i.startswith("go:") for i in ids(r)))
@@ -73,7 +73,7 @@ class FinalCleanupTests(unittest.TestCase):
 
     # ---------------------------------------------------------- 목적지 취소 칩
     def test_destination_cancel_hidden_without_destination(self):
-        for text in ("부산역주차장 자리 있어?", "북항주차장 자리 있어?", "B로 갈게"):
+        for text in ("부산역주차장 자리 있어?", "김해공항 주차장 자리 있어?", "B로 갈게"):
             r = e.handle("s", text=text)
             self.assertIsNone(r["destination"])
             self.assertNotIn("destination_cancel", ids(r), text)
@@ -140,11 +140,11 @@ class FinalCleanupTests(unittest.TestCase):
 
     def test_demo_restriction_and_wording(self):
         e.data.set_restriction("C", True, "점검 중")
-        r = e.handle("s", text="북항주차장 자리 있어?")
-        self.assertIn("북항주차장은 지금 이용할 수 없어요. (점검 중)", r["text"])
+        r = e.handle("s", text="김해공항 주차장 자리 있어?")
+        self.assertIn("김해공항 주차장은 지금 이용할 수 없어요. (점검 중)", r["text"])
         self.assertNotIn("운영 제한:", r["text"])
         e.data.set_restriction("C", False)
-        r = e.handle("s", text="북항주차장 자리 있어?")
+        r = e.handle("s", text="김해공항 주차장 자리 있어?")
         self.assertIn("자리 있어요", r["text"])
 
     def test_full_demo_sequence(self):
@@ -162,7 +162,7 @@ class FinalCleanupTests(unittest.TestCase):
         e.data.set_restriction("C", True, "점검 중")
         r, cur = self.ack_all("s", cur)
         notice = [m for m in r["messages"] if m.get("meta", {}).get("notification") == "destination"][0]
-        self.assertIn("북항주차장을 지금 이용할 수 없게 됐어요. (점검 중)", notice["text"])
+        self.assertIn("김해공항 주차장을 지금 이용할 수 없게 됐어요. (점검 중)", notice["text"])
         e.data.set_restriction("C", False)
         e.handle("s", text="14번 차 위치")  # 아직 입차 전
         e.handle("s", text="네")

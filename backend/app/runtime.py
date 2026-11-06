@@ -638,6 +638,11 @@ def create_runtime_app(
             conn.execute("PRAGMA journal_mode=WAL")
             init_schema(conn)
             seed_defaults(conn)
+            conn.execute(
+                "UPDATE parking_lots SET name = ?, total_spaces = ? "
+                "WHERE lot_id = 'C' AND type = 'virtual' AND name = ? AND total_spaces = 12",
+                ("김해공항 주차장", 64, "북항주차장"),
+            )
             init_alerts_schema(conn)
             conn.executescript(SCHEMA)
             if "applied" not in {

@@ -53,7 +53,8 @@ export async function api(path, options) {
   return result;
 }
 export async function loadLots(source = dataSource) {
-  const result = await request('/parking-lots', {}, source);
+  const visibleDemo = source === 'team' && typeof document !== 'undefined' && !document.hidden;
+  const result = await request(visibleDemo ? '/parking-lots?visible_demo=1' : '/parking-lots', {}, source);
   if (source === 'demo') return listItems(result).map(lot=>normalizeLot(lot,lot.spaces||[],result.as_of));
   return Promise.all(listItems(result).map(async lot => {
     const response = await request(`/parking-lots/${encodeURIComponent(lot.lot_id)}/spaces`, {}, source);
@@ -71,7 +72,13 @@ export async function lookupVehicle(value, kind = 'sticker', source = dataSource
   if (/^\d$/.test(input)) throw new Error('스티커 번호는 두 자리로 입력해주세요. (10~99)');
   const number=input;
   if (!/^[1-9][0-9]$/.test(number)) throw new Error('스티커 번호 10~99를 입력해주세요. 00~09는 사용하지 않습니다.');
-  const result=await request('/vehicles/'+number+'/location',{},source);
+  let result;
+  try {
+    result=await request('/vehicles/'+number+'/location',{},source);
+  } catch(error) {
+    if(error.status===404)throw new Error('스티커 '+number+'번의 현재 주차 위치가 확인되지 않습니다. 입차·카메라 인식 상태를 확인해 주세요. 가상 차량은 차량번호로 찾기에서 뒤 4자리를 입력하세요.');
+    throw error;
+  }
   if (!result.session_id) return {...result,lookup_type:'sticker',fee:null,fee_notice:'요금 정보 없음 · 주차 세션이 아직 없습니다.'};
   try {
     const fee=await request('/sessions/'+encodeURIComponent(result.session_id)+'/fee',{},source);

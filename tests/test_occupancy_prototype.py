@@ -69,7 +69,7 @@ def test_same_space_name_is_independent_per_lot(experiment):
     occupy(client, lot_id='C', camera_id=None)
     assert space(client, 'C')['status'] == 'occupied'
     assert space(client, 'A')['status'] == 'empty'
-    assert sum(len(client.get(GET.format(lot)).json()['items']) for lot in 'ABCD') == 104
+    assert sum(len(client.get(GET.format(lot)).json()['items']) for lot in 'ABCD') == 156
     assert space(client, 'B', 'B-08')['space_type'] == 'accessible'
 
 
@@ -130,8 +130,8 @@ def test_unknown_space_and_lot(experiment):
                                         'message': '주차장이 없습니다.', 'details': []}}
 
 
-@pytest.mark.parametrize('lot,count', [('A', 12), ('B', 16), ('C', 12), ('D', 64)])
-def test_common_list_and_104_layout(experiment, lot, count):
+@pytest.mark.parametrize('lot,count', [('A', 12), ('B', 16), ('C', 64), ('D', 64)])
+def test_common_list_and_156_layout(experiment, lot, count):
     client, store, clock = experiment
     response = client.get(GET.format(lot))
     body = response.json()

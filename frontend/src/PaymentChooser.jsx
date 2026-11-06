@@ -2,9 +2,9 @@ import {useState} from 'react';
 import {money} from './components.jsx';
 
 export const paymentMethods = {
-  MOCK_CARD: '모의 카드',
-  MOCK_EASY_PAY: '피넛페이 (모의)' ,
-  MOCK_ACCOUNT: '모의 계좌이체',
+  MOCK_CARD: '신용카드',
+  MOCK_EASY_PAY: '부캉페이' ,
+  MOCK_ACCOUNT: '계좌이체',
 };
 
 export default function PaymentChooser({amount, busy, error, onPay, onBack, blocked=false}) {
@@ -17,7 +17,7 @@ export default function PaymentChooser({amount, busy, error, onPay, onBack, bloc
       <legend>결제 수단</legend>
       {Object.entries(paymentMethods).map(([id, label]) => <label key={id} className={`payment-method ${id} ${method === id ? 'selected' : ''}`}>
         <input type="radio" name="payment_method" value={id} checked={method === id} onChange={() => setMethod(id)}/>
-        <span className="payment-brand" aria-hidden="true">{id === 'MOCK_CARD' ? 'CARD' : id === 'MOCK_EASY_PAY' ? 'PEANUT' : 'BANK'}</span>
+        <span className="payment-brand" aria-hidden="true">{id === 'MOCK_CARD' ? 'CARD' : id === 'MOCK_EASY_PAY' ? <img src="/icons/bukang-pay.png" alt="" style={{width:76,height:56,objectFit:"contain",borderRadius:8}}/> : 'BANK'}</span>
         <strong>{label}</strong><span className="payment-method-check" aria-hidden="true">{method === id ? '✓' : ''}</span>
       </label>)}
     </fieldset>

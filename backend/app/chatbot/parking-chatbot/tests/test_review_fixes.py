@@ -32,7 +32,7 @@ class ReviewFixTests(unittest.TestCase):
         self.assertIn('필요 가능성', b['equipment'])
 
     def test_unrecognized_neighbor_without_evidence_asks_to_prepare(self):
-        e.data.enter_unrecognized('C')  # 북항 A-02. 화재 A-01: 옆 A-02 미인식, 충전 구역 아님, 전기차 근거 없음
+        e.data.enter_unrecognized('C')  # 김해공항(C) A-02. 화재 A-01: 옆 A-02 미인식, 충전 구역 아님, 전기차 근거 없음
         b = self.briefing('C', 1)
         self.assertIn('대비 필요', b['equipment'])
 
