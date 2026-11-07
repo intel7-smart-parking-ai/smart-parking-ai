@@ -102,3 +102,11 @@ RECOVERY_MANIFEST.json과 이전 ZIP은 초기 복구 시점 자료다. 최신 �
 - 관련 8파일 92 passed. 상세 evaluation/IDENTIFIER_CONTRACT_2026-11-08.md.
 - 유료 재시험 미수행: 공급자 nested schema 수용은 미검증, 기존 실제 점수는 31/34.
 - 후속 실제 호출은 소량 스키마 수용 시험부터 범위를 정하고 시작. 프롬프트+스키마 SHA를 함께 기록.
+
+### 새 식별자 스키마 실제 3문항 확인
+- 후속 승인으로 Q18/Q23/Q25 각 1회, 실제 3회 호출. nested 스키마 수용과 Decision 검증 성공.
+- 차량 위치/요금의 0765를 plate_suffix로 보존, 전각 번호는 clarify. 부분 채점 3/3.
+- 총 공급자 비용 $0.0072008. 상세 evaluation/IDENTIFIER_SMOKE_2026-11-08.md.
+- 전체 최신 34문항은 미실행. 이전 31/34와 이 3개를 합산해 전체 통과로 표시하지 않음.
+- 수동 종단 검토 미실행으로 부분 scorer는 needs_review. 주차 API/Reporter/Langfuse 전송 없음.
+- 다음은 최신 계약 전체 34문항 재평가 범위를 정한 뒤 진행. 원격 저장 여전히 미완료.
