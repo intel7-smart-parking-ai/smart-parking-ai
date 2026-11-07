@@ -19,3 +19,9 @@ python -m backend.app.chatbot_v3 --env-file /안전한/경로/.env --backend-url
 인증된 백엔드, HTTP 신규 채팅 라우트, 화면 연결, Langfuse, 영구 세션 저장, 전체 턴 시간제한은 미구현입니다.
 모델이 해석한 장소가 실제 사용자 의도와 맞는지는 실제 한국어 평가가 추가로 필요합니다.
 현재 테스트는 모의 모델이며 OpenRouter 결제를 발생시키지 않습니다.
+
+## 키 없이 화면 연결 시험
+
+별도 `preview:create_preview_app`과 `frontend/chat-v3.html`을 추가했습니다.
+실행·시간제한·세션 수명·지원 범위는 [시험 실행 문서](../../../docs/chatbot-v3/KEYLESS_PREVIEW.md)를 참고하세요.
+위 콘솔 구현의 제한과 별도 gateway의 보완 사항을 구분합니다. 기존 운영 `/chat`은 교체하지 않았습니다.

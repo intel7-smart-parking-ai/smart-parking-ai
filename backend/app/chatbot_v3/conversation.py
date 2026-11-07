@@ -10,6 +10,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from .llm import ModelError
+from .budget import BudgetExpired, remaining_timeout
 from .recommendation import recommend_spaces
 
 
@@ -70,8 +71,10 @@ class ConversationService:
                      "model_calls": 0, "usage": [], "is_mock": None, "retrieved_at": None}
 
             def infer(prompt, payload, schema):
+                remaining_timeout(1)
                 reply["model_calls"] += 1
                 result = self.model.structured(prompt, payload, schema)
+                remaining_timeout(1)
                 reply["usage"].append(deepcopy(getattr(self.model, "last_usage", {})))
                 return result
 
@@ -109,11 +112,13 @@ class ConversationService:
                             if len(ids) != len(set(ids)) or set(ids) != set(by_id):
                                 raise ValueError("missing or fabricated facts")
                             selected = [by_id[i] for i in ids]
-                        except (ModelError, ValueError):
+                        except (ModelError, ValueError, BudgetExpired):
                             reply["warning"] = "표현 정리 실패로 검증된 사실을 기본 순서로 표시합니다."
                         reply.update(status="ok", text="\n".join(f["text"] for f in selected),
                                      cards=[{"type": decision.intent, "data": result.data}])
                         self._remember(state["context"], decision, result.data or {})
+            except BudgetExpired:
+                reply.update(status="unavailable", text="응답 제한 시간이 지나 후속 조회를 중단했습니다. 같은 요청은 다시 실행하지 않습니다.")
             except ModelError:
                 reply.update(status="unavailable", text="모델 서비스 응답을 확인하지 못했습니다. 잠시 후 다시 시도해주세요.")
             except ValueError:
@@ -147,6 +152,7 @@ class ConversationService:
                 raise ValueError("unsupported destination or type")
 
     def _dispatch(self, d, cid, rid):
+        remaining_timeout(1)
         if d.intent == "availability":
             return self.tools.list_spaces(d.lot_id) if d.lot_id else self.tools.list_lots()
         if d.intent in {"vehicle", "fee"}:

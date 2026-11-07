@@ -8,6 +8,7 @@ from typing import TypeVar
 import httpx
 from dotenv import dotenv_values
 from pydantic import BaseModel
+from .budget import remaining_timeout
 
 
 class ModelError(RuntimeError):
@@ -64,7 +65,7 @@ class OpenRouterModel:
                     }}],
                     "tool_choice": {"type": "function", "function": {"name": "submit_result"}},
                 },
-                timeout=self.settings.timeout,
+                timeout=remaining_timeout(self.settings.timeout),
                 follow_redirects=False,
             )
         except httpx.RequestError as exc:

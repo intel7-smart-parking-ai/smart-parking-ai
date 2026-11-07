@@ -4,6 +4,7 @@ import re
 from threading import RLock
 from urllib.parse import quote
 import httpx
+from .budget import remaining_timeout
 from pydantic import ValidationError
 from .schemas import AlertList, Fee, Location, LotList, PolicyList, SpaceList, ToolError, ToolResult
 
@@ -22,7 +23,7 @@ class ParkingTools:
 
     def _get(self, path, schema, *, params=None, vehicle=False):
         try:
-            response = self.client.get('/api/v1' + path, params=params, timeout=self.timeout, follow_redirects=False)
+            response = self.client.get('/api/v1' + path, params=params, timeout=remaining_timeout(self.timeout), follow_redirects=False)
         except httpx.RequestError:
             return failure('unavailable', 'BACKEND_UNAVAILABLE', '서버 응답을 확인하지 못했습니다. 잠시 후 새 요청으로 확인해주세요.')
         if response.status_code != 200:
