@@ -199,6 +199,18 @@ class ConversationService:
     def _validate(self, d: Decision, text: str, context: dict):
         if d.intent not in {"clarify", "unsupported"} and d.question is not None:
             raise ValueError("action cannot also ask a question")
+        if d.lot_id is not None and d.intent not in {"vehicle", "fee"}:
+            # Catalog ambiguity is an execution constraint, not a fuzzy alias resolver.
+            profile = next(row["language_profile"] for row in self.catalog["items"]
+                           if row["lot_id"] == d.lot_id)
+            normalized = re.sub(r"\s+", "", text).casefold()
+            if any(re.sub(r"\s+", "", phrase).casefold() in normalized
+                   for phrase in profile.get("ambiguous_examples", []) if phrase):
+                raise ValueError("catalog place ambiguity requires confirmation")
+        if d.intent == "availability" and d.lot_id is None:
+            # Missing a place must not silently expand into a whole-site request.
+            if not re.search(r"(?:전체|모든|각)\s*주차장|주차장\s*(?:전체|모두)|주차장별", text):
+                raise ValueError("all-lot availability requires explicit scope")
         if (d.intent in {"facilities", "guidance", "recommend"} or d.space_type is not None) and not d.lot_id:
             raise ValueError("missing lot")
         if d.intent not in {"vehicle", "fee"} and (d.lookup_type is not None or d.vehicle_value is not None):
