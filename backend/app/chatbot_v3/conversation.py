@@ -1,6 +1,8 @@
 """Bounded in-memory conversation prototype. Reconstructed, not a recovered binary."""
 from copy import deepcopy
 import json
+import hashlib
+import uuid
 from pathlib import Path
 import re
 from threading import RLock
@@ -9,6 +11,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from .observability import utc_now
 from .llm import ModelError
 from .budget import BudgetExpired, remaining_timeout
 from .recommendation import recommend_spaces
@@ -33,10 +36,11 @@ class Selection(BaseModel):
 
 class ConversationService:
     def __init__(self, model, tools, knowledge, *, ttl=1800, capacity=100,
-                 max_requests=1000, clock=time.monotonic):
+                 max_requests=1000, clock=time.monotonic, observer=None):
         self.model, self.tools, self.knowledge = model, tools, knowledge
         self.ttl, self.capacity, self.max_requests = ttl, capacity, max_requests
         self.clock = clock
+        self.observer = observer
         self._lock = RLock()
         self._states, self._requests = {}, {}
         prompt_dir = Path(__file__).with_name("prompts")
@@ -70,10 +74,26 @@ class ConversationService:
             reply = {"status": "error", "text": "", "cards": [], "source_refs": [],
                      "model_calls": 0, "usage": [], "is_mock": None, "retrieved_at": None}
 
+            trace_id, started = uuid.uuid4().hex, utc_now()
+            def record(name, kind, start, status, **kwargs):
+                if self.observer is not None:
+                    try:
+                        self.observer.record(trace_id=trace_id,name=name,kind=kind,start=start,status=status,**kwargs)
+                    except Exception:
+                        # Observability cannot change the answer or repeat business work.
+                        pass
+
             def infer(prompt, payload, schema):
                 remaining_timeout(1)
                 reply["model_calls"] += 1
-                result = self.model.structured(prompt, payload, schema)
+                start, outcome = utc_now(), "error"
+                try:
+                    result = self.model.structured(prompt, payload, schema)
+                    outcome = "ok"
+                finally:
+                    record("coordinator" if schema is Decision else "reporter", "generation", start, outcome,
+                           prompt_version=hashlib.sha256(prompt.encode()).hexdigest(),
+                           usage=getattr(self.model,"last_usage",{}) if outcome=="ok" else {})
                 remaining_timeout(1)
                 reply["usage"].append(deepcopy(getattr(self.model, "last_usage", {})))
                 return result
@@ -88,7 +108,12 @@ class ConversationService:
                     reply.update(status=decision.intent, text=decision.question or "주차장이나 조회할 내용을 조금 더 알려주세요.")
                 else:
                     self._validate(decision, text, state["context"])
-                    result = self._dispatch(decision, conversation_id, request_id)
+                    tool_start, tool_status = utc_now(), "error"
+                    try:
+                        result = self._dispatch(decision, conversation_id, request_id)
+                        tool_status = result.status
+                    finally:
+                        record("tools." + decision.intent,"span",tool_start,tool_status)
                     reply["source_refs"] = result.source_refs
                     reply["is_mock"] = result.is_mock
                     reply["retrieved_at"] = result.retrieved_at.isoformat()
@@ -127,6 +152,9 @@ class ConversationService:
             state["history"] = (state["history"] + [
                 {"role": "user", "content": text}, {"role": "assistant", "content": reply["text"]}
             ])[-6:]
+            record("chatbot_v3.turn", "trace", started, "fallback" if "warning" in reply else reply["status"])
+            if self.observer is not None:
+                reply["trace_id"] = trace_id
             self._requests[key] = (text, deepcopy(reply))
             return reply
 
