@@ -71,3 +71,11 @@ RECOVERY_MANIFEST.json과 이전 ZIP은 초기 복구 시점 자료다. 최신 �
 - 34문항 평가는 별도 범위 승인 후 수행. 단일 연결 성공을 전체 품질 합격으로 보지 않음.
 - 임시 backup 원격 khbyeol79-cloud/parkon-chatbot-backup은 연결했지만 동일한 인증 오류로 push 실패.
   origin은 보존. 로컬 Git 커밋과 Git bundle로 보존하며 GitHub 업로드 완료라고 표시하지 않음.
+
+### 34문항 Coordinator 실제 평가 1회 완료
+- 사용자가 34문항 1회 평가를 별도로 승인해 34회 모델 요청 수행. 재시도/Reporter/API/Langfuse 없음.
+- 응답 스키마 34/34 통과, 의미 기준 22/34, 실행 해결률 10/17=58.8%, 결과 fail.
+- 총 공급자 보고 비용 $0.0683392. 상세 실패 목록: evaluation/RUN_2026-11-08_COORDINATOR_1.md.
+- 원본 결과와 score는 /workspace/parkon-reports/coordinator-34-run1-*.json에 보존.
+- 다음은 식별자/목적지/복합 요청/안내 의도 프롬프트 및 실행 경계 오프라인 보완.
+  후속 유료 재평가나 3회 반복은 아직 실행하지 않았음.
