@@ -2,7 +2,7 @@
 from .conversation import Decision, Selection
 
 EXAMPLES = ['부산역 빈자리 있어?', '기차주차장 자리 있어?', '영화관 가까운 빈자리 추천해줘',
-            '신세계 시설 알려줘', '국제선 주차장 전기차 빈자리 있어?', '23번 차 어디 있어?', '23번 차 요금 알려줘']
+            '신세계 시설 알려줘', '국제선 주차장 전기차 빈자리 있어?', '23번 차 어디 있어?', '23번 차 요금 알려줘', '신세계 빈자리 있어?', '0765 차량 어디 있어?', '0765 차량 요금 알려줘']
 
 class FixtureModel:
     last_usage = {}
@@ -16,7 +16,10 @@ class FixtureModel:
                    dict(intent='recommend',lot_id='D',destination_id='D_cinema'),
                    dict(intent='facilities',lot_id='D'),dict(intent='availability',lot_id='C',space_type='ev'),
                    dict(intent='vehicle',lookup_type='sticker',vehicle_value='23'),
-                   dict(intent='fee',lookup_type='sticker',vehicle_value='23')]
+                   dict(intent='fee',lookup_type='sticker',vehicle_value='23'),
+                   dict(intent='availability',lot_id='D'),
+                   dict(intent='vehicle',lookup_type='plate_suffix',vehicle_value='0765'),
+                   dict(intent='fee',lookup_type='plate_suffix',vehicle_value='0765')]
         if payload['question'] in EXAMPLES:
             base.update(choices[EXAMPLES.index(payload['question'])],question=None)
         return Decision(**base)

@@ -15,3 +15,5 @@ Git 원본 복구와 구분하며, 이전 미커밋 파일과 바이트 단위 �
 - [키 없는 시험 서버·화면 실행](KEYLESS_PREVIEW.md)
 
 RECOVERY_MANIFEST.json은 초기 복구·검토 시점의 해시 기록이며 후속 개발 파일의 최신 해시 목록은 아닙니다. 이후 변경은 Git 커밋으로 추적합니다.
+
+- [입출차·추천·경보 연동 검증 및 실제 모델 평가 준비](LIVE_PIPELINE_VALIDATION.md)
