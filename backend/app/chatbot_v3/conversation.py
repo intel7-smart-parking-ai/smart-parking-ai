@@ -7,9 +7,9 @@ from pathlib import Path
 import re
 from threading import RLock
 import time
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from .observability import utc_now
 from .llm import ModelError
@@ -17,16 +17,53 @@ from .budget import BudgetExpired, remaining_timeout
 from .recommendation import recommend_spaces
 
 
-class Decision(BaseModel):
+class _DecisionFields(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
     intent: Literal["availability", "vehicle", "fee", "facilities", "guidance", "recommend", "clarify", "unsupported"] = Field(description="의도 하나. 시설 위치/목록은 facilities, 층/지하/높이/진출입 안내는 guidance. 복합 비교는 clarify.")
     lot_id: Literal["A", "B", "C", "D"] | None = Field(description="확인된 주차장 ID. 차량 위치/요금은 주차장 미지정이어도 조회 가능. 모호한 장소는 추측하지 않음.")
-    lookup_type: Literal["sticker", "plate_suffix"] | None = Field(description="차량/요금 전용. ASCII 두 자리 10~99는 sticker, 선행 0을 보존한 ASCII 네 자리는 plate_suffix. 그 외 의도는 null.")
-    vehicle_value: str | None = Field(description="사용자 또는 확정 문맥의 차량 식별자 그대로. 숫자 변환/전각 정규화/선행 0 제거 금지.")
     destination_id: str | None = Field(description="recommend에는 선택한 주차장의 destinations 항목 facility_id를 정확히 복사. 알 수 없으면 clarify. 그 외는 null.")
     space_type: Literal["general", "ev", "accessible"] | None
     preference: Literal["nearest", "easy"] = Field(description="필수: nearest 또는 easy. 추천 외 의도는 nearest. null 금지.")
     question: str | None = Field(description="clarify의 확인 질문 또는 unsupported 안내만. 실행 의도에서는 반드시 null이며 사용자 질문을 바꾸어 넣지 않음.")
+
+
+class Decision(_DecisionFields):
+    lookup_type: Literal["sticker", "plate_suffix"] | None = Field(description="차량/요금 전용. ASCII 두 자리 10~99는 sticker, 선행 0을 보존한 ASCII 네 자리는 plate_suffix. 그 외 의도는 null.")
+    vehicle_value: str | None = Field(description="사용자 또는 확정 문맥의 차량 식별자 그대로. 숫자 변환/전각 정규화/선행 0 제거 금지.")
+
+    @classmethod
+    def provider_output_model(cls):
+        return _ModelDecision
+
+    @classmethod
+    def from_provider_output(cls, output):
+        values = output.model_dump(exclude={"vehicle_identifier"})
+        identifier = output.vehicle_identifier
+        return cls(**values, lookup_type=identifier.kind if identifier else None,
+                   vehicle_value=identifier.value if identifier else None)
+
+
+class _StickerIdentifier(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    kind: Literal["sticker"]
+    value: Annotated[str, Field(pattern=r"^[1-9][0-9]$")]
+
+
+class _PlateSuffixIdentifier(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    kind: Literal["plate_suffix"]
+    value: Annotated[str, Field(pattern=r"^[0-9]{4}$")]
+
+
+class _ModelDecision(_DecisionFields):
+    vehicle_identifier: _StickerIdentifier | _PlateSuffixIdentifier | None = Field(
+        description="차량/요금에만 kind와 value 쌍. ASCII 두 자리 10~99=sticker, 네 자리=plate_suffix. 그 외 의도는 null.")
+
+    @model_validator(mode="after")
+    def identifier_matches_intent(self):
+        if (self.intent in {"vehicle", "fee"}) != (self.vehicle_identifier is not None):
+            raise ValueError("vehicle identifier must match intent")
+        return self
 
 
 class Selection(BaseModel):

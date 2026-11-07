@@ -47,6 +47,8 @@ class OpenRouterModel:
 
     def structured(self, system: str, payload: dict, output_model: type[T]) -> T:
         self.last_usage = {}
+        provider_model = (output_model.provider_output_model()
+                          if hasattr(output_model, "provider_output_model") else output_model)
         try:
             response = self.client.post(
                 "https://openrouter.ai/api/v1/chat/completions",
@@ -62,7 +64,7 @@ class OpenRouterModel:
                     "tools": [{"type": "function", "function": {
                         "name": "submit_result", "description": "Return the structured result.",
                         "strict": True,
-                        "parameters": output_model.model_json_schema(),
+                        "parameters": provider_model.model_json_schema(),
                     }}],
                     "tool_choice": {"type": "function", "function": {"name": "submit_result"}},
                 },
@@ -83,7 +85,8 @@ class OpenRouterModel:
             calls = body["choices"][0]["message"]["tool_calls"]
             if len(calls) != 1 or calls[0]["function"]["name"] != "submit_result":
                 raise ValueError("invalid tool output")
-            result = output_model.model_validate_json(calls[0]["function"]["arguments"])
-            return result
+            result = provider_model.model_validate_json(calls[0]["function"]["arguments"])
+            return (output_model.from_provider_output(result)
+                    if provider_model is not output_model else result)
         except (KeyError, IndexError, TypeError, ValueError, AttributeError) as exc:
             raise ModelError("모델 응답 형식을 확인할 수 없습니다.") from exc

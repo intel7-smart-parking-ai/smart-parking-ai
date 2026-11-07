@@ -17,10 +17,20 @@ def body(preference):
                 preference=preference, question=None)
 
 
+def wire(arguments):
+    if 'lookup_type' not in arguments:
+        return arguments
+    result = dict(arguments)
+    kind = result.pop('lookup_type')
+    value = result.pop('vehicle_value')
+    result['vehicle_identifier'] = {'kind': kind, 'value': value} if kind is not None else None
+    return result
+
+
 def provider_reply(arguments):
     return httpx.Response(200, json={
         'choices': [{'message': {'tool_calls': [{'function': {
-            'name': 'submit_result', 'arguments': json.dumps(arguments)}}]}}],
+            'name': 'submit_result', 'arguments': json.dumps(wire(arguments))}}]}}],
         'usage': {'cost': .001994, 'total_tokens': 4859, 'private': 'must-not-leak'},
     })
 

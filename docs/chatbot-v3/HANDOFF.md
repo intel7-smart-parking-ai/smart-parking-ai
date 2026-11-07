@@ -94,3 +94,11 @@ RECOVERY_MANIFEST.json과 이전 ZIP은 초기 복구 시점 자료다. 최신 �
 - 세 실패 모두 현재 _validate가 dispatch 전에 차단함을 오프라인 확인. 모델 정답으로 집계하지 않음.
 - 총 보고 비용 $0.080036. 상세 evaluation/RUN_2026-11-08_COORDINATOR_2.md.
 - 후속 후보: lookup_type-식별자 패턴 계약 강화. 추가 유료 호출/3회 반복/Langfuse 전송 없음.
+
+### 식별자 출력 계약 오프라인 강화
+- OpenRouter Coordinator 출력은 vehicle_identifier={kind,value} union/null. 종류별 ASCII 패턴을 적용.
+- 로컬에서 검증한 객체만 기존 평면 Decision으로 매핑. 내부 API/fixture/채점 형식 유지.
+- 부적합 번호를 자동 수정/재분류하지 않음. 실패 비용 기록과 동일 요청 재실행 방어 유지.
+- 관련 8파일 92 passed. 상세 evaluation/IDENTIFIER_CONTRACT_2026-11-08.md.
+- 유료 재시험 미수행: 공급자 nested schema 수용은 미검증, 기존 실제 점수는 31/34.
+- 후속 실제 호출은 소량 스키마 수용 시험부터 범위를 정하고 시작. 프롬프트+스키마 SHA를 함께 기록.

@@ -22,14 +22,16 @@
 확실하지 않은 주차장/목적지 ID를 만들어내지 마세요.
 
 [차량 식별자]
-- ASCII 두 자리 10~99 문자열: lookup_type="sticker". 주차장 미지정이어도 vehicle/fee 선택 가능. 주차장을 되묻지 마세요.
-- ASCII 네 자리 0000~9999 문자열: lookup_type="plate_suffix". 앞의 0을 보존합니다.
-  예: 0042는 sticker가 아니라 plate_suffix="0042"입니다. int 변환 금지.
+- 출력 vehicle_identifier는 {"kind":"sticker","value":"42"} 또는 {"kind":"plate_suffix","value":"0042"} 형태입니다. kind와 value를 분리된 필드로 내보내지 마세요.
+- ASCII 두 자리 10~99 문자열: vehicle_identifier.kind="sticker". 주차장 미지정이어도 vehicle/fee 선택 가능. 주차장을 되묻지 마세요.
+- ASCII 네 자리 0000~9999 문자열: vehicle_identifier.kind="plate_suffix". 앞의 0을 보존합니다.
+  예: 0042는 sticker가 아니라 {"kind":"plate_suffix","value":"0042"}입니다. int 변환 금지.
 - 00~09 두 자리 미니카 번호는 미사용입니다. 전각 숫자/다른 문자 숫자는 ASCII로 고치지 말고 clarify/unsupported.
-- 번호 없는 '내 차'는 clarify. 같은 차량을 가리키는 '그 차 요금'은 확정된 lookup_type/vehicle_value 사용.
+- 번호 없는 '내 차'는 clarify. 같은 차량을 가리키는 '그 차 요금'은 입력 confirmed_context의 lookup_type/vehicle_value를 vehicle_identifier.kind/value로 그대로 옮기세요.
 - 새 번호나 '이 번호 말고 저 번호' 정정은 새 번호가 우선입니다. 이전 번호로 대체 금지.
 - 차량/요금은 주차장 ID가 필수가 아닙니다. 조회된 실제 위치는 서버가 확인합니다.
-- 차량/요금 외 의도에 lookup_type/vehicle_value를 넣지 마세요.
+- vehicle/fee에는 올바른 vehicle_identifier 객체가 필수입니다. 그 외 의도에는 vehicle_identifier=null입니다.
+- 형식이 틀린 번호는 고치거나 다른 kind로 우회하지 말고 clarify/unsupported와 vehicle_identifier=null을 반환하세요.
 
 [추천]
 recommend는 확인된 lot_id와 목적지 ID가 모두 필요합니다.
