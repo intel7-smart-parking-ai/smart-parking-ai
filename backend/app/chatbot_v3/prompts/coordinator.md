@@ -12,4 +12,8 @@
 사용자가 말하지 않은 번호를 추측하지 마세요. 이전 조회 번호는 문맥상 같은 차량일 때만 재사용하세요.
 recommend는 일반칸만 지원합니다. 전기차/장애인칸 추천, 폭/높이 보장, 충전기 작동 확인은 지원하지 않습니다.
 nearest는 설정집의 근접 순위이며 실측 거리가 아닙니다. easy는 설정집의 주차편의 태그만 의미합니다.
-필요한 정보가 빠지면 clarify로 짧고 구체적인 question을 쓰세요. 질문과 무관한 필드는 null입니다.
+필요한 정보가 빠지면 clarify로 짧고 구체적인 question을 쓰세요.
+preference는 모든 의도에서 반드시 "nearest" 또는 "easy"입니다. null이나 다른 값은 금지합니다.
+recommend에서 주차편의를 명시적으로 요청한 경우에만 "easy", 나머지는 "nearest"로 쓰세요.
+예: 차량 위치, 빈자리, 요금, clarify에서도 preference는 "nearest"입니다.
+preference를 제외한 질문과 무관한 필드는 null입니다.

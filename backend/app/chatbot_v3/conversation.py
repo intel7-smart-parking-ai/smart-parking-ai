@@ -25,7 +25,7 @@ class Decision(BaseModel):
     vehicle_value: str | None
     destination_id: str | None
     space_type: Literal["general", "ev", "accessible"] | None
-    preference: Literal["nearest", "easy"]
+    preference: Literal["nearest", "easy"] = Field(description="필수: nearest 또는 easy. 추천 외 의도는 nearest. null 금지.")
     question: str | None
 
 
@@ -91,11 +91,12 @@ class ConversationService:
                     result = self.model.structured(prompt, payload, schema)
                     outcome = "ok"
                 finally:
+                    usage = deepcopy(getattr(self.model, "last_usage", {}))
                     record("coordinator" if schema is Decision else "reporter", "generation", start, outcome,
                            prompt_version=hashlib.sha256(prompt.encode()).hexdigest(),
-                           usage=getattr(self.model,"last_usage",{}) if outcome=="ok" else {})
+                           usage=usage)
+                    reply["usage"].append(usage)
                 remaining_timeout(1)
-                reply["usage"].append(deepcopy(getattr(self.model, "last_usage", {})))
                 return result
 
             try:

@@ -61,6 +61,7 @@ class OpenRouterModel:
                     ],
                     "tools": [{"type": "function", "function": {
                         "name": "submit_result", "description": "Return the structured result.",
+                        "strict": True,
                         "parameters": output_model.model_json_schema(),
                     }}],
                     "tool_choice": {"type": "function", "function": {"name": "submit_result"}},
@@ -74,14 +75,15 @@ class OpenRouterModel:
             raise ModelError(f"모델 요청 실패 (HTTP {response.status_code}).")
         try:
             body = response.json()
+            usage = body.get("usage") or {}
+            if isinstance(usage, dict):
+                self.last_usage = {k: v for k, v in usage.items()
+                                   if k in {"prompt_tokens", "completion_tokens", "total_tokens", "cost"}
+                                   and isinstance(v, (int, float)) and not isinstance(v, bool)}
             calls = body["choices"][0]["message"]["tool_calls"]
             if len(calls) != 1 or calls[0]["function"]["name"] != "submit_result":
                 raise ValueError("invalid tool output")
             result = output_model.model_validate_json(calls[0]["function"]["arguments"])
-            usage = body.get("usage") or {}
-            self.last_usage = {k: v for k, v in usage.items()
-                               if k in {"prompt_tokens", "completion_tokens", "total_tokens", "cost"}
-                               and isinstance(v, (int, float)) and not isinstance(v, bool)}
             return result
         except (KeyError, IndexError, TypeError, ValueError, AttributeError) as exc:
             raise ModelError("모델 응답 형식을 확인할 수 없습니다.") from exc
