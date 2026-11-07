@@ -1,0 +1,38 @@
+{
+  "base_commit": "86c30692379f474bf54947efa0df22e9b96d7aa2",
+  "date": "2026-11-07",
+  "method": "conversation_reconstruction_with_review_fixes",
+  "validation": {
+    "full_suite": "387 passed, 1 failed; simulator clear 503",
+    "isolated_failed_test": "1 passed",
+    "chatbot_v3": "31 passed",
+    "frontend": "unchanged; previous build passed",
+    "live_llm_called": false
+  },
+  "files": {
+    "backend/app/chatbot_v3/README.md": "4b452a69b58fecc515bc61fd4a3c2b94806f19ece368dfa1bf8029b78af8f9ef",
+    "backend/app/chatbot_v3/__init__.py": "44644a72326977ccf57566be7d65732831991a206bab07449182ed9a35c4c231",
+    "backend/app/chatbot_v3/__main__.py": "df03f8a4aea7f7a65b8338be381422f4e6b0f9afaaac36c940a231f26d6ec300",
+    "backend/app/chatbot_v3/conversation.py": "5ce22e7a65f84abf115f6ce0e16148fb6ba86e88b601c9ea598a0a2b6b110e8f",
+    "backend/app/chatbot_v3/knowledge.py": "d88329523310d472246a79976d8a145763eaaf36499f8f71c17276e8a9871adc",
+    "backend/app/chatbot_v3/llm.py": "1d8ccafb4213179e7dad804e1f82813b1f2ad8403ac50baf1e4924c234508da8",
+    "backend/app/chatbot_v3/prompts/coordinator.md": "b17934ef01d78b5634bfb5e8435fb11f4e61af20793caf4b3933d7275f2627df",
+    "backend/app/chatbot_v3/prompts/reporter.md": "5e025039b352d88de7acde99de1410b73e651e69efa9a5b2cc37a0dc9c869507",
+    "backend/app/chatbot_v3/recommendation.py": "2f91f70d25b656e58221484a5f9627cbe6dc8c6a690e5a1acf71693d4a1cccd3",
+    "backend/app/chatbot_v3/schemas.py": "3a11c95db4fffbde6a3da9dc9ce59d1fcd457c78db96711284bc8a95072b191c",
+    "backend/app/chatbot_v3/tools.py": "0d63b49201ccf809eacab7f84a53719470b492e3b0b89a693a2b4557747ecfad",
+    "docs/chatbot-v3/API_CONNECTIONS.md": "231a68806b8012021b8c676966d75a00fa079f1178e4f10a108e4fe928ea3a0d",
+    "docs/chatbot-v3/ARCHITECTURE.md": "ebd897a14ca327494b79649614785abf2756d5f3b32f51c2562bf53b3005e262",
+    "docs/chatbot-v3/CONTRACT_AUDIT.md": "0bd6f85c823f867571f0b2b2beed349dca0d40539c1510f58b4632c4f18443f1",
+    "docs/chatbot-v3/COORDINATOR_STATUS.md": "edcb8d339038b3264e98fd1426c8c796996d1792c18c89318f835388748da9db",
+    "docs/chatbot-v3/IMPLEMENTATION_STATUS.md": "cb492d58e32ba90da73c48eb5b66ceb9d0afc203891f5f7c28e8999c74d620cc",
+    "docs/chatbot-v3/README.md": "da85df7a3403262f1d1dcf14379630bb82ca772cbb19bacbaaae349f2f0c4a8f",
+    "docs/chatbot-v3/RECOVERY.md": "9c8671d12b5c233dd76fa39f0534e684918d584ea614eeaf87ba0e2cb0dc68f1",
+    "docs/chatbot-v3/REVIEW_2026-11-07.md": "aabb1dcd89b3eaba5d5927ddfbadc26128d7c3f84e4ba5257cfd54316619783b",
+    "docs/parking-knowledge/FAQ_AND_DATA_REQUIREMENTS.md": "d7751d48992b4a0e81cac8f9ef5d78eab4ca70e8a7ccdff0577787278c455015",
+    "docs/parking-knowledge/PARKING_SETTINGS_v0.1.md": "145d4237efc7705dad870c4df3e3612d544c2643b1247bad157cc8277d88e7f6",
+    "docs/parking-knowledge/parking_knowledge.v0.1.json": "0052648fb403a2ed9b39070d2ecbf0f4bc8b1f8b067336b6e8c93ce0c8218ad1",
+    "tests/test_chatbot_v3_conversation.py": "7816f0910cdc29279903077a4d93b8f5ca209e7be737f7294e407d2e26121147",
+    "tests/test_chatbot_v3_tools.py": "26fdfa5ca1f0bf29b6fc8af841297f084bd7f26a7b3af9b7f10037c8bf5ba191"
+  }
+}
