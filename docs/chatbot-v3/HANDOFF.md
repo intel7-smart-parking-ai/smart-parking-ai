@@ -79,3 +79,10 @@ RECOVERY_MANIFEST.json과 이전 ZIP은 초기 복구 시점 자료다. 최신 �
 - 원본 결과와 score는 /workspace/parkon-reports/coordinator-34-run1-*.json에 보존.
 - 다음은 식별자/목적지/복합 요청/안내 의도 프롬프트 및 실행 경계 오프라인 보완.
   후속 유료 재평가나 3회 반복은 아직 실행하지 않았음.
+
+### 첫 34문항 실패 후 오프라인 보완
+- 프롬프트/필드 설명에 식별자·목적지·복합 비교·guidance 구분을 구체화.
+- 실행 의도+question 동시 출력은 API 실행 전 차단. Unicode 숫자의 ASCII 부분 매칭/이전 번호 재사용 방어.
+- 관련 7파일 71 passed. 새 20개 회귀는 주입 Decision/모의 HTTP로 검증하며 모델 품질 점수 아님.
+- evaluation/OFFLINE_FIX_2026-11-08.md 참고. 기존 실제 점수는 여전히 22/34, 재평가 미수행.
+- 유료 호출/Langfuse 전송 추가 없음. 다음 유료 평가 범위를 정하기 전 모델을 호출하지 않음.
