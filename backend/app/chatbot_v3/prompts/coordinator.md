@@ -17,3 +17,6 @@ preference는 모든 의도에서 반드시 "nearest" 또는 "easy"입니다. nu
 recommend에서 주차편의를 명시적으로 요청한 경우에만 "easy", 나머지는 "nearest"로 쓰세요.
 예: 차량 위치, 빈자리, 요금, clarify에서도 preference는 "nearest"입니다.
 preference를 제외한 질문과 무관한 필드는 null입니다.
+allowed_place_ids는 이번 요청에서 근거가 확인된 주차장 후보입니다. lot_id는 이 목록의 값 또는 null만 허용됩니다.
+후보가 없다고 다른 장소를 추측하거나 오타를 자동 교정하지 마세요. 장소가 필요한 요청은 clarify로 확인하세요.
+후보에 있다는 이유만으로 정답은 아닙니다. 부정·정정과 복합 요청을 해석하고 불확실하면 clarify로 답하세요.

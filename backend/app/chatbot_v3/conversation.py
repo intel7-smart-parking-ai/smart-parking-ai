@@ -15,6 +15,7 @@ from .observability import utc_now
 from .llm import ModelError
 from .budget import BudgetExpired, remaining_timeout
 from .recommendation import recommend_spaces
+from .place_candidates import allows_all_lots, place_candidates
 
 
 class Decision(BaseModel):
@@ -100,11 +101,18 @@ class ConversationService:
                 return result
 
             try:
+                allowed_places = place_candidates(text, self.catalog, state['context'])
                 decision = infer(self.coordinator_prompt, {
                     "question": text, "confirmed_context": deepcopy(state["context"]),
                     "recent_dialogue": state["history"][-6:], "catalog": self.catalog,
                     "destinations": self.destinations,
+                    "allowed_place_ids": allowed_places,
                 }, Decision)
+                # Enforce even when a fixture/custom model ignores the wire schema.
+                if decision.lot_id is not None and decision.lot_id not in allowed_places:
+                    raise ValueError("place lacks request evidence")
+                if decision.intent == 'availability' and decision.lot_id is None and not allows_all_lots(text):
+                    raise ValueError("null place must not silently broaden a place query")
                 if decision.intent in {"clarify", "unsupported"}:
                     reply.update(status=decision.intent, text=decision.question or "주차장이나 조회할 내용을 조금 더 알려주세요.")
                 else:

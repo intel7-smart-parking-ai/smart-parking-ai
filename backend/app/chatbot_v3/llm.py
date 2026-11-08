@@ -47,6 +47,16 @@ class OpenRouterModel:
 
     def structured(self, system: str, payload: dict, output_model: type[T]) -> T:
         self.last_usage = {}
+        parameters = output_model.model_json_schema()
+        allowed_places = None
+        if 'lot_id' in parameters.get('properties', {}) and 'allowed_place_ids' in payload:
+            allowed_places = payload['allowed_place_ids']
+            if not isinstance(allowed_places, list) or any(p not in {'A', 'B', 'C', 'D'} for p in allowed_places):
+                raise ModelError('장소 후보 설정을 확인할 수 없습니다.')
+            parameters['properties']['lot_id'] = {
+                'anyOf': ([{'type': 'string', 'enum': allowed_places}] if allowed_places else [])
+                         + [{'type': 'null'}],
+            }
         try:
             response = self.client.post(
                 "https://openrouter.ai/api/v1/chat/completions",
@@ -62,7 +72,7 @@ class OpenRouterModel:
                     "tools": [{"type": "function", "function": {
                         "name": "submit_result", "description": "Return the structured result.",
                         "strict": True,
-                        "parameters": output_model.model_json_schema(),
+                        "parameters": parameters,
                     }}],
                     "tool_choice": {"type": "function", "function": {"name": "submit_result"}},
                 },
@@ -84,6 +94,8 @@ class OpenRouterModel:
             if len(calls) != 1 or calls[0]["function"]["name"] != "submit_result":
                 raise ValueError("invalid tool output")
             result = output_model.model_validate_json(calls[0]["function"]["arguments"])
+            if allowed_places is not None and result.lot_id is not None and result.lot_id not in allowed_places:
+                raise ValueError('place outside request schema')
             return result
         except (KeyError, IndexError, TypeError, ValueError, AttributeError) as exc:
             raise ModelError("모델 응답 형식을 확인할 수 없습니다.") from exc

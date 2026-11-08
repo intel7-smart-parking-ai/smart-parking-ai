@@ -49,7 +49,7 @@ def test_context_replay_and_conflict():
 
 
 def test_vehicle_not_invented_and_new_session_isolated():
-    d=decision(intent='vehicle',lookup_type='sticker',vehicle_value='23')
+    d=decision(intent='vehicle',lot_id=None,lookup_type='sticker',vehicle_value='23')
     service,_,requests,client=setup([d,d,d])
     with client:
         assert service.handle('c','1','23번 차 어디?')['status']=='ok'
@@ -109,7 +109,7 @@ def test_provider_failures_are_safe(code,body):
 
 
 def test_new_vehicle_number_cannot_reuse_previous_number():
-    old=decision(intent='vehicle',lookup_type='sticker',vehicle_value='23')
+    old=decision(intent='vehicle',lot_id=None,lookup_type='sticker',vehicle_value='23')
     service,_,requests,client=setup([old,old])
     with client:
         assert service.handle('c','1','23번 차 어디?')['status']=='ok'

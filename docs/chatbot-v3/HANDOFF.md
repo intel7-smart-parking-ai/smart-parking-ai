@@ -1,5 +1,9 @@
 # 새 Codex 채팅 인계
 
+> 2026-11-08 Windows 복구 후속: `RECOVERY_WINDOWS_2026-11-08.md`를 먼저 읽는다.
+> 실제 첨부는 dbb9fe0이며 8cc7fd4 및 이후 평가 기록은 복구되지 않았다.
+> 이번 요청별 장소 후보 제한은 누락 커밋의 복원이 아닌 신규 개선이다.
+
 ## 가져올 작업
 - 저장소: https://github.com/intel7-smart-parking-ai/smart-parking-ai
 - 브랜치: chore/chatbot-v3-recovery-20261107

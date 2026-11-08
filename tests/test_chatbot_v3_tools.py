@@ -75,7 +75,7 @@ def test_invalid_identifiers_and_timeout_not_retried():
 
 def test_knowledge_matches_upstream():
     knowledge=KnowledgeStore()
-    upstream=json.loads(Path('backend/app/chatbot/parking-chatbot/chatbot/lots.json').read_text())
+    upstream=json.loads(Path('backend/app/chatbot/parking-chatbot/chatbot/lots.json').read_text(encoding='utf-8'))
     assert sum(len(l['spaces']) for l in knowledge.lots.values())==156
     assert sum(len(l['facilities']) for l in knowledge.lots.values())==28
     for row in upstream['lots']:
