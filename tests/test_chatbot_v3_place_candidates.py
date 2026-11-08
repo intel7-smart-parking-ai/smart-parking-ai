@@ -62,9 +62,14 @@ def test_wire_schema_and_local_validation(allowed, returned, valid):
         assert branches == ([{'type': 'string', 'enum': allowed}] if allowed else []) + [{'type': 'null'}]
         assert params['additionalProperties'] is False
         assert set(params['required']) == set(params['properties'])
+        assert 'vehicle_identifier' in params['properties']
+        arguments = decision(returned)
+        arguments.pop('lookup_type')
+        arguments.pop('vehicle_value')
+        arguments['vehicle_identifier'] = None
         return httpx.Response(200, json={
             'choices': [{'message': {'tool_calls': [{'function': {
-                'name': 'submit_result', 'arguments': json.dumps(decision(returned))}}]}}],
+                'name': 'submit_result', 'arguments': json.dumps(arguments)}}]}}],
             'usage': {'total_tokens': 12},
         })
     with httpx.Client(transport=httpx.MockTransport(handler)) as client:

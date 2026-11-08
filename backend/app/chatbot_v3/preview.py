@@ -11,6 +11,7 @@ import hmac
 import os
 import secrets
 import time
+from threading import Event
 from typing import Literal
 import uuid
 
@@ -88,9 +89,9 @@ class PreviewGateway:
         except (ValueError,TypeError):
             raise PreviewError(409,'SESSION_EXPIRED','대화가 만료됐거나 유효하지 않습니다. 새 대화를 시작해주세요.')
 
-    def _run(self,session,body,deadline):
+    def _run(self,session,body,deadline,cancelled):
         try:
-            with turn_budget(deadline):
+            with turn_budget(deadline,cancelled):
                 result=session.service.handle(body.session_id,body.request_id,body.text)
             text=result['text']
             return dict(text=text,messages=[{'text':text}],chips=[],card=None,flow='idle',
@@ -138,12 +139,14 @@ class PreviewGateway:
         self.running+=1
         session.busy=True
         deadline=time.monotonic()+self.response_timeout
-        job=asyncio.create_task(asyncio.to_thread(self._run,session,body,deadline))
+        cancelled=Event()
+        job=asyncio.create_task(asyncio.to_thread(self._run,session,body,deadline,cancelled))
         session.jobs[body.request_id]=(body.text,job)
         job.add_done_callback(lambda task:self._finished(session,task))
         try:
             return await asyncio.wait_for(asyncio.shield(job),timeout=self.response_timeout)
         except asyncio.TimeoutError:
+            cancelled.set()
             raise PreviewError(504,'RESPONSE_TIMEOUT','응답 대기 시간이 지났습니다. 처리 결과는 같은 요청으로 다시 확인해주세요.')
 
     async def shutdown(self):

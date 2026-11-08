@@ -1,5 +1,7 @@
 # Windows 복구 실검증 · 2026-11-08 KST
 
+> 이 문서는 최초 dbb9fe0 복구 당시의 기록이다. 이후 최신 ZIP을 확보해 8cc7fd4까지 확인·통합했다. 현재 상태는 `INTEGRATION_WINDOWS_2026-11-08.md`를 따른다. 아래 미확보/미복원 표시는 당시 기준이다.
+
 ## 복구 출처와 범위
 
 - 이전 ChatGPT 대화 첨부 `1-chatbot-v3-offline-fix-20261108.bundle`을 읽어 별도 작업 경로에 복사했다. 원본 첨부와 Downloads 사본은 변경하지 않았다.

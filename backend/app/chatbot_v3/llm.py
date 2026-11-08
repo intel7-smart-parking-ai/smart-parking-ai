@@ -47,7 +47,9 @@ class OpenRouterModel:
 
     def structured(self, system: str, payload: dict, output_model: type[T]) -> T:
         self.last_usage = {}
-        parameters = output_model.model_json_schema()
+        provider_model = (output_model.provider_output_model()
+                          if hasattr(output_model, "provider_output_model") else output_model)
+        parameters = provider_model.model_json_schema()
         allowed_places = None
         if 'lot_id' in parameters.get('properties', {}) and 'allowed_place_ids' in payload:
             allowed_places = payload['allowed_place_ids']
@@ -93,9 +95,10 @@ class OpenRouterModel:
             calls = body["choices"][0]["message"]["tool_calls"]
             if len(calls) != 1 or calls[0]["function"]["name"] != "submit_result":
                 raise ValueError("invalid tool output")
-            result = output_model.model_validate_json(calls[0]["function"]["arguments"])
+            result = provider_model.model_validate_json(calls[0]["function"]["arguments"])
             if allowed_places is not None and result.lot_id is not None and result.lot_id not in allowed_places:
                 raise ValueError('place outside request schema')
-            return result
+            return (output_model.from_provider_output(result)
+                    if provider_model is not output_model else result)
         except (KeyError, IndexError, TypeError, ValueError, AttributeError) as exc:
             raise ModelError("모델 응답 형식을 확인할 수 없습니다.") from exc
