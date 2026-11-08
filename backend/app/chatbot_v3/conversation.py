@@ -15,6 +15,7 @@ from .observability import utc_now
 from .llm import ModelError
 from .budget import BudgetExpired, remaining_timeout
 from .recommendation import recommend_spaces
+from .place_grounding import place_evidence
 
 
 class _DecisionFields(BaseModel):
@@ -207,6 +208,8 @@ class ConversationService:
             if any(re.sub(r"\s+", "", phrase).casefold() in normalized
                    for phrase in profile.get("ambiguous_examples", []) if phrase):
                 raise ValueError("catalog place ambiguity requires confirmation")
+            if place_evidence(self.catalog, d.lot_id, text, context) is None:
+                raise ValueError("selected place lacks catalog or confirmed-context evidence")
         if d.intent == "availability" and d.lot_id is None:
             # Missing a place must not silently expand into a whole-site request.
             if not re.search(r"(?:전체|모든|각)\s*주차장|주차장\s*(?:전체|모두)|주차장별", text):
