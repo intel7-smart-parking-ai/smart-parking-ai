@@ -15,7 +15,7 @@ from .observability import utc_now
 from .llm import ModelError
 from .budget import BudgetExpired, remaining_timeout
 from .recommendation import recommend_spaces
-from .place_candidates import allows_all_lots, place_candidates
+from .place_candidates import allows_all_lots, clarification_text, place_candidates
 from .place_grounding import place_evidence
 
 
@@ -152,7 +152,9 @@ class ConversationService:
                 if decision.intent == 'availability' and decision.lot_id is None and not allows_all_lots(text):
                     raise ValueError("null place must not silently broaden a place query")
                 if decision.intent in {"clarify", "unsupported"}:
-                    reply.update(status=decision.intent, text=decision.question or "주차장이나 조회할 내용을 조금 더 알려주세요.")
+                    question = (clarification_text(decision.question, allowed_places, self.catalog)
+                                if decision.intent == 'clarify' else decision.question)
+                    reply.update(status=decision.intent, text=question or "주차장이나 조회할 내용을 조금 더 알려주세요.")
                 else:
                     self._validate(decision, text, state["context"])
                     tool_start, tool_status = utc_now(), "error"

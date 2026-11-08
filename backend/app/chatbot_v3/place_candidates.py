@@ -30,6 +30,24 @@ def allows_all_lots(text):
         r"(?:알려줘|보여줘|있어|있나요)?[?!.\s]*", text.strip()))
 
 
+def clarification_text(question, allowed_places, catalog):
+    """Do not introduce an unsupported catalog name even inside a question.
+
+    This changes presentation only, never the model decision or place selection.
+    Match names independently so another unknown phrase cannot hide the name.
+    """
+    if not question:
+        return '주차장이나 조회할 내용을 조금 더 알려주세요.'
+    for row in catalog['items']:
+        if row['lot_id'] in allowed_places:
+            continue
+        names = [row['name'], row['lot_id'] + ' 주차장',
+                 *row['language_profile'].get('name_variants', [])]
+        if any(_matches(question, name) for name in names):
+            return '어느 주차장을 말씀하시는지 이름을 확인해 주세요.'
+    return question
+
+
 def place_candidates(text, catalog, context):
     """Return stable IDs supported by positive registered mentions or a reference.
 
