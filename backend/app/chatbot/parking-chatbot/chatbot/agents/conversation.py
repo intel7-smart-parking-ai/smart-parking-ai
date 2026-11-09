@@ -392,10 +392,9 @@ async def _arun_conversation(text, history, state, tools, model=None, *, options
                                  for row in observations):
             return finish("clarify", clarification)
         problem = problem_of(answer)
-        if problem == "no_evidence" and not observations:
-            # 조회 없이 운영 사실을 말한 답은 고쳐 쓰지 않고 바로 확인된 경로로 넘긴다.
-            return finish("ungrounded")
-        if problem and repair_enabled and problem != "empty_answer" \
+        # 조회 없이 운영 사실·추천을 말했거나 빈 답이면, 조회하라는 메모와 함께 한 번 다시 쓰게 한다
+        # ('여행 가는데 어디가 좋아?' → 공항 주차장 조회). 다시 써도 실패하면 확인된 대체 답으로 넘어간다.
+        if problem and repair_enabled \
                 and metadata["model_calls"] < options.max_model_calls:
             # 이유를 알려 주고 한 번만 다시 쓰게 한다. 실패하면 처음 판정으로 대체 경로를 탄다.
             first_problem = problem

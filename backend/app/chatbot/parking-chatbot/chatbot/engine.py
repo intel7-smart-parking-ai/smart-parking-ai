@@ -22,6 +22,8 @@ from pathlib import Path
 from . import config, incidents, monitoring, navigation as N, templates as T
 from . import dialog_context as DC
 from . import boundaries
+from . import route
+from . import plan
 from .contracts import LOCATION_PENDING, timestamp, alerts_source
 from .adapters import ApiAdapter, request_gets, request_lot, DataUnavailable, build_adapter, iso, now, request_deadline, request_timeout
 from .parser import parse
@@ -392,8 +394,17 @@ def _occupancy():
     return value
 
 
+_PURPOSE_LABEL = {"C": "여행·출국이라면 공항에 있는", "B": "역·기차 이용이라면 기차역에 있는", "D": "쇼핑이라면 백화점에 있는"}
+
+
 def h_get_empty_spots(s, p):
-    return parking.empty_spots(s, p, _occupancy(), current_alert(), api=isinstance(data.inner, ApiAdapter))
+    result = parking.empty_spots(s, p, _occupancy(), current_alert(), api=isinstance(data.inner, ApiAdapter))
+    lot = p.get("lot_id")
+    if p.get("purpose_hint") and lot in _PURPOSE_LABEL and isinstance(result, tuple) and isinstance(result[0], str):
+        # '여행 가는데 어디가 좋아?' → 목적에 맞는 주차장을 고른 이유를 앞에 붙인다(사실은 그대로).
+        lead = f"{_PURPOSE_LABEL[lot]} {config.catalog.name(lot)}을 안내할게요. 출발 전에 다시 확인해 주세요.\n"
+        result = (lead + result[0],) + tuple(result[1:])
+    return result
 
 
 def h_set_destination(s,p):
@@ -787,6 +798,7 @@ def handle(session_id: str, text=None, chip_id=None, event=None, request_id=None
                      vehicle_context=vehicle_context(s), chips=_response_chips(s, "alert" if blocked else "default"),
                      flow=s.flow.value, confirmation_token=s.pending.token if s.pending else None)
         saved["meta"]["replayed"] = True
+        saved["meta"]["route"] = "replay:" + str(saved["meta"].get("route") or "-")
         if saved["meta"].get("admin_suggestion") and not s.pending:
             saved["chips"] = _response_chips(s, _admin_suggestion_chips(s))
         if saved["confirmation_token"] != record["response"].get("confirmation_token") and s.pending:
@@ -797,9 +809,18 @@ def handle(session_id: str, text=None, chip_id=None, event=None, request_id=None
         elif not s.pending:
             saved["text"] = "이전 요청의 처리 결과예요.\n" + saved["text"]
         return saved
-    with monitoring.turn(session_id, text=text, chip_id=chip_id, event=event) as monitor:
-        resp = _handle_message(s, session_id, text, chip_id, event, confirmation_token)
+    with monitoring.turn(session_id, text=text, chip_id=chip_id, event=event, request_id=request_id) as monitor:
+        route_token, plan_token = route.begin(), plan.use(None)
+        try:
+            resp = _handle_message(s, session_id, text, chip_id, event, confirmation_token)
+        finally:
+            steps = route.steps()
+            route.end(route_token)
+            plan.release(plan_token)
+        if isinstance(resp.get("meta"), dict):
+            resp["meta"]["route"] = route.summary(steps)
         if monitor:
+            monitor.note(route=steps)
             monitor.record(resp)
     if request_id:
         s.requests[request_id] = {"at": time.monotonic(), "fingerprint": fingerprint, "response": deepcopy(resp)}
@@ -810,15 +831,54 @@ def handle(session_id: str, text=None, chip_id=None, event=None, request_id=None
     return resp
 
 
+def _seed_alert(s):
+    """새 대화의 경보 기준점. 지금 진행 중인 경보만 알림으로 보내고, '경보 없음' 상태는 알림으로 재생하지 않는다.
+    팀 화면은 start 없이 바로 질문하므로 첫 요청(또는 첫 updates)에서 잡는다."""
+    if s.alert_seeded:
+        return
+    a = current_alert()
+    s.observed_alert = max(0, a.get("version", 0) - (1 if a.get("level") else 0))
+    s.alert_seeded = True
+
+
+def _plausible_reading(s, r, text):
+    """모델 없이 규칙으로 답할 때, 첫 해석이 문장과 안 맞으면 계획표(plan)를 보고 더 맞는 해석으로 바꾼다.
+
+    - 차량이 필요한 해석(요금·내 차)인데 차·번호·돈 이야기가 없고 자리 이야기만 있으면 → 빈자리
+    - 이해 못 함인데 자리·주차장 이야기가 있으면 → 언급·목적 주차장의 빈자리(없으면 전체 현황)
+    - 목적만 말한 빈자리 질문 → 목적에 맞는 주차장으로 좁힘
+    """
+    if r.source not in ("rule", "none") or s.pending or r.vehicle_only or not isinstance(text, str):
+        return r
+    from .parser import ParseResult
+    p = plan.for_text(text)
+    if not p.talk.get("spot"):
+        return r
+    hint = p.purpose_lot
+    params = {k: v for k, v in (("lot_id", p.single_lot or hint), ("zone", p.zone)) if v}
+    if hint:
+        params["purpose_hint"] = True
+    needs_car = r.intent in ("get_fee", "find_my_car") and not r.params.get("car_id") and not s.car_id
+    if needs_car and not p.talk.get("car") and not p.talk.get("money"):
+        return ParseResult("get_empty_spots", params, "rule")
+    if r.intent == "unknown":
+        return ParseResult("get_empty_spots", params, "rule")
+    if r.intent == "get_empty_spots" and hint and not r.params.get("lot_id") and not r.params.get("rank"):
+        return ParseResult("get_empty_spots", {**r.params, "lot_id": hint, "purpose_hint": True}, "rule")
+    return r
+
+
 def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
+    if event == "start" and not s.history:
+        s.alert_seeded = False
+    _seed_alert(s)
     if event == "start":
-        if not s.history:
-            a = current_alert()
-            s.observed_alert = max(0, a.get("version", 0) - (1 if a.get("level") else 0))
-            s.alert_baseline = True
+        route.mark("start", "welcome")
         had_pending = s.pending is not None
         s.clear()
         return _respond(s, T.WELCOME + ("\n미완료 확인은 취소했어요. 원하는 기능을 다시 선택해 주세요." if had_pending else ""))
+    if chip_id:
+        route.mark("chip", chip_id.split(":", 1)[0])
     if chip_id == "unrecognized":
         s.clear()
         try:
@@ -844,12 +904,20 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
     else:
         text = (text or "").strip()[:200]
         s.history.append(("user", text))
+        # 안전 신고·허용 여부·없는 칸·자기소개처럼 짧게 확정되는 질문(turn_guard). Lv2 경보 중에는 대피 안내가 우선이라 건너뛴다.
         from .turn_guard import guard as _turn_guard
-        _reply, _meta = _turn_guard(s, text)
+        alert_now = current_alert()
+        _reply, _meta = _turn_guard(s, text, alert_now)
         if _reply is not None:
-            s.clear()
+            route.mark("guard", _meta.get("intent", "answer"))
+            if _meta.pop("clear", False):
+                s.clear()
             return _respond(s, _reply, chip_set=_meta.pop("chips", "default"), meta=_meta)
-        text = _meta
+        route.mark("guard", "pass", why="Lv2 경보 중" if alert_now.get("level", 0) >= 2 else None)
+        # 계획표: 이 문장을 여러 방식으로 읽은 결과. 대화 AI 참고 정보와 규칙 답 고르기가 같은 것을 본다.
+        turn_plan = plan.make(text)
+        plan.use(turn_plan)
+        route.mark("plan", "+".join(turn_plan.wants) or "none", why=turn_plan.summary())
         from .parser import extract_vehicle, extract_virtual, normalize_car_id
         from .conversation_turn import reply_to
         raw_id, only = extract_vehicle(text)
@@ -858,7 +926,9 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
         # 서비스 범위 밖 요청(예약·할인·매출·타인 차량·지시 무시·미등록 주차장)은 모델·키워드보다 먼저 정해진 답을 낸다.
         boundary = boundaries.match(text)
         if boundary:
+            route.mark("boundary", boundary.key)
             return _boundary_response(s, session_id, boundary, rule)
+        route.mark("boundary", "pass")
         # 상태를 바꾸거나 안전·현장 대응이 걸린 요청만 규칙이 바로 처리한다.
         # 경보·위반·문의 상태 같은 조회 질문은 대화 에이전트가 다른 자료와 묶어 답할 수 있다
         # (모델을 쓸 수 없으면 아래 규칙 처리로 그대로 대체된다).
@@ -877,7 +947,13 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
             s.begin(Flow.ASK_VEHICLE, s.last_intent)
         invalid_id = raw_id and (not normalize_car_id(raw_id) or
             (config.DATA_SOURCE == "mock" and config.ASSIGNED_CAR_IDS is not None and raw_id not in config.ASSIGNED_CAR_IDS))
-        if not controlled and not invalid_id and not extract_virtual(text) and current_alert().get("level", 0) < 2:
+        skip = ("workflow" if controlled else "invalid_car_id" if invalid_id else "virtual_vehicle" if extract_virtual(text)
+                else "alert_lv2" if current_alert().get("level", 0) >= 2 else None)
+        if controlled:
+            route.mark("workflow", rule.intent, why="상태를 바꾸거나 안전이 걸린 요청은 규칙이 처리")
+        elif skip:
+            route.mark("agent", "skip", why=skip)
+        if not skip:
             deadline_token = request_deadline.set(_turn_deadline.get()) if (
                 config.LLM_PROVIDER != "none" and config.LLM_ENGINE == "langchain") else None
             try:
@@ -886,6 +962,7 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
                 if turn is not None:
                     return _conversation_response(s, session_id, turn)
             except DataUnavailable:
+                route.mark("agent", "data_unavailable")
                 s.clear()
                 return _respond(s, T.REQUEST_UNAVAILABLE, meta={"unavailable": True})
             finally:
@@ -894,6 +971,11 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
         text = DC.rewrite(s, text)
         r = parse(text, allow_llm=config.LLM_ENGINE == "direct" and current_alert().get("level", 0) < 2)
         r = DC.fill(s, r, text)
+        first = r.intent
+        r = _plausible_reading(s, r, text)
+        # 대화 AI를 시도했다가 넘어온 경우만 '대체(fallback)', 처음부터 규칙이 맡은 요청은 'rule'.
+        route.mark("fallback" if not skip else "rule", r.intent, why=f"첫 해석 {first} → 문장에 맞게 변경" if r.intent != first else None,
+                   lot=r.params.get("lot_id"), purpose=bool(r.params.get("purpose_hint")) or None)
         intent, params, source, vehicle_only = r.intent, r.params, r.source, r.vehicle_only
     intent,params = N.resolve_context(s,intent,params,text,source)
     try:
@@ -1060,17 +1142,12 @@ def _compact_alert_history(messages, alert):
 @_session_request
 def updates(session_id: str, since_version: int = 0, cursor: int = 0, runtime_id=None) -> dict:
     s = get_session(session_id)
+    _seed_alert(s)
     resync = bool(runtime_id and runtime_id != RUNTIME_ID)
     if resync:
         cursor = 0
     a = current_alert()
     version = a.get("version", 0)
-    if not getattr(s, "alert_baseline", False):
-        # 화면은 'start' 없이 첫 질문부터 보낼 수 있다. 새 대화의 첫 확인에서 이미 끝난 경보·
-        # '현재 경보 없음'을 말풍선으로 다시 보내지 않도록 기준점을 지금 경보 상태로 잡는다.
-        s.alert_baseline = True
-        if s.observed_alert == 0:
-            s.observed_alert = max(0, version - (1 if a.get("level") else 0))
     with _alert_lock:
         events = [deepcopy(e) for e in _alert_events if e["version"] > s.observed_alert]
         history_gap = bool(_alert_events and s.observed_alert and s.observed_alert < _alert_events[0]["version"] - 1)
