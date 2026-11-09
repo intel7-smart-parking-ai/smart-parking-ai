@@ -16,6 +16,9 @@ POSTPONE = re.compile(r"(?:주차|예약|결제|출차|입차|시간|일정)\s*�
 # 허용 여부는 '대도 돼?/해도 돼?/괜찮아?'처럼 묻는 문장만. '가능한 곳 있어?'는 빈자리 조회다.
 PERMISSION_ASK = re.compile(r"대(?:도|면)|해도|되(?:나|니|요|ㄹ까)|돼|괜찮|할\s*수\s*있")
 AVAILABILITY = re.compile(r"곳|어디|몇|남은|주차장\s*\?|자리\s*있")
+IDENTITY = re.compile(r"(?:너|넌|당신|챗봇|봇)\s*(?:은|는)?\s*(?:이름|누구|뭐\s*하는|정체)|(?:이름|정체)\s*(?:이|은|는|가)?\s*(?:뭐|무엇|뭔)|자기\s*소개|who\s+are\s+you|your\s+name", re.I)
+GREETING = re.compile(r"^(?:안녕(?:하세요|하십니까)?|반가워(?:요)?|하이|hello|hi|hey)[!.~?\s]*$", re.I)
+INTRO = "저는 PARK:ON 주차 안내 챗봇이에요. 빈자리, 내 차 위치, 요금·모의 결제, 모의 화재 경보 안내를 도와드려요. 아래 버튼을 누르거나 편하게 물어보세요."
 
 
 def _lot_in(text):
@@ -26,6 +29,8 @@ def _lot_in(text):
 
 def guard(s, text):
     """(답, meta) 또는 (None, 엔진에 넘길 문장)."""
+    if IDENTITY.search(text) or GREETING.fullmatch(text.strip()):
+        return INTRO, {"intent": "self_intro"}
     hazard = policy.emergency(text)
     if hazard and not POSTPONE.search(text):
         return hazard, {"intent": "emergency", "chips": ["call_admin"]}
