@@ -9,7 +9,7 @@ from anyio.lowlevel import RunVar
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field, StrictBool
 
-from . import config, engine, incidents
+from . import config, engine, incidents, monitoring
 from .state import Conflict
 from .response_locale import localize_response, question_to_korean, resolve_language, translate_timeout
 from .adapters import DataUnavailable
@@ -66,6 +66,13 @@ class ChatIn(BaseModel):
     request_id: str | None = Field(default=None, min_length=1, max_length=128)
     confirmation_token: str | None = Field(default=None, max_length=128)
     runtime_id: str | None = Field(default=None, max_length=128)
+
+
+class FeedbackIn(BaseModel):
+    session_id: str = Field(min_length=1, max_length=128)
+    rating: Literal["up", "down"]
+    request_id: str | None = Field(default=None, min_length=1, max_length=128)
+    comment: str | None = Field(default=None, max_length=300)
 
 
 class AlertIn(BaseModel):
@@ -138,9 +145,15 @@ async def chat(body: ChatIn):
         # 대화 처리(최대 REQUEST_BUDGET_SEC)에 쓴 시간을 빼고 남은 시간만 번역에 쓴다(화면 제한 약 8초).
         token = translate_timeout.set(7.5 - (time.monotonic() - started))
         try:
-            return {**localize_response(response, language), "language": language}
+            localized = {**localize_response(response, language), "language": language}
         finally:
             translate_timeout.reset(token)
+        if language != "ko" and isinstance(localized.get("meta"), dict):
+            # 번역도 경로에 남긴다: 질문 번역(되었는지) > 엔진 경로 > 답 번역
+            asked = "ok" if text != body.text else "kept_original"
+            localized["meta"]["route"] = (f"translate_in:{asked} > {localized['meta'].get('route') or '-'}"
+                                          f" > translate_out:{language}")
+        return localized
     if not config.EMBEDDED:
         return await anyio.to_thread.run_sync(work)
     capacity = _chat_capacity.get(None)
@@ -176,6 +189,13 @@ def suggest(q: str = ""):
 @_worker
 def updates(session_id: str = Query(min_length=1, max_length=128), since: int = Query(default=0, ge=0), cursor: int = Query(default=0, ge=0), runtime_id: str | None = None, language: Language | None = None):
     return localize_response(_service(engine.updates, session_id, since, cursor, runtime_id), language or "ko")
+
+
+@router.post("/feedback")
+def chat_feedback(body: FeedbackIn):
+    """답 아래 👍/👎. 모니터링이 켜져 있으면 그 답의 Langfuse trace에 user_feedback 점수로 남긴다.
+    답·대화 상태는 바꾸지 않는다. recorded=False는 모니터링 꺼짐 또는 해당 답 기록 없음."""
+    return {"ok": True, "recorded": monitoring.feedback(body.session_id, body.rating, body.request_id, body.comment)}
 
 
 @router.get("/admin/calls", dependencies=[Depends(privileged)])

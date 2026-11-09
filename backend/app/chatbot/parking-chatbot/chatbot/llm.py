@@ -11,37 +11,32 @@ import time
 from types import SimpleNamespace
 import urllib.request
 
-from . import config
+from . import config, prompts
 from .diagnostics import logger
 from .parser import KNOWN_INTENTS
 from .adapters import request_timeout
 from .transport import load_json
 
-_PROMPT_TEMPLATE = """너는 주차장 안내 챗봇의 '질문 분류기'다. 답변 문장을 만들지 말고 JSON 한 줄만 출력한다.
-허용 intent: {intents}
-부정 요청은 cancel_action, 문의 상태는 call_status, 결제 장애는 payment_issue,
-결제수단 질문은 payment_help, 관리자 이용방법/비용 질문은 admin_help.
-질문과 부정을 call_admin/pay_fee 실행으로 분류하지 않는다.
-params: lot_id({lot_ids}), car_id({vmin}~{vmax} 두 자리 문자열). 모르면 넣지 않는다.
-주차장 이름과 별칭: {lot_names}
-주차장과 무관한 질문(날씨, 잡담 등)은 unknown.
-출력 예: {{"intent":"get_empty_spots","params":{{"lot_id":"{example_lot}"}}}}"""
 
-
-def system_prompt() -> str:
-    """호출할 때마다 현재 주차장 명부(lots.json 또는 백엔드 명부)로 지시문을 만든다."""
+def _prompt_values() -> dict:
+    """현재 주차장 명부(lots.json 또는 백엔드 명부)로 분류기 지시문의 빈칸을 채울 값."""
     lots = list(config.catalog.lots().values())
     names = []
     for lot in lots:
         labels = [lot.get("name", lot["lot_id"])] + list(lot.get("aliases", []))
         names.append(f'{lot["lot_id"]}({"·".join(labels)})')
-    return _PROMPT_TEMPLATE.format(
+    return dict(
         intents=", ".join(sorted(KNOWN_INTENTS - {"confirm_yes", "confirm_no"})),
         lot_ids="/".join(lot["lot_id"] for lot in lots),
         vmin=f"{config.VEHICLE_MIN:02d}", vmax=f"{config.VEHICLE_MAX:02d}",
         lot_names=", ".join(names),
         example_lot=lots[1]["lot_id"] if len(lots) > 1 else lots[0]["lot_id"],
     )
+
+
+def system_prompt() -> str:
+    """호출할 때마다 현재 주차장 명부로 지시문(prompts/intent_classifier.md)을 만든다."""
+    return prompts.render("intent_classifier", **_prompt_values())
 
 
 def _post_json(url: str, headers: dict, body: dict) -> dict:

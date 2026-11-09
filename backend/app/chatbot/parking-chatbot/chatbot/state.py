@@ -35,6 +35,7 @@ class Session:
     alert_unavailable_seen: bool = False
     alerts_source: str = "ok"
     observed_alert: int = 0
+    alert_seeded: bool = False  # 첫 요청에서 현재 경보 기준을 잡았는지(start 없이 시작한 화면 포함)
     candidate_options: dict = field(default_factory=dict)
     candidate_expires: float = 0
     selected_candidate: dict | None = None
