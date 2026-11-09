@@ -362,7 +362,7 @@ LLM_PROVIDER=none. 원격 카메라를 받을 때 API_HOST=0.0.0.0, 같은 VISIO
 
 | 메서드·경로 | 내용 |
 | --- | --- |
-| `GET /api/v1/mock-payments` | 목록 형식. 필터 `lot_id`, `status`(`completed`/`canceled`), `car_id`. 최신순 |
+| `GET /api/v1/mock-payments` | 목록 형식. 선택 필터 `lot_id`, `status`(`completed`/`canceled`), `car_id`, `date`(한국 시간 결제일, YYYY-MM-DD), `limit`(최신 1–1000건, 생략 시 전체). 각 항목의 `plate_number`는 등록된 번호판 문자열 또는 null |
 | `POST /api/v1/mock-payments/{id}/cancel` | 본문 선택 `{"refund_reason"}`. 200: `payment_id`, `session_id`, `lot_id`, `car_id`, `refunded_amount_krw`, `status`(`canceled`), `canceled_at`, `refund_reason`, `revenue_adjusted` |
 | `GET /api/v1/rate-policies` | 목록 형식. `lot_id`, `base_minutes`, `base_fee`, `unit_minutes`, `extra_fee`, `daily_cap` |
 | `GET /api/v1/reports/revenue` | 쿼리 `month`(`YYYY-MM` 또는 `ALL`, 기본 `ALL`), `lot_id`(선택, PR #41). 응답: `filter_month`, `lot_id`, `aggregated_basis`, `summary{gross_amount_krw, canceled_amount_krw, net_revenue_krw, completed_count, canceled_count, by_type}`, `lots[]`, `daily_revenue[]`, `monthly_revenue[]` |

@@ -40,6 +40,7 @@ from backend.app.alerts.router import (
 )
 from backend.app.chatbot.router import router as chatbot_router
 from backend.app.simulation.charging import charging_status, last_charge_end
+from backend.app.simulation import demo_history
 from backend.app.simulation.mock_data import SPACES
 from backend.app.simulation.vehicle_assignment import (
     REGISTERED_VEHICLES, choose_entry_type, entry_vehicle_type,
@@ -273,6 +274,7 @@ def create_runtime_app(
     session_exit=exit_session,
 ):
     database = Path(database) if database is not None else get_db_path()
+    continuous_demo = mode == "demo" and os.getenv("PARKON_CONTINUOUS_DEMO") == "1"
     store_ref = {}
 
     def store_factory(**kwargs):
@@ -695,6 +697,15 @@ def create_runtime_app(
                     conn.commit()
             await asyncio.sleep(1)
 
+    async def history_checkpoints():
+        while True:
+            await asyncio.sleep(demo_history.HEARTBEAT.total_seconds())
+            try:
+                with closing(store.connection()) as conn:
+                    demo_history.checkpoint(conn, clock())
+            except sqlite3.Error:
+                logging.exception("Demo history checkpoint failed")
+
     @asynccontextmanager
     async def lifespan(application):
         database.parent.mkdir(parents=True, exist_ok=True)
@@ -731,16 +742,26 @@ def create_runtime_app(
                     )
             conn.commit()
         store.recover()
+        if continuous_demo:
+            with closing(store.connection()) as conn:
+                demo_history.prepare(conn, clock())
+                demo_history.checkpoint(conn, clock())
         task = asyncio.create_task(observations()) if mode == "demo" else None
+        history_task = asyncio.create_task(history_checkpoints()) if continuous_demo else None
         try:
             yield
         finally:
-            if task:
-                task.cancel()
+            for background in (task, history_task):
+                if background is None:
+                    continue
+                background.cancel()
                 try:
-                    await task
+                    await background
                 except asyncio.CancelledError:
                     pass
+            if continuous_demo:
+                with closing(store.connection()) as conn:
+                    demo_history.checkpoint(conn, clock())
 
     app.router.lifespan_context = lifespan
 

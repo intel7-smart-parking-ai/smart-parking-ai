@@ -88,7 +88,7 @@ def list_mock_payments(
            AND (? IS NULL OR substr({KST_PAYMENT_HOUR_SQL}, 1, 10) = ?)
            AND (? IS NULL OR payment.session_id NOT GLOB 'demo-*'
                 OR julianday(payment.created_at) <= julianday(?))
-         ORDER BY payment.created_at DESC, payment.payment_id LIMIT ?""",
+         ORDER BY julianday(payment.created_at) DESC, payment.payment_id LIMIT ?""",
       (lot_id, lot_id, status, status, car_id, car_id, payment_day, payment_day, cutoff, cutoff, -1 if limit is None else limit),
   )
   return [dict(r) for r in cur.fetchall()]

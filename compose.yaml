@@ -7,6 +7,7 @@ services:
       target: runtime
     environment:
       PARKING_MODE: ${PARKING_MODE:-demo}
+      PARKON_CONTINUOUS_DEMO: ${PARKON_CONTINUOUS_DEMO:-0}
       VISION_TOKEN: ${VISION_TOKEN:?Set VISION_TOKEN in a private .env file}
       ALERTS_INTERNAL_TOKEN: ${ALERTS_INTERNAL_TOKEN:-}
       SMART_PARKING_DB_PATH: /data/smart_parking.db

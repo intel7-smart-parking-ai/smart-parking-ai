@@ -8,12 +8,13 @@ import sqlite3
 from typing import Any
 
 from .db import KST_PAYMENT_HOUR_SQL, demo_history_cutoff
+from backend.app.simulation.demo_history import metadata, monthly_usage
 
-def _demo_usage(conn, month, lot, revenue_by_day, cutoff):
-  if month == "ALL" or not conn.execute(
+def _stored_demo_usage(conn, month, lot, cutoff):
+  if not conn.execute(
       "SELECT 1 FROM sqlite_schema WHERE type='table' AND name='demo_hourly_usage'"
   ).fetchone():
-    return None
+    return [], None
 
   params = (month, lot, lot, cutoff, cutoff)
   rows = conn.execute(
@@ -27,7 +28,7 @@ def _demo_usage(conn, month, lot, revenue_by_day, cutoff):
       params,
   ).fetchall()
   if not rows:
-    return None
+    return [], None
 
   stays = conn.execute(
       """WITH stays AS (
@@ -45,6 +46,16 @@ def _demo_usage(conn, month, lot, revenue_by_day, cutoff):
          FROM stays""",
       params,
   ).fetchone()
+  return rows, stays
+
+
+def _demo_usage(conn, month, lot, revenue_by_day, cutoff, heartbeat):
+  if month == "ALL":
+    return None
+  rows, stays = (monthly_usage(conn, month, lot, cutoff, heartbeat) if heartbeat
+                 else _stored_demo_usage(conn, month, lot, cutoff))
+  if not rows:
+    return None
 
   def bucket(groups, key, row):
     totals = groups.setdefault(key, {"entries": 0, "occupied": 0, "capacity": 0})
@@ -79,7 +90,7 @@ def _demo_usage(conn, month, lot, revenue_by_day, cutoff):
                                                      for day in dates) / len(dates)),
                           "occupancy_pct": occupancy(totals)})
   return {
-      "source": "synthetic_history",
+      "source": "demo_and_observed_history" if heartbeat else "synthetic_history",
       "first_day": daily[0]["day"],
       "last_day": daily[-1]["day"],
       "days_covered": len(daily),
@@ -101,6 +112,11 @@ def generate_revenue_report(
     conn: sqlite3.Connection, month_filter: str = "ALL", lot_filter: str | None = None
 ) -> tuple[int, dict[str, Any]]:
   cutoff = demo_history_cutoff(conn)
+  demo_metadata_present = conn.execute(
+      "SELECT 1 FROM sqlite_schema WHERE type='table' AND name='demo_metadata'"
+  ).fetchone()
+  heartbeat = metadata(conn, 'runtime_heartbeat_kst') if demo_metadata_present else None
+  has_demo_history = bool(demo_metadata_present and metadata(conn, 'source'))
   cur = conn.cursor()
   cur.execute("SELECT * FROM parking_lots ORDER BY lot_id")
   lots = [dict(r) for r in cur.fetchall()]
@@ -215,8 +231,9 @@ def generate_revenue_report(
 
   return 200, {
       "filter_month": month_filter,
-      "usage": _demo_usage(conn, month_filter, lot_filter, by_day, cutoff),
-      "demo_cutoff": cutoff,
+      "usage": _demo_usage(conn, month_filter, lot_filter, by_day, cutoff, heartbeat),
+      "demo_cutoff": heartbeat or cutoff,
+      "has_demo_history": has_demo_history,
       "lot_id": lot_filter,
       "aggregated_basis": "mock_payments.created_at",
       "summary": {
