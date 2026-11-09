@@ -386,3 +386,91 @@ def covered_seconds(start, end, outages):
         max(0, (min(end, stopped_until) - max(start, stopped_at)).total_seconds())
         for stopped_at, stopped_until in outages
     )
+
+
+# ---------------------------------------------------------------- 혼잡도 예측 (C+안, 조회 전용)
+FORECAST_LOTS = ('C', 'D')
+FORECAST_HORIZON = timedelta(days=7)
+FORECAST_VALIDATION_DAYS = 7
+
+
+def _level(occupied_ratio):
+    return '혼잡' if occupied_ratio >= .85 else '보통' if occupied_ratio >= .6 else '여유'
+
+
+def _hourly_ratios(conn, lot, until):
+    """(평일=0/주말·공휴일=1, 시) → [(일자, 점유율)] — 가상 시연 이력(demo_hourly_usage)만 사용."""
+    if not conn.execute(
+            "SELECT 1 FROM sqlite_schema WHERE type='table' AND name='demo_hourly_usage'").fetchone():
+        return {}
+    rows = conn.execute(
+        """SELECT substr(u.hour_kst, 1, 10) AS day, CAST(substr(u.hour_kst, 12, 2) AS INTEGER) AS hour,
+                  (c.is_weekend OR c.is_holiday) AS rest, u.occupied_seconds, u.capacity_seconds
+           FROM demo_hourly_usage u JOIN demo_calendar c ON c.day = substr(u.hour_kst, 1, 10)
+           WHERE u.lot_id = ? AND u.capacity_seconds > 0 AND datetime(u.hour_kst, '+1 hour') <= datetime(?)""",
+        (lot, until.isoformat()),
+    ).fetchall()
+    series = defaultdict(list)
+    for row in rows:
+        series[int(row['rest']), row['hour']].append((row['day'], row['occupied_seconds'] / row['capacity_seconds']))
+    return series
+
+
+def _is_rest(day):
+    _, weekend, holiday, _ = day_type(day)
+    return int(bool(weekend or holiday))
+
+
+def forecast(conn, lot, target, now):
+    """같은 요일 유형·같은 시간대 과거 평균 점유율로 그날 24시간을 예측한다.
+
+    김채린 브랜치 congestion.py의 규칙(지금 이후·7일 이내, 기록 부족 시 예측 안 함, 여유/보통/혼잡 기준)과
+    forecasting.py의 검증(최근 날짜를 떼어 놓고 맞혀 본 평균 오차)을 PM 이력 위에서 다시 구현했다.
+    """
+    if lot not in FORECAST_LOTS:
+        raise ValueError('혼잡 예측은 김해공항·신세계(가상 시연 주차장)만 제공해요.')
+    now, target = local_time(now), local_time(target)
+    if target <= now or target > now + FORECAST_HORIZON:
+        raise ValueError('지금 이후부터 7일 이내의 시각을 선택해 주세요.')
+    row = conn.execute("SELECT total_spaces FROM parking_lots WHERE lot_id=?", (lot,)).fetchone()
+    capacity = row['total_spaces'] if row else sum(1 for s in SPACES if s.lot_id == lot)
+    series = _hourly_ratios(conn, lot, now)
+    if not series:
+        raise ValueError('시연 기록이 부족해 예측할 수 없어요.')
+
+    def predict(rest, hour, before_day=None):
+        peers = [ratio for day, ratio in series.get((rest, hour), ()) if before_day is None or day < before_day]
+        return sum(peers) / len(peers) if peers else None
+
+    # 검증: 최근 7일을 하루씩 떼어 놓고, 그 이전 기록만으로 맞혀 본 평균 오차(칸)
+    errors = []
+    for back in range(1, FORECAST_VALIDATION_DAYS + 1):
+        day = (now - timedelta(days=back)).date()
+        key = day.isoformat()
+        rest = _is_rest(day)
+        for hour in range(24):
+            actual = next((ratio for d, ratio in series.get((rest, hour), ()) if d == key), None)
+            guess = predict(rest, hour, before_day=key)
+            if actual is not None and guess is not None:
+                errors.append(abs(actual - guess) * capacity)
+    if len(errors) < 24:
+        raise ValueError('시연 기록이 부족해 예측할 수 없어요.')
+
+    rest = _is_rest(target.date())
+    day_start = target.replace(hour=0, minute=0, second=0, microsecond=0)
+    hours = []
+    for hour in range(24):
+        at = day_start + timedelta(hours=hour)
+        ratio = predict(rest, hour)
+        if ratio is None or at + HOUR <= now:
+            continue
+        empty = max(0, min(capacity, round(capacity * (1 - ratio))))
+        hours.append({'at': at.isoformat(), 'empty': empty, 'capacity': capacity,
+                      'occupancy_percent': round(ratio * 100), 'level': _level(ratio)})
+    selected = next((item for item in hours if local_time(item['at']).hour == target.hour), None)
+    if selected is None:
+        raise ValueError('해당 시간대의 기록이 부족해요.')
+    return {'lot_id': lot, 'target': target.isoformat(), 'selected': selected, 'hours': hours,
+            'is_mock': True, 'source': 'demo_history', 'model': 'daytype_hour_mean',
+            'label': '가상 시연 이력 기준 예측', 'mae_spaces': round(sum(errors) / len(errors), 1),
+            'validation_samples': len(errors), 'generated_at': now.isoformat()}

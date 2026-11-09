@@ -367,6 +367,17 @@ def create_runtime_app(
             timestamp=clock().isoformat(),
         )
 
+    @route.get("/congestion/forecast")
+    def congestion_forecast(lot_id: Literal["C", "D"], at: datetime):
+        """가상 시연 이력(demo_hourly_usage) 기반 혼잡 예측. 조회 전용, 상태를 바꾸지 않는다."""
+        if at.tzinfo is None:
+            raise HTTPException(422, "시간대가 포함된 시각이 필요합니다.")
+        with closing(store.connection()) as conn:
+            try:
+                return demo_history.forecast(conn, lot_id, at, clock())
+            except ValueError as exc:
+                raise HTTPException(422, str(exc)) from exc
+
     @route.get("/sessions/{session_id}/fee")
     def fee(session_id: str, conn=Depends(get_db_conn)):
         response = get_session_fee(session_id=session_id, now=None, conn=conn)

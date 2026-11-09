@@ -141,6 +141,10 @@ class MockAdapter:
         self.payments = {}
         self.quotes = {}
 
+    def congestion_forecast(self, lot_id, at):
+        """mock 데이터에는 시연 이력이 없으므로 예측 숫자를 만들지 않는다."""
+        raise DataUnavailable("시연 이력이 없어 혼잡 예측을 할 수 없습니다.")
+
     def get_empty_spots(self) -> C.OccupancySnapshot:
         with self.lock:
             lots, states = {}, {}
@@ -583,6 +587,14 @@ class ApiAdapter:
         if cache is not None:
             cache[key] = result
         return result
+
+    def congestion_forecast(self, lot_id, at):
+        """가상 시연 이력 기반 혼잡 예측 (조회 전용). 실패하면 DataUnavailable."""
+        from urllib.parse import urlencode
+        status, value, _ = self._request("GET", "/api/v1/congestion/forecast?" + urlencode({"lot_id": lot_id, "at": at.isoformat()}))
+        if status != 200 or not isinstance(value, dict):
+            raise DataUnavailable("혼잡 예측을 확인할 수 없습니다.")
+        return value
 
     def get_empty_spots(self) -> C.OccupancySnapshot:
         status, value, headers = self._request("GET", config.API_PATHS["lots"])

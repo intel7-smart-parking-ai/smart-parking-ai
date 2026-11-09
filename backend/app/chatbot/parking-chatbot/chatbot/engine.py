@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 import json
+import sys
 import re
 import threading
 import time
@@ -864,6 +865,12 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
                 s, f"{config.catalog.name(_lot)} 충전 현황이에요. 아래 ‘충전 현황’ 버튼을 누르면 칸별 충전 상태와 남은 시간을 볼 수 있어요.",
                 card={"type": "charging_status", "data": {"lot_id": _lot}},
                 meta={"intent": "charging_status", "source": "rule"})
+        # 혼잡도 예측(C+안): 미래 시점의 혼잡 질문 → 서버 예측 조회 결과만으로 답한다.
+        from . import forecast_chat
+        from .parser import extract_lots as _extract_lots
+        _forecast = forecast_chat.answer(sys.modules[__name__], s, text, _extract_lots(text + " 주차"))
+        if _forecast is not None:
+            return _forecast
         from .parser import extract_vehicle, extract_virtual, normalize_car_id
         from .conversation_turn import reply_to
         raw_id, only = extract_vehicle(text)

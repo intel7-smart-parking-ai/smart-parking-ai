@@ -17,10 +17,10 @@ const simulatedCopy = {
  ja: ['シミュレーション充電状況', '充電可能', '接続待ち', '充電中', '充電完了', '未接続', '確認中', '最終利用', '充電開始から', '充電完了から']
 };
 const detailCopy = {
- ko: ['배터리', '출력', '완료까지', '주차칸 위치 보기', '목록으로', '충전 중', '충전 완료'],
- en: ['Battery', 'Output', 'Time remaining', 'Show space on map', 'Back to list', 'Charging', 'Complete'],
- 'zh-CN': ['电量', '功率', '剩余时间', '查看车位位置', '返回列表', '充电中', '充电完成'],
- ja: ['電池残量', '出力', '残り時間', '区画位置を表示', '一覧に戻る', '充電中', '充電完了']
+ ko: ['배터리', '출력', '완료까지', '주차칸 위치 보기', '목록으로', '충전 중', '충전 완료', '남은 충전시간 정보 없음', '가상 충전 시연 · 입차 후 15초 연결 → 120초 충전 → 완료. 실제 충전기 측정값이 아닙니다.'],
+ en: ['Battery', 'Output', 'Time remaining', 'Show space on map', 'Back to list', 'Charging', 'Complete', 'Remaining time unavailable', 'Virtual charger demo: connect 15s → charge 120s → complete. Not physical charger measurements.'],
+ 'zh-CN': ['电量', '功率', '剩余时间', '查看车位位置', '返回列表', '充电中', '充电完成', '暂无剩余时间', '虚拟充电演示：连接15秒 → 充电120秒 → 完成。非实际设备测量。'],
+ ja: ['電池残量', '出力', '残り時間', '区画位置を表示', '一覧に戻る', '充電中', '充電完了', '残り時間不明', '仮想充電デモ：接続15秒 → 充電120秒 → 完了。実機の測定値ではありません。']
 };
 const chargerStatus = {available:1,connected:2,charging:3,completed:4,not_connected:5,unknown:6};
 const parkingStatus = {empty:4,occupied:5,uncertain:6,unavailable:7};
@@ -55,7 +55,7 @@ function ChargerCard({space,c,sim,detail,language,onShowMap}) {
   {Number.isFinite(charge?.battery_percent)&&<div className="charging-progress">
    <label>{detail[0]} <b>{charge.battery_percent}%</b><progress value={charge.battery_percent} max="100"/></label>
    <small>{detail[1]} {charge.power_kw} kW</small>
-   {Number.isFinite(charge.remaining_seconds)&&<small>{detail[2]} {formatDuration(charge.remaining_seconds,language)}</small>}
+   {Number.isFinite(charge.remaining_seconds)?<small>{detail[2]} {formatDuration(charge.remaining_seconds,language)}</small>:charging&&<small>{detail[7]}</small>}
   </div>}
   {elapsed&&<small>{sim[available ? 7 : charging ? 8 : 9]} · {elapsed}{language==='ko'?(available?' 전':' 경과'):''}</small>}
   {charge&&<button type="button" className="button white small charging-map-button" onClick={()=>onShowMap(space.space_id)}>{detail[3]}</button>}
@@ -72,6 +72,7 @@ export default function ChargingStatus({language='ko',initialLot='A',onClose}){
  return <dialog ref={dialog} className="charging-dialog" aria-labelledby="charging-title" lang={language}>
   <header><div><span className="charging-eyebrow">PARK : ON · EV</span><h2 id="charging-title">{c[0]}</h2></div><button className="charging-close" aria-label={c[11]} onClick={()=>dialog.current.close()}><Icon name="close"/></button></header>
   <nav className="charging-lots" aria-label={welcomeText[language].lot}>{['A','B','C','D'].map((id,i)=><button key={id} aria-pressed={id===selected} onClick={()=>{setSelected(id);setMapSpace(null)}}>{welcomeText[language].lots[i]}</button>)}</nav>
+  {['C','D'].includes(selected)&&<p className="charging-updated">{detail[8]}</p>}
   <div className="charging-section-title"><h3>{c[1]}</h3><button aria-label={c[10]} disabled={busy} onClick={()=>setReload(v=>v+1)}><Icon name="refresh"/></button></div>
   {error?<div role="alert" className="charging-error">{c[13]}</div>:busy&&!lots.length?<p role="status">{c[12]}</p>:<><div className="charging-summary"><ChargingIcon/><span>{c[2]} <b>{available}</b><small> / {spaces.length}</small></span><span>{c[3]} {spaces.length}</span></div>{spaces.some(s=>s.charging?.is_mock)&&<p className="charging-updated">{sim[0]}</p>}{spaces.some(s=>s.charging?.is_mock)&&<p className="charging-updated">{detail[5]} {spaces.filter(s=>s.charging?.status==='charging').length} · {detail[6]} {spaces.filter(s=>s.charging?.status==='completed').length}</p>}
   {mapSpace&&lot?<div className="charging-map"><button type="button" className="button white small" onClick={()=>setMapSpace(null)}>{detail[4]}</button>
