@@ -815,6 +815,7 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
         if not s.history:
             a = current_alert()
             s.observed_alert = max(0, a.get("version", 0) - (1 if a.get("level") else 0))
+            s.alert_baseline = True
         had_pending = s.pending is not None
         s.clear()
         return _respond(s, T.WELCOME + ("\n미완료 확인은 취소했어요. 원하는 기능을 다시 선택해 주세요." if had_pending else ""))
@@ -1064,6 +1065,12 @@ def updates(session_id: str, since_version: int = 0, cursor: int = 0, runtime_id
         cursor = 0
     a = current_alert()
     version = a.get("version", 0)
+    if not getattr(s, "alert_baseline", False):
+        # 화면은 'start' 없이 첫 질문부터 보낼 수 있다. 새 대화의 첫 확인에서 이미 끝난 경보·
+        # '현재 경보 없음'을 말풍선으로 다시 보내지 않도록 기준점을 지금 경보 상태로 잡는다.
+        s.alert_baseline = True
+        if s.observed_alert == 0:
+            s.observed_alert = max(0, version - (1 if a.get("level") else 0))
     with _alert_lock:
         events = [deepcopy(e) for e in _alert_events if e["version"] > s.observed_alert]
         history_gap = bool(_alert_events and s.observed_alert and s.observed_alert < _alert_events[0]["version"] - 1)
