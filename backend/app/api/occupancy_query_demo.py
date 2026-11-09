@@ -23,6 +23,7 @@ class DemoSpace(SpaceResponse):
     zone: str | None = None
     vehicle_number: str | None = None
     plate_number: str | None = None
+    charging: dict | None = None
 
 
 class DemoSpaceList(SpaceList):

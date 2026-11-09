@@ -7,3 +7,19 @@
 .charging-dialog #charging-title{font-weight:800}
 
 .charging-status-icon{display:block;width:45px;min-width:45px;max-width:45px;height:43px;min-height:43px;max-height:43px;object-fit:contain;flex:0 0 45px}
+.charging-details {width:100%;min-width:0;margin:12px 0;}
+.charging-counts {display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
+.charging-counts span {padding:6px 9px;border-radius:8px;background:#eef4ff;color:#233d70;font-size:12px;}
+.charger-card {background:white;border-left:4px solid #8a9ab0;}
+.charger-card.charger-available {border-left-color:#315fce;}
+.charger-card.charger-charging,.charger-card.charger-completed {border-left-color:#139265;}
+.charger-card .charger-progress {margin:10px 0;}
+.charger-progress progress {width:100%;min-width:0;accent-color:#139265;}
+.charger-card details {margin-top:10px;}
+.charger-card details[open] {min-width:0;overflow:auto;}
+.charger-card summary {cursor:pointer;color:#204fbf;font-size:12px;}
+@media(max-width:560px){.charging-details .charging-grid{grid-template-columns:1fr;}}
+/* 지도 펼침: 두 칸 그리드의 절반 폭에 갇혀 제목이 세로로 깨지는 문제 방지 */
+.charging-grid>.charger-card:has(details[open]){grid-column:1/-1;}
+/* "충전기" 같은 단어 중간에서 줄바꿈되지 않게 */
+.charger-card strong{word-break:keep-all;}

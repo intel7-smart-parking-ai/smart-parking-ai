@@ -25,6 +25,7 @@ from pydantic import BaseModel, Field
 from backend.app.api.occupancy_query_demo import create_demo_app
 from backend.app.api.occupancy_prototype import OccupancyExperiment
 from backend.app.api.vision_event_schema import VisionEvent
+from backend.app.simulation.charging import telemetry
 from backend.app.api.vision_event_store import Receipt, canonical_payload, InMemoryEventStore
 from backend.app.api.billing_router import billing_router, get_session_fee, create_mock_payment
 from backend.app.api.session_queries import router as session_router
@@ -281,7 +282,7 @@ def create_runtime_app(
         if row.get("session_id") and row["status"] == "occupied":
             with closing(store_ref["store"].connection()) as conn:
                 target = conn.execute(
-                    "SELECT vehicle_number,plate_number FROM simulation_targets WHERE lot_id=? AND space_id=?",
+                    "SELECT vehicle_number,plate_number,vehicle_type FROM simulation_targets WHERE lot_id=? AND space_id=?",
                     (row["lot_id"], row["space_id"]),
                 ).fetchone()
             if target:
@@ -294,6 +295,7 @@ def create_runtime_app(
                     (row["lot_id"], row["space_id"]),
                 ).fetchone()
             row["entry_at"] = active["entry_at"] if active else None
+        row["charging"] = telemetry(row, clock(), mode == "demo" and row["lot_id"] in ("C", "D"))
         return row
 
     app = create_demo_app(

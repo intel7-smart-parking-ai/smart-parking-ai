@@ -17,3 +17,5 @@ COPY nginx.conf /etc/nginx/templates/default.conf.template
 COPY nginx-admin-routes.conf /etc/nginx/snippets/parking-admin-routes.conf
 COPY --from=build /app/dist /usr/share/nginx/html
 EXPOSE 80 81
+COPY maintenance.html /usr/share/nginx/html/maintenance.html
+COPY maintenance-mascot.png /usr/share/nginx/html/assets/maintenance-mascot.png

@@ -1,3 +1,4 @@
+import ChargingDetails from './ChargingDetails.jsx';
 import {t} from './serviceLocale.js';
 import {formatLotName} from './uiState.js';
 import {useEffect, useState} from 'react';
@@ -24,10 +25,11 @@ function QuoteCountdown({expiresAt}) {
  return <p className="chat-confirm-note" role="status">{seconds ? t("견적 남은 시간 {0}분 {1}초",Math.floor(seconds / 60),seconds % 60) : t('견적이 만료되었습니다. 요금을 다시 조회해 주세요.')}</p>;
 }
 
-export default function ChatResponseCard({card,lots=[],alerts=[],allowMap}){
+export default function ChatResponseCard({card,lots=[],alerts=[],allowMap,language='ko'}){
  if(!card?.data||typeof card.data!=='object')return null;
  const d=card.data;
  switch(card.type){
+  case 'charging_status': return <ChargingDetails lots={d.lot_ids?.length?lots.filter(lot=>d.lot_ids.includes(lot.lot_id)):lots} language={language} alerts={alerts} allowMap={allowMap}/>;
   case 'empty_spots': return <div className="chat-data-card"><h3>{t("주차장별 빈자리")}</h3><div className="chat-lot-list">{Object.entries(d.lots||{}).map(([id,lot])=><div className="chat-lot-row" key={id}><div><strong>{formatLotName(lot.name)||t("{0} 주차장",id)}</strong><span>{lot.status_reason||t("빈자리 {0}면",lot.display_empty??lot.empty??'—')}</span></div><Zones zones={lot.zones}/></div>)}</div></div>;
   case 'car_location': {
    const lot=lots.find(item=>item.lot_id===d.lot_id);

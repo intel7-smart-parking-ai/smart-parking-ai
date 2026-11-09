@@ -859,6 +859,18 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
         boundary = boundaries.match(text)
         if boundary:
             return _boundary_response(s, session_id, boundary, rule)
+        if not s.pending and re.search(
+            r"충전\s*(현황|상태|진행|완료|중|얼마나)|(?:충전기|충전소).*(?:상태|현황|출력|사용\s*중)|"
+            r"(?:charging|charger)\s+(?:status|progress)|充电\s*(?:状态|进度|情况)|充電\s*(?:状況|状態|進捗)",
+            text, re.IGNORECASE,
+        ) and not re.search(r"불|연기|화재|경보|요금|결제|예약|대도|fire|smoke|alert|fee|pay|reserv", text, re.IGNORECASE):
+            from .parser import extract_lots
+            data._ensure_catalog()
+            return _respond(
+                s, "충전기별 상태와 충전 진행률은 아래 카드에서 확인할 수 있어요.",
+                card={"type": "charging_status", "data": {"lot_ids": extract_lots(text + " 주차장")}},
+                meta={"intent": "charging_status"},
+            )
         # 상태를 바꾸거나 안전·현장 대응이 걸린 요청만 규칙이 바로 처리한다.
         # 경보·위반·문의 상태 같은 조회 질문은 대화 에이전트가 다른 자료와 묶어 답할 수 있다
         # (모델을 쓸 수 없으면 아래 규칙 처리로 그대로 대체된다).

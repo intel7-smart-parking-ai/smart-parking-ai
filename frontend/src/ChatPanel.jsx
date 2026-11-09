@@ -61,7 +61,7 @@ export default function ChatPanel({lots,alerts,voiceInput=false,appAppearance=fa
    {appAppearance&&row.who!=='user'&&<span className="app-chat-avatar" aria-hidden="true"><ChatbotIcon/></span>}
    <span className="chat-speaker">{row.who==='user'?t('나'):t('주차 챗봇')}</span>
    <div className="chat-bubble">{formatLotName(row.text)}</div>
-   {row.result?.card&&<ChatResponseCard card={row.result.card} lots={lots} alerts={alerts} allowMap={!unsafe&&!row.result.safety}/>}
+   {row.result?.card&&<ChatResponseCard card={row.result.card} language={row.result.language||getLanguage()} lots={lots} alerts={alerts} allowMap={!unsafe&&!row.result.safety}/>}
    {!unsafe&&chatRecommendations(row.result).length>0&&<RecommendationMap recommended={chatRecommendations(row.result)}/>}
   </article>)}</div>
   {confirmation&&!unsafe&&<p className="chat-confirm-note">{t("내용을 확인한 뒤 아래 버튼으로 진행해 주세요.")}</p>}

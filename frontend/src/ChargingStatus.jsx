@@ -1,3 +1,4 @@
+import ChargingDetails from './ChargingDetails.jsx';
 import {useEffect,useRef,useState} from 'react';
 import {loadLots,pollInterval} from './api.js';
 import {Icon} from './components.jsx';
@@ -15,12 +16,12 @@ export default function ChargingStatus({language='ko',initialLot='A',onClose}){
  const c=copy[language]||copy.ko;
  useEffect(()=>{dialog.current.showModal();const el=dialog.current;const close=()=>onClose();el.addEventListener('close',close);return()=>el.removeEventListener('close',close)},[onClose]);
  useEffect(()=>{let active=true,timer;async function update(){try{const result=await loadLots();if(active){setLots(result);setStamp(new Date());setError(false)}}catch{if(active)setError(true)}finally{if(active){setBusy(false);timer=setTimeout(update,pollInterval)}}}setBusy(true);update();return()=>{active=false;clearTimeout(timer)}},[reload]);
- const lot=lots.find(l=>l.lot_id===selected),spaces=lot?.spaces.filter(s=>s.space_type==='ev')||[],available=spaces.filter(s=>s.status==='empty').length;
+ const selectedLots=lots.filter(lot=>lot.lot_id===selected);
  return <dialog ref={dialog} className="charging-dialog" aria-labelledby="charging-title" lang={language}>
   <header><div><span className="charging-eyebrow">PARK:ON · EV</span><h2 id="charging-title">{c[0]}</h2></div><button className="charging-close" aria-label={c[11]} onClick={()=>dialog.current.close()}><Icon name="close"/></button></header>
   <nav className="charging-lots" aria-label={welcomeText[language].lot}>{['A','B','C','D'].map((id,i)=><button key={id} aria-pressed={id===selected} onClick={()=>setSelected(id)}>{welcomeText[language].lots[i]}</button>)}</nav>
   <div className="charging-section-title"><h3>{c[1]}</h3><button aria-label={c[10]} disabled={busy} onClick={()=>setReload(v=>v+1)}><Icon name="refresh"/></button></div>
-  {error?<div role="alert" className="charging-error">{c[13]}</div>:busy&&!lots.length?<p role="status">{c[12]}</p>:<><div className="charging-summary"><ChargingIcon/><span>{c[2]} <b>{available}</b><small> / {spaces.length}</small></span><span>{c[3]} {spaces.length}</span></div><div className="charging-grid">{spaces.map(s=><article key={s.space_id} className={'charger-card '+s.status}><div><span>{s.space_id}</span><ChargingIcon/></div><strong>{c[({empty:4,occupied:5,uncertain:6,unavailable:7})[s.status]||6]}</strong><small>{c[8]}</small></article>)}</div>{!spaces.length&&<p>{c[14]}</p>}</>}
+  {error?<div role="alert" className="charging-error">{c[13]}</div>:busy&&!lots.length?<p role="status">{c[12]}</p>:<ChargingDetails lots={selectedLots} language={language}/>}
   {stamp&&<p className="charging-updated">{c[15]} · {stamp.toLocaleTimeString(language==='ko'?'ko-KR':language,{hour:'2-digit',minute:'2-digit',second:'2-digit'})}{error?' · —':''}</p>}
  </dialog>
 }
