@@ -420,3 +420,8 @@ html .mobile-app-main>.chat-panel .chat-form>.chat-voice-button{width:36px;min-w
 .mobile-app-main:has(>.app-help-card)>h1{color:#102a4c}
 
 .mobile-app-main .app-section-heading>.app-map-title{color:#102a4c}
+
+.app-help-title > span { display: inline; }
+.app-help-title .parkon-brand-lockup { display: inline-flex; vertical-align: middle; margin-right: 7px; }
+.app-help-title .parkon-brand-car { display: none; }
+.app-help-title .parkon-wordmark { width: 112px; height: 26px; }

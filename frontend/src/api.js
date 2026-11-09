@@ -53,8 +53,8 @@ export async function api(path, options) {
   if (/^\/sessions\/[^/]+\/fee$/.test(path)) return feeView(result);
   return result;
 }
-export async function loadLots(source = dataSource) {
-  const visibleDemo = source === 'team' && typeof document !== 'undefined' && !document.hidden;
+export async function loadLots(source = dataSource, {keepSimulationActive = true} = {}) {
+  const visibleDemo = keepSimulationActive && source === 'team' && typeof document !== 'undefined' && !document.hidden;
   const result = await request(visibleDemo ? '/parking-lots?visible_demo=1' : '/parking-lots', {}, source);
   if (source === 'demo') return listItems(result).map(lot=>normalizeLot(lot,lot.spaces||[],result.as_of));
   return Promise.all(listItems(result).map(async lot => {

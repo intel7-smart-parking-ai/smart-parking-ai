@@ -15,8 +15,11 @@ export function getLanguage() {
 }
 
 export function t(message, ...values) {
+  return translate(getLanguage(), message, ...values);
+}
+
+export function translate(language, message, ...values) {
   if (typeof message !== 'string') return message;
-  const language = getLanguage();
   const translation = language === 'ko' ? message : translations[message]?.[languages.indexOf(language) - 1] ?? message;
   return translation.replace(/\{(\d+)\}/g, (match, index) => index < values.length ? String(values[index]) : match);
 }

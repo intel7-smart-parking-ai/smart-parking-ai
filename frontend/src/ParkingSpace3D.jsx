@@ -45,7 +45,7 @@ export default function ParkingSpace3D({lot,filter,alerts=[],found,onSpace,varia
   <div className="space3d-heading"><div><span>{variant==='soft'?'CONCEPT A / DAYLIGHT':'CONCEPT B / CONTROL ROOM'}</span><h3>{variant==='soft'?'한눈에 보는 입체 주차장':'실시간 공간 관제'}<small>{lot.name}</small></h3></div><span className="space3d-source">API 상태 연동</span></div>
   <div className="space3d-stage" ref={stage} onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={pointerEnd} onPointerCancel={pointerEnd} onLostPointerCapture={pointerEnd} onClickCapture={event=>{if(event.detail!==0&&suppressClick.current){event.preventDefault();event.stopPropagation()}}}>
    <div className="space3d-center"><div className="space3d-world" style={{width:gw,height:gh,'--scene-scale':scale,'--scene-tilt':`${tilt}deg`,'--scene-rotation':`${rotation}deg`}}>
-    <div className="space3d-slab"/><div className="space3d-floor"><span className="space3d-floor-title">PARK:ON / {lot.lot_id}</span></div>
+    <div className="space3d-slab"/><div className="space3d-floor"><span className="space3d-floor-title">PARK : ON / {lot.lot_id}</span></div>
     {spaces.map(s=>{
      const warned=alerts.some(a=>a.lot_id===lot.lot_id&&a.space_id===s.space_id&&a.status!=='resolved');
      const selected=found?.lot_id===lot.lot_id&&found?.space_id===s.space_id;

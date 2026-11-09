@@ -13,6 +13,19 @@ from . import config
 
 # (topic key, 화면 표기, 인식 패턴). 위에서부터 먼저 맞는 주제를 쓴다.
 TOPICS: tuple[tuple[str, str, re.Pattern], ...] = (
+    ("payment_help", "결제·차단기 오류 대응", re.compile(r"결제.{0,12}(?:실패|오류|중복)|중복\s*결제|차단기.{0,10}(?:안|않|고장)|결제했는데")),
+    ("exit_rules", "결제 후 출차", re.compile(r"결제.{0,15}(?:언제|몇\s*분|출차|나가)|출차\s*유예|추가\s*정산|재정산")),
+    ("lookup_help", "차량 조회 실패", re.compile(r"조회.{0,10}(?:실패|안\s*돼|안\s*되)|내\s*차.{0,10}(?:안\s*나|안\s*보)|번호.{0,8}(?:미인식|인식\s*안)|차량.{0,8}검색.{0,8}안")),
+    ("discount_steps", "할인 신청 방법", re.compile(r"할인.{0,12}(?:어떻게|방법|증빙|서류|신청)|감면.{0,8}(?:신청|방법)|할인.{0,6}(?:안\s*돼|안\s*되|미적용)")),
+    ("walking", "시설 이동 안내", re.compile(r"[A-D]\s*구역.{0,18}(?:어떻게|가는|이동)|(?:화장실|엘리베이터|출입구).{0,12}(?:가는\s*길|어떻게\s*가|이동\s*경로)")),
+    ("ev_usage", "전기차 충전 이용", re.compile(r"충전.{0,12}(?:시작|종료|방법|요금|고장)|커넥터|충전기\s*사용")),
+    ("lost_found", "문의·분실물", re.compile(r"분실|잃어버|문의\s*(?:창구|방법|시간)|연락처|고객센터")),
+    ("vehicle_rules", "차량 이용 제한", re.compile(r"오토바이|캠핑카|대형차|대형버스|트럭|이륜차")),
+    ("passes", "정기권·재입차", re.compile(r"정기권|재입차|다시\s*입차|나갔다.{0,8}(?:오면|오는데|들어)")),
+    ("discount", "할인 정책", re.compile(r"할인|감면|경차\s*혜택|국가유공자\s*혜택")),
+    ("reservation", "예약 정책", re.compile(r"예약|사전\s*신청")),
+    ("overnight", "장기·야간 주차 정책", re.compile(r"장기\s*주차|숙박\s*주차|밤새|야간\s*주차|며칠\s*(?:동안\s*)?주차")),
+    ("refund", "환불 정책", re.compile(r"환불\s*(?:정책|규정|기준|가능|방법)|환불.{0,6}(?:돼|되|받을)|취소\s*수수료")),
     ("terminal", "청사·터미널 가는 길", re.compile(r"(?:국제선|국내선)(?:\s*(?:청사|터미널))?|청사|터미널|탑승구|게이트|출국장|입국장")),
     ("elevator", "엘리베이터", re.compile(r"엘리베이터|엘베|승강기")),
     ("stairs", "계단·에스컬레이터", re.compile(r"계단|에스컬레이터")),
@@ -41,7 +54,12 @@ _LOT_HINTS: tuple[tuple[str, re.Pattern], ...] = (
 _SUPPORTED = re.compile(r"경보|화재|불\s*났|연기|대피|피난|비상|요금|얼마|결제|정산|관리자|직원|호출|내\s*차|제\s*차|출차|차단기")
 
 
+OVERVIEW = re.compile(r"운영\s*(?:정책|규정|안내)|이용\s*(?:정책|규정|수칙)|시연\s*(?:운영\s*)?정책|시설\s*(?:안내|정보)|정책\s*(?:사항|전체)")
+
+
 def topic(text: str):
+    if OVERVIEW.search(text):
+        return "overview", "이용 정책"
     for key, label, pattern in TOPICS:
         if pattern.search(text):
             return key, label
@@ -67,10 +85,13 @@ def classify(text: str):
     gap: 'facility'(시설 정보), 'nearest'(특정 시설과 가까운 구역), 'forecast'(시각 기준 혼잡 예측),
          'crowd_now'(지금 붐비는지 — 현재 빈자리로 답할 수 있음)
     """
-    if _SUPPORTED.search(text):
-        return None
     found = topic(text)
-    if found and _NEAREST.search(text):
+    if found and found[0] == "reservation" and re.search(r"취소|예약해|예약\s*(?:해\s*줘|해\s*주세요)|세차|식당|호텔", text):
+        return None
+    policy = found and found[0] in {"discount", "reservation", "overnight", "refund", "overview", "payment_help", "exit_rules", "lookup_help", "discount_steps", "walking", "ev_usage", "lost_found", "vehicle_rules", "passes"}
+    if _SUPPORTED.search(text) and not policy:
+        return None
+    if found and found[0] != "overview" and _NEAREST.search(text):
         # 거리 질문은 사용자가 말한 목적지 표현(예: '국제선 청사')을 그대로 쓴다.
         place = next(p for k, _, p in TOPICS if k == found[0]).search(text)[0]
         return ("nearest", found[0], re.sub(r"\s+", " ", place).strip())
@@ -98,7 +119,7 @@ def prefix(params) -> str:
     lot = params.get("lot_id")
     name = config.catalog.name(lot) if lot and lot != "ambiguous" else None
     if gap == "forecast":
-        return "출발·도착 시각에 맞춘 혼잡 예측은 아직 제공하지 않아요.\n지금 기준으로"
+        return "출발·도착 시각에 맞춘 혼잡 예측은 아직 제공하지 않아요. 실제 과거 데이터로 예측 정확도를 검증하는 단계이며, 합성 데이터 실험 결과를 실제 빈자리 예측으로 안내하지 않습니다.\n지금 기준으로"
     if gap == "nearest":
         guide = _lot_guide(lot, key)
         if guide:
@@ -117,14 +138,20 @@ def facility_answer(params):
     """시설 질문의 (문장, 칩) — help 경로에서 사용."""
     key, label, lot = params.get("info_topic"), params.get("info_label") or "시설", params.get("lot_id")
     has_lot = bool(lot) and lot != "ambiguous" and lot in config.catalog.ids()
+    if key == "overview" and has_lot:
+        guide = config.catalog.lot(lot).get("guide") or {}
+        lines = [f"{title}: {guide[key].strip()}" for key, title, _ in TOPICS
+                 if isinstance(guide.get(key), str) and guide[key].strip()]
+        if lines:
+            return config.catalog.name(lot) + " 이용 정책\n" + "\n".join(lines), ["lot_" + lot, "empty_all", "call_admin"]
     guide = _lot_guide(lot, key) if has_lot else None
     if guide:
-        text = f"{config.catalog.name(lot)} {label} 안내: {guide}"
+        text = guide if lot == "C" and key == "reservation" else f"{config.catalog.name(lot)} {label} 안내: {guide}"
     elif has_lot:
         text = (f"{config.catalog.name(lot)}의 {label} 정보는 아직 챗봇에 등록되지 않았어요. "
                 "현장 안내판이나 관리자에게 확인해 주세요.\n제가 바로 알려드릴 수 있는 건 빈자리, 내 차 위치, 요금·모의 결제예요.")
     else:
-        text = (f"{label} 정보는 아직 챗봇에 등록되지 않았어요. 현장 안내판이나 관리자에게 확인해 주세요.\n"
-                "제가 바로 알려드릴 수 있는 건 빈자리, 내 차 위치, 요금·모의 결제예요.")
+        text = f"어느 주차장의 {label} 정보를 확인할까요? 주차장을 선택하거나 이름을 알려주세요."
+        return text, ["lot_" + key for key in config.catalog.ids()][:4]
     chips = (["lot_" + lot] if has_lot else []) + ["empty_all", "find_car", "call_admin"]
     return text, chips[:4]

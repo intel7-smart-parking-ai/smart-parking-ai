@@ -13,3 +13,29 @@
 .charging-progress progress{grid-column:1/-1;width:100%;height:9px;accent-color:#16945a}
 .charging-map-button{margin-top:7px;width:100%}
 .charging-map{margin-top:12px}
+
+/* 한 화면 보기: 넓은 화면은 가로 배치, 좁은 화면은 카드 축소 (PM 11/09) */
+@media(min-width:760px){
+ .charging-dialog{width:min(1180px,calc(100vw - 28px));max-height:calc(100dvh - 24px);padding:20px 24px}
+ .charging-dialog header{margin-bottom:0}
+ .charging-lots{grid-template-columns:repeat(4,minmax(0,1fr));margin:14px 0}
+ .charging-summary{margin:10px 0;padding:12px 16px}
+ .charging-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+ .charger-card{padding:10px 12px}
+ .charger-card strong{font-size:15px;margin:4px 0}
+ .charger-card .charging-status-icon{width:30px;min-width:30px;max-width:30px;height:29px;min-height:29px;max-height:29px;flex-basis:30px}
+ .charging-map-button{margin-top:4px;padding:5px 6px}
+}
+@media(max-width:759px){
+ .charging-dialog{max-height:100dvh;padding:14px}
+ .charging-lots{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin:12px 0}
+ .charging-lots button{padding:7px 2px;font-size:11px}
+ .charging-summary{margin:8px 0;padding:10px 12px}
+ .charging-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+ .charger-card{padding:8px}
+ .charger-card strong{font-size:13px;margin:3px 0}
+ .charger-card small{font-size:10px;line-height:1.35}
+ .charger-card .charging-status-icon{width:22px;min-width:22px;max-width:22px;height:21px;min-height:21px;max-height:21px;flex-basis:22px}
+ .charging-progress progress{height:6px}
+ .charging-map-button{margin-top:4px;padding:4px 2px;font-size:10px}
+}

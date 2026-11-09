@@ -1,5 +1,6 @@
 import {t} from './serviceLocale.js';
-export const airportZones = {A: t('P1 국내선'), B: t('P2 국제선'), C: t('P3 여객·화물')};
+export const airportZoneLabels = {A: 'P1 국내선', B: 'P2 국제선', C: 'P3 여객·화물'};
+export const airportZones = Object.fromEntries(Object.entries(airportZoneLabels).map(([zone,label])=>[zone,t(label)]));
 
 export function airportZone(space) {
   // Preserve existing space IDs and sessions when moving the last row into P3.

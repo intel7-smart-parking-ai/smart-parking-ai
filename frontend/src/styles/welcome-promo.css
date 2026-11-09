@@ -1,0 +1,93 @@
+.welcome-promo {
+  width: min(29rem, calc(100% - 2rem));
+  max-height: calc(100% - 2rem);
+  margin: auto;
+  padding: 0;
+  overflow: auto;
+  border: 0;
+  border-radius: 16px;
+  background: #fff;
+  color: #172433;
+  box-shadow: 0 20px 70px #10162655;
+}
+
+.welcome-promo::backdrop {
+  background: #101626a6;
+}
+
+.welcome-promo-poster {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: 17rem;
+  padding: clamp(1.4rem, 6vw, 2.5rem);
+  background: #e8f2ff;
+  color: #112947;
+}
+
+.welcome-promo-brand {
+  font-size: .85rem;
+  font-weight: 800;
+  letter-spacing: .13em;
+}
+
+.welcome-promo h2 {
+  margin: 1.1rem 0 .8rem;
+  font-size: clamp(1.9rem, 7vw, 3rem);
+  line-height: 1.14;
+  letter-spacing: -.06em;
+}
+
+.welcome-promo h2 strong {
+  color: #205bc8;
+}
+
+.welcome-promo p {
+  margin: 0;
+  font-size: .95rem;
+}
+
+.welcome-promo-mark {
+  position: absolute;
+  right: -1rem;
+  bottom: -2.5rem;
+  z-index: -1;
+  color: #ccdff8;
+  font-size: 14rem;
+  font-weight: 900;
+  line-height: 1;
+  transform: rotate(-12deg);
+}
+
+.welcome-promo form {
+  display: flex;
+  justify-content: flex-end;
+  padding: .75rem 1rem;
+}
+
+.welcome-promo button {
+  min-height: 44px;
+  padding: .55rem 1.15rem;
+  border: 1px solid #ccd3df;
+  border-radius: 8px;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.welcome-promo button:hover {
+  background: #edf1f7;
+}
+
+.welcome-promo-badge {
+  display: inline-block;
+  margin-top: 1rem;
+  padding: .45rem .8rem;
+  border-radius: 999px;
+  background: #163765;
+  color: #fff;
+  font-size: .85rem;
+  font-weight: 800;
+}

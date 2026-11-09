@@ -10,6 +10,7 @@ services:
       PARKON_CONTINUOUS_DEMO: ${PARKON_CONTINUOUS_DEMO:-0}
       VISION_TOKEN: ${VISION_TOKEN:?Set VISION_TOKEN in a private .env file}
       ALERTS_INTERNAL_TOKEN: ${ALERTS_INTERNAL_TOKEN:-}
+      ADMIN_TOKEN: ${CHATBOT_ADMIN_TOKEN:-}
       SMART_PARKING_DB_PATH: /data/smart_parking.db
       FEE_QUOTE_TTL_SECONDS: ${FEE_QUOTE_TTL_SECONDS:-300}
       DATA_SOURCE: api
@@ -54,6 +55,7 @@ services:
         VITE_DATA_SOURCE: team
     environment:
       API_UPSTREAM: ${API_UPSTREAM:-api:8000}
+      CHATBOT_ADMIN_TOKEN: ${CHATBOT_ADMIN_TOKEN:-}
     extra_hosts:
       - host.docker.internal:host-gateway
     ports:

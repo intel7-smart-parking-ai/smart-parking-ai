@@ -1,0 +1,27 @@
+"""충전 현황 질문 → 화면의 충전 현황 카드(charging_status)로 연결 (PM 11/09, 김채린 charging_intent 이식)."""
+import unittest
+import uuid
+
+from chatbot import engine as e
+
+
+class ChargingCardTests(unittest.TestCase):
+    def ask(self, text):
+        return e.handle(uuid.uuid4().hex, text=text)
+
+    def test_status_questions_open_charging_card(self):
+        for text, lot in (("충전 현황 보여줘", None), ("신세계 충전기 상태", "D"), ("김해공항 충전 얼마나 남았어", "C")):
+            with self.subTest(text=text):
+                r = self.ask(text)
+                self.assertEqual(r["meta"]["intent"], "charging_status")
+                self.assertEqual(r["card"]["type"], "charging_status")
+                if lot:
+                    self.assertEqual(r["card"]["data"]["lot_id"], lot)
+
+    def test_other_charging_words_keep_their_intent(self):
+        self.assertNotEqual(self.ask("전기차 충전 자리 비었어?")["meta"]["intent"], "charging_status")
+        self.assertNotEqual(self.ask("충전 요금 결제해줘")["meta"]["intent"], "charging_status")
+
+
+if __name__ == "__main__":
+    unittest.main()

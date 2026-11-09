@@ -850,6 +850,20 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
             s.clear()
             return _respond(s, _reply, chip_set=_meta.pop("chips", "default"), meta=_meta)
         text = _meta
+        # 충전 현황 질문은 화면의 충전 현황 카드(칸별 충전 상태·남은 시간)로 연결한다 (김채린 charging_intent 이식).
+        from .charging_intent import wants_status as _wants_charging
+        if _wants_charging(text):
+            from .parser import extract_lots
+            _lots = extract_lots(text + " 주차")
+            if len(_lots) > 1:
+                return _respond(s, "어느 주차장의 충전 현황을 열까요?", chip_set=["lot_" + lot for lot in _lots])
+            if current_alert().get("level", 0) >= 2:
+                return _respond(s, "경보 중에는 현장 안전 안내를 먼저 따라 주세요.", chip_set="alert")
+            _lot = _lots[0] if _lots else DC.focus(s) or "C"
+            return _respond(
+                s, f"{config.catalog.name(_lot)} 충전 현황이에요. 아래 ‘충전 현황’ 버튼을 누르면 칸별 충전 상태와 남은 시간을 볼 수 있어요.",
+                card={"type": "charging_status", "data": {"lot_id": _lot}},
+                meta={"intent": "charging_status", "source": "rule"})
         from .parser import extract_vehicle, extract_virtual, normalize_car_id
         from .conversation_turn import reply_to
         raw_id, only = extract_vehicle(text)

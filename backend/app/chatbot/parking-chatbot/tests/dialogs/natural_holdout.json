@@ -32,7 +32,7 @@
    {"user":"신세계 자리 잇나요","expect":{"focus":"D"}}]},
  {"name":"H맥락-시설","turns":[
    {"user":"신세계 빈자리","expect":{}},
-   {"user":"엘리베이터는 어디 있어?","expect":{"text_has":["신세계백화점주차장의 엘리베이터"]}}]},
+   {"user":"엘리베이터는 어디 있어?","expect":{"text_has":["신세계백화점주차장 엘리베이터 안내"]}}]},
  {"name":"H안전","turns":[
    {"user":"공항 빈자리","expect":{}},
    {"user":"거기 연기 나요","expect":{"intent":"emergency"}}]}

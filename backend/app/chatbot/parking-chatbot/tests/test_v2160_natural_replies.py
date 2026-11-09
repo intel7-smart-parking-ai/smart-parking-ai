@@ -80,12 +80,22 @@ class EngineTests(unittest.TestCase):
         self.assertIn('지금 기준으로 김해공항 주차장', r['text'])
         self.assertEqual(r['card']['type'], 'empty_spots')
 
+
+    def _without_guides(self):
+        """기본 시설 안내(guide)가 등록돼 있으므로, 미등록 경로는 guide를 비운 설정으로 검사한다."""
+        doc = deepcopy(config.catalog.settings)
+        for lot in doc['lots']:
+            lot.pop('guide', None)
+        config.catalog.configure(doc)
+
     def test_nearest_without_guide_does_not_invent_a_zone(self):
+        self._without_guides()
         r = e.handle('s', text='김해 공항 주차장에서 국제선 청사로 가는길이 가장 가까운 주차구역이 어디야?')
         self.assertIn('국제선 청사까지의 거리 정보가 아직 등록되지 않아서', r['text'])
         self.assertNotIn('잘 이해하지 못했어요', r['text'])
 
     def test_facility_without_guide_says_unregistered(self):
+        self._without_guides()
         r = e.handle('s', text='신세계백화점 엘리베이터 몇개야')
         self.assertIn('신세계백화점주차장의 엘리베이터 정보는 아직 챗봇에 등록되지 않았어요', r['text'])
         self.assertIsNone(r['card'])
