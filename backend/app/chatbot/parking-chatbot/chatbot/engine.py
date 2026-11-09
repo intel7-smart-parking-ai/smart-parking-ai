@@ -843,6 +843,12 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
     else:
         text = (text or "").strip()[:200]
         s.history.append(("user", text))
+        from .turn_guard import guard as _turn_guard
+        _reply, _meta = _turn_guard(s, text)
+        if _reply is not None:
+            s.clear()
+            return _respond(s, _reply, chip_set=_meta.pop("chips", "default"), meta=_meta)
+        text = _meta
         from .parser import extract_vehicle, extract_virtual, normalize_car_id
         from .conversation_turn import reply_to
         raw_id, only = extract_vehicle(text)

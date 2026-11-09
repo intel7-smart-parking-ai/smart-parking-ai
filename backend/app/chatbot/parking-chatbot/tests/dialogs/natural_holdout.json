@@ -35,5 +35,5 @@
    {"user":"엘리베이터는 어디 있어?","expect":{"text_has":["신세계백화점주차장의 엘리베이터"]}}]},
  {"name":"H안전","turns":[
    {"user":"공항 빈자리","expect":{}},
-   {"user":"거기 연기 나요","expect":{"intent":"get_alerts"}}]}
+   {"user":"거기 연기 나요","expect":{"intent":"emergency"}}]}
 ]
