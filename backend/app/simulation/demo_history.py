@@ -6,6 +6,7 @@ from random import Random
 
 from backend.app.billing.calculator import calculate_parking_fee_pure
 from backend.app.simulation.mock_data import SPACES
+from backend.app.simulation.vehicle_assignment import REGISTERED_VEHICLES
 
 KST = timezone(timedelta(hours=9))
 START = datetime(2025, 1, 1, tzinfo=KST)
@@ -189,6 +190,63 @@ def generate_window(conn, start, end, lots, *, historical=False):
         hour += HOUR
 
 
+REFILL_BOUNDS = (.15, .85)
+REFILL_FALLBACK = .5
+
+
+def typical_occupancy(conn, lot, now):
+    """Average occupancy of the lot for this hour on the same kind of day (weekday vs weekend/holiday)."""
+    weekday, weekend, holiday, _ = day_type(now.date())
+    row = conn.execute(
+        """SELECT sum(u.occupied_seconds) * 1.0 / nullif(sum(u.capacity_seconds), 0)
+           FROM demo_hourly_usage u JOIN demo_calendar c ON c.day = substr(u.hour_kst, 1, 10)
+           WHERE u.lot_id = ? AND substr(u.hour_kst, 12, 2) = ?
+             AND (c.is_weekend OR c.is_holiday) = ?""",
+        (lot, f'{now.hour:02d}', int(bool(weekend or holiday))),
+    ).fetchone()
+    ratio = row[0] if row and row[0] is not None else REFILL_FALLBACK
+    return min(max(ratio, REFILL_BOUNDS[0]), REFILL_BOUNDS[1])
+
+
+def refill(conn, now, lots):
+    """Start running virtual lots from a fresh, typical occupancy instead of the pre-restart cars.
+
+    Vehicles left from before the restart are released (occupied=0); the observation loop then reports
+    their bays empty, so the server closes those sessions through the normal pipeline and checkpoint()
+    settles them. New vehicles are placed only in bays without an active session, and they become
+    sessions only when the server confirms the simulated observations (rule: server decides state).
+    """
+    rng = Random(f'parkon-refill/{now.isoformat()}')
+    used = {row[0] for row in conn.execute(
+        "SELECT vehicle_number FROM simulation_targets WHERE occupied=1 AND lot_id NOT IN (%s)"
+        % ','.join('?' * len(lots)), tuple(lots)) if row[0]} if lots else set()
+    pool = [f'{value:04d}' for value in range(101, 10000)
+            if f'{value:04d}' not in used and f'{value:04d}' not in REGISTERED_VEHICLES]
+    rng.shuffle(pool)
+    placed = {}
+    for lot in lots:
+        conn.execute("UPDATE simulation_targets SET occupied=0 WHERE lot_id=?", (lot,))
+        held = {row[0] for row in conn.execute(
+            "SELECT space_id FROM parking_sessions WHERE lot_id=? AND status='active'", (lot,))}
+        bays = [s for s in SPACES if s.lot_id == lot and s.space_id not in held]
+        total = sum(1 for s in SPACES if s.lot_id == lot)
+        count = min(len(bays), round(typical_occupancy(conn, lot, now) * total))
+        chosen = rng.sample(bays, count)
+        for bay in chosen:
+            number = pool.pop()
+            low, high = rng.choice(((10, 69), (100, 699)))
+            letter = rng.choice("가나다라마거너더러머버서어저고노도로모보소오조구누두루무부수우주")
+            conn.execute(
+                "UPDATE simulation_targets SET occupied=1, vehicle_number=?, plate_number=?, vehicle_type=?"
+                " WHERE lot_id=? AND space_id=?",
+                (number, f'{rng.randint(low, high)}{letter}{number}', bay.space_type, lot, bay.space_id),
+            )
+        placed[lot] = count
+    if placed:
+        save(conn, 'last_refill_kst', now.isoformat())
+    return placed
+
+
 def prepare(conn, now):
     now = local_time(now)
     conn.executescript(SCHEMA)
@@ -213,12 +271,16 @@ def prepare(conn, now):
             save(conn, 'runtime_started_kst', (previous or now.isoformat()))
             conn.execute("UPDATE simulation_controls SET running=1,interval_seconds=30,next_tick=?",
                          (now.timestamp(),))
+            if metadata(conn, 'last_refill_kst') is None:
+                refill(conn, now, 'CD')
         if previous and local_time(previous) < now:
             lots = ''.join(row['lot_id'] for row in conn.execute(
                 "SELECT lot_id FROM simulation_controls WHERE running=1 ORDER BY lot_id"))
             start = local_time(previous)
             generate_window(conn, start, now, lots)
             conn.execute("INSERT INTO demo_outages VALUES (?,?,?)", (previous, now.isoformat(), lots))
+            # Restarted virtual lots begin from a typical occupancy for this hour, not the old cars.
+            refill(conn, now, lots)
         save(conn, 'runtime_heartbeat_kst', max(now, local_time(previous)).isoformat() if previous else now.isoformat())
 
 
