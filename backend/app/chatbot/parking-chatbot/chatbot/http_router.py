@@ -2,6 +2,7 @@
 from contextlib import asynccontextmanager
 from functools import partial, wraps
 from typing import Literal
+import time
 
 import anyio
 from anyio.lowlevel import RunVar
@@ -10,7 +11,7 @@ from pydantic import BaseModel, Field, StrictBool
 
 from . import config, engine, incidents
 from .state import Conflict
-from .response_locale import localize_response, resolve_language
+from .response_locale import localize_response, question_to_korean, resolve_language, translate_timeout
 from .adapters import DataUnavailable
 from .contracts import alerts_source
 from .http_api import change_report
@@ -46,6 +47,8 @@ def privileged(request: Request):
 async def _lifespan(app):
     config.log_startup()
     yield
+    from . import monitoring
+    monitoring.shutdown()
 
 
 router = APIRouter(prefix="/api/v1/chat", tags=["chatbot"], lifespan=_lifespan)
@@ -119,9 +122,25 @@ def _team_chat_response(response):
 async def chat(body: ChatIn):
     language = resolve_language(body.language, body.text) if body.language else "ko"
     def work():
-        response = _service(engine.handle, body.session_id, body.text, body.chip_id, body.event,
-                            body.request_id, body.confirmation_token, body.runtime_id)
-        return {**localize_response(response, language), "language": language} if body.language else response
+        started = time.monotonic()
+        # 외국어 질문은 한국어로 바꿔 엔진에 넣고, 답은 아래 localize_response가 다시 그 언어로 옮긴다.
+        text = question_to_korean(body.text, language) if body.text else body.text
+        # 답을 번역할 시간(약 3.5초)을 남기고 대화 처리를 끝낸다(화면 제한 약 8초).
+        cap_token = engine.budget_cap.set(started + 4.0) if language != "ko" else None
+        try:
+            response = _service(engine.handle, body.session_id, text, body.chip_id, body.event,
+                                body.request_id, body.confirmation_token, body.runtime_id)
+        finally:
+            if cap_token is not None:
+                engine.budget_cap.reset(cap_token)
+        if not body.language:
+            return response
+        # 대화 처리(최대 REQUEST_BUDGET_SEC)에 쓴 시간을 빼고 남은 시간만 번역에 쓴다(화면 제한 약 8초).
+        token = translate_timeout.set(7.5 - (time.monotonic() - started))
+        try:
+            return {**localize_response(response, language), "language": language}
+        finally:
+            translate_timeout.reset(token)
     if not config.EMBEDDED:
         return await anyio.to_thread.run_sync(work)
     capacity = _chat_capacity.get(None)

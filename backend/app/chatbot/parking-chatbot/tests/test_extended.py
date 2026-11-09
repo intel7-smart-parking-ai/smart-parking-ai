@@ -29,7 +29,7 @@ class ExtendedTests(unittest.TestCase):
         self.check_file("questions_holdout.csv")
 
     def vehicle(self):
-        e.handle("s", text="33번 차 위치"); e.handle("s", text="네")
+        e.handle("s", text="33번 차 위치")
 
     def test_decline_admin_does_not_call(self):
         for phrase in ("관리자 필요 없어", "직원은 부르지 마", "호출하지 말고 기다려"):
@@ -63,9 +63,12 @@ class ExtendedTests(unittest.TestCase):
             e.handle("s", text=phrase); e.handle("s", text="네")
             self.assertFalse(e.data.get_fee("33")["paid"])
 
-    def test_natural_confirmation_completes_vehicle_query(self):
-        e.handle("s", text="33번 요금")
-        r = e.handle("s", text="네, 맞습니다")
+    def test_explicit_vehicle_change_accepts_natural_confirmation(self):
+        change = e.handle("s", text="33번 차로 바꿔")
+        self.assertEqual(change["flow"], "confirm_vehicle")
+        confirmed = e.handle("s", text="네, 맞습니다")
+        self.assertEqual(confirmed["vehicle_context"]["car_id"], "33")
+        r = e.handle("s", chip_id="fee")
         self.assertEqual(r["card"]["type"], "fee")
         self.assertEqual(r["vehicle_context"]["car_id"], "33")
 

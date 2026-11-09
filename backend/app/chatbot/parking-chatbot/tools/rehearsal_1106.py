@@ -102,9 +102,8 @@ def run_rehearsal():
                 check(1, shown == actual == 9 and "※ 시연용 데이터예요" in answer["text"])
 
                 answer = ask("② 10번 차 어디 있어?", "10번 차 어디 있어?")
-                check("2-확인", answer["flow"] == "confirm_vehicle")
-                answer = ask("② 네", "네", answer)
-                check(2, answer["card"]["type"] == "car_location"
+                check(2, answer["flow"] == "idle" and answer["confirmation_token"] is None
+                      and answer["card"]["type"] == "car_location"
                       and answer["card"]["data"]["car_id"] == "10"
                       and answer["card"]["data"]["space_id"] == "A-01")
 

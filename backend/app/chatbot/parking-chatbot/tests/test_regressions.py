@@ -31,9 +31,10 @@ class WorkflowTests(unittest.TestCase):
     def setUp(self):
         e.reset_all()
 
-    def test_vehicle_confirmation_then_fee(self):
-        self.assertIn("맞으세요", e.handle("s", text="33번 요금")["text"])
-        result = e.handle("s", text="네")
+    def test_clear_vehicle_number_reads_fee_immediately(self):
+        result = e.handle("s", text="33번 요금")
+        self.assertEqual(result["flow"], "idle")
+        self.assertIsNone(result["confirmation_token"])
         self.assertEqual(result["card"]["type"], "fee")
         self.assertEqual(result["card"]["data"]["car_id"], "33")
 
@@ -44,12 +45,19 @@ class WorkflowTests(unittest.TestCase):
         self.assertFalse(e.data.get_fee("33")["paid"])
         self.assertIn("확인할 내용이 없", result["text"])
 
-    def test_denied_number_can_be_corrected(self):
-        e.handle("s", text="33번 요금")
-        e.handle("s", text="아니요")
-        e.handle("s", text="43")
-        result = e.handle("s", text="네")
+    def test_denied_payment_vehicle_can_be_corrected_without_paying(self):
+        old = e.handle("s", text="33번 결제")
+        self.assertEqual(old["flow"], "confirm_vehicle")
+        self.assertEqual(e.handle("s", text="아니요")["flow"], "ask_vehicle")
+        corrected = e.handle("s", text="43")
+        self.assertEqual(corrected["flow"], "confirm_vehicle")
+        e.handle("s", chip_id="confirm_yes", confirmation_token=old["confirmation_token"])
+        self.assertEqual(e.get_session("s").pending.token, corrected["confirmation_token"])
+        result = e.handle("s", chip_id="confirm_yes", confirmation_token=corrected["confirmation_token"])
+        self.assertEqual(result["flow"], "confirm_action")
         self.assertEqual(result["card"]["data"]["car_id"], "43")
+        self.assertFalse(e.data.get_fee("33")["paid"])
+        self.assertFalse(e.data.get_fee("43")["paid"])
 
     def test_payment_and_repeat(self):
         e.handle("s", text="33번 결제")

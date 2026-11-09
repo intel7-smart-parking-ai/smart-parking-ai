@@ -22,7 +22,8 @@ THANKS = "천만에요. 더 필요한 게 있으면 말씀해 주세요."
 ASK_VEHICLE = "차량 번호를 알려주세요. 차 지붕 스티커의 두 자리 숫자예요. (예: 27)"
 ASK_DIFFERENT_VEHICLE = f"다른 차량 번호를 알려주세요. 스티커의 두 자리 숫자({config.VEHICLE_MIN}~{config.VEHICLE_MAX})예요."
 INVALID_VEHICLE = f"차량 번호는 {config.VEHICLE_MIN}부터 {config.VEHICLE_MAX}까지 두 자리 숫자예요."
-SHORT_VEHICLE = "차량 번호는 두 자리로 말씀해 주세요 (예: 27)."
+SHORT_VEHICLE = ("한 자리이거나 0으로 시작하는 번호는 쓰지 않아서 조회할 차량이 없어요. "
+                 f"차량 번호는 두 자리로 말씀해 주세요 ({config.VEHICLE_MIN}~{config.VEHICLE_MAX}, 예: 27).")
 UNASSIGNED_VEHICLE = "등록되지 않은 차량 번호예요. 스티커 번호를 다시 확인해 주세요."
 VIRTUAL_VEHICLE_PENDING = "가상 주차장 차량 검색은 준비 중이에요. 실물 차량은 두 자리 스티커 번호로 알려주세요."
 EXIT_HELP = "출구 문제는 현장 관리자가 도와드려요. 아래 버튼으로 관리자를 부를 수 있어요."
@@ -38,7 +39,7 @@ CANCEL_PENDING = "진행 중이던 요청을 취소했어요."
 CANCEL_NONE = "진행 중인 요청은 없어요."
 REFUND_UNSUPPORTED = "이미 완료한 결제의 환불은 이 기능에서 처리하지 않습니다."
 
-UNKNOWN_FIRST = "잘 이해하지 못했어요. 아래 버튼에서 원하는 안내를 골라 주세요."
+UNKNOWN_FIRST = "잘 이해하지 못했어요. 저는 주차 안내(빈자리, 내 차 위치, 요금·모의 결제)만 도와드려요. 아래 버튼에서 골라 주세요."
 UNKNOWN_AGAIN = "아래에서 골라 주시거나, 관리자를 불러 드릴게요."
 
 

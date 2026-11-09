@@ -14,7 +14,6 @@ class Round2Tests(unittest.TestCase):
 
     def choose(self):
         e.handle("s",text="33번 차 위치")
-        e.handle("s",text="네")
 
     def test_spacing_negations_never_register_admin_call(self):
         for verb, gap1, gap2, ending in product(("불러", "호출해", "연결해"), ("", " "), ("", " "), ("마세요", "말아줘", "않을게요")):
@@ -60,10 +59,12 @@ class Round2Tests(unittest.TestCase):
         self.assertFalse(e.data.get_fee("33")["paid"])
 
     def test_missing_replacement_resumes_original_query_after_new_number(self):
-        e.handle("s",text="33번 요금")
-        e.handle("s",text="33번 말고 다른 차")
-        e.handle("s",text="43")
-        r=e.handle("s",text="네")
+        initial = e.handle("s",text="33번 요금")
+        self.assertEqual(initial["card"]["data"]["car_id"],"33")
+        self.assertEqual(e.handle("s",text="33번 말고 다른 차")["flow"],"ask_vehicle")
+        r=e.handle("s",text="43")
+        self.assertEqual(r["flow"],"idle")
+        self.assertIsNone(r["confirmation_token"])
         self.assertEqual(r["card"]["type"],"fee")
         self.assertEqual(r["card"]["data"]["car_id"],"43")
 

@@ -1,12 +1,13 @@
-# EPIC06 주차장 안내 챗봇 v2.16.1 — 대화 맥락·데이터 활용 준비본
+# EPIC06 주차장 안내 챗봇 v3.3
 
-최신 변경은 [v2.16.1 대화 맥락·데이터 활용](docs/v2161_dialog_context.md)(지시어·생략·선택형 후속 질문, 가장 여유 있는 곳·비교·점유율·구역별 빈자리·요금 정책 비교, 대화 평가 `tests/run_dialog_eval.py`)을 참고하세요. 그 전 변경은 [v2.16.0 자연스러운 답변 보완](docs/v2160_natural_replies.md)(주차장 미지정 빈자리 요약·선택, 별칭, 시설·거리·혼잡 예측 질문 안내, 시설 안내 설정집 `guide`)을 참고하세요. 직전 변경은 [v2.15.9 질문 처리 수정](docs/v2159_question_routing.md)입니다. main `90f6afc`에 병합된 v2.15.8을 기준으로 존재 여부·도움말·번호 범위의 안내를 보완한 로컬 준비본입니다. 원격 반영·시연 서버 적용은 별도입니다. 앞선 연결 안정화 근거는 [v2.15.8 통합 검토](docs/v2158_integration_review.md)에 있습니다.
+v3.3은 v3.2에 안전·허용 여부·취소 확인·없는 칸 처리(김채린 `turn_policy.py` 이식), 자기소개, 새 대화의 지난 경보 말풍선 제거를 더했다. [v3.3 변경 요약](docs/v33_change_summary.md), [v3.2 변경 요약](docs/v32_change_summary.md).
 
-이전 준비본 변경은 [v2.15.7 변경 요약](docs/v2157_change_summary.md), 내일 준비는 [11/06 준비·인계](docs/preparation_1106.md)를 참고하세요. 번호 해석은 [v2.15.6](docs/v2156_change_summary.md), 음성 연결은 [전사문 입력 기준](docs/voice_input_contract.md), 구현 기준은 [구현·검증 원칙](docs/validation_policy.md), 실행은 [11/06 대본](docs/demo_script_1106.md)에 있습니다. 팀 레포: https://github.com/intel7-smart-parking-ai/smart-parking-ai
+v3.1은 v3.0.1의 구조(대화 에이전트 1개 + 읽기 도구 + 업무 흐름 실행)를 유지하면서, 모델이 여러 자료를 묶어 쓴 답이 실제 화면까지 나가도록 막힌 곳을 풀었다. 차이·경과 시간·예상 요금은 코드가 계산해 도구로 주고, 근거 검사는 거짓 실행·약속·엉뚱한 숫자를 막으며, 걸린 답은 이유와 함께 한 번 고쳐 쓰게 한다. Langfuse는 모니터링(선택, 기본 꺼짐)으로만 연결했다. 변경 내용은 [v3.1 변경 요약](docs/v31_change_summary.md), 설정은 [설정값 넣는 법 6장](docs/settings_guide.md), Langfuse 켜는 법은 [에이전트 실행 안내](docs/agent_runbook.md)에 있다.
 
-전체 검사는 팀 레포의 `backend/app/chatbot/parking-chatbot` 배치에서 실행합니다. ZIP만 단독으로 풀면 팀 등록 경로를 검사하는 일부 테스트에서 `backend`를 찾지 못할 수 있습니다. 이 납품본의 실제 실행 결과와 미검증 범위는 변경 요약을 참고하세요.
 
-v2.5 API 계약을 유지하며 재현된 오류와 긴 답변 표시를 수정했습니다. [최신 안정성 결과](docs/robustness_report.md)를 확인하세요. [API 계약 반영 기록](docs/api_alignment_report.md)을 확인하세요. [정리 결과](docs/refactor_report.md), [챗봇 작업지침서 v2](docs/chatbot_guidelines_v2.md), [이전 결과](docs/history/integrated_v3_report.md), [기록 보관함](docs/history/README.md)을 참고하세요.
+일반 문장은 LangChain 대화 에이전트가 최근 대화와 함께 읽고, 내부 조회 도구에서 받은 결과로 답합니다. 빈자리·기본요금 비교와 차량 위치·요금 복합 조회를 지원합니다. 명확한 차량번호는 바로 조회하고, 모의 결제는 서버 견적을 보여 준 뒤 승인받습니다. 기존 칩과 업무 흐름은 같은 팀 API를 사용합니다.
+
+팀 Docker에서 모델을 켜는 절차는 [에이전트 실행 안내](docs/agent_runbook.md)에 있습니다. 소스 책임과 데이터 흐름은 [코드 지도](docs/CODEMAP.md), 질문 검수 범위는 [대화 개편 검토](docs/v3_conversation_review.md)를 확인하세요. 이번 패키지의 팀 합의 반영 여부와 시연 PC 확인 항목은 [팀 합의 대조표](docs/team_agreement_review_v301.md)에 있습니다. [v2.16.1 변경 기록](docs/v2161_dialog_context.md)과 [이전 기록](docs/history/README.md)은 별도로 보관합니다.
 
 ## 실행
 
@@ -50,38 +51,19 @@ python server_dev.py
 
 `DATA_SOURCE=api`, `BACKEND_BASE_URL`, 필요한 `BACKEND_TOKEN`·`ADMIN_TOKEN`을 설정합니다. 실제 API 경로·응답 변환은 `docs/api_contract.md`와 `chatbot/api_paths.json`을 팀 계약에 맞춰 확정해야 합니다. 실제 운영 연결에서는 `DEMO_ENABLED=0`으로 둡니다.
 
-## 선택 LangChain 라우터
+## 대화 에이전트
 
-`.env.example`의 기본값은 OpenRouter + `anthropic/claude-haiku-5.5`입니다. 키(`OPENROUTER_API_KEY`)가 비어 있거나 `LLM_PROVIDER=none`이면 설치·키 없이 버튼과 규칙으로 동작합니다. `LLM_PROVIDER=openrouter`인데 `LLM_MODEL`을 비우면 Haiku 5.5를 씁니다. LLM 사용 시 Python 3.11 이상 환경에서 다음을 설치합니다.
+팀 Compose에서는 D-18의 OpenRouter 모델 설정을 사용합니다. 팀 Docker로 기동할 때는 [에이전트 실행 안내](docs/agent_runbook.md)의 추가 Compose 파일을 사용합니다. 단독 실행에서는 Python 3.11 이상에서 `requirements-llm.txt`를 설치하고 `.env`의 `LLM_ENGINE=langchain`, `LLM_PROVIDER=openrouter`, `LLM_MODEL`, `OPENROUTER_API_KEY`를 설정합니다.
 
 ```bash
 python -m pip install -r requirements-llm.txt
 ```
 
-`.env.example`을 `.env`로 복사한 뒤 `LLM_ENGINE=langchain`, `LLM_PROVIDER`, `LLM_MODEL`을 설정하고 해당 제공자의 키를 `.env`에만 넣습니다.
+모델은 이번 턴에 허용된 내부 조회 도구를 호출하고 결과를 받아 답합니다. 후보 범위, 차량 식별자, 금액, 상태를 도구 근거와 대조합니다. 세션의 최근 대화와 후보를 다음 턴에 활용합니다. 모델이 실행 작업을 제안하면 화면의 해당 칩이나 별도 확인 절차로 연결합니다. 칩·비상 안내·승인 처리는 업무 흐름에서 수행합니다.
 
-| 제공자 | `LLM_PROVIDER` | 키 변수 | 비고 |
-|---|---|---|---|
-| OpenRouter (팀 결정 D-18) | `openrouter` | `OPENROUTER_API_KEY` | 기본 `LLM_MODEL=anthropic/claude-haiku-5.5`(D-44 제안), 대안 `google/gemma-4-26b-a4b-it`(D-18). 주소는 `https://openrouter.ai/api/v1` 고정. 키마다 OpenRouter 사용 한도 설정 |
-| OpenAI | `openai` | `OPENAI_API_KEY` | |
-| Anthropic | `anthropic` | `ANTHROPIC_API_KEY` | |
+`LLM_PROVIDER=none` 또는 키가 없는 환경에서는 칩과 규칙 조회가 동작합니다. 모델 연결이 실패하면 가능한 복합 조회는 확인된 자료를 표시합니다. `meta.source=llm`, `meta.agent_status`, `meta.model_calls`와 관리자 통계의 `llm.conversation`으로 실제 대화 경로를 확인할 수 있습니다. `LLM_ENGINE=direct`는 기존 직접 분류기 호환 설정입니다.
 
-모델이 도구 호출을 지원해야 합니다. 실측은 키를 넣은 뒤 `python tests/run_llm_compare.py --compare`로 합니다(실제 API 비용 발생, 규칙이 못 알아듣는 문장 35개). 도구 선택 정답률과 3초 이내 응답을 보고, 부적합하면 OpenRouter 안에서 `LLM_MODEL`만 바꿔 다시 잽니다.
-
-LLM이 관리자 호출을 선택하면 “관리자를 부를까요?”와 `[관리자 호출]` 칩을 보여줍니다. 이 단계에서는 접수하지 않으며, 칩 클릭 또는 명확한 규칙 요청이 들어오면 접수합니다.
-
-첫 분류 요청에서 모델을 백그라운드로 준비합니다. 준비 전·미설치·키 없음·오류·3초 시간 초과 시 기존 안내로 대체합니다. Lv2에서는 LLM을 부르지 않습니다. 모델은 도구 하나와 인자만 선택하며 숫자·답변·업무 실행은 기존 엔진이 담당합니다. 동시에 최대 2개만 분류하며, 시간 초과된 작업도 실제 종료 전에는 슬롯을 점유합니다.
-
-`LLM_ENGINE=direct`로 기존 직접 호출 분류기에 되돌릴 수 있습니다. 새 초기화·작업 상한·실패 카운터는 LangChain 경로의 기능입니다. 관리자 권한의 `/api/v1/chat/stats` 응답 `llm` 필드 또는 `chatbot.llm_router.stats()`에서 이유별 카운터·최근 지연·준비 상태를 확인합니다. 별도 화면은 추가하지 않았습니다.
-
-규칙이 모르는 문장 35개로 준비한 비교 도구 (`tests/llm_eval_questions.csv`). 규칙 수정 대상 리허설 5문장은 `tests/questions_rehearsal.csv`에 따로 둡니다.
-
-```bash
-python tests/run_llm_compare.py
-python tests/run_llm_compare.py --compare
-```
-
-두 번째 명령은 LLM을 활성화하고 키를 설정한 경우 실제 API 비용이 발생할 수 있습니다. 키가 없으면 비교를 건너뜁니다. 현재 배포본은 실제 모델 정답률을 측정한 결과가 아닙니다.
+기존 분류기 평가 스크립트 `tests/run_llm_compare.py`는 분류기 비교용입니다. 새 대화 경로는 `tests/test_v3_agent_http.py`와 `tests/test_v3_acceptance.py`로 검사합니다. 실제 모델의 응답 품질과 시간은 시연 PC의 모델과 키로 별도 측정합니다.
 
 ## 검사
 

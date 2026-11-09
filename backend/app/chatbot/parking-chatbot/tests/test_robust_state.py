@@ -4,9 +4,10 @@ import threading
 import time
 import unittest
 from unittest.mock import patch
-from chatbot import config, engine as e, llm_router
+from chatbot import config, engine as e
 from chatbot.adapters import CachedAdapter, MockAdapter
 from safety_check import assert_safe
+from tests.test_llm_router import admin_proposal, conversation_reply
 
 
 class RobustStateTests(unittest.TestCase):
@@ -55,11 +56,11 @@ class RobustStateTests(unittest.TestCase):
 
     def test_late_llm_result_ignored_if_alarm_changed(self):
         entered, release = threading.Event(), threading.Event()
-        def classify(_):
+        def delayed_proposal(*_):
             entered.set()
             self.assertTrue(release.wait(2))
-            return {"intent": "call_admin", "params": {}}
-        with patch.object(llm_router, "route", side_effect=classify):
+            return admin_proposal()
+        with conversation_reply(delayed_proposal):
             with ThreadPoolExecutor(max_workers=1) as pool:
                 future = pool.submit(e.handle, "s", text="현장에 누가 와 주실래")
                 try:

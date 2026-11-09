@@ -30,21 +30,24 @@ class RealisticTests(unittest.TestCase):
 
     def test_fee_asks_vehicle_then_continues(self):
         self.assertEqual(self.say("주차비 얼마 나왔어?")["flow"], "ask_vehicle")
-        self.say("33번이요")
-        result = self.say("맞아요")
+        result = self.say("33번이요")
+        self.assertEqual(result["flow"], "idle")
+        self.assertIsNone(result["confirmation_token"])
         self.assertEqual(result["card"]["type"], "fee")
         self.assertEqual(result["card"]["data"]["car_id"], "33")
 
-    def test_correct_vehicle_in_same_turn(self):
-        self.say("33번 요금")
-        self.say("아니 43번이에요")
-        result = self.say("네")
+    def test_correct_vehicle_resumes_fee_lookup(self):
+        initial = self.say("33번 요금")
+        self.assertEqual(initial["card"]["data"]["car_id"], "33")
+        result = self.say("아니 43번이에요")
+        self.assertEqual(result["flow"], "idle")
+        self.assertIsNone(result["confirmation_token"])
         self.assertEqual(result["card"]["data"]["car_id"], "43")
         self.assertEqual(result["card"]["type"], "fee")
 
     def test_paid_but_cannot_exit_goes_to_site_admin(self):
         # v2.9: 출차 진단 제거. 출구 문제는 진단 없이 현장 관리자 연결 안내.
-        self.say("33번 차 위치"); self.say("네")
+        self.say("33번 차 위치")
         result = self.say("결제했는데 못 나가요")
         self.assertIsNone(result["card"])
         self.assertIn("현장 관리자", result["text"])
@@ -75,13 +78,13 @@ class RealisticTests(unittest.TestCase):
         self.assertEqual(result["card"]["data"]["focus"], "C")
 
     def test_unknown_vehicle_still_allows_admin(self):
-        self.say("34번 차 어디 있어요?"); self.say("네")
+        self.say("34번 차 어디 있어요?")
         result = self.say("직원 연결 부탁해요")
         self.assertEqual(result["card"]["type"], "admin_call")
         self.assertEqual(len(e.admin_calls()), 1)
 
     def test_unknown_question_does_not_change_vehicle(self):
-        self.say("33번 차 위치"); self.say("네")
+        self.say("33번 차 위치")
         self.say("43번 차 와이퍼 고장났어요")
         self.assertEqual(e.get_session("realistic").car_id, "33")
 

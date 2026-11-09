@@ -1,0 +1,4 @@
+# Optional turn monitoring (MONITOR_BACKEND=langfuse). Not needed for chat, chips or the agent itself.
+# chatbot/monitoring.py supports the Langfuse Python SDK v3 API (start_as_current_span, langfuse.langchain.CallbackHandler)
+# and falls back to the v2 API (trace, get_langchain_handler) when an older SDK is installed.
+langfuse>=3,<4

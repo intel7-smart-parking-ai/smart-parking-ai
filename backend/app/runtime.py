@@ -15,7 +15,7 @@ from contextlib import asynccontextmanager, closing
 from copy import copy
 from datetime import datetime, timezone
 from pathlib import Path
-from random import choice
+from random import choice, randint, random
 from threading import RLock
 from typing import Literal
 from uuid import uuid4
@@ -39,6 +39,7 @@ from backend.app.alerts.router import (
     create_alert,
 )
 from backend.app.chatbot.router import router as chatbot_router
+from backend.app.simulation.charging import charging_status, last_charge_end
 from backend.app.simulation.mock_data import SPACES
 from backend.app.simulation.vehicle_assignment import (
     REGISTERED_VEHICLES, choose_entry_type, entry_vehicle_type,
@@ -88,10 +89,11 @@ class EventPipeline(OccupancyExperiment):
                             ingest_led_fire_event(conn, LedFireEvent(**event.model_dump()))
                     else:
                         super().receive(event)
-                    conn.execute(
-                        "UPDATE pipeline_events SET applied=1 WHERE event_id=?", (event.event_id,)
-                    )
-                    conn.commit()
+                    if not row["applied"]:
+                        conn.execute(
+                            "UPDATE pipeline_events SET applied=1 WHERE event_id=?", (event.event_id,)
+                        )
+                        conn.commit()
             finally:
                 self.recovering = False
 
@@ -156,7 +158,14 @@ class EventPipeline(OccupancyExperiment):
             return result
 
     def sync_session(self, row, observed_at):
-        # During recovery, reconnect historical session IDs; never create past sessions again.
+        # Applied observations can carry their existing link through replay.
+        if self.recovering:
+            if row["status"] == "empty":
+                for key in ("session_id", "session_car_id", "entry_at"):
+                    row.pop(key, None)
+                return
+            if row.get("session_id") and row.get("session_car_id") == row["car_id"]:
+                return
         with closing(self.connection()) as conn:
             stamp = observed_at.isoformat()
             if self.recovering:
@@ -174,9 +183,6 @@ class EventPipeline(OccupancyExperiment):
                         session_car_id=active["car_id"],
                         entry_at=active["entry_at"],
                     )
-                elif row["status"] == "empty":
-                    for key in ("session_id", "session_car_id", "entry_at"):
-                        row.pop(key, None)
                 return
             active = conn.execute(
                 "SELECT * FROM parking_sessions WHERE lot_id=? AND space_id=? AND status='active'",
@@ -226,7 +232,7 @@ class EventPipeline(OccupancyExperiment):
         if row["lot_id"] not in ("C", "D") or row.get("source") != "simulation":
             return
         target = conn.execute(
-            "SELECT vehicle_number FROM simulation_targets WHERE lot_id=? AND space_id=?",
+            "SELECT vehicle_number,plate_number FROM simulation_targets WHERE lot_id=? AND space_id=?",
             (row["lot_id"], row["space_id"]),
         ).fetchone()
         conn.execute(
@@ -241,6 +247,8 @@ class EventPipeline(OccupancyExperiment):
                 stamp,
             ),
         )
+        if action == "entry" and target and target["plate_number"]:
+            conn.execute("INSERT INTO session_vehicle_plates VALUES (?,?)", (session_id, target["plate_number"]))
         conn.commit()
 
 
@@ -294,6 +302,20 @@ def create_runtime_app(
                     (row["lot_id"], row["space_id"]),
                 ).fetchone()
             row["entry_at"] = active["entry_at"] if active else None
+        if mode == "demo" and row["lot_id"] in ("C", "D") and row.get("space_type") == "ev":
+            last_used = None
+            if row["status"] == "empty":
+                with closing(store_ref["store"].connection()) as conn:
+                    exits = conn.execute(
+                        """SELECT s.entry_at, s.exit_at FROM simulation_movements m
+                           JOIN parking_sessions s ON s.session_id=m.session_id
+                           WHERE m.lot_id=? AND m.space_id=? AND m.action='exit' AND s.exit_at IS NOT NULL
+                           ORDER BY m.occurred_at DESC LIMIT 1""",
+                        (row["lot_id"], row["space_id"]),
+                    ).fetchone()
+                if exits:
+                    last_used = last_charge_end(exits["entry_at"], exits["exit_at"])
+            row["charging"] = charging_status(row, clock(), last_used)
         return row
 
     app = create_demo_app(
@@ -459,6 +481,7 @@ def create_runtime_app(
         return simulation_state(lot)
 
     clearing_lots = set()
+    automatic_goals: dict[str, int] = {}
 
     def set_target(lot, action, body, *, automatic=False):
         simulation_state(lot)
@@ -486,26 +509,33 @@ def create_runtime_app(
             row = choice(available) if automatic and action == "exit" else available[0]
             target = targets[row["space_id"]]
             number = target["vehicle_number"]
+            plate = target["plate_number"]
             if action == "entry":
                 number = body.vehicle_number
                 if not number:
                     used = {r[0] for r in conn.execute(
                         "SELECT vehicle_number FROM simulation_targets WHERE occupied=1"
                     )}
-                    number = next((f"{i:04}" for i in range(2000, 10000)
-                                   if f"{i:04}" not in used
-                                   and f"{i:04}" not in REGISTERED_VEHICLES), None)
-                    if number is None:
+                    available_numbers = [
+                        f"{value:04d}" for value in range(101, 10000)
+                        if f"{value:04d}" not in used and f"{value:04d}" not in REGISTERED_VEHICLES
+                    ]
+                    if not available_numbers:
                         raise HTTPException(409, "생성할 수 있는 차량번호가 없습니다.")
+                    number = choice(available_numbers)
                 if conn.execute(
                     "SELECT 1 FROM simulation_targets WHERE vehicle_number=? AND occupied=1",
                     (number,),
                 ).fetchone():
                     raise HTTPException(409, "이미 주차 중인 차량번호입니다.")
+                usage = choice('가나다라마거너더러머버서어저고노도로모보소오조구누두루무부수우주')
+                prefix_min, prefix_max = choice(((1, 69), (100, 699)))
+                prefix = f"{randint(prefix_min, prefix_max):02d}"
+                plate = f"{prefix}{usage}{number}"
             conn.execute(
                 "UPDATE simulation_targets SET occupied=?,vehicle_number=?,plate_number=?,"
                 "vehicle_type=? WHERE lot_id=? AND space_id=?",
-                (action == "entry", number, "88가" + number if number else None,
+                (action == "entry", number, plate,
                  kind if action == "entry" else target["vehicle_type"], lot, row["space_id"]),
             )
             conn.commit()
@@ -627,7 +657,7 @@ def create_runtime_app(
                 controls = [
                     dict(r)
                     for r in conn.execute(
-                        "SELECT * FROM simulation_controls WHERE running=1 AND next_tick<=?",
+                        "SELECT * FROM simulation_controls WHERE running=1 AND next_tick<=? ORDER BY next_tick, lot_id LIMIT 1",
                         (clock().timestamp(),),
                     )
                 ]
@@ -638,20 +668,26 @@ def create_runtime_app(
                             "SELECT count(*) FROM simulation_targets WHERE lot_id=? AND occupied=1",
                             (control["lot_id"],),
                         ).fetchone()[0]
-                    action = (
-                        "exit"
-                        if count > len([s for s in SPACES if s.lot_id == control["lot_id"]]) // 2
-                        else "entry"
-                    )
-                    space_id, number = set_target(control["lot_id"], action, SimulationCommand(), automatic=True)
+                    lot = control["lot_id"]
+                    goal = automatic_goals.get(lot)
+                    if goal is None or count == goal:
+                        goal = choice([size for size in range(5, 61) if size != count])
+                        automatic_goals[lot] = goal
+                    action = "exit" if count > goal else "entry"
+                    set_target(lot, action, SimulationCommand(), automatic=True)
                     error = None
                 except Exception as exc:
                     error = str(exc)
+                interval = control["interval_seconds"]
+                next_interval = randint(5, 10) if error is None and interval == 30 and random() < 0.1 else interval
                 with closing(store.connection()) as conn:
                     conn.execute(
                         "UPDATE simulation_controls SET next_tick=?,last_error=? WHERE lot_id=?",
                         (
-                            clock().timestamp() + control["interval_seconds"],
+                            max(
+                                control["next_tick"] + next_interval,
+                                clock().timestamp() + next_interval / 2,
+                            ),
                             error,
                             control["lot_id"],
                         ),
@@ -679,6 +715,8 @@ def create_runtime_app(
                 conn.execute(
                     "ALTER TABLE pipeline_events ADD COLUMN applied INTEGER NOT NULL DEFAULT 1"
                 )
+            conn.execute("CREATE INDEX IF NOT EXISTS ix_pipeline_pending ON pipeline_events(sequence) WHERE applied=0")
+            conn.execute("CREATE INDEX IF NOT EXISTS ix_simulation_bay_movements ON simulation_movements(lot_id,space_id,action,occurred_at DESC)")
             if "vehicle_type" not in {
                 r["name"] for r in conn.execute("PRAGMA table_info(simulation_targets)")
             }:

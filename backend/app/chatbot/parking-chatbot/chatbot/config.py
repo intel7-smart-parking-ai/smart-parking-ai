@@ -88,10 +88,8 @@ BACKEND_BASE_URL = getenv("BACKEND_BASE_URL", "http://127.0.0.1:8000")
 # none = LLM 없이 규칙 파서만 / anthropic / openai / openrouter
 LLM_ENGINE = getenv("LLM_ENGINE", "langchain")
 LLM_PROVIDER = getenv("LLM_PROVIDER", "none")
-# OpenRouter 기본 모델: KAN-51 실측 Haiku 5.5 83%(평균 1.3초) > Gemma 4 26B 66~74%. D-44 PM 확정 전 제안값.
-# 되돌리기: .env에 LLM_MODEL=google/gemma-4-26b-a4b-it (D-18 기존 결정)
-DEFAULT_OPENROUTER_MODEL = "anthropic/claude-haiku-5.5"
-FALLBACK_OPENROUTER_MODEL = "google/gemma-4-26b-a4b-it"
+# 팀 결정 D-18. 별도 모델 시험에는 명시적인 LLM_MODEL 설정을 사용한다.
+DEFAULT_OPENROUTER_MODEL = "google/gemma-4-26b-a4b-it"
 LLM_MODEL = getenv("LLM_MODEL", "") or (DEFAULT_OPENROUTER_MODEL if LLM_PROVIDER == "openrouter" else "")
 LLM_TIMEOUT_SEC = _number("LLM_TIMEOUT_SEC", "3", float)
 
@@ -190,3 +188,37 @@ if not math.isfinite(LLM_ROUTE_CACHE_SEC) or LLM_ROUTE_CACHE_SEC < 0:
 # Optional classifier examples; rehearsal behavior remains unchanged by default.
 LLM_FEWSHOT = getenv("LLM_FEWSHOT", "0") == "1"
 FALLBACK_HINTS = getenv("FALLBACK_HINTS", "0") == "1"
+
+# ---------------------------------------------------------------- v3.1 대화 에이전트 예산
+# 대화 에이전트는 LLM_MAX_PER_SESSION_MIN·LLM_MAX_PER_MIN·LLM_MAX_PER_DAY를 '모델 호출'이 아니라
+# '질문(턴)' 단위로 센다(llm_limits.admit_turn). 질문 1개는 보통 모델 호출 2~3회다.
+# 서버 전체 동시 모델 호출 자리와, 자리가 없을 때 기다리는 최대 시간(초)
+LLM_MAX_INFLIGHT = _number("LLM_MAX_INFLIGHT", "4", int)
+LLM_SLOT_WAIT_SEC = _number("LLM_SLOT_WAIT_SEC", "1", float)
+# 조회 결과를 받은 뒤 답을 쓰는 모델 호출의 제한 시간(초). 도구 선택 호출은 LLM_TIMEOUT_SEC
+LLM_ANSWER_TIMEOUT_SEC = _number("LLM_ANSWER_TIMEOUT_SEC", "4", float)
+# 한 턴의 입력+출력 토큰 상한. 도구 설명·지시문이 매 호출에 다시 들어가므로 호출 수 × 약 5천을 잡는다.
+LLM_TURN_TOKEN_LIMIT = _number("LLM_TURN_TOKEN_LIMIT", "40000", int)
+# 근거 검사에 걸린 답을 이유와 함께 한 번 고쳐 쓰게 한다(0이면 바로 대체 답).
+LLM_REPAIR = getenv("LLM_REPAIR", "1") == "1"
+for _key in ("LLM_MAX_INFLIGHT", "LLM_TURN_TOKEN_LIMIT"):
+    if globals()[_key] < 1:
+        raise ValueError(f"{_key}는 양의 정수여야 합니다.")
+for _key in ("LLM_SLOT_WAIT_SEC", "LLM_ANSWER_TIMEOUT_SEC"):
+    if not math.isfinite(globals()[_key]) or globals()[_key] < 0 or (_key == "LLM_ANSWER_TIMEOUT_SEC" and globals()[_key] == 0):
+        raise ValueError(f"{_key}는 유한한 양수여야 합니다.")
+
+# ---------------------------------------------------------------- 모니터링 (Langfuse, 기본 꺼짐)
+# off: 기록 안 함 / local: 턴마다 JSON 한 줄 파일 기록 / langfuse: Langfuse로 전송(설치·키 필요)
+MONITOR_BACKEND = getenv("MONITOR_BACKEND", "off").strip().lower()
+MONITOR_LOCAL_PATH = getenv("MONITOR_LOCAL_PATH", str(Path(__file__).resolve().parents[1] / ".monitoring" / "turns.jsonl"))
+# 질문·답 원문을 기록할지(1) 길이·해시만 기록할지(0)
+MONITOR_CAPTURE_TEXT = getenv("MONITOR_CAPTURE_TEXT", "1") == "1"
+MONITOR_SAMPLE_RATE = _number("MONITOR_SAMPLE_RATE", "1", float)
+LANGFUSE_PUBLIC_KEY = getenv("LANGFUSE_PUBLIC_KEY", "")
+LANGFUSE_SECRET_KEY = getenv("LANGFUSE_SECRET_KEY", "")
+LANGFUSE_HOST = getenv("LANGFUSE_HOST", "") or getenv("LANGFUSE_BASE_URL", "") or "https://cloud.langfuse.com"
+if MONITOR_BACKEND not in ("off", "local", "langfuse"):
+    raise ValueError("MONITOR_BACKEND는 off, local, langfuse 중 하나여야 합니다.")
+if not math.isfinite(MONITOR_SAMPLE_RATE) or not 0 <= MONITOR_SAMPLE_RATE <= 1:
+    raise ValueError("MONITOR_SAMPLE_RATE는 0~1이어야 합니다.")

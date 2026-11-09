@@ -26,7 +26,7 @@ class ReviewFixTests(unittest.TestCase):
         self.assertIn('전체 수 미확인', b['ev_count_text'])  # 주차장 전체 수는 여전히 미확인으로 표시
 
     def test_known_ev_neighbor_wins_over_unrecognized_at_fire_spot(self):
-        e.data.enter_unrecognized('A')  # A-04, 옆 A-03은 전기차 13
+        e.data.enter_unrecognized('A')  # A-04, 옆 A-03은 전기차 23
         b = self.briefing('A', 4)
         self.assertIn('번호 미인식', b['vehicle'])
         self.assertIn('필요 가능성', b['equipment'])
@@ -37,7 +37,7 @@ class ReviewFixTests(unittest.TestCase):
         self.assertIn('대비 필요', b['equipment'])
 
     def test_no_evidence_and_all_known_asks_site_check(self):
-        b = self.briefing('A', 1)
+        b = self.briefing('A', 10)  # B-04 and its neighbors have no EV or charging bay.
         self.assertIn('현장에서 확인', b['equipment'])
 
     def mark_all_free_uncertain(self, lot):

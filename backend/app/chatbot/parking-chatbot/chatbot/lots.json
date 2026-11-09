@@ -1,5 +1,5 @@
 {
-  "schema_note": "주차장·칸 구성은 레포 docs/API_CONTRACT.md(도면 확정, 2026-11-03) 기준. 요금 정책은 목업 전용이며 billing db.py DEFAULT_RATE_POLICIES와 맞춘다.",
+  "schema_note": "주차장·칸 구성은 레포 docs/API_CONTRACT.md 및 D-57·D-59 기준. 목업 차량은 D-54 배정표를 사용한다. 요금 정책은 목업 전용이며 billing db.py DEFAULT_RATE_POLICIES와 맞춘다.",
   "vehicle_min": 10,
   "vehicle_max": 99,
   "assigned_car_ids": null,
@@ -79,12 +79,12 @@
         ],
         [
           "40",
-          5,
+          9,
           150
         ],
         [
           "41",
-          6,
+          10,
           33
         ],
         [
@@ -199,12 +199,12 @@
         ],
         [
           "58",
-          7,
+          9,
           5
         ],
         [
           "88",
-          8,
+          10,
           63
         ]
       ],
@@ -335,7 +335,7 @@
         ],
         [
           "57",
-          11,
+          9,
           140
         ]
       ],
@@ -527,28 +527,32 @@
     }
   ],
   "ev_vehicles": [
+    "11",
     "23",
     "42",
     "57",
     "85"
   ],
   "mock_vehicle_types": {
+    "11": "ev",
     "23": "ev",
     "42": "ev",
     "57": "ev",
     "85": "ev",
     "14": "accessible",
     "32": "accessible",
+    "49": "accessible",
     "55": "accessible",
-    "75": "accessible",
+    "77": "accessible",
     "10": "general",
-    "11": "general",
     "12": "general",
+    "13": "general",
     "20": "general",
     "21": "general",
     "22": "general",
     "24": "general",
     "30": "general",
+    "31": "general",
     "33": "general",
     "34": "general",
     "40": "general",
@@ -556,6 +560,15 @@
     "43": "general",
     "44": "general",
     "58": "general",
+    "75": "general",
+    "78": "general",
+    "87": "general",
     "88": "general"
+  },
+  "mock_virtual_plates": {
+    "21": "17가1724",
+    "57": "33나5678",
+    "32": "45다9012",
+    "30": "28라3456"
   }
 }

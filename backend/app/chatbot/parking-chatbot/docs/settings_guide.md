@@ -55,3 +55,25 @@ D-39 변경 대응표는 [목업 이행표](d39_mock_migration.md)를 따른다.
 - [ ] 실제 배정 차량 번호(`assigned_car_ids`) — PM 결정 대기
 - [ ] 전기차 미니카 번호와 색(`ev_vehicles`)
 - [ ] 출구 이름·설비 값(`exit`, `exits`, `facility`)
+
+## 6. 대화 에이전트 예산·모니터링 (v3.1, 환경변수)
+
+`.env.example`의 고정 키 목록은 바꾸지 않았다. 아래 키는 필요할 때만 `.env`나 Compose 환경변수에 넣는다. 넣지 않으면 기본값을 쓴다.
+
+| 키 | 기본 | 뜻 |
+|---|---|---|
+| `LLM_MAX_PER_SESSION_MIN` | 5 | (기존 키) 대화 에이전트는 **질문(턴) 단위**로 센다. 한 질문 안의 도구 선택·답 작성·고쳐 쓰기 호출은 1번으로 친다 |
+| `LLM_MAX_PER_MIN`, `LLM_MAX_PER_DAY` | 30, 1000 | (기존 키) 대화 에이전트는 서버 전체 질문 수로 센다 |
+| `LLM_MAX_INFLIGHT` | 4 | 서버 전체 동시 모델 호출 자리 |
+| `LLM_SLOT_WAIT_SEC` | 1 | 자리가 없을 때 기다리는 최대 시간(초). 지나면 규칙 답으로 대체 |
+| `LLM_TIMEOUT_SEC` | 3 | (기존 키) 도구를 고르는 모델 호출 1회 제한 시간 |
+| `LLM_ANSWER_TIMEOUT_SEC` | 4 | 조회 결과를 읽고 답을 쓰는 모델 호출 1회 제한 시간 |
+| `LLM_TURN_TOKEN_LIMIT` | 40000 | 한 질문의 입력+출력 토큰 상한(지시문·도구 설명이 호출마다 다시 들어감) |
+| `LLM_REPAIR` | 1 | 근거 검사에 걸린 답을 이유와 함께 1번 고쳐 쓰게 함(0이면 바로 대체 답) |
+| `MONITOR_BACKEND` | off | `off` / `local`(턴마다 JSON 한 줄) / `langfuse` |
+| `MONITOR_LOCAL_PATH` | `.monitoring/turns.jsonl` | local 기록 파일(5MB에서 `.1`로 교체, Git 제외) |
+| `MONITOR_CAPTURE_TEXT` | 1 | 질문·답 원문 기록 여부(0이면 글자 수만) |
+| `MONITOR_SAMPLE_RATE` | 1 | 기록할 질문 비율(0~1) |
+| `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_HOST` | 없음, 없음, `https://cloud.langfuse.com` | Langfuse 프로젝트 키와 주소. `requirements-monitoring.txt` 설치 필요 |
+
+전체 요청 예산(`REQUEST_BUDGET_SEC`, 기본 6초)과 사용자 화면 제한(약 8초)은 그대로다. 실제 모델 응답 시간을 시연 PC에서 잰 뒤 필요하면 `REQUEST_BUDGET_SEC`를 7까지 올리는 것을 검토한다.
