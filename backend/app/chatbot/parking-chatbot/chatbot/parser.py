@@ -160,7 +160,8 @@ _PARKING_CONTEXT = re.compile(r"주차|자리|빈|만차|칸|요금|얼마|결�
 def extract_lots(text: str) -> list[str]:
     """문장에 나온 주차장 전부(비교 질문용). 규칙은 extract_lot과 같다."""
     text = mask_spaces(text)
-    context = bool(_PARKING_CONTEXT.search(text))
+    from .info_gaps import topic
+    context = bool(_PARKING_CONTEXT.search(text) or topic(text))
     found = []
     for key, aliases, contextual, names in config.catalog.lot_patterns(config.DATA_SOURCE == "api"):
         if (any(pattern.search(text) for pattern in aliases)
@@ -248,7 +249,7 @@ ADMIN_NEGATIVE = re.compile(r"(?:보내|불러|부르|호출\s*(?:해|하)?|연�
 ADMIN_DEFER = re.compile(ADMIN_TARGET + r".{0,16}(?:오지\s*(?:마|말)|(?:나중에|이따(?:가)?)\s*(?:불러|부르|호출))")
 ADMIN_INSTEAD = re.compile(r"(?:관리자|직원|상담원|호출)(?:은|는|을|를)?\s*말고\s*")
 ADMIN_REQUEST = re.compile(r"불러|불러\s*주|부탁|연결해|연결\s*해|호출해|호출\s*해|호출\s*부탁")
-ADMIN_QUESTION = re.compile(r"하면|비용|돈이|유료|무료|가능한|되나요|방법|어떻게|계세요|있나요|어디\s*(?:계|있)")
+ADMIN_QUESTION = re.compile(r"하면|부르면|불러도|돈\s*들|비용|돈이|유료|무료|가능한|되나요|방법|어떻게|계세요|있나요|어디\s*(?:계|있)")
 PAY_PROBLEM = re.compile(r"(?:결제|정산).{0,8}(?:안\s*돼|안\s*되|안됨|오류|에러|실패)|(?:이중|중복)\s*(?:결제|정산)|(?:돈|요금|주차비|금액).{0,6}(?:두\s*번|2\s*번)\s*빠져\s*나")
 PAY_METHOD = re.compile(r"(?:카드|현금|간편).{0,8}(?:결제|정산).{0,6}(?:돼|되|가능)|결제\s*수단|(?:결제|정산).{0,8}(?:방법|어떻게)")
 PAY_NEGATIVE = re.compile(r"(?:결제|정산|계산|지불|납부).{0,15}(?:안\s*해(?:요|$)|그만|하지\s*마|하지\s*말|말아|안\s*할|필요\s*없|안\s*해도|취소)|(?:이따(?:가)?|나중에|다음에)\s*(?:(?:결제|정산|계산|지불|납부)(?:는|을)?\s*)?(?:낼게|낼래|할게|할래)")
@@ -339,7 +340,12 @@ def normalize_colloquial(text: str) -> str:
 
 def parse_rules(text: str) -> ParseResult:
     text = normalize_colloquial(text)
-    return _with_info_gap(text, _with_analytics(text, _parse_rules_core(text)))
+    from .info_gaps import topic
+    result = _parse_rules_core(text)
+    found = topic(text)
+    if found and found[0] in {"discount", "reservation", "overnight", "refund"}:
+        result = _with_info_gap(text, result)
+    return _with_info_gap(text, _with_analytics(text, result))
 
 
 # 우리 데이터(점유 스냅샷·요금 정책)로 계산해 답할 수 있는 질문: 최다/비교/점유율/구역/요금 비교
@@ -389,7 +395,7 @@ def _with_info_gap(text: str, result: ParseResult) -> ParseResult:
 
     지원 기능(경보·요금·결제·차량 등)으로 이미 분류된 문장은 건드리지 않는다. 새 intent·칩·카드 type은 없다.
     """
-    if result.intent not in ("unknown", "get_empty_spots") or result.vehicle_only:
+    if result.intent not in ("unknown", "get_empty_spots", "get_fee", "fee_rule") or result.vehicle_only:
         return result
     if any(k in result.params for k in ("car_id", "space_id", "vacancy_notice", "virtual_vehicle",
                                         "rank", "occupancy", "section", "fee_rank")):
@@ -399,6 +405,8 @@ def _with_info_gap(text: str, result: ParseResult) -> ParseResult:
     if not found:
         return result
     gap, key, label = found
+    if result.intent in ("get_fee", "fee_rule") and key not in {"discount", "reservation", "overnight", "refund"}:
+        return result
     params = {k: v for k, v in result.params.items() if k in ("lot_id", "zone")}
     if not params.get("lot_id"):
         hinted = info_gaps.hinted_lot(text)

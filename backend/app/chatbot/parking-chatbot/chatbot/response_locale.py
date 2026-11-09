@@ -118,7 +118,30 @@ def localize_response(response, language):
     if language == "ko":
         return response
     result = deepcopy(response)
+    summary = ((result.get("card") or {}).get("data") or {}).get("payment_summary")
     index = list(LANGUAGES).index(language)
+    if summary and not (result.get("safety") or result.get("banner")):
+        summary["language"] = language
+        lot_name = summary.get("lot_name")
+        if lot_name in LOT_NAMES:
+            summary["lot_name"] = LOT_NAMES[lot_name][index]
+        statuses = {
+            "미결제": ("Unpaid", "未支付", "未精算"),
+            "모의 결제 완료": ("Demo payment complete", "模拟支付完成", "模擬決済完了"),
+            "모의 결제 취소": ("Demo payment canceled", "模拟支付已取消", "模擬決済取消済み"),
+        }
+        status = statuses[summary["status"]][index]
+        number = summary["vehicle_number"]
+        amount = f'{summary["amount"]:,}'
+        text = (
+            f"Vehicle {number}: current parking fee ₩{amount}. {status}.",
+            f"车辆 {number}：当前停车费 {amount} 韩元。{status}。",
+            f"車両 {number}：現在の駐車料金は {amount} ウォンです。{status}。",
+        )[index]
+        if summary["blocked"]:
+            text += (" Payment is suspended during the alert.", "警报期间暂停支付。", "警報中は決済を停止しています。")[index]
+        result.update(text=text, messages=[{"text": text}], language=language, translation_status="translated")
+        return result
     def localize_names(node):
         if isinstance(node, dict):
             for key, value in node.items():
@@ -130,6 +153,19 @@ def localize_response(response, language):
             for value in node:
                 localize_names(value)
     localize_names(result.get("card"))
+    vacancy_lot = (result.get("meta") or {}).get("localized_vacancy")
+    vacancy = (((result.get("card") or {}).get("data") or {}).get("lots") or {}).get(vacancy_lot)
+    if vacancy and not vacancy.get("status_reason") and not (result.get("safety") or result.get("banner")):
+        empty = vacancy.get("display_empty", vacancy.get("empty"))
+        if isinstance(empty, int):
+            name = vacancy["name"]
+            text = (
+                f"{name} has {empty} available parking spaces.",
+                f"{name}目前有 {empty} 个空位。",
+                f"{name}には現在 {empty} 台分の空きがあります。",
+            )[index]
+            result.update(text=text, messages=[{"text": text}], language=language, translation_status="translated")
+            return result
     fields = []
     def collect(node):
         if not isinstance(node, dict):

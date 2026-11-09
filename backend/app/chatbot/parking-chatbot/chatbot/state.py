@@ -16,6 +16,9 @@ class Conflict(ValueError):
 class Session:
     lock: object = field(default_factory=threading.RLock, repr=False)
     car_id: str | None = None
+    mentioned_vehicles: deque = field(default_factory=lambda: deque(maxlen=10))
+    payment_vehicle_choices: tuple[str, ...] = ()
+    last_space: tuple[str, str] | None = None
     pending: Pending | None = None
     last_intent: str | None = None
     fail_count: int = 0
@@ -31,6 +34,16 @@ class Session:
     focus_at: float = 0
     offered_lots: tuple = ()
     offered_at: float = 0
+    facility_question: dict = field(default_factory=dict)
+    facility_question_at: float = 0
+    agent_followup: dict = field(default_factory=dict)
+    agent_vehicle: dict = field(default_factory=dict)
+    conversation_question: str | None = None
+    conversation_reply: str | None = None
+    conversation_at: float = 0
+    conversation_failures: int = 0
+    forecast_question: dict = field(default_factory=dict)
+    forecast_at: float = 0
     alert_unavailable_seen: bool = False
     alerts_source: str = "ok"
     observed_alert: int = 0

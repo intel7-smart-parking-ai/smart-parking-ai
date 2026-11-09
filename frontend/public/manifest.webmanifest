@@ -1,7 +1,7 @@
 {
   "id": "/?app=1",
-  "name": "PARK:ON 주차장",
-  "short_name": "PARK:ON",
+  "name": "PARK : ON 주차장",
+  "short_name": "PARK : ON",
   "description": "주차장 빈자리와 차량 위치, 이용요금 조회",
   "lang": "ko",
   "start_url": "/?app=1",

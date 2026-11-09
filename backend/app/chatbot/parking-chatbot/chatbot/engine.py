@@ -8,6 +8,8 @@
 from __future__ import annotations
 
 import json
+import re
+import sys
 import threading
 import time
 import uuid
@@ -30,6 +32,8 @@ from .llm_limits import session_id as llm_session_id
 from .snapshots import freeze
 from .retention import prune_finished, warn_if_protected
 from .handlers.exit_help import h_exit_help
+from .charging_intent import wants_status as wants_charging_status
+from . import conversation
 
 CHIP_DATA = freeze(json.loads((Path(__file__).parent / "chips.json").read_text(encoding="utf-8")))
 CHIPS, SETS, SUGGESTIONS = CHIP_DATA["chips"], CHIP_DATA["sets"], CHIP_DATA["suggestions"]
@@ -105,11 +109,11 @@ def _reserved_session(sid):
                 del _session_users[sid]
 
 
-def current_alert() -> dict:
+def current_alert(*, refresh=False) -> dict:
     """외부 경보 버전과 앱 버전을 분리. 백엔드 재시작 후 낮아진 버전도 반영한다."""
     global _alert_revision, _alert_fingerprint, _alert_refreshing, _last_alert, _alert_fetched_at
     cached = _alert_snapshot.get()
-    if cached is not None:
+    if cached is not None and not refresh:
         return cached
     with _alert_condition:
         if _alert_refreshing:
@@ -121,12 +125,12 @@ def current_alert() -> dict:
                 return {**deepcopy(_last_alert or {"level": 0}), "version": _alert_revision,
                         "unavailable": True, "http_status": 0}
             return deepcopy(_last_alert)
-        if (config.DATA_SOURCE == "api" and _last_alert is not None
+        if (not refresh and config.DATA_SOURCE == "api" and _last_alert is not None
                 and time.monotonic() - _alert_fetched_at < config.ALERT_SHARE_SEC):
             return deepcopy(_last_alert)
         _alert_refreshing = True
     # 동시에 들어온 조회는 한 결과를 공유한다. 네트워크 I/O 중 상태 잠금은 해제.
-    read_token = request_gets.set({}) if request_gets.get() is None else None
+    read_token = request_gets.set({}) if refresh or request_gets.get() is None else None
     refreshed_alert = None
     try:
         try:
@@ -452,7 +456,9 @@ def _with_derived(card, derived):
 
 
 def h_get_empty_spots(s,p):
-    snapshot, alert = _occupancy(), current_alert()
+    alert = current_alert(refresh=current_alert().get("level", 0) >= 2)
+    _alert_snapshot.set(alert)
+    snapshot = _occupancy()
     _answer_evidence.set(snapshot)
     if p.get("space_id") and not p.get("zone"):
         return _space_answer(s, p, snapshot)
@@ -933,8 +939,17 @@ def h_evacuate(s, p):
 def h_help(s, p):
     if p.get("info_gap") == "facility":
         from . import info_gaps
+        if p.get("lot_id") not in config.catalog.ids():
+            s.facility_question = dict(p)
+            s.facility_question_at = time.monotonic()
+            DC.remember(s, offered_lots=config.catalog.ids())
         text, chips = info_gaps.facility_answer(p)
-        return text, None, chips, None
+        lot = p.get("lot_id")
+        card = None
+        if lot in config.catalog.ids():
+            card = {"type": "parking_map", "data": {"lot_ids": [lot],
+                    "reservation_available": lot == "C" and p.get("info_topic") in ("reservation", "overnight", "overview")}}
+        return text, card, chips, None
     scope = p.get("vehicle_query_help")
     if scope == "range":
         text = "차량 번호 범위나 번호대별 목록 조회는 아직 지원하지 않아요. 두 자리 차량 번호 하나를 알려주시면 현재 위치를 확인해 드릴게요."
@@ -1008,6 +1023,8 @@ def _confirm_pending(s, sid, intent, expired, confirmation_token):
             return _respond(s, T.VEHICLE_DENIED)
         s.clear()
         return _respond(s, "요청을 취소했어요.")
+    if pending.flow == Flow.CONFIRM_ACTION and pending.intent == "pay_fee" and confirmation_token is None:
+        return _respond(s, "결제하려면 ‘모의 결제하기’ 버튼을 눌러 주세요.")
     s.clear()  # 일회성 확인을 먼저 소비: 재전송이 새 동작으로 이어지지 않음
     if pending.flow == Flow.CONFIRM_VEHICLE:
         s.car_id = pending.car_id
@@ -1032,8 +1049,13 @@ def _validate_dispatch_input(s, intent, params, vno):
     if params.get("lot_id")=="ambiguous":
         s.clear()
         s.query_context = {}
+        if intent == "help" and params.get("info_gap") == "facility":
+            s.facility_question = dict(params)
+            s.facility_question_at = time.monotonic()
         # 방금 동률로 제시한 주차장이 있으면 그 후보만 버튼으로 보여 준다.
         choices = DC.offered(s) or config.catalog.ids()
+        if s.facility_question:
+            DC.remember(s, offered_lots=choices)
         chips = [("go:" if intent == "set_destination" else "lot_") + k for k in choices]
         return False, _respond(s,"주차장이 여러 곳이에요. 안내받을 곳 하나를 골라 주세요.",chip_set=chips[:4])
     expired = s.expire()
@@ -1153,7 +1175,30 @@ def handle(session_id: str, text=None, chip_id=None, event=None, request_id=None
         elif not s.pending:
             saved["text"] = "이전 요청의 처리 결과예요.\n" + saved["text"]
         return saved
-    resp = _handle_message(s, session_id, text, chip_id, event, confirmation_token)
+    if chip_id:
+        s.payment_vehicle_choices = ()
+    guarded, resolved_text = _turn_guard(s, text) if text and not chip_id and not event else (None, text)
+    decision = conversation.common(s, resolved_text) if not guarded and resolved_text and not chip_id and not event else None
+    if guarded:
+        s.history.append(("user", text))
+        resp = guarded
+    elif decision and current_alert().get('level',0)>=2:
+        resp = _respond(s, '경보가 발생했어요. 현장 안전 안내를 먼저 따라 주세요.', chip_set='alert')
+    elif decision and decision.get('reply'):
+        s.history.append(('user',text))
+        resp = _respond(s,decision['reply'],meta={'intent':'conversation','conversation_intent':decision['intent'],'source':'conversation-rule'})
+        if not s.conversation_reply:
+            s.conversation_reply=decision['reply'];s.conversation_at=time.monotonic()
+    else:
+        if decision and decision.get('rewrite'):resolved_text=decision['rewrite']
+        resp = _handle_message(s, session_id, resolved_text, chip_id, event, confirmation_token)
+        if decision:resp['meta']['conversation_intent']=decision['intent']
+        memory_text=resp.pop('_interpreted_query',resolved_text)
+        if text and memory_text!=text:
+            for index in range(len(s.history)-1,-1,-1):
+                if s.history[index][0]=='user':
+                    s.history[index]=('user',text);break
+        conversation.remember(s,memory_text,resp)
     if request_id:
         s.requests[request_id] = {"at": time.monotonic(), "fingerprint": fingerprint, "response": deepcopy(resp)}
         if _payment_blocked(_answer_evidence.get()):
@@ -1163,8 +1208,193 @@ def handle(session_id: str, text=None, chip_id=None, event=None, request_id=None
     return resp
 
 
-def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
+def _turn_guard(s, text):
+    from . import turn_policy as policy
+
+    hazard = policy.emergency(text)
+    if hazard:
+        s.clear()
+        s.payment_vehicle_choices = ()
+        s.agent_followup = {}
+        return _respond(s, hazard, chip_set=["call_admin"], meta={"intent": "emergency"}), text
+
+    text = text.strip()
+    mentions = policy.vehicle_mentions(text)
+    for number in mentions:
+        if number not in s.mentioned_vehicles:
+            s.mentioned_vehicles.append(number)
+
+    if s.payment_vehicle_choices:
+        choices = s.payment_vehicle_choices
+        s.payment_vehicle_choices = ()
+        if policy.ACTION_CANCEL.fullmatch(text):
+            return _cancel_action(s, {"cancel_target": "payment"}), text
+        if re.fullmatch(r"(?:첫\s*번째|처음)\s*(?:차|거|것)(?:로)?[.!]?", text):
+            return None, f"{choices[0]}번 차 결제해줘"
+        if re.fullmatch(r"(?:두\s*번째|마지막)\s*(?:차|거|것)(?:로)?[.!]?", text):
+            return None, f"{choices[-1]}번 차 결제해줘"
+        if len(mentions) == 1 and mentions[0] in choices and re.fullmatch(r"\d{2}\s*번(?:\s*차(?:량)?)?[.!]?", text):
+            return None, f"{mentions[0]}번 차 결제해줘"
+
+    if s.pending and (s.pending.flow == Flow.CONFIRM_ACTION or s.pending.intent == "pay_fee"):
+        if policy.ACTION_CANCEL.fullmatch(text):
+            return _cancel_action(s, {"cancel_target": "payment" if s.pending.intent == "pay_fee" else "admin"}), text
+        if s.pending.intent == "pay_fee" and s.pending.flow == Flow.CONFIRM_ACTION and policy.ACTION_YES.fullmatch(text):
+            return _respond(s, "결제하려면 ‘모의 결제하기’ 버튼을 눌러 주세요."), text
+        if s.pending.intent == "pay_fee" and s.pending.flow == Flow.CONFIRM_ACTION:
+            s.clear()
+
+    if policy.REFERENCE.search(text) and not mentions and len(s.mentioned_vehicles) > 1 and re.search(r"결제|정산|요금|위치|어디|찾", text):
+        s.clear()
+        choices = tuple(s.mentioned_vehicles)
+        numbers = ", ".join(f"{number}번" for number in choices)
+        if re.search(r"(?:결제|정산)\s*(?:해|할|하자)", text):
+            s.payment_vehicle_choices = choices
+            return _respond(s, f"어느 차량을 결제할까요? {numbers} 중 차량을 골라 주세요."), text
+        return _respond(s, f"어느 차량을 조회할까요? {numbers} 중 차량 번호를 알려주세요."), text
+
+    permission = policy.parking_permission(text)
+    if permission:
+        s.clear()
+        return _respond(s, permission, meta={"intent": "parking_permission"}), text
+    if len(mentions) == 1 and s.car_id and mentions[0] != s.car_id and re.fullmatch(r"(?:근데|그럼|그러면|그리고)?\s*\d{2}\s*번\s*(?:은|는)?[?.!]*", text):
+        subject = "요금" if s.last_intent == "get_fee" else "위치"
+        return None, f"{mentions[0]}번 차 {subject} 알려줘"
+    from . import read_tools
+    try:
+        result = read_tools.handle(sys.modules[__name__], s, text, mentions)
+    except DataUnavailable:
+        result = _respond(s, T.REQUEST_UNAVAILABLE, meta={"unavailable": True})
+    if result is not None:
+        return result, text
+    return None, text
+
+
+def _handle_message(s, session_id, text, chip_id, event, confirmation_token, *, interpreted=False):
+    if text and not chip_id and not event:
+        foreign_vacancy = (
+            re.search(r"\b(?:empty spots|vacancies|available spaces)\b", text, re.I)
+            or re.search(r"空位|空き|空いて", text)
+        )
+        if foreign_vacancy:
+            lots = config.catalog.ids()
+            from .response_locale import LOT_NAMES
+            matching = [
+                lot for lot in lots
+                if any(name.lower().removesuffix(" parking") in text.lower()
+                       or name.removesuffix("停车场").removesuffix("駐車場") in text
+                       for name in LOT_NAMES.get(config.catalog.name(lot), ()))
+            ]
+            if len(matching) == 1:
+                lot = matching[0]
+                s.clear()
+                s.history.append(("user", text))
+                DC.remember(s, lot)
+                result = _run(s, session_id, "get_empty_spots", {"lot_id": lot})
+                result["meta"]["localized_vacancy"] = lot
+                return result
+        if re.search(r"(?:제일|가장)\s*한산한.{0,12}주차장", text) and not re.search(r"내일|예측|몇\s*시", text):
+            s.clear()
+            s.history.append(("user", text))
+            return _run(s, session_id, "get_empty_spots", {"rank": "most"})
+        if re.search(r"백화점\s*쪽.{0,8}괜찮", text):
+            s.clear()
+            s.history.append(("user", text))
+            return _run(s, session_id, "get_empty_spots", {"lot_id": "D"})
+        if re.search(r"불\s*났|어디로\s*대피|빨간\s*불.{0,12}깜빡", text):
+            _alert_snapshot.set(current_alert(refresh=True))
+            _apply_alert_policy(s)
+            s.history.append(("user", text))
+            intent = "evacuation_guide" if "대피" in text else "get_alerts"
+            return _run(s, session_id, intent, {})
+        if re.search(r"결제\s*(?:할게|해\s*줘|다시\s*해)", text):
+            _alert_snapshot.set(current_alert(refresh=True))
+            if current_alert().get("level", 0) >= 2:
+                s.clear()
+                return _respond(s, "Lv2 경보로 모의 결제를 중지했어요. 대피 안내를 먼저 확인해 주세요.", chip_set="alert")
+        reply = None
+        chips = "default"
+        if re.search(r"(?:할머니|할아버지|어르신).{0,12}모시", text):
+            s.clear()
+            s.history.append(("user", text))
+            return _run(s, session_id, "get_empty_spots", {"zone": "accessible"},
+                        prefix="장애인 전용 칸은 장애인 주차표지가 있고 보행상 장애인이 탑승한 차량만 이용할 수 있어요.\n")
+        elif re.search(r"비행기|공항", text) and re.search(r"며칠|장기\s*주차", text):
+            s.clear()
+            s.history.append(("user", text))
+            overnight = (config.catalog.lot("C").get("guide") or {}).get("overnight", "")
+            return _run(s, session_id, "fee_rule", {"lot_id": "C"}, prefix=overnight + "\n")
+        elif re.search(r"가까운\s*(?:데|곳).{0,12}아무", text):
+            reply = "어디에서 출발하시나요? 가까운 주차장을 찾을 기준 위치를 알려주세요."
+        elif re.search(r"(?:세운|주차한)\s*차.{0,10}못\s*찾", text):
+            s.clear()
+            s.begin(Flow.ASK_VEHICLE, "find_my_car", {})
+            s.history.append(("user", text))
+            return _respond(s, "차량 위치를 확인할게요. 실물 주차장은 스티커 두 자리, 가상 주차장은 번호판 뒤 네 자리를 알려주세요.")
+        elif re.search(r"오늘\s*날씨|날씨\s*어때", text):
+            reply = "날씨는 조회할 수 없어요. 주차장 빈자리, 차량 위치, 요금은 확인할 수 있어요."
+        elif re.search(r"(?:모든|전체|다른\s*사람).{0,12}(?:차량?\s*번호|번호판)|[A-D]-\d{2}.{0,20}무슨\s*차", text, re.I):
+            reply = "개인정보 보호를 위해 다른 차량의 번호나 주차 정보를 공개할 수 없어요."
+        elif re.search(r"누가.{0,12}(?:내\s*자리|내\s*칸).{0,12}(?:댔|주차)", text):
+            reply = "다른 차량 정보는 공개할 수 없어요. 주차칸 번호를 알려주고 현장 관리자에게 확인을 요청해 주세요."
+            chips = ["call_admin"]
+        elif re.search(r"영화관.{0,24}예약", text):
+            reply = "영화관 옆 특정 주차칸을 예약하는 기능은 지원하지 않아요. 현재 빈자리는 조회할 수 있어요."
+        elif re.search(r"(?:요금|주차비).{0,20}(?:깎아|할인해)", text):
+            reply = "챗봇은 주차요금을 임의로 할인할 수 없어요. 서버가 계산한 요금으로 결제해 주세요."
+        elif re.search(r"현금.{0,12}(?:내|낼|납부|결제)", text):
+            reply = "이 시연에서는 모의 카드·간편결제·계좌이체를 지원해요. 현금 결제는 지원하지 않아요."
+        elif re.search(r"(?:돈|요금).{0,14}(?:내기\s*싫|안\s*내).{0,20}(?:나가|출차)", text):
+            reply = "출차 전 주차요금을 결제해 주세요. 결제에 문제가 있으면 현장 관리자에게 문의해 주세요."
+        elif not s.pending and re.search(r"^\s*(?:그거|그\s*요청)\s*취소", text):
+            reply = "어떤 요청을 취소할까요? 취소할 대상을 알려주세요."
+        elif re.search(r"롯데\s*백화점.*(?:주차|빈\s*자리)", text):
+            reply = "롯데백화점 주차장은 이 서비스에 등록되어 있지 않아요."
+        elif re.search(r"\d+\s*시간.{0,12}얼마", text) and any(
+            who == "user" and re.search(r"요금\s*(?:기준|정책|표)", message)
+            for who, message in list(s.history)[-4:]
+        ):
+            reply = "이용 시간에 따른 정확한 금액은 서버 견적 조회가 필요해요. 실제 주차 중인 차량 번호를 알려주세요."
+        if reply:
+            s.clear()
+            s.agent_followup = {}
+            s.history.append(("user", text))
+            return _respond(s, reply, chip_set=chips)
+    if text and not event and re.search(r"매출|수익|결제\s*(?:집계|내역|목록)|정산\s*집계", text):
+        s.agent_followup = {}
+        s.history.append(("user", text))
+        return _respond(s, "관리자 전용 정보입니다. 관리자 페이지에 로그인한 뒤 조회해 주세요.",
+                        meta={"intent": "access_denied", "permission_denied": True})
+    from . import forecast_chat
+    forecast_response=forecast_chat.handle(sys.modules[__name__],s,text,chip_id,event)
+    if forecast_response is not None:return forecast_response
+    if text and not chip_id and not event and wants_charging_status(text):
+        from .parser import extract_lots
+        lots = extract_lots(text + " 주차")
+        if len(lots) > 1:
+            return _respond(s, "어느 주차장의 충전 현황을 열까요?", chip_set=["lot_" + lot for lot in lots])
+        if current_alert().get("level", 0) >= 2:
+            return _respond(s, "경보 중에는 현장 안전 안내를 먼저 따라 주세요.", chip_set="alert")
+        lot = lots[0] if lots else DC.focus(s) or config.catalog.ids()[0]
+        s.history.append(("user", text))
+        s.agent_followup = {}
+        return _respond(s, "아래 ‘충전 현황’ 버튼을 눌러 충전 상태와 남은 시간을 확인해 주세요.",
+                        card={"type": "charging_status", "data": {"lot_id": lot}},
+                        meta={"intent": "charging_status", "source": "rule"})
+    if config.getenv("REPORT_CHAT_ENABLED", "0") == "1":
+        from backend.app.chatbot.report_lab import chat_bridge
+        report_response = chat_bridge.handle_input(sys.modules[__name__], s, text, chip_id, event)
+        if report_response is not None:
+            return report_response
     if event == "start":
+        s.conversation_question=None;s.conversation_reply=None;s.conversation_at=0;s.conversation_failures=0
+        s.agent_followup = {}
+        s.agent_vehicle = {}
+        s.mentioned_vehicles.clear()
+        s.payment_vehicle_choices = ()
+        s.last_space = None
+        s.facility_question = {}
+        s.facility_question_at = 0
         if not s.history:
             a = current_alert()
             s.observed_alert = max(0, a.get("version", 0) - (1 if a.get("level") else 0))
@@ -1198,7 +1428,8 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
         s.history.append(("user", text))
         # 대화 맥락으로 지시어·생략·선택을 완성한 문장을 해석한다(기록에는 원문). dialog_context.py 참고.
         text = DC.rewrite(s, text)
-        r = parse(text, allow_llm=current_alert().get("level", 0) < 2)
+        use_interpreter=bool(config.getenv('REPORT_OPENROUTER_KEY',''))
+        r = parse(text, allow_llm=not interpreted and not use_interpreter and current_alert().get("level", 0) < 2)
         if r.source == "llm":
             # 분류를 기다리는 동안 경보가 바뀌었으면 늦은 선택을 실행하지 않는다.
             _alert_snapshot.set(None)
@@ -1208,6 +1439,48 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
                 r = parse(text, allow_llm=False)
         r = DC.fill(s, r, text)
         intent, params, source, vehicle_only = r.intent, r.params, r.source, r.vehicle_only
+        if intent=='unknown':
+            decision=None
+            if not interpreted and use_interpreter and not s.pending and current_alert().get('level',0)<2 and not re.search(r'결제\s*해|취소\s*해|예약\s*해|호출|매출|수익',text):
+                try:
+                    from backend.app.chatbot.report_lab import conversation_llm
+                    decision=conversation_llm.interpret(text,DC.focus(s))
+                except Exception:
+                    decision=None
+                request_deadline.set(time.monotonic()+config.BACKEND_TIMEOUT_SEC)
+                _alert_snapshot.set(None)
+            if decision and decision['intent']=='business':
+                operation = decision['task']
+                if operation in conversation_llm.READ_TASKS:
+                    from . import read_tools
+                    numbers = decision['vehicle_numbers']
+                    scoped = None
+                    if operation == "space_state" and decision['space_id'] and decision['lot_id'] == DC.focus(s):
+                        scoped = f"{config.catalog.name(decision['lot_id'])} {decision['space_id']} 상태"
+                    elif operation != "space_state" and len(numbers) == 1 and numbers[0] in read_tools.vehicle_mentions(text):
+                        verb = {"vehicle_entry": "입차 시각", "vehicle_duration": "몇 분째 있어", "vehicle_exit": "출차 여부"}[operation]
+                        scoped = f"{numbers[0]}번 차 {verb}"
+                    response = read_tools.handle(sys.modules[__name__], s, scoped) if scoped else None
+                    if response is not None:
+                        return response
+                    return _respond(s, conversation.unclear(s))
+                rewritten=(conversation_llm.TASKS[operation]+' '+text)[:200]
+                if s.history and s.history[-1]==('user',text):s.history.pop()
+                response=_handle_message(s,session_id,rewritten,None,None,confirmation_token,interpreted=True)
+                response['_interpreted_query']=rewritten
+                response['meta']['interpretation_source']='llm'
+                response['meta']['interpretation_trace_id']=decision.get('trace_id')
+                return response
+            reply=None
+            category=decision['intent'] if decision else 'clarify'
+            if category in conversation.SOCIAL:reply=conversation.SOCIAL[category][1]
+            elif category=='explain':reply=conversation.common(s,'다시 설명해줘')['reply']
+            elif category=='unsupported':reply='저는 주차 이용을 도와드려요. 빈자리, 차량 위치, 요금이나 시설 안내가 필요하시면 말씀해 주세요.'
+            reply=reply or conversation.unclear(s)
+            return _respond(s,reply,meta={'intent':'conversation','conversation_intent':category,
+                                         'source':'llm-conversation' if decision else 'conversation-fallback',
+                                         'trace_id':decision.get('trace_id') if decision else None})
+    intent, params = DC.resolve_facility(s, intent, params, text, source)
     intent,params = N.resolve_context(s,intent,params,text,source)
     try:
         if source == "llm" and intent == "call_admin":
@@ -1216,6 +1489,8 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
             resp = _respond(s, T.SUGGEST_ADMIN_CALL, chip_set=_admin_suggestion_chips(s),
                             meta={"admin_suggestion": True})
         else:
+            if not chip_id and intent == "confirm_yes" and s.flow == Flow.CONFIRM_ACTION and s.pending and s.pending.intent == "pay_fee":
+                confirmation_token = None
             resp = _dispatch(s, session_id, intent, params, vehicle_only, confirmation_token)
     except DataUnavailable:
         s.clear()

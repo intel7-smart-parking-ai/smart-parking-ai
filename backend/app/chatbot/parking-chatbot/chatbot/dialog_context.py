@@ -30,6 +30,24 @@ def _fresh(at: float) -> bool:
     return bool(at) and time.monotonic() - at <= config.QUERY_CONTEXT_TTL_SEC
 
 
+def resolve_facility(s, intent, params, text, source):
+    """주차장만 고른 후속 입력에 직전 시설 질문을 연결한다."""
+    pending = s.facility_question
+    fresh = _fresh(s.facility_question_at)
+    s.facility_question = {}
+    s.facility_question_at = 0
+    lot = params.get("lot_id")
+    if not pending or not fresh or intent != "get_empty_spots" or lot not in config.catalog.ids():
+        return intent, params
+    row = config.catalog.lot(lot)
+    aliases = [row["name"], lot, lot + " 주차장"] + list(row.get("aliases", []))
+    bare_lot = any(re.fullmatch(re.escape(alias) + r"\s*(?:이요|이야|요|로|으로|은|는)?[?.!]*",
+                              (text or "").strip(), re.I) for alias in aliases)
+    if source == "chip" or bare_lot:
+        return "help", {**pending, "lot_id": lot}
+    return intent, params
+
+
 def focus(s):
     return s.focus_lot if s.focus_lot in config.catalog.ids() and _fresh(s.focus_at) else None
 

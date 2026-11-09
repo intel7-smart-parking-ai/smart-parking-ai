@@ -88,18 +88,18 @@ def order_lots(snapshot):
 
 def overview(snapshot,alert,zone=None):
     """주차장을 지정하지 않은 빈자리 질문: 전체 합계 + 주차장별 한 줄 + 선택 요청."""
+    from .answer_format import vacancy, lot_name
     parts, total = [], 0
     for key in order_lots(snapshot):
         why = reason(snapshot,alert,key,zone)
         n = count(snapshot["lots"][key],zone)
         if why is None or why == "만차":
             total += n or 0
-            parts.append(f"{config.catalog.name(key)} {n}자리" if n else f"{config.catalog.name(key)} 만차")
+            parts.append(f"{lot_name(key, config.catalog.name(key))} {n}자리")
         else:
             short = "경보 중" if why == "경보" else "이용 제한" if why.startswith("운영 제한") else "확인 불가"
-            parts.append(f"{config.catalog.name(key)} {short}")
-    scope = f"{config.catalog.zone_name(zone)} 구역 " if zone else ""
-    return f"전체 주차장 {scope}빈자리는 총 {total}자리예요.\n" + " · ".join(parts), total
+            parts.append(f"{lot_name(key, config.catalog.name(key))} {short}")
+    return vacancy(parts, zone), total
 
 
 OVERVIEW_QUESTION = "\n어느 주차장을 안내해 드릴까요?"
@@ -118,7 +118,8 @@ def query(snapshot,alert,params):
             other,actions=alternatives(snapshot,alert,lot,zone)
             text=f"{status_sentence(label(lot,zone),why)}\n{other}"
         else:
-            text=f"{label(lot,zone)}에 {n}자리 있어요."
+            from .answer_format import vacancy, lot_name
+            text=vacancy([f"{lot_name(lot, config.catalog.name(lot))} {n}자리"], zone)
             actions=[go_id(lot,zone),"empty_all","destination_cancel"]
     else:
         best=candidates(snapshot,alert,zone)

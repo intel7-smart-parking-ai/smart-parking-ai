@@ -146,7 +146,7 @@ def data_notes(text, evidence):
     """현재 답의 근거에만 시연 표시를 한 번 붙인다(목업 헤더 또는 is_mock)."""
     if not isinstance(evidence, dict):
         return text
-    if (evidence.get("data_source") == "mock" or evidence.get("is_mock") is True) and "※ 시연용 데이터예요" not in text:
+    if (evidence.get("data_source") == "mock" or evidence.get("is_mock") is True) and "※ 시연용 데이터예요" not in text and "※ 시뮬레이션 기반 예측" not in text:
         text += "\n※ 시연용 데이터예요"
     return text
 

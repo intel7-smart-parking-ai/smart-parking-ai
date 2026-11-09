@@ -1,14 +1,17 @@
 import BrandWordmark from './BrandWordmark.jsx';
 import ChargingStatus,{ChargingIcon} from './ChargingStatus.jsx';
 import {getLanguage} from './serviceLocale.js';
-import {useRef,useState} from 'react';
+import {useEffect,useRef,useState} from 'react';
 import {welcomeLanguages,welcomeText,welcomeHubText} from './welcomeLocales.js';
 import {Icon,ChatbotIcon} from './components.jsx';
 import './styles/welcome.css';
 import './styles/kiosk-preview.css';
+import './styles/welcome-promo.css';
 const areas=['A','B','C','D'];
+const promoDismissedKey='parkon-welcome-promo-blue-dismissed';
 export default function ParkingWelcome({onStart}){
  const helpDialog=useRef(null);
+ const promoDialog=useRef(null);
  const [charging,setCharging]=useState(false);
  const preview=new URLSearchParams(window.location.search).get('preview');
  const kioskPreview=preview==='kiosk-a'||preview==='kiosk-b';
@@ -16,6 +19,15 @@ export default function ParkingWelcome({onStart}){
  const [selected,setSelected]=useState(()=>{const id=new URLSearchParams(window.location.search).get('lot');return areas.includes(id)?id:'A'});
  const [language,setLanguage]=useState(getLanguage);
  const t={...welcomeText[language],...welcomeHubText[language]};
+ useEffect(()=>{
+  const dialog=promoDialog.current;
+  if(!dialog)return;
+  try{if(sessionStorage.getItem(promoDismissedKey))return}catch{/* Storage is optional. */}
+  if(!dialog.open)dialog.showModal();
+ },[]);
+ function dismissPromo(){
+  try{sessionStorage.setItem(promoDismissedKey,'1')}catch{/* Closing works without storage. */}
+ }
  function changeLanguage(value){setLanguage(value);try{localStorage.setItem('parkon-welcome-language',value)}catch{/* Switching also works without storage. */}}
  return <main className="kiosk-welcome" data-preview={preview} lang={language}>
   {kioskPreview ? <section className="kiosk-preview">
@@ -40,6 +52,16 @@ export default function ParkingWelcome({onStart}){
    <a className="kiosk-mobile" href={`/?app=1&lang=${language}`}>{t.mobile}<span aria-hidden="true"> ↗</span></a>
   </section></>}
   {charging&&<ChargingStatus language={language} initialLot={selected} onClose={()=>setCharging(false)}/>}
+  {!preview&&<dialog className="welcome-promo" ref={promoDialog} onClose={dismissPromo} aria-labelledby="welcome-promo-title">
+   <div className="welcome-promo-poster" lang="ko">
+    <span className="welcome-promo-brand">PARK:ON</span>
+    <h2 id="welcome-promo-title">첫 결제부터<br/><strong>적립 혜택까지!</strong></h2>
+    <p>빈자리 확인부터 내 차 찾기, 주차요금 결제까지 한 곳에서.</p>
+    <span className="welcome-promo-badge">첫 결제 혜택 · 적립 안내</span>
+    <div className="welcome-promo-mark" aria-hidden="true">P</div>
+   </div>
+   <form method="dialog"><button autoFocus>{t.close}</button></form>
+  </dialog>}
   <dialog className="kiosk-help" ref={helpDialog} aria-labelledby="welcome-help-title"><h2 id="welcome-help-title">{t.help}</h2><ol>{(showLotChoice?t.helpSteps:t.helpSteps.slice(1)).map(step=><li key={step}>{step}</li>)}</ol><p>{t.demo}</p><form method="dialog"><button>{t.close}</button></form></dialog>
  </main>
 }

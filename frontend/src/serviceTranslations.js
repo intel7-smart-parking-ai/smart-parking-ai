@@ -1,4 +1,18 @@
 export default {
+ "자주 묻는 질문": ["Frequently asked questions", "常见问题", "よくある質問"],
+ "빈자리 확인": ["Available spaces", "空余车位", "空き状況"],
+ "전기차 구역": ["EV spaces", "电动车位", "EV区画"],
+ "장애인 구역": ["Accessible spaces", "无障碍车位", "障がい者用区画"],
+ "이용 방법": ["How to use", "使用方法", "利用方法"],
+ "주차장별 빈자리 몇 개 있어?": ["How many spaces are available in each car park?", "各停车场有多少空余车位？", "各駐車場の空き台数を教えてください。"],
+ "내 차 위치를 찾고 싶어요": ["I want to find my car.", "我想查找我的车辆。", "自分の車の場所を探したいです。"],
+ "주차요금 안내해줘": ["Show me the parking fees.", "请介绍停车费用。", "駐車料金を教えてください。"],
+ "충전 구역 빈자리 알려줘": ["Are any EV charging spaces available?", "充电区有空位吗？", "充電区画の空き状況を教えてください。"],
+ "장애인 구역 빈자리 알려줘": ["Are any accessible parking spaces available?", "无障碍车位有空位吗？", "障がい者用区画の空き状況を教えてください。"],
+ "주차장 이용 방법 알려줘": ["How do I use the car park?", "请介绍停车场的使用方法。", "駐車場の利用方法を教えてください。"],
+  "안녕하세요. PARK : ON 주차 챗봇입니다.": ["Hello, I’m the PARK : ON parking assistant.", "您好，我是 PARK : ON 停车助手。", "こんにちは。PARK : ON 駐車アシスタントです。"],
+  "빈자리, 내 차 위치, 주차요금이 궁금하신가요?": ["Ask about available spaces, your car’s location or parking fees.", "想了解空余车位、车辆位置或停车费用吗？", "空き状況、車の位置、駐車料金をご案内します。"],
+  "궁금한 내용을 입력해 주세요.": ["Enter your question below.", "请在下方输入您的问题。", "ご質問を入力してください。"],
   "메세지를 입력하세요": ["Type a message", "请输入消息", "メッセージを入力してください"],
   "주차요금": ["Parking fees", "停车费用", "駐車料金"],
   "김해공항 주차 예약": ["Gimhae Airport parking reservations", "金海机场停车预约", "金海空港の駐車予約"],
@@ -1004,15 +1018,15 @@ export default {
     "使用指南",
     "ご利用案内"
   ],
-  "PARK:ON · 주차장 앱": [
-    "PARK:ON · Parking app",
-    "PARK:ON · 停车应用",
-    "PARK:ON · 駐車アプリ"
+  "PARK : ON · 주차장 앱": [
+    "PARK : ON · Parking app",
+    "PARK : ON · 停车应用",
+    "PARK : ON · 駐車アプリ"
   ],
-  "PARK:ON 앱 홈": [
-    "PARK:ON home",
-    "PARK:ON首页",
-    "PARK:ONホーム"
+  "PARK : ON 앱 홈": [
+    "PARK : ON home",
+    "PARK : ON首页",
+    "PARK : ONホーム"
   ],
   "웹으로 보기": [
     "Web view",
@@ -1159,10 +1173,10 @@ export default {
     "实体停车场请输入贴纸编号，虚拟停车场请输入车牌后4位。",
     "実物駐車場はステッカー番号、仮想駐車場はナンバー下4桁を入力してください。"
   ],
-  "PARK:ON 이용 안내": [
-    "Using PARK:ON",
-    "PARK:ON使用指南",
-    "PARK:ONご利用案内"
+  "PARK : ON 이용 안내": [
+    "Using PARK : ON",
+    "PARK : ON使用指南",
+    "PARK : ONご利用案内"
   ],
   "1. 빈자리 확인하기": [
     "1. Check available spaces",
@@ -1755,6 +1769,33 @@ export default {
     "车辆",
     "車両"
   ],
+  "{0} 지도": ["{0} map", "{0}地图", "{0}の地図"],
+  "차량 입구": ["Vehicle entry", "车辆入口", "車両入口"],
+  "차량 출구": ["Vehicle exit", "车辆出口", "車両出口"],
+  "화장실": ["Restroom", "洗手间", "トイレ"],
+  "요금·결제 조회": ["Parking fee and payment", "停车费与支付查询", "駐車料金・決済確認"],
+  "차량 {0}": ["Vehicle {0}", "车辆 {0}", "車両 {0}"],
+  "현재 요금": ["Current fee", "当前费用", "現在の料金"],
+  "주차 위치": ["Parking location", "停车位置", "駐車位置"],
+  "경보로 결제가 중단되었습니다.": ["Payment is suspended during the alert.", "警报期间暂停支付。", "警報中は決済を停止しています。"],
+  "{0}구역": ["Zone {0}", "{0}区", "{0}区画"],
+  "엘리베이터": ["Elevator", "电梯", "エレベーター"],
+  "엘리베이터 ↕": ["Lift ↕", "电梯 ↕", "エレベーター ↕"],
+  "영화관 ↑": ["Cinema ↑", "电影院 ↑", "映画館 ↑"],
+  "에스컬레이터 ↑": ["Escalator ↑", "自动扶梯 ↑", "エスカレーター ↑"],
+  "몰 · A / C": ["Mall · A / C", "购物中心 · A / C", "モール · A / C"],
+  "백화점 · B / D": ["Department store · B / D", "百货商场 · B / D", "百貨店 · B / D"],
+  "몰 A·C구역 화장실": ["Mall A/C restrooms", "购物中心 A/C 区洗手间", "モール A/C 区画のトイレ"],
+  "백화점 B·D구역 화장실": ["Department store B/D restrooms", "百货商场 B/D 区洗手间", "百貨店 B/D 区画のトイレ"],
+  "몰 연결 출입구": ["Mall entrance", "购物中心入口", "モール連絡口"],
+  "백화점 연결 출입구": ["Department store entrance", "百货商场入口", "百貨店連絡口"],
+  "시연 경로": ["Demo route", "演示路线", "デモ経路"],
+  "출발": ["Start", "出发", "出発"],
+  "도착": ["End", "到达", "到着"],
+  "조회 기준": ["Checked at", "查询时间", "確認時刻"],
+  "미결제": ["Unpaid", "未支付", "未精算"],
+  "모의 결제 완료": ["Demo payment complete", "模拟支付完成", "模擬決済完了"],
+  "모의 결제 취소": ["Demo payment canceled", "模拟支付已取消", "模擬決済取消済み"],
   "결제 완료": [
     "Paid",
     "已支付",

@@ -1,0 +1,9 @@
+services:
+  api:
+    build:
+      dockerfile: backend/Dockerfile.agents
+    env_file:
+      - ${PARKON_AGENTS_ENV_FILE:-.env}
+    environment:
+      REPORT_CHAT_ENABLED: "1"
+      REPORT_API_BASE: http://127.0.0.1:8000

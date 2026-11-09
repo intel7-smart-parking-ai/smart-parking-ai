@@ -281,7 +281,7 @@ def create_runtime_app(
         if row.get("session_id") and row["status"] == "occupied":
             with closing(store_ref["store"].connection()) as conn:
                 target = conn.execute(
-                    "SELECT vehicle_number,plate_number FROM simulation_targets WHERE lot_id=? AND space_id=?",
+                    "SELECT vehicle_number,plate_number,vehicle_type FROM simulation_targets WHERE lot_id=? AND space_id=?",
                     (row["lot_id"], row["space_id"]),
                 ).fetchone()
             if target:
@@ -294,6 +294,8 @@ def create_runtime_app(
                     (row["lot_id"], row["space_id"]),
                 ).fetchone()
             row["entry_at"] = active["entry_at"] if active else None
+        from backend.app.simulation.charging import telemetry
+        row["charging"] = telemetry(row, clock(), mode == "demo" and row["lot_id"] in ("C", "D"))
         return row
 
     app = create_demo_app(
@@ -305,10 +307,22 @@ def create_runtime_app(
         enrich_space=enrich,
     )
     store = store_ref["store"]
-    app.title = "PARK:ON 공통 이벤트 통합 API"
+    app.title = "PARK : ON 공통 이벤트 통합 API"
     app.state.pipeline = store
     app.state.billing_path = database
     app.state.simulation_enabled = mode == "demo"
+
+    @app.get('/api/v1/congestion/forecast')
+    def congestion_forecast(lot_id: str, at: datetime):
+        if mode != 'demo' or lot_id not in ('C','D'):
+            raise HTTPException(400, '김해공항·신세계 시연 주차장만 지원합니다.')
+        if at.tzinfo is None:raise HTTPException(422, '시간대가 포함된 시각이 필요합니다.')
+        from backend.app.simulation.congestion import history
+        from backend.app.congestion import forecast
+        with closing(store.connection()) as conn:
+            records=history(conn,lot_id,clock())
+        try:return forecast(records,at,clock())
+        except ValueError as exc:raise HTTPException(422,str(exc))
 
     def db_connection():
         with closing(store.connection()) as conn:
@@ -659,6 +673,22 @@ def create_runtime_app(
                     conn.commit()
             await asyncio.sleep(1)
 
+    async def collect_vacancy_history():
+        from backend.app.forecasting import record
+        while True:
+            try:
+                at = clock()
+                with closing(store.connection()) as conn:
+                    if mode == 'demo':
+                        from backend.app.simulation.congestion import ensure_history
+                        ensure_history(conn,at)
+                    for lot in ('A','B','C','D'):
+                        record(conn, lot, store.spaces(lot, as_of=at), at, mode == 'demo' and lot in ('C','D'))
+                    conn.commit()
+            except Exception:
+                logging.exception('Vacancy history collection failed')
+            await asyncio.sleep(60)
+
     @asynccontextmanager
     async def lifespan(application):
         database.parent.mkdir(parents=True, exist_ok=True)
@@ -673,6 +703,11 @@ def create_runtime_app(
             )
             init_alerts_schema(conn)
             conn.executescript(SCHEMA)
+            from backend.app.forecasting import SCHEMA as HISTORY_SCHEMA
+            conn.executescript(HISTORY_SCHEMA)
+            if mode == 'demo':
+                from backend.app.simulation.congestion import ensure_history
+                ensure_history(conn,clock())
             if "applied" not in {
                 r["name"] for r in conn.execute("PRAGMA table_info(pipeline_events)")
             }:
@@ -694,9 +729,15 @@ def create_runtime_app(
             conn.commit()
         store.recover()
         task = asyncio.create_task(observations()) if mode == "demo" else None
+        history_task = asyncio.create_task(collect_vacancy_history())
         try:
             yield
         finally:
+            history_task.cancel()
+            try:
+                await history_task
+            except asyncio.CancelledError:
+                pass
             if task:
                 task.cancel()
                 try:
