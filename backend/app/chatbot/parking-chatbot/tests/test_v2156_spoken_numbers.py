@@ -85,14 +85,15 @@ class SpokenNumberFlowTests(unittest.TestCase):
         p = patch.object(e, "data", CachedAdapter(MockAdapter()))
         p.start(); self.addCleanup(p.stop); e.reset_all()
 
-    def test_corrected_transcript_asks_about_thirty_not_ten(self):
+    def test_spoken_thirty_reads_thirty_not_ten(self):
         response = e.handle("s", text="삼 십 번 차량 위치")
-        self.assertEqual(response["flow"], "confirm_vehicle")
-        self.assertEqual(e.get_session("s").pending.car_id, "30")
+        self.assertEqual(response["flow"], "idle")
+        self.assertEqual(response["card"]["data"]["car_id"], "30")
+        self.assertIsNone(response["confirmation_token"])
         self.assertIn("30번", response["text"])
 
     def test_correction_replaces_pending_vehicle_and_stale_token_cannot_approve(self):
-        first = e.handle("s", text="이십 삼 번 차량 위치")
+        first = e.handle("s", text="이십 삼 번 차로 바꿔")
         second = e.handle("s", text="아니 삼 십 번")
         stale = e.handle("s", chip_id="confirm_yes", confirmation_token=first["confirmation_token"])
         self.assertIn("이전 질문", stale["text"])
@@ -136,7 +137,8 @@ class SpokenNumberHTTPTests(unittest.TestCase):
             with TestClient(app) as client:
                 response = client.post("/api/v1/chat", json={"session_id": "spoken-http", "text": "이십 삼 번 차량 위치"})
                 self.assertEqual(response.status_code, 200)
-                self.assertEqual(response.json()["flow"], "confirm_vehicle")
+                self.assertEqual(response.json()["flow"], "idle")
+                self.assertEqual(response.json()["card"]["data"]["car_id"], "23")
                 self.assertIn("23번", response.json()["text"])
                 self.assertEqual(client.post("/api/v1/chat", json={"session_id": "spoken-http", "text": "가" * 201}).status_code, 422)
 

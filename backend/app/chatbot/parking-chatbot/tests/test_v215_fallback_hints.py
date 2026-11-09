@@ -1,10 +1,11 @@
 """Contextual chips are optional and do not change business execution paths."""
-import time
 import unittest
 from unittest.mock import patch
 
 from chatbot import config,engine as e,llm_router,parser
 from chatbot.adapters import CachedAdapter,MockAdapter
+from chatbot.agents import AgentResult
+from tests.test_llm_router import conversation_reply
 from chatbot.fallback_hints import select
 
 
@@ -71,15 +72,12 @@ class FallbackHintsTests(unittest.TestCase):
         self.assertEqual(self.ids(result),list(e.SETS["alert"]))
         self.assertIsNotNone(result["safety"])
 
-    def test_all_classifier_fallback_reasons_use_the_same_single_attempt(self):
-        for reason in ("disabled","no_tool_call","timeout","rate_limited","not_installed"):
-            def fallback(_):
-                llm_router._record(reason,time.monotonic())
-                return None
-            with self.subTest(reason=reason), patch.object(llm_router,"route",side_effect=fallback) as route:
+    def test_agent_failures_use_same_fallback_without_retry(self):
+        for reason in ("missing_key","ungrounded","timeout","rate_limited","not_installed"):
+            with self.subTest(reason=reason), conversation_reply(lambda *_: AgentResult(status=reason)) as invoke:
                 result=e.handle(reason,text="자동차 사용료를 산출해 줘")
                 self.assertEqual(self.ids(result)[:2],["fee","pay"])
-                self.assertEqual(route.call_count,1)
+                invoke.assert_called_once()
         self.assertEqual(e.admin_calls(),[])
 
     def test_payment_chip_still_requires_vehicle_quote_and_confirmation(self):

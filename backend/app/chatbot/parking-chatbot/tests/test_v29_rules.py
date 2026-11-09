@@ -77,11 +77,14 @@ class MockV29Tests(unittest.TestCase):
         self.assertIn("장애인 전용", r["text"])
         self.assertIn("사용 중", ask("s", "개발원주차장 B-01 비었어?")["text"])
 
-    def test_virtual_vehicle_is_pending_without_lookup(self):
-        with patch.object(e.data, "find_car", side_effect=AssertionError("no lookup")):
-            for text in ("1724번 차 어디 있어?", "17가1724 요금", "0123번 차"):
-                with self.subTest(text=text):
-                    self.assertEqual(ask(text, text)["text"], T.VIRTUAL_VEHICLE_PENDING)
+    def test_virtual_vehicle_uses_plate_search_not_sticker_lookup(self):
+        # v3.2: API_CONTRACT의 vehicle-search(뒤 4자리)로 조회한다. 실물 스티커 번호 조회로 바꾸지 않는다.
+        located = ask("v1", "1724번 차 어디 있어?")["text"]
+        self.assertIn("17가1724 차량은 김해공항 주차장", located)
+        fee = ask("v2", "17가1724 요금")["text"]
+        self.assertRegex(fee, r"요금은 [\d,]+원")
+        self.assertIn("찾지 못했어요", ask("v3", "0123번 차")["text"])
+        self.assertIn("찾지 못했어요", ask("v4", "99가1724 어디야")["text"])
 
     def test_exit_sentences_go_to_site_admin_without_llm_or_data(self):
         with patch("chatbot.parser.config.LLM_ENGINE", "langchain"), \

@@ -12,7 +12,7 @@ const{chromium}=require('playwright');const assert=require('node:assert/strict')
   assert.equal(calls.length,1);assert.equal(calls[0].status,'접수');
   console.log('PASS receipt lookup returns card without creating a new call');
   const p2=await user();
-  await Promise.all([p.evaluate(async()=>{await send({text:'33번 차 위치'});await send({text:'네'});}),p2.evaluate(async()=>{await send({text:'43번 차 위치'});await send({text:'네'});})]);
+  await Promise.all([p.evaluate(()=>send({text:'33번 차 위치'})),p2.evaluate(()=>send({text:'43번 차 위치'}))]);
   await Promise.all([p.evaluate(()=>send({chip_id:'find_car'})),p2.evaluate(()=>send({chip_id:'find_car'}))]);
   assert.ok((await p.locator('#vehicleContext').innerText()).includes('33번 차'));
   assert.ok((await p2.locator('#vehicleContext').innerText()).includes('43번 차'));

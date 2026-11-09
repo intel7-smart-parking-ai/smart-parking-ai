@@ -8,7 +8,9 @@
 
 환경변수 → 챗봇 폴더 `.env` → 기본값 순서로 읽는다. 팀 서버는 워커 1개를 사용한다. 팀 라우터는 전용 패키지 이름을 사용한다. 팀 요청의 동기 작업은 별도 AnyIO 용량으로 실행한다.
 
-HTTP → 세션 예약과 경보 확인 → 칩 / 규칙 / 선택적 LLM 분류 → 처리기 → 어댑터 → 템플릿과 화면용 응답.
+HTTP → 세션 예약과 경보 확인 → 칩·승인 업무 또는 일반 대화 → 내부 조회 도구 → 검증된 응답·카드.
+
+일반 대화는 `conversation_turn.py`가 현재 차량, 비교 범위, 최근 대화를 에이전트에 연결한다. 에이전트는 `tools/`에 정의된 조회만 실행한다. `dialog/`는 모델 미사용·실패 상황에서 지원되는 복합 질문을 같은 자료로 답한다. 부작용이 있는 기능은 `workflows/`와 엔진의 확인 상태가 맡는다.
 
 | 바꿀 대상 | 파일과 경계 |
 |---|---|
@@ -22,7 +24,11 @@ HTTP → 세션 예약과 경보 확인 → 칩 / 규칙 / 선택적 LLM 분류 
 | 빈자리·목적지 | `navigation.py`의 조회·카드·목적지 상태 감시 |
 | 요금·견적·결제 | `engine.h_pay_fee`와 `_execute_payment`, `contracts.PAYMENT_ERROR_STATUS`, `adapters.build_payment_body` |
 | 경보·위반·현장 정보 | `adapters.get_alert`, `engine.current_alert`, `incidents.py`, `briefing.py` |
-| LLM 분류 | `llm_router.py` 도구 스키마와 `llm.py` 직접 분류. 준비는 첫 사용 시 실행 |
+| 대화 모델 | `agents/conversation.py`의 도구 호출, 턴 예산(질문 단위 상한·동시 자리·답 작성 제한 시간), 근거 검사 후 1회 고쳐 쓰기. `agents/evidence.py`에서 출력의 수치·비교값·요금 짝·범위·실행 주장·약속을 검증. `prompts/conversation.md` 지시문 |
+| 내부 자료 | `tools/read.py`의 읽기 도구 10개(빈자리·차량·요금 정책·비교·예상 요금·경보 요약·위반·문의 상태·규칙 안내·작업 제안)와 턴 내 스냅샷. 차이·경과 시간·시각 표현은 코드가 계산해 도구 결과에 넣는다. `knowledge/`의 승인된 정책·설정 안내(주제 단위) |
+| 모니터링(선택) | `monitoring.py`: 턴 단위 Langfuse trace 또는 로컬 JSON 줄. 기본 꺼짐, 실패해도 답에 영향 없음. `engine.handle`이 감싸고 `conversation_turn`이 콜백·도구 목록을 넘김 |
+| 복합 조회 대체 경로 | `dialog/query.py`의 조회 조건, `dialog/render.py`의 응답과 카드 |
+| 업무 처리 | `workflows/payment.py` 서버 견적·결제, `workflows/admin.py` 접수, `workflows/vehicle.py` 후보 조회, `workflows/parking.py` 칩 조회 |
 | 세션·확인·재전송 | `session_flow.py`와 `state.py`; `engine._session_request`, `_confirm_pending` |
 | 데이터 조회·보관 | `transport.py` 네트워크 제한, `CachedAdapter` 캐시 세대·동시 조회, `retention.py` 완료 기록 정리 |
 | 출구 문의 | `handlers/exit_help.py`, `templates.EXIT_HELP` |
@@ -42,7 +48,8 @@ HTTP → 세션 예약과 경보 확인 → 칩 / 규칙 / 선택적 LLM 분류 
 | 현재 상태 | 입력 | 다음 상태 |
 |---|---|---|
 | 대기 | 차량이 필요한 기능 | 차량 요청 또는 차량 확인 |
-| 차량 요청·확인 | 새 차량 번호 | 최신 번호로 차량 확인 대기 교체 |
+| 차량 조회 대기 | 명확한 차량 번호 | 위치·요금 조회를 이어서 실행 |
+| 차량 변경·결제 대상 확인 | 새 차량 번호 | 최신 번호로 차량 확인 대기 교체 |
 | 차량 확인 | 승인 / 거절 | 차량 저장 후 기능 실행 / 차량 요청 |
 | 작업 확인 | 유효한 승인 / 거절 | 승인 소비 후 작업 실행 / 대기 |
 | 작업 확인 | 견적 만료·변경 | 새 견적으로 결제 확인. 사용자 승인 전 POST 없음 |

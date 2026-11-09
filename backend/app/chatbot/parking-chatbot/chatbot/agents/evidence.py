@@ -1,0 +1,256 @@
+"""Check operational claims against this turn's successful, scoped reads.
+
+These checks cover numeric facts, known lot identities and action boundaries.
+They are not a semantic correctness score. The original observations remain
+available to the caller if a generated answer fails a check.
+"""
+from __future__ import annotations
+
+import re
+from collections.abc import Mapping
+
+from .. import config
+
+_NUMBER = re.compile(r"\d+(?:,\d{3})*(?:\.\d+)?")
+_HORIZON = re.compile(r"(\d+)\s*(분|시간)\s*(?:뒤|후|전)")
+_ACTION_DONE = re.compile(
+    r"(?:결제|환불|호출|문의|목적지|예약).{0,12}?"
+    r"(?:해드렸|해드렸습|처리했|진행했|등록했|접수했|실행했|설정했|변경했|완료했|보냈|했어요|했습니다|완료됐|완료되었|완료됐|접수됐|접수되었|등록됐|설정됐|예약됐)"
+)
+_PAID = re.compile(r"(결제.{0,5}(완료|승인|성공)|결제된|이미\s*결제|지불된|납부된)")
+# 실행 주장: "실행 대상 단어 + 완료·과거 표현"이 같은 절에 있으면 실행했다고 말한 것으로 본다.
+# 띄어쓰기·존댓말이 바뀌어도 잡히도록 표현 목록 대신 조합으로 판단한다.
+_CLAUSE_SPLIT = re.compile(r"[.!?。\n]|(?<=[요다])\s*,|\s+(?:그리고|그래서|또한)\s+")
+_ACTION_WORD = re.compile(r"결제|정산|납부|환불|관리자|직원|담당자|호출|연락|신고|119|접수|등록|예약|목적지|차단기|게이트|문\s*(?:을|를)?\s*열|출차\s*처리|문의")
+_DONE_WORD = re.compile(
+    r"(?:해|하여|처리해|진행해|완료해|접수해|등록해|호출해|연락해|신고해|변경해|설정해|열어|불러|바꿔|보내|요청해|전달해)\s*(?:드렸|줬|주었|놨|뒀|두었)"
+    r"|했(?:어요|습니다|어|다|음|고)|하였|됐|되었|끝났|마쳤|완료(?:됐|되었|했|하였|입니다|예요|이에요|돼\s*있|되어\s*있)"
+    r"|처리\s*(?:됐|되었|했|하였|완료)|불렀|열었|바꿨|보냈|알렸|요청했|전달했|접수돼\s*있|등록돼\s*있"
+)
+_NOT_DONE = re.compile(r"안\s*(?:됐|되|했)|못\s*(?:했|됐)|않았|않아|아직|전이에요|전입니다|아니에요|아닙니다|없어요|없습니다"
+                       r"|하시면|하려면|원하시면|할\s*수|해야|할까요|드릴까요|드릴게요|해\s*드릴|되면|되지|하지\s*(?:마|않)|확인되지")
+_AGENCY = re.compile(r"드렸|제가|저희가|챗봇이|해\s*줬|해\s*주었")
+_PROMISE = re.compile(
+    r"(?:관리자|직원|담당자|소방|119|구급|경찰).{0,15}"
+    r"(?:갈|올|오실|가실|도착|출동|방문|연락\s*(?:드릴|할|줄|해\s*줄|올)).{0,6}"
+    r"(?:거예요|겁니다|거에요|예정|드릴게요|할게요|줄게요|드립니다|갈게요|올게요|것입니다)")
+_PAY_WORD = re.compile(r"결제|정산|납부")
+_CALL_WORD = re.compile(r"관리자|직원|담당자|호출|접수|등록|문의")
+# 비교 문장: 단위 숫자 뒤에 오는 비교 표현이면 코드가 계산한 차이 값과만 맞춘다.
+_COMPARE_AFTER = re.compile(r"\s*(?:정도\s*)?(?:더|차이|덜|적|많|싸|저렴|비싸|높|낮|넉넉)")
+_COMPARE_BEFORE = re.compile(r"(?:차이(?:는|가)?|더)\s*$")
+_RATE_PAIR = re.compile(r"(\d+)\s*분(?:에|당|마다|까지|동안)?\s*(?:기본\s*)?(\d{1,3}(?:,\d{3})+|\d+)\s*원")
+_DIFF_KEYS = ("empty_diff", "base_fee_diff", "increase")
+# 도구 없이 답해도 되는 대화(인사·감사·자기소개)인지 판단할 때 쓰는 단어.
+_DATA_QUESTION = re.compile(r"자리|칸|만차|요금|얼마|결제|정산|위치|어디|경보|화재|불\s*났|연기|대피|출차|입차|차단기|"
+                            r"관리자|직원|호출|엘리베이터|화장실|시설|몇\s*시|\d")
+_STATE_CLAIM = re.compile(r"넉넉|여유|만차|비어|남아|붐비|한산|무료|공짜|싸요|비싸|저렴|있어요|없어요|있습니다|없습니다|가능해요|가능합니다")
+_GUIDANCE_DONE = re.compile(r"(?:예약|환불|관리자\s*호출|문의\s*(?:접수|등록)|목적지\s*(?:변경|설정)).{0,4}(?:완료|성공)")
+_NEGATED_DONE = re.compile(r"(?:(?:미|안\s*)완료|완료(?:로|라고)?\s*(?:단정할|볼 수 없))")
+_SLOT = re.compile(r"(?<![A-Za-z0-9])([A-Za-z]-\d{2})(?!\d)")
+_CLAIM_UNITS = re.compile(r"(\d+(?:,\d{3})*)\s*(원|자리|칸|대)(?![A-Za-z])")
+_FULL_CLAIM = re.compile(
+    r"만차(?:예요|입니다|여서|라서|라\s|\s*상태(?:예요|입니다|여서)|(?=[.!,。]|$))"
+    r"|(?:빈\s*)?자리(?:가|는|도)\s*없(?:어요|습니다|어서|어\s|다고)"
+)
+
+
+def readable(observation):
+    result = observation["result"]
+    return result.get("ok") is True and isinstance(result.get("data"), dict)
+
+
+def _strings(value):
+    if isinstance(value, Mapping):
+        for v in value.values():
+            yield from _strings(v)
+    elif isinstance(value, (list, tuple)):
+        for v in value:
+            yield from _strings(v)
+    elif value is not None and not isinstance(value, bool):
+        yield str(value)
+
+
+def _numbers(value):
+    return {match.group().replace(",", "") for s in _strings(value)
+            for match in _NUMBER.finditer(s)}
+
+
+def _entries(data):
+    if isinstance(data.get("rows"), list):
+        rows = [r for r in data["rows"] if isinstance(r, Mapping)]
+        if isinstance(data.get("summary"), Mapping):
+            rows.append(dict(data["summary"]))
+        return rows
+    if isinstance(data.get("matches"), list):
+        rows = [r for r in data["matches"] if isinstance(r, Mapping)]
+        # '등록되지 않음'도 확인된 사실이다(없는 시설을 없다고 말하는 근거).
+        absence = {k: data[k] for k in ("missing", "unregistered") if data.get(k)}
+        return rows + ([absence] if absence else [])
+    # Vehicle identity and the fee record may carry separate lot/time fields.
+    if "car_id" in data and ("location" in data or "fee" in data):
+        return [dict(car_id=data["car_id"], **{k: v for k, v in record.items() if k != "car_id"})
+                for record in (data.get("location"), data.get("fee")) if isinstance(record, Mapping)]
+    return [data] if data else []
+
+
+def _mentions(answer):
+    found = []
+    for lot_id, lot in config.catalog.lots().items():
+        names = [lot.get("name", ""), *lot.get("aliases", []), *lot.get("loose_aliases", [])]
+        names = {n for n in names if len(n) > 1}
+        if names:
+            pattern = "|".join(re.escape(v) for v in sorted(names, key=len, reverse=True))
+            found.extend((match.start(), lot_id) for match in re.finditer(pattern, answer, re.I))
+    return sorted(found)
+
+
+def _clauses(answer):
+    return [c for c in _CLAUSE_SPLIT.split(answer) if c and c.strip()]
+
+
+def action_claim(answer, observations=()):
+    """하지 않은 실행을 했다고 말하거나 관리자 도착 등을 약속하면 사유를 돌려준다.
+    이미 결제된 기록·이미 접수된 관리자 문의를 '되어 있다'고 설명하는 것은 허용한다(에이전트가 한 일로 말하지 않을 때)."""
+    reads = [row["result"]["data"] for row in observations
+             if readable(row) and row["tool"] not in {"ask_clarification", "propose_action"}]
+    has_paid = any(isinstance(d.get("fee"), Mapping) and d["fee"].get("paid") is True for d in reads)
+    has_call = any(d.get("has_call") is True for d in reads)
+    if _PROMISE.search(answer):
+        return "unsupported_promise"
+    for clause in _clauses(answer):
+        if not (_ACTION_WORD.search(clause) and _DONE_WORD.search(clause)) or _NOT_DONE.search(clause):
+            continue
+        agency = bool(_AGENCY.search(clause))
+        if not agency and has_paid and _PAY_WORD.search(clause) and not _CALL_WORD.search(clause):
+            continue
+        if not agency and has_call and _CALL_WORD.search(clause) and not _PAY_WORD.search(clause):
+            continue
+        return "unsupported_action"
+    return None
+
+
+def no_tool_reply_ok(request, answer):
+    """조회 없이 답해도 되는 짧은 대화(인사·감사·자기소개)인지. 운영 사실이나 실행 주장은 하나도 없어야 한다."""
+    if not isinstance(answer, str) or not answer.strip() or len(answer) > 220:
+        return False
+    if _DATA_QUESTION.search(request or "") or _NUMBER.search(answer) or _SLOT.search(answer) or _mentions(answer):
+        return False
+    # '날씨는 확인해 드릴 수 없어요'처럼 능력 밖이라는 안내는 주차 상태 주장이 아니다.
+    if _STATE_CLAIM.search(_REFUSAL.sub(" ", answer)) or action_claim(answer) or _ACTION_DONE.search(answer):
+        return False
+    return True
+
+
+_REFUSAL = re.compile(r"(?:확인|안내|알려|답|도와|제공)\S*\s*(?:드릴|드리기|해\s*드릴|할)?\s*(?:수\s*)?"
+                      r"(?:없어요|없습니다|어려워요|어렵습니다|없지만|없어서)|(?:정보|기능)(?:는|이|가)?\s*없(?:어요|습니다|어서|지만)")
+
+
+_POLICY_PERMIT = re.compile(r"(?:일반\s*(?:차|차량)|전기차가?\s*아니|비전기차|장애인\s*차량이?\s*아니)[^.!?\n]{0,40}"
+                            r"(?:할\s*수\s*있|가능|돼요|됩니다|괜찮|대셔도|세우셔도|하셔도)")
+_POLICY_DENY = re.compile(r"없|안\s*돼|안\s*됩|불가|못|금지|안\s*되")
+
+
+def contradicts_restricted_policy(answer):
+    """팀 결정 D-05(일반차는 전기차·장애인 전용 칸 이용 불가)와 반대로 말하는지."""
+    for clause in _clauses(answer):
+        if _POLICY_PERMIT.search(clause) and not _POLICY_DENY.search(clause):
+            return True
+    return False
+
+
+REPAIR_HINTS = {
+    "unsupported_number": "답에 이번 조회 결과에 없는 숫자가 있습니다. 차이·개수·경과 시간·예상 요금은 compare_lots, vehicle_info의 *_text, estimate_fee 결과 값만 옮겨 쓰세요. 필요하면 그 도구를 먼저 호출하세요.",
+    "unsupported_location": "답에 조회되지 않은 칸 번호가 있습니다. 조회 결과의 칸 번호만 쓰세요.",
+    "unsupported_lot": "답에 이번에 조회하지 않은 주차장이 있습니다. 조회한 주차장만 말하거나 그 주차장을 조회하세요.",
+    "mismatched_lot_value": "어떤 주차장의 숫자를 다른 주차장 값으로 말했습니다. 주차장마다 조회 결과의 값을 그대로 짝지어 쓰세요. 차이는 compare_lots 요약 값을 쓰세요.",
+    "mismatched_rate": "'N분에 M원' 표현이 요금 정책과 맞지 않습니다. policy_text 또는 정책 값을 그대로 쓰세요.",
+    "contradictory_availability": "조회 결과에 빈자리가 있는데 만차·자리 없음이라고 했습니다. 조회 결과대로 다시 쓰세요.",
+    "unsupported_action": "결제·관리자 호출·접수·변경을 실제로 하지 않았는데 한 것처럼 말했습니다. 실행은 사용자가 화면 버튼으로 확인해야 진행된다고 안내하세요.",
+    "unsupported_payment": "결제가 완료되지 않았는데 완료된 것처럼 말했습니다. 결제는 사용자가 승인해야 진행된다고 안내하세요.",
+    "unsupported_promise": "관리자·직원의 도착이나 연락을 약속할 수 없습니다. 약속 없이 필요한 안내만 하세요.",
+    "repeated": "직전 답과 같은 문장입니다. 새로 조회한 내용을 바탕으로 다른 표현으로 답하세요.",
+    "missing_goal": "질문에서 요청한 정보 중 일부를 조회하지 않았습니다.",
+}
+
+
+def check_answer(answer, request, observations):
+    """Return a reason for a deterministic repair/fallback, else None."""
+    reads = [row["result"]["data"] for row in observations
+             if readable(row) and row["tool"] not in {"ask_clarification", "propose_action"}]
+    entries = [row for data in reads for row in _entries(data)]
+    proposals = [row for row in observations if row["tool"] == "propose_action" and readable(row)]
+    if not entries and not proposals:
+        return "no_evidence"
+    # A proposal cannot prove that a new action executed. A previously paid fee
+    # can explain status, but still cannot prove that this assistant issued it.
+    claim = action_claim(answer, observations)
+    if claim:
+        return claim
+    has_paid = any(isinstance(data.get("fee"), dict) and data["fee"].get("paid") is True
+                   for data in reads)
+    if _ACTION_DONE.search(answer) or _GUIDANCE_DONE.search(answer):
+        if not (has_paid and not re.search(r"호출|문의|목적지|예약|환불", answer)):
+            return "unsupported_action"
+    if _PAID.search(_NEGATED_DONE.sub("", answer)) and not has_paid:
+        return "unsupported_payment"
+
+    facts = set(_strings(entries))
+    # Accept a horizon that the user actually asked about; it is never a forecast.
+    request_horizons = {(m[1], m[2]) for m in _HORIZON.finditer(request)}
+    checked_answer = _HORIZON.sub(lambda m: "" if (m[1], m[2]) in request_horizons else m[0], answer)
+    allowed_numbers = _numbers(list(facts))
+    for m in _NUMBER.finditer(checked_answer):
+        if m[0].replace(",", "") not in allowed_numbers:
+            return "unsupported_number"
+    if any(not any(m[1].upper() in fact.upper() for fact in facts) for m in _SLOT.finditer(answer)):
+        return "unsupported_location"
+
+    lot_entries = [row for row in entries if row.get("lot_id")]
+    mentions = _mentions(answer)
+    if lot_entries:
+        lot_ids = {row["lot_id"] for row in lot_entries}
+        if any(lot not in lot_ids for _, lot in mentions):
+            return "unsupported_lot"
+    status_rows = [row for observation in observations
+                   if observation["tool"] in {"parking_status", "compare_lots"} and readable(observation)
+                   for row in observation["result"]["data"].get("rows") or [] if isinstance(row, Mapping)]
+    for claim in _FULL_CLAIM.finditer(answer):
+        preceding = [lot for start, lot in mentions if start <= claim.start()]
+        scoped = [row for row in status_rows if not preceding or row["lot_id"] == preceding[-1]]
+        if scoped and all(row.get("availability") == "available" for row in scoped):
+            return "contradictory_availability"
+    # 비교 숫자는 코드가 계산한 차이 값과만 맞춘다("1,000원 더 싸요"가 우연히 다른 값과 겹쳐 통과하지 않게).
+    diffs = {str(row[k]) for row in entries for k in _DIFF_KEYS if type(row.get(k)) is int}
+    diffs |= {n for row in entries for note in (row.get("notes") or []) if isinstance(note, str) for n in _numbers(note)}
+    # 'N분에 M원'은 같은 정책의 (기본 시간, 기본요금) 또는 (추가 단위, 추가요금) 짝이어야 한다.
+    pairs = set()
+    for row in entries:
+        if all(type(row.get(k)) is int for k in ("base_minutes", "base_fee")):
+            pairs.add((row.get("lot_id"), row["base_minutes"], row["base_fee"]))
+        if all(type(row.get(k)) is int for k in ("unit_minutes", "extra_fee")):
+            pairs.add((row.get("lot_id"), row["unit_minutes"], row["extra_fee"]))
+        for text in _strings(row):
+            for pm in _RATE_PAIR.finditer(text):
+                pairs.add((row.get("lot_id"), int(pm[1]), int(pm[2].replace(",", ""))))
+    for pm in _RATE_PAIR.finditer(answer):
+        preceding = [lot for start, lot in mentions if start <= pm.start()]
+        lot = preceding[-1] if preceding else None
+        wanted = (int(pm[1]), int(pm[2].replace(",", "")))
+        if not any((lot is None or row_lot in (None, lot)) and (minutes, fee) == wanted for row_lot, minutes, fee in pairs):
+            return "mismatched_rate"
+    # Bind a displayed operational quantity to its preceding lot when its row is
+    # available. This catches reassigning D's fee or count to C in a comparison.
+    for m in _CLAIM_UNITS.finditer(answer):
+        value = m[1].replace(",", "")
+        if _COMPARE_AFTER.match(answer, m.end()) or _COMPARE_BEFORE.search(answer[max(0, m.start() - 8):m.start()]):
+            if value not in diffs:
+                return "mismatched_lot_value"
+            continue
+        preceding = [lot for start, lot in mentions if start <= m.start()]
+        if not preceding:
+            continue
+        selected = [row for row in lot_entries if row["lot_id"] == preceding[-1]]
+        if selected and value not in _numbers(selected):
+            return "mismatched_lot_value"
+    return None

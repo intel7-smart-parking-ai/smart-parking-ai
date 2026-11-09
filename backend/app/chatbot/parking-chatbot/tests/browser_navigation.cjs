@@ -35,7 +35,7 @@ const{chromium}=require('playwright');const assert=require('node:assert/strict')
   assert.equal(await p.locator('.row.bot').filter({hasText:'경보가 발생했어요'}).count(),n);
   console.log('PASS unchanged destination problem does not duplicate notification');
   await ctx.request.post(api+'/demo/alert',{data:{level:0}});await p.evaluate(()=>poll());
-  await send('33번 차 위치');await send('네');
+  await send('33번 차 위치');
   assert.equal(await p.locator('#destinationContext').isHidden(),true);
   console.log('PASS parked vehicle ends destination monitoring');
   assert.deepEqual(errors,[]);console.log('PASS no browser runtime errors in new flows');

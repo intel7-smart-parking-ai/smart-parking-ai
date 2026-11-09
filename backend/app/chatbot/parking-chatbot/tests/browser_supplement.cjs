@@ -14,7 +14,7 @@ const {chromium}=require('playwright');const assert=require('node:assert/strict'
   console.log('PASS uncertain demo button and separate count render');
   await ctx.request.post(api+'/demo/uncertain',{data:{lot_id:'D',spot_no:1,uncertain:false}});
   await p.click('#panelBtn');await p.click('#unrecognizedEnter');await p.waitForTimeout(150);await p.click('#closePanel');
-  await send('99번 차 위치');await send('네');
+  await send('99번 차 위치');
   const candidate=p.locator('#chips [data-chip^="candidate:"]');assert.equal(await candidate.count(),1);await candidate.click();await p.waitForFunction(()=>!busy);
   assert.ok((await p.locator('.row.bot').last().innerText()).includes('후보 위치'));
   await send('결제할게요');assert.ok((await p.locator('.row.bot').last().innerText()).includes('관리자 확인 후'));

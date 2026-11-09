@@ -29,7 +29,7 @@ class SupplementTests(unittest.TestCase):
             self.assertIn('들어오지',m['safety']['guidance'])
 
     def test_briefing_charge_zone_and_electric_adjacent(self):
-        e.data.set_alert(2,'C',10);e.current_alert()  # A-10 옆 A-11 전기차 57
+        e.data.set_alert(2,'C',10);e.current_alert()  # A-10 옆 A-09 전기차 57
         b=incidents.list_public()[0]['briefing']
         self.assertIn('57번 · 전기차',' / '.join(b['adjacent']))
         self.assertIn('질식소화덮개',b['equipment'])
@@ -98,8 +98,7 @@ class SupplementTests(unittest.TestCase):
 
     def suggest(self,count=1):
         for _ in range(count):self.assertTrue(e.data.enter_unrecognized('D')['ok'])
-        e.handle('s',text='99번 차 위치')
-        return e.handle('s',text='네')
+        return e.handle('s',text='99번 차 위치')
 
     def test_unrecognized_one_candidate_two_actions_and_no_auto_link(self):
         r=self.suggest()
@@ -156,7 +155,7 @@ class SupplementTests(unittest.TestCase):
 
     def test_unrecognized_mock_filler_is_not_a_candidate(self):
         e.data.enter_car('D');e.data.fill_lot('D')
-        e.handle('s',text='99번 차 위치');r=e.handle('s',text='네')
+        r=e.handle('s',text='99번 차 위치')
         self.assertIsNone(r['card']);self.assertIn('입차 기록이 없',r['text'])
 
     def test_unrecognized_candidate_is_not_shown_during_lv2(self):

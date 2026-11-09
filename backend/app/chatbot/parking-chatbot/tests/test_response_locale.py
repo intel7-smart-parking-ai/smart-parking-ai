@@ -2,8 +2,11 @@ from copy import deepcopy
 import json
 import unittest
 from unittest.mock import patch
-from fastapi import FastAPI
-from fastapi.testclient import TestClient
+try:
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+except ImportError:  # 다른 FastAPI 검사처럼 미설치 환경에서는 건너뛴다.
+    raise unittest.SkipTest("FastAPI not installed")
 from chatbot import response_locale as locale, http_router
 
 class ResponseLocaleTests(unittest.TestCase):

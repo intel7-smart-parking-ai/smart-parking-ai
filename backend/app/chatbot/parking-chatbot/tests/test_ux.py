@@ -14,7 +14,7 @@ class UXTests(unittest.TestCase):
         e.reset_all()
 
     def test_context_recovers_after_exit_and_failure(self):
-        e.handle("s", text="33번 차 위치"); r = e.handle("s", text="네")
+        r = e.handle("s", text="33번 차 위치")
         self.assertEqual(r["vehicle_context"]["spot_no"], 7)
         e.data.exit_car("33")
         self.assertEqual(e.updates("s")["vehicle_context"]["state"], "not_found")
@@ -22,9 +22,8 @@ class UXTests(unittest.TestCase):
             self.assertEqual(e.updates("s")["vehicle_context"]["state"], "unavailable")
 
     def test_position_card_and_context_share_one_read(self):
-        e.handle("s", text="33번 차 위치")
         with patch.object(e.data, "find_car", wraps=e.data.find_car) as read:
-            r = e.handle("s", text="네")
+            r = e.handle("s", text="33번 차 위치")
         self.assertEqual(read.call_count, 1)
         self.assertEqual(r["card"]["data"]["spot_no"], r["vehicle_context"]["spot_no"])
 

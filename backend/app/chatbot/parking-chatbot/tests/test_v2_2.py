@@ -10,14 +10,15 @@ from unittest.mock import patch
 
 from chatbot import config, engine as e, parser, templates as T
 from chatbot.adapters import CachedAdapter, MockAdapter
+from chatbot.agents import AgentResult
+from tests.test_llm_router import admin_proposal, conversation_reply
 
 
 class AdminSuggestionTests(unittest.TestCase):
     def setUp(self):
-        for p in (patch.object(e, 'data', CachedAdapter(MockAdapter())),
-                  patch.object(config, 'LLM_ENGINE', 'langchain'),
-                  patch('chatbot.llm_router.route', return_value={'intent':'call_admin','params':{}})):
-            p.start(); self.addCleanup(p.stop)
+        self.enterContext(patch.object(e, 'data', CachedAdapter(MockAdapter())))
+        self.invoke = self.enterContext(conversation_reply(
+            lambda text, *_: admin_proposal() if text == '뿌잉' else AgentResult(status='ungrounded')))
         e.reset_all()
 
     def suggest(self, sid='s', **kwargs):
@@ -44,6 +45,15 @@ class AdminSuggestionTests(unittest.TestCase):
         self.assertEqual(first['card']['type'],'admin_call')
         self.assertEqual(first['card'],replay['card'])
         self.assertTrue(replay['meta']['replayed'])
+
+    def test_admin_cost_questions_do_not_register_or_propose_call(self):
+        for question in ("관리자 부르면 돈 들어?", "관리자 불러도 돈 들어요?", "관리자 호출하면 돈 들어요?"):
+            with self.subTest(question=question):
+                reply = e.handle('s', text=question)
+                self.assertEqual(reply['meta']['intent'], 'admin_help')
+                self.assertIsNone(reply['card'])
+        self.invoke.assert_not_called()
+        self.assertEqual(e.admin_calls(), [])
 
     def test_rule_request_still_registers_immediately(self):
         got=e.handle('s',text='관리자 불러줘')
@@ -114,9 +124,8 @@ class AdminSuggestionTests(unittest.TestCase):
 
     def test_lv2_bypasses_llm_but_explicit_rule_and_chip_calls_work(self):
         e.data.set_alert(2,'A',6)
-        with patch('chatbot.llm_router.route') as route:
-            self.suggest()
-            route.assert_not_called()
+        self.suggest()
+        self.invoke.assert_not_called()
         self.assertEqual(e.admin_calls(),[])
         for sid,kwargs in (('rule',{'text':'관리자 불러줘'}),('chip',{'chip_id':'call_admin'})):
             got=e.handle(sid,**kwargs)

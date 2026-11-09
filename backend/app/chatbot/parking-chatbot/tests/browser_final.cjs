@@ -33,7 +33,7 @@ const{chromium}=require('playwright');const assert=require('node:assert/strict')
   const restricted=p.locator('.row.bot').filter({hasText:'김해공항 주차장을 지금 이용할 수 없게 됐어요. (점검 중)'}).last();await restricted.waitFor();
   console.log('PASS panel restriction notifies with plain wording');
   await panel();await p.click('#restrictOff');await p.fill('#enterVehicle','14');await p.selectOption('#dLot','A');
-  await send('14번 차 위치');await send('네');
+  await send('14번 차 위치');
   await p.click('#enterVehicleBtn');await p.waitForTimeout(250);await closePanel();await poll();
   assert.equal(await p.locator('#destinationContext').isHidden(),true);
   console.log('PASS selected vehicle entry ends destination monitoring');

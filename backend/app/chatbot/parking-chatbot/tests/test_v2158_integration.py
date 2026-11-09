@@ -76,10 +76,12 @@ class ReceiptHTTPTests(unittest.TestCase):
             return status,value,headers
         return patch.object(self.api,'_request',side_effect=request)
 
-    def test_short_location_still_confirms_vehicle(self):
+    def test_short_location_reads_explicit_vehicle_once_without_confirmation(self):
         response=e.handle('s',text='11번 위치')
-        self.assertEqual(response['flow'],'confirm_vehicle')
-        self.assertIsNone(response['card'])
+        self.assertEqual(response['flow'],'idle')
+        self.assertEqual(response['card']['data']['car_id'],'11')
+        self.assertIsNone(response['confirmation_token'])
+        self.assertEqual(self.requests.count(('GET','/api/v1/vehicles/11/location',None)),1)
 
     def test_fee_and_payment_requery_restore_existing_receipt_without_post(self):
         with self.fee_receipt():
