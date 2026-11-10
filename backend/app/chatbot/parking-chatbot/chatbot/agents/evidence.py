@@ -164,6 +164,8 @@ _REFUSAL = re.compile(r"(?:확인|안내|알려|답|도와|제공)\S*\s*(?:드�
 _OFFER = re.compile(r"(?:확인|조회|안내|알려|도와|찾아)\S*\s*(?:드릴|드려\s*볼|볼)?\s*수\s*(?:있어요|있습니다)")
 
 
+# '아래 버튼을 누르면 출차를 진행할 수 있어요', '차단기를 열어 드릴게요' — 챗봇에 없는 기능(봇 점검 11/10 🟠2)
+_EXIT_CLAIM = re.compile(r"출차(?:를|가)?\s*(?:진행|처리|도와|해\s*드|시켜|완료)|차단기.{0,8}(?:열|올리|올려)|출구(?:를)?\s*(?:열어|개방해)|\[\s*출차")
 # 장소의 위치·방향 주장('영화관 방향 표시는 몰 쪽 A·C구역', '영화관은 2층')
 _PLACE_CLAIM = re.compile(r"구역|쪽|방향|층|근처|가까|위치|옆|앞|건너|표시")
 
@@ -195,6 +197,7 @@ REPAIR_HINTS = {
     "missing_goal": "질문에서 요청한 정보 중 일부를 조회하지 않았습니다.",
     "no_evidence": "조회 없이 빈자리·요금·추천 같은 운영 정보를 말했습니다. 목적에 맞는 주차장(주차장 성격 참고)을 parking_status나 compare_lots로 먼저 조회한 뒤 그 값으로 답하세요. 인사나 범위 밖 질문이면 운영 정보 없이 짧게 답하세요.",
     "empty_answer": "답이 비어 있습니다. 질문에 맞는 조회를 한 뒤 사용자에게 보일 답을 쓰세요.",
+    "unsupported_exit": "출차·차단기 개방·입출차 처리는 챗봇이 할 수 없습니다. 결제가 끝났으면 '출구에서 현장 안내를 따라 주세요'라고 하고, 버튼 이름을 본문에 쓰지 마세요.",
     "unsupported_place": "안내 자료에 없는 장소(not_in_guide)의 위치·방향·가까운 구역을 말했습니다. 그 장소는 '안내 자료에 없어요'라고만 하고, 조회한 빈자리나 자료에 있는 시설(엘리베이터 등)로 도우세요.",
 }
 
@@ -231,6 +234,9 @@ def check_answer(answer, request, observations):
     if any(not any(m[1].upper() in fact.upper() for fact in facts) for m in _SLOT.finditer(answer)):
         return "unsupported_location"
 
+    for sentence in re.split(r"(?<=[.!?。])\s+|\n+", answer):
+        if _EXIT_CLAIM.search(sentence) and not re.search(r"수\s*없|못\s*해|못합|어려|불가|않", sentence):
+            return "unsupported_exit"
     missing_places = {place for observation in observations
                       if observation["tool"] == "search_knowledge" and readable(observation)
                       for place in observation["result"]["data"].get("not_in_guide") or []}

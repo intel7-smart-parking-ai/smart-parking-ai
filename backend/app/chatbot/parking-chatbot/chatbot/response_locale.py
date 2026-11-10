@@ -75,8 +75,12 @@ def _restore(text, masked, replacements):
     # 'N spaces vacant spaces' → 'N vacant spaces', 'N spaces spaces' → 'N spaces'(봇 점검 11/10 15:55)
     restored = re.sub(r"(\d[\d,]*) spaces?\s+((?:(?:available|empty|free|open|parking|vacant|unoccupied|remaining)\s+)*)spaces?\b",
                       lambda m: f"{m[1]} {m[2]}spaces", restored)
-    restored = re.sub(r"(\d[\d,]*个车位)\s*个?(?:空)?车位", r"\1", restored)
+    # '34个车位 个空余车位' → '34个空余车位', '33个车位 个空车位' → '33个空车位'(봇 점검 11/10 16:40)
+    restored = re.sub(r"(\d[\d,]*)个车位\s*个?((?:空余|空闲|空置|可用|剩余|空)?)(?:的)?车位",
+                      lambda m: f"{m[1]}个{m[2]}车位", restored)
     restored = re.sub(r"(\d[\d,]*台)\s*(?:分)?台", r"\1", restored)
+    restored = re.sub(r"(\d[\d,]*台)\s*(?:の)?\s*(空き)?\s*(?:台|スペース)(?=[^ぁ-んァ-ヶ一-鿿]|$|が|は|を|あ)",
+                      lambda m: m[1] + ("分の空き" if m[2] else ""), restored)
     return restored
 
 
