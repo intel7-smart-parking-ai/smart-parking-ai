@@ -349,6 +349,18 @@ class LiveSession:
                 else:
                     changes.append(event)
                 sent[key]=(seq,signature,tick,packet['received'])
+            # Occupancy and LED heartbeats run on separate 1s timers. Sending a
+            # lit car's occupancy alone lets a newer frame hide its older LED on
+            # the receiver, so the same-frame mock fire always travels with it.
+            chosen={id(e) for e in changes+heartbeats}
+            car_fires={e['space_id']:e for e in events if is_vehicle_fire(e)}
+            for event in list(changes+heartbeats):
+                fire=car_fires.get(event['space_id']) if event['event_type']=='vehicle_observed' else None
+                if fire is None or id(fire) in chosen:continue
+                heartbeats.append(fire);chosen.add(id(fire))
+                fire_key=(scope,fire['space_id'],True)
+                sent[fire_key]=(packet['sequence'],(fire['event_type'],True,fire['car_id'],fire['vehicle_type'],True),
+                                now,packet['received'])
             batch=changes+heartbeats
             if batch:
                 try:self.transport.offer(batch,partial(self._valid_event,source_camera=camera))

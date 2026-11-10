@@ -127,6 +127,44 @@ class UnattendedSendTests(unittest.TestCase):
         self.assertIsNone(live.send_stopped)
 
 
+class LitCarPairingTests(unittest.TestCase):
+    """A lit car's occupancy heartbeat never leaves its same-frame mock fire behind (field A-05 flicker)."""
+
+    def test_occupancy_heartbeat_carries_same_frame_fire(self):
+        import time
+        from unittest.mock import patch
+        from web_live.tests import test_round29
+        case = test_round29.ChangedBayTests('test_moves_only_send_changed_bays_and_cannot_retry_old_positions')
+        case.setUp()
+        self.addCleanup(case.doCleanups)
+        light = dict(state='confirmed', location='space', space_id='A-01', method='red_emission',
+                     confidence=.95, bbox_xyxy=[20, 20, 30, 30])
+
+        def lit(sequence):
+            case.frame(sequence, occupied=[0])
+            result = case.live.results['1']
+            result['fire_lights'] = [dict(light)]
+            result['spaces'][0].update(fire_led=dict(light), sticker_bbox=[10, 10, 40, 40])
+
+        lit(1)
+        first = case.offer()
+        self.assertTrue(any(is_vehicle_fire(e) for e in first))
+        # Desynchronise the two heartbeat timers: occupancy due, LED not yet due.
+        for key, value in list(case.sent.items()):
+            if key[2]:
+                case.sent[key] = (value[0], value[1], time.monotonic() + 5, value[3])
+        lit(2)
+        later = time.monotonic() + 1.01
+        case.live.hub.packets['1']['received'] = later
+        with patch('web_live.live.time.monotonic', return_value=later):
+            batch = case.offer()
+        occupancy = [e for e in batch if e['event_type'] == 'vehicle_observed' and e['space_id'] == 'A-01']
+        fire = [e for e in batch if is_vehicle_fire(e)]
+        self.assertTrue(occupancy)
+        self.assertEqual([(e['space_id'], e['frame_id']) for e in fire],
+                         [('A-01', occupancy[0]['frame_id'])])
+
+
 class RejectionCodeTests(unittest.TestCase):
     def test_exit_review_and_store_full_are_kept(self):
         from web_live.transport import KNOWN_REJECTION_CODES
