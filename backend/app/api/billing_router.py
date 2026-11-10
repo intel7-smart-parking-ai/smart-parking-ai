@@ -124,9 +124,11 @@ def get_mock_payments(
     lot_id: Optional[str] = Query(None, description="주차장 ID 필터"),
     status: Optional[Literal["completed", "canceled"]] = Query(None, description="결제 상태 필터"),
     car_id: Optional[str] = Query(None, description="차량 번호 필터 (실물 스티커 두 자리, 예: '27')"),
+    limit: Optional[int] = Query(None, ge=1, le=1000, description="최신 결제 조회 건수"),
+    date: Optional[str] = Query(None, pattern=r"^\d{4}-\d{2}-\d{2}$", description="결제일(한국 시간)"),
     conn: sqlite3.Connection = Depends(get_db_conn),
 ) -> JSONResponse:
-    return _list_response(list_mock_payments(conn, lot_id, status, car_id))
+    return _list_response(list_mock_payments(conn, lot_id, status, car_id, limit=limit, payment_day=date))
 
 
 # [API 2-2] GET /api/v1/rate-policies

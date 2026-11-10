@@ -14,6 +14,11 @@ from typing import Iterator
 
 DEFAULT_DB_PATH = Path(__file__).resolve().parents[3] / "data" / "smart_parking.db"
 
+KST_PAYMENT_HOUR_SQL = """CASE WHEN substr(created_at, -1) IN ('Z','z')
+    OR substr(created_at, -6, 1) IN ('+','-')
+    THEN strftime('%Y-%m-%dT%H', created_at, '+9 hours')
+    ELSE replace(substr(created_at, 1, 13), ' ', 'T') END"""
+
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS parking_lots (
     lot_id        TEXT PRIMARY KEY,
@@ -37,6 +42,10 @@ CREATE TABLE IF NOT EXISTS parking_sessions (
     entry_at      TEXT NOT NULL,
     exit_at       TEXT,
     status        TEXT CHECK (status IN ('active', 'closed'))  -- 주차 중 / 출차 완료 (D-02)
+);
+CREATE TABLE IF NOT EXISTS session_vehicle_plates (
+    session_id TEXT PRIMARY KEY REFERENCES parking_sessions(session_id),
+    plate_number TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS mock_payments (
     payment_id      TEXT PRIMARY KEY,
@@ -72,6 +81,15 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     created_at  TEXT NOT NULL
 );
 """
+
+
+def demo_history_cutoff(conn: sqlite3.Connection) -> str | None:
+    if not conn.execute(
+        "SELECT 1 FROM sqlite_schema WHERE type='table' AND name='demo_metadata'"
+    ).fetchone():
+        return None
+    row = conn.execute("SELECT value FROM demo_metadata WHERE key='visible_through_kst'").fetchone()
+    return row[0] if row else None
 
 
 def init_schema(conn: sqlite3.Connection) -> None:

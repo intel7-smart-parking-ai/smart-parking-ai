@@ -74,23 +74,14 @@ class FewshotTests(unittest.TestCase):
         self.assertEqual(e.admin_calls(),[])
 
     @unittest.skipUnless(HAS_MESSAGES,"선택 LangChain 메시지 패키지 미설치")
-    def test_examples_and_model_admin_choice_never_register_a_call(self):
+    def test_examples_and_model_choices_are_classification_only(self):
         config.LLM_FEWSHOT = True
-        self.model.intent = "call_admin"
-        with patch.object(e.data,"pay",side_effect=AssertionError("must not pay")):
-            result=e.handle("proposal",text="합성 요청")
-        self.assertTrue(result["meta"]["admin_suggestion"])
+        for intent in ("call_admin", "pay_fee"):
+            self.model.intent = intent
+            with patch.object(e.data,"pay",side_effect=AssertionError("must not pay")):
+                result=router.route("합성 요청")
+            self.assertEqual(result, {"intent": intent, "params": {}})
         self.assertEqual(e.admin_calls(),[])
-
-    @unittest.skipUnless(HAS_MESSAGES,"선택 LangChain 메시지 패키지 미설치")
-    def test_model_payment_choice_still_requires_amount_confirmation(self):
-        e.handle("payment",text="33번 차 어디 있어?")
-        e.handle("payment",text="네")
-        config.LLM_FEWSHOT = True
-        self.model.intent = "pay_fee"
-        with patch.object(e.data,"pay",side_effect=AssertionError("must not pay")):
-            result=e.handle("payment",text="합성 납부 요청")
-        self.assertEqual(result["flow"],"confirm_action")
         self.assertFalse(e.data.get_fee("33")["paid"])
 
     def test_level_two_does_not_call_the_classifier_even_when_enabled(self):

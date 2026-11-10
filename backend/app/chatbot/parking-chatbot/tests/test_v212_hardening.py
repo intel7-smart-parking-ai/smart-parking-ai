@@ -6,7 +6,7 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
-from chatbot import adapters, config, engine, llm_limits, llm_router
+from chatbot import adapters, agents, config, engine, llm_limits, llm_router
 from tests import test_api_contract as wire, test_llm_router as fake
 
 
@@ -116,42 +116,76 @@ class LlmLimitTests(unittest.TestCase):
         engine.reset_all()
         self.addCleanup(engine.reset_all)
 
-    def ask(self, session, text):
-        return engine.handle(session, text=text)
+    def classify(self, session, text):
+        token = llm_limits.session_id.set(session)
+        try:
+            return llm_router.route(text)
+        finally:
+            llm_limits.session_id.reset(token)
+
+    def test_legacy_cache_normalizes_text_but_never_executes_admin(self):
+        first = self.classify("one", "ＲＥＳＵＬＴ  PLEASE")
+        second = self.classify("two", "result please")
+        self.assertEqual(self.model.calls, 1)
+        self.assertEqual(first, {"intent": "call_admin", "params": {}})
+        self.assertEqual(second, first)
+        self.assertEqual(engine.ADMIN_CALLS, [])
+
+    def test_failed_classification_is_not_cached(self):
+        self.model.response = SimpleNamespace(tool_calls=[])
+        self.assertIsNone(self.classify("one", "vague phrase"))
+        self.assertIsNone(self.classify("one", "vague phrase"))
+        self.assertEqual(self.model.calls, 2)
+
+
+@unittest.skipUnless(importlib.util.find_spec("langchain"), "optional LangChain not installed")
+class AgentLimitTests(unittest.TestCase):
+    def setUp(self):
+        from langchain_core.messages import AIMessage
+        from tests.test_agent_runtime_v3 import ScriptedModel
+
+        # A response without observations is rejected, but the provider attempt still costs quota.
+        self.model = ScriptedModel([AIMessage(content="추가 정보가 필요해요.") for _ in range(20)])
+        for target, attr, value in (
+            (engine, "data", adapters.CachedAdapter(adapters.MockAdapter())),
+            (config, "LLM_ENGINE", "langchain"),
+            (config, "LLM_PROVIDER", "openrouter"),
+            (config, "LLM_MODEL", "test-only"),
+            (config, "api_key", lambda _: "test-only"),
+            (llm_limits, "limits", llm_limits.RouteLimits()),
+            (agents.conversation, "_provider_model", lambda _: self.model),
+        ):
+            self.enterContext(patch.object(target, attr, value))
+        engine.reset_all()
+        self.addCleanup(engine.reset_all)
 
     def test_session_limit_and_fallback(self):
-        before = llm_router.stats()["counts"]["rate_limited"]
-        for i in range(6):
-            result = self.ask("limited", "뿌잉" + "ㅋ" * i)
-        self.assertEqual(self.model.calls, 5)
+        before = agents.stats()["counts"].get("rate_limited", 0)
+        with patch.object(config, "LLM_MAX_PER_SESSION_MIN", 5):
+            for i in range(6):
+                result = engine.handle("limited", text="뿌잉" + "ㅋ" * i)
+        self.assertEqual(len(self.model._received), 5)
         self.assertEqual(result["meta"]["source"], "none")
-        self.assertEqual(llm_router.stats()["counts"]["rate_limited"], before + 1)
+        self.assertEqual(agents.stats()["counts"]["rate_limited"], before + 1)
 
     def test_global_daily_and_unlimited_daily(self):
         for global_max, daily_max, expected in ((2, 0, 2), (30, 2, 2), (30, 0, 3)):
             with (patch.object(config, "LLM_MAX_PER_MIN", global_max),
                   patch.object(config, "LLM_MAX_PER_DAY", daily_max),
                   patch.object(llm_limits, "limits", llm_limits.RouteLimits())):
-                calls = self.model.calls
+                calls = len(self.model._received)
                 for i in range(3):
-                    self.ask(f"limited{i}", "뿌잉" + "ㅋ" * i)
-                self.assertEqual(self.model.calls - calls, expected)
+                    engine.handle(f"limited{i}", text="뿌잉" + "ㅋ" * i)
+                self.assertEqual(len(self.model._received) - calls, expected)
 
-    def test_cache_normalizes_text_but_never_executes_admin(self):
-        first = self.ask("one", "ＲＥＳＵＬＴ  PLEASE")
-        second = self.ask("two", "result please")
-        self.assertEqual(self.model.calls, 1)
-        self.assertTrue(first["meta"]["admin_suggestion"] and second["meta"]["admin_suggestion"])
-        self.assertEqual(engine.ADMIN_CALLS, [])
-
-    def test_failed_result_is_not_cached_and_lv2_does_not_invoke(self):
-        self.model.response = SimpleNamespace(tool_calls=[])
-        self.ask("one", "vague phrase")
-        self.ask("one", "vague phrase")
-        self.assertEqual(self.model.calls, 2)
+    def test_failed_answer_is_not_cached_and_lv2_does_not_invoke(self):
+        engine.handle("one", text="vague phrase")
+        engine.handle("one", text="vague phrase")
+        self.assertEqual(len(self.model._received), 2)
         engine.data.set_alert(2, "A", 6)
-        self.ask("one", "vague phrase")
-        self.assertEqual(self.model.calls, 2)
+        result = engine.handle("one", text="vague phrase")
+        self.assertEqual(len(self.model._received), 2)
+        self.assertIsNotNone(result["safety"])
 
 
 @unittest.skipUnless(all(importlib.util.find_spec(name) for name in ("fastapi", "httpx")),

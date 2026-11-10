@@ -1,0 +1,2262 @@
+{
+  "version": "0.1",
+  "status": "draft_not_connected",
+  "created": "2026-11-06",
+  "scope": "fictional_project_scenario",
+  "recovery_note": "기존 대화의 복원 요약과 기준 Git 커밋 86c30692379f474bf54947efa0df22e9b96d7aa2에서 재구성했습니다. 원본 파일의 바이트 단위 복원이 아닙니다.",
+  "sources": [
+    {
+      "type": "repository",
+      "path": "backend/app/chatbot/parking-chatbot/chatbot/lots.json",
+      "scope": "lot names, space IDs, space types only"
+    },
+    {
+      "type": "project_scenario_proposal",
+      "scope": "facility placement, environment, preference ranking"
+    }
+  ],
+  "interpretation_rules": [
+    "별칭 목록과 의미 예시는 이해를 돕는 자료이며 고정 문자열 일치 규칙이 아닙니다.",
+    "현재 질문의 부정·정정 표현이 이전 맥락보다 우선합니다.",
+    "실시간 공실·차량 위치·요금은 API에서 새로 조회합니다.",
+    "주차칸과 시설의 가까움은 상대적 설정이며 정확한 거리·안전한 경로를 뜻하지 않습니다."
+  ],
+  "lots": [
+    {
+      "lot_id": "A",
+      "name": "개발원주차장",
+      "capacity": 12,
+      "environment": "outdoor",
+      "floor": "지상 1층",
+      "environment_evidence": "project_scenario_proposal",
+      "description": "프로젝트 시연용 가상 시설 설정입니다. 실제 동명의 장소 정보가 아닙니다.",
+      "operating_hours": null,
+      "height_limit_m": null,
+      "sprinkler": null,
+      "covered_building_connection": null,
+      "parking_discount": null,
+      "charger_connector": null,
+      "charger_power_kw": null,
+      "charger_live_status_available": false,
+      "spaces": [
+        {
+          "space_id": "A-01",
+          "space_type": "general",
+          "features": [
+            "끝 칸"
+          ],
+          "evidence": "project_scenario_proposal",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-02",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-03",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-04",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-05",
+          "space_type": "ev",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-06",
+          "space_type": "ev",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-01",
+          "space_type": "general",
+          "features": [
+            "끝 칸"
+          ],
+          "evidence": "project_scenario_proposal",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-02",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-03",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-04",
+          "space_type": "general",
+          "features": [
+            "교육동 계단 가까움"
+          ],
+          "evidence": "project_scenario_proposal",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-05",
+          "space_type": "general",
+          "features": [
+            "교육동 출입구 가까움"
+          ],
+          "evidence": "project_scenario_proposal",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-06",
+          "space_type": "accessible",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        }
+      ],
+      "facilities": [
+        {
+          "facility_id": "A_education",
+          "name": "교육동 출입구",
+          "type": "entrance",
+          "nearby_space_ids": [
+            "B-05",
+            "B-04",
+            "B-03",
+            "A-04"
+          ],
+          "description": "프로젝트 설정상 교육동 출입구 부근에 B-05, B-04, B-03, A-04 칸이 있습니다. 실제 거리·동선·운영 상태는 미확인입니다.",
+          "evidence": "project_scenario_proposal",
+          "operating_status": null
+        },
+        {
+          "facility_id": "A_stairs",
+          "name": "교육동 계단",
+          "type": "stairs",
+          "nearby_space_ids": [
+            "B-04",
+            "B-03"
+          ],
+          "description": "프로젝트 설정상 교육동 계단 부근에 B-04, B-03 칸이 있습니다. 실제 거리·동선·운영 상태는 미확인입니다.",
+          "evidence": "project_scenario_proposal",
+          "operating_status": null
+        },
+        {
+          "facility_id": "A_restroom",
+          "name": "교육동 화장실",
+          "type": "restroom",
+          "nearby_space_ids": [
+            "B-05",
+            "B-04"
+          ],
+          "description": "프로젝트 설정상 교육동 화장실 부근에 B-05, B-04 칸이 있습니다. 실제 거리·동선·운영 상태는 미확인입니다.",
+          "evidence": "project_scenario_proposal",
+          "operating_status": null
+        },
+        {
+          "facility_id": "A_assembly",
+          "name": "옥외 집결지 후보",
+          "type": "assembly_point",
+          "nearby_space_ids": [],
+          "description": "프로젝트 설정상의 집결지 후보입니다. 정확한 위치와 실제 대피소 지정 여부는 미확인입니다.",
+          "evidence": "project_scenario_proposal",
+          "operating_status": null
+        }
+      ],
+      "recommendations": [
+        {
+          "destination_id": "A_education",
+          "ranked_general_space_ids": [
+            "B-05",
+            "B-04",
+            "B-03",
+            "A-04"
+          ],
+          "reason": "프로젝트 설정의 시설 인접도 순서입니다. 실측 거리나 이동시간 순위가 아닙니다.",
+          "evidence": "project_scenario_proposal",
+          "distance_m": null,
+          "walk_minutes": null
+        },
+        {
+          "destination_id": "A_stairs",
+          "ranked_general_space_ids": [
+            "B-04",
+            "B-03",
+            "B-02"
+          ],
+          "reason": "프로젝트 설정의 시설 인접도 순서입니다. 실측 거리나 이동시간 순위가 아닙니다.",
+          "evidence": "project_scenario_proposal",
+          "distance_m": null,
+          "walk_minutes": null
+        }
+      ],
+      "emergency": {
+        "assembly_point_id": "A_assembly",
+        "verified_shelter": null,
+        "extinguisher_locations": null,
+        "hydrant_locations": null,
+        "route_safety_live_available": false
+      },
+      "language_profile": {
+        "types": [
+          "교육시설 주차장",
+          "교육원 주차장"
+        ],
+        "related_places": [
+          "개발원",
+          "교육동"
+        ],
+        "purposes": [
+          "교육 참석",
+          "수업",
+          "연수"
+        ],
+        "semantic_examples": [
+          "교육받으러 왔는데 어디 세워?",
+          "교육원 주차장 자리 있어?"
+        ],
+        "ambiguous_examples": [
+          "학교 주차장",
+          "학원 근처"
+        ],
+        "name_variants": [
+          "개발원주차장",
+          "개발원",
+          "개발원 주차장",
+          "에이"
+        ],
+        "interpretation_policy": "명시적 장소와 부정 표현을 우선하고 최근 확인된 맥락을 사용합니다. 후보가 여러 개거나 명시된 다른 장소와 충돌하면 확인 질문합니다. 등록되지 않은 실존 장소를 임의로 대응시키지 않습니다."
+      }
+    },
+    {
+      "lot_id": "B",
+      "name": "부산역주차장",
+      "capacity": 16,
+      "environment": "outdoor",
+      "floor": "지상 1층",
+      "environment_evidence": "project_scenario_proposal",
+      "description": "프로젝트 시연용 가상 시설 설정입니다. 실제 동명의 장소 정보가 아닙니다.",
+      "operating_hours": null,
+      "height_limit_m": null,
+      "sprinkler": null,
+      "covered_building_connection": null,
+      "parking_discount": null,
+      "charger_connector": null,
+      "charger_power_kw": null,
+      "charger_live_status_available": false,
+      "spaces": [
+        {
+          "space_id": "A-01",
+          "space_type": "general",
+          "features": [
+            "끝 칸"
+          ],
+          "evidence": "project_scenario_proposal",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-02",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-03",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-04",
+          "space_type": "general",
+          "features": [
+            "역사 출입구 가까움"
+          ],
+          "evidence": "project_scenario_proposal",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-05",
+          "space_type": "general",
+          "features": [
+            "역사 연결 엘리베이터 가까움"
+          ],
+          "evidence": "project_scenario_proposal",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-06",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-07",
+          "space_type": "ev",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-08",
+          "space_type": "ev",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-01",
+          "space_type": "general",
+          "features": [
+            "끝 칸"
+          ],
+          "evidence": "project_scenario_proposal",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-02",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-03",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-04",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-05",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-06",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-07",
+          "space_type": "accessible",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-08",
+          "space_type": "accessible",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        }
+      ],
+      "facilities": [
+        {
+          "facility_id": "B_station",
+          "name": "부산역 역사 출입구",
+          "type": "entrance",
+          "nearby_space_ids": [
+            "A-04",
+            "A-05",
+            "A-03",
+            "A-06"
+          ],
+          "description": "프로젝트 설정상 부산역 역사 출입구 부근에 A-04, A-05, A-03, A-06 칸이 있습니다. 실제 거리·동선·운영 상태는 미확인입니다.",
+          "evidence": "project_scenario_proposal",
+          "operating_status": null
+        },
+        {
+          "facility_id": "B_elevator",
+          "name": "역사 연결 엘리베이터",
+          "type": "elevator",
+          "nearby_space_ids": [
+            "A-05",
+            "A-04",
+            "A-06"
+          ],
+          "description": "프로젝트 설정상 역사 연결 엘리베이터 부근에 A-05, A-04, A-06 칸이 있습니다. 실제 거리·동선·운영 상태는 미확인입니다.",
+          "evidence": "project_scenario_proposal",
+          "operating_status": null
+        },
+        {
+          "facility_id": "B_stairs",
+          "name": "역사 연결 계단",
+          "type": "stairs",
+          "nearby_space_ids": [
+            "A-03",
+            "A-04"
+          ],
+          "description": "프로젝트 설정상 역사 연결 계단 부근에 A-03, A-04 칸이 있습니다. 실제 거리·동선·운영 상태는 미확인입니다.",
+          "evidence": "project_scenario_proposal",
+          "operating_status": null
+        },
+        {
+          "facility_id": "B_restroom",
+          "name": "역사 방향 화장실",
+          "type": "restroom",
+          "nearby_space_ids": [
+            "A-04",
+            "A-05"
+          ],
+          "description": "프로젝트 설정상 역사 방향 화장실 부근에 A-04, A-05 칸이 있습니다. 실제 거리·동선·운영 상태는 미확인입니다.",
+          "evidence": "project_scenario_proposal",
+          "operating_status": null
+        },
+        {
+          "facility_id": "B_assembly",
+          "name": "옥외 집결지 후보",
+          "type": "assembly_point",
+          "nearby_space_ids": [],
+          "description": "프로젝트 설정상의 집결지 후보입니다. 정확한 위치와 실제 대피소 지정 여부는 미확인입니다.",
+          "evidence": "project_scenario_proposal",
+          "operating_status": null
+        }
+      ],
+      "recommendations": [
+        {
+          "destination_id": "B_station",
+          "ranked_general_space_ids": [
+            "A-04",
+            "A-05",
+            "A-03",
+            "A-06",
+            "A-02"
+          ],
+          "reason": "프로젝트 설정의 시설 인접도 순서입니다. 실측 거리나 이동시간 순위가 아닙니다.",
+          "evidence": "project_scenario_proposal",
+          "distance_m": null,
+          "walk_minutes": null
+        },
+        {
+          "destination_id": "B_elevator",
+          "ranked_general_space_ids": [
+            "A-05",
+            "A-04",
+            "A-06",
+            "A-03"
+          ],
+          "reason": "프로젝트 설정의 시설 인접도 순서입니다. 실측 거리나 이동시간 순위가 아닙니다.",
+          "evidence": "project_scenario_proposal",
+          "distance_m": null,
+          "walk_minutes": null
+        }
+      ],
+      "emergency": {
+        "assembly_point_id": "B_assembly",
+        "verified_shelter": null,
+        "extinguisher_locations": null,
+        "hydrant_locations": null,
+        "route_safety_live_available": false
+      },
+      "language_profile": {
+        "types": [
+          "기차역 주차장",
+          "역 주차장",
+          "기차주차장"
+        ],
+        "related_places": [
+          "부산역",
+          "KTX",
+          "역사"
+        ],
+        "purposes": [
+          "기차 타기",
+          "열차 환승",
+          "역 마중"
+        ],
+        "semantic_examples": [
+          "기차주차장 자리 남아?",
+          "역주차장 어디야?",
+          "기차 타러 가는데 가까운 칸"
+        ],
+        "ambiguous_examples": [
+          "역 근처",
+          "터미널",
+          "서울역"
+        ],
+        "name_variants": [
+          "부산역주차장",
+          "부산역",
+          "부산역 주차장",
+          "비",
+          "기차",
+          "기차역",
+          "부산 역",
+          "부산역사",
+          "KTX",
+          "ktx"
+        ],
+        "interpretation_policy": "명시적 장소와 부정 표현을 우선하고 최근 확인된 맥락을 사용합니다. 후보가 여러 개거나 명시된 다른 장소와 충돌하면 확인 질문합니다. 등록되지 않은 실존 장소를 임의로 대응시키지 않습니다."
+      }
+    },
+    {
+      "lot_id": "C",
+      "name": "김해공항 주차장",
+      "capacity": 64,
+      "environment": "outdoor",
+      "floor": "지상 1층",
+      "environment_evidence": "project_scenario_proposal",
+      "description": "프로젝트 시연용 가상 시설 설정입니다. 실제 동명의 장소 정보가 아닙니다.",
+      "operating_hours": null,
+      "height_limit_m": null,
+      "sprinkler": null,
+      "covered_building_connection": null,
+      "parking_discount": null,
+      "charger_connector": null,
+      "charger_power_kw": null,
+      "charger_live_status_available": false,
+      "spaces": [
+        {
+          "space_id": "A-01",
+          "space_type": "accessible",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-02",
+          "space_type": "accessible",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-03",
+          "space_type": "accessible",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-04",
+          "space_type": "accessible",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-05",
+          "space_type": "accessible",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-06",
+          "space_type": "accessible",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-07",
+          "space_type": "general",
+          "features": [
+            "국내선 출입구 가까움"
+          ],
+          "evidence": "project_scenario_proposal",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-08",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-09",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-10",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-11",
+          "space_type": "ev",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-12",
+          "space_type": "ev",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-13",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-14",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-15",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-16",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-17",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-18",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-19",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-20",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-21",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-22",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-23",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-24",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-01",
+          "space_type": "accessible",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-02",
+          "space_type": "accessible",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-03",
+          "space_type": "accessible",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-04",
+          "space_type": "accessible",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-05",
+          "space_type": "accessible",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-06",
+          "space_type": "accessible",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-07",
+          "space_type": "general",
+          "features": [
+            "국제선 출입구 가까움",
+            "짐 승하차를 고려한 우선 추천 칸"
+          ],
+          "evidence": "project_scenario_proposal",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-08",
+          "space_type": "general",
+          "features": [
+            "국제선 출입구 가까움"
+          ],
+          "evidence": "project_scenario_proposal",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-09",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-10",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-11",
+          "space_type": "ev",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-12",
+          "space_type": "ev",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-13",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-14",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-15",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-16",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-17",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-18",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-19",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-20",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-21",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-22",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-23",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-24",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-25",
+          "space_type": "accessible",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-26",
+          "space_type": "accessible",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-27",
+          "space_type": "accessible",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-28",
+          "space_type": "accessible",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-29",
+          "space_type": "general",
+          "features": [
+            "화물청사 연결부 가까움"
+          ],
+          "evidence": "project_scenario_proposal",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-30",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-31",
+          "space_type": "ev",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-32",
+          "space_type": "ev",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-33",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-34",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-35",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-36",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "C-01",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "C-02",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "C-03",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "C-04",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        }
+      ],
+      "facilities": [
+        {
+          "facility_id": "C_domestic",
+          "name": "국내선 출입구",
+          "type": "entrance",
+          "nearby_space_ids": [
+            "A-07",
+            "A-08",
+            "A-09",
+            "A-10"
+          ],
+          "description": "프로젝트 설정상 국내선 출입구 부근에 A-07, A-08, A-09, A-10 칸이 있습니다. 실제 거리·동선·운영 상태는 미확인입니다.",
+          "evidence": "project_scenario_proposal",
+          "operating_status": null
+        },
+        {
+          "facility_id": "C_international",
+          "name": "국제선 출입구",
+          "type": "entrance",
+          "nearby_space_ids": [
+            "B-07",
+            "B-08",
+            "B-09",
+            "B-10"
+          ],
+          "description": "프로젝트 설정상 국제선 출입구 부근에 B-07, B-08, B-09, B-10 칸이 있습니다. 실제 거리·동선·운영 상태는 미확인입니다.",
+          "evidence": "project_scenario_proposal",
+          "operating_status": null
+        },
+        {
+          "facility_id": "C_cargo",
+          "name": "화물청사 연결부",
+          "type": "entrance",
+          "nearby_space_ids": [
+            "B-29",
+            "B-30",
+            "B-33",
+            "B-34"
+          ],
+          "description": "프로젝트 설정상 화물청사 연결부 부근에 B-29, B-30, B-33, B-34 칸이 있습니다. 실제 거리·동선·운영 상태는 미확인입니다.",
+          "evidence": "project_scenario_proposal",
+          "operating_status": null
+        },
+        {
+          "facility_id": "C_shuttle",
+          "name": "셔틀 승차장",
+          "type": "shuttle",
+          "nearby_space_ids": [
+            "B-29",
+            "B-30",
+            "B-33",
+            "B-34"
+          ],
+          "description": "프로젝트 설정상 셔틀 승차장 부근에 B-29, B-30, B-33, B-34 칸이 있습니다. 실제 거리·동선·운영 상태는 미확인입니다.",
+          "evidence": "project_scenario_proposal",
+          "operating_status": null
+        },
+        {
+          "facility_id": "C_intl_elevator",
+          "name": "국제선 연결 엘리베이터",
+          "type": "elevator",
+          "nearby_space_ids": [
+            "B-07",
+            "B-08",
+            "B-09"
+          ],
+          "description": "프로젝트 설정상 국제선 연결 엘리베이터 부근에 B-07, B-08, B-09 칸이 있습니다. 실제 거리·동선·운영 상태는 미확인입니다.",
+          "evidence": "project_scenario_proposal",
+          "operating_status": null
+        },
+        {
+          "facility_id": "C_restroom",
+          "name": "국제선 방향 화장실",
+          "type": "restroom",
+          "nearby_space_ids": [
+            "B-07",
+            "B-08"
+          ],
+          "description": "프로젝트 설정상 국제선 방향 화장실 부근에 B-07, B-08 칸이 있습니다. 실제 거리·동선·운영 상태는 미확인입니다.",
+          "evidence": "project_scenario_proposal",
+          "operating_status": null
+        },
+        {
+          "facility_id": "C_assembly",
+          "name": "옥외 집결지 후보",
+          "type": "assembly_point",
+          "nearby_space_ids": [],
+          "description": "프로젝트 설정상의 집결지 후보입니다. 정확한 위치와 실제 대피소 지정 여부는 미확인입니다.",
+          "evidence": "project_scenario_proposal",
+          "operating_status": null
+        }
+      ],
+      "recommendations": [
+        {
+          "destination_id": "C_domestic",
+          "ranked_general_space_ids": [
+            "A-07",
+            "A-08",
+            "A-09",
+            "A-10",
+            "A-13",
+            "A-14"
+          ],
+          "reason": "프로젝트 설정의 시설 인접도 순서입니다. 실측 거리나 이동시간 순위가 아닙니다.",
+          "evidence": "project_scenario_proposal",
+          "distance_m": null,
+          "walk_minutes": null
+        },
+        {
+          "destination_id": "C_international",
+          "ranked_general_space_ids": [
+            "B-07",
+            "B-08",
+            "B-09",
+            "B-10",
+            "B-13",
+            "B-14"
+          ],
+          "reason": "프로젝트 설정의 시설 인접도 순서입니다. 실측 거리나 이동시간 순위가 아닙니다.",
+          "evidence": "project_scenario_proposal",
+          "distance_m": null,
+          "walk_minutes": null
+        },
+        {
+          "destination_id": "C_cargo",
+          "ranked_general_space_ids": [
+            "B-29",
+            "B-30",
+            "B-33",
+            "B-34",
+            "C-01",
+            "C-02"
+          ],
+          "reason": "프로젝트 설정의 시설 인접도 순서입니다. 실측 거리나 이동시간 순위가 아닙니다.",
+          "evidence": "project_scenario_proposal",
+          "distance_m": null,
+          "walk_minutes": null
+        },
+        {
+          "destination_id": "C_intl_elevator",
+          "ranked_general_space_ids": [
+            "B-07",
+            "B-08",
+            "B-09",
+            "B-10"
+          ],
+          "reason": "프로젝트 설정의 시설 인접도 순서입니다. 실측 거리나 이동시간 순위가 아닙니다.",
+          "evidence": "project_scenario_proposal",
+          "distance_m": null,
+          "walk_minutes": null
+        }
+      ],
+      "emergency": {
+        "assembly_point_id": "C_assembly",
+        "verified_shelter": null,
+        "extinguisher_locations": null,
+        "hydrant_locations": null,
+        "route_safety_live_available": false
+      },
+      "language_profile": {
+        "types": [
+          "공항 주차장",
+          "비행기 주차장"
+        ],
+        "related_places": [
+          "김해공항",
+          "국제선",
+          "국내선",
+          "화물청사"
+        ],
+        "purposes": [
+          "비행기 타기",
+          "국제선 출국",
+          "공항 마중"
+        ],
+        "semantic_examples": [
+          "비행기 타러 왔어",
+          "국제선 가까운 빈자리"
+        ],
+        "ambiguous_examples": [
+          "터미널",
+          "김포공항",
+          "출국장 근처"
+        ],
+        "name_variants": [
+          "김해공항 주차장",
+          "김해공항",
+          "김해공항주차장",
+          "김해공항 주차장",
+          "공항",
+          "공항 주차장",
+          "씨",
+          "시",
+          "김해 공항",
+          "김해국제공항",
+          "김해 국제공항",
+          "국제공항",
+          "비행장"
+        ],
+        "interpretation_policy": "명시적 장소와 부정 표현을 우선하고 최근 확인된 맥락을 사용합니다. 후보가 여러 개거나 명시된 다른 장소와 충돌하면 확인 질문합니다. 등록되지 않은 실존 장소를 임의로 대응시키지 않습니다."
+      }
+    },
+    {
+      "lot_id": "D",
+      "name": "신세계백화점주차장",
+      "capacity": 64,
+      "environment": "underground",
+      "floor": "B1",
+      "environment_evidence": "project_scenario_proposal",
+      "description": "프로젝트 시연용 가상 시설 설정입니다. 실제 동명의 장소 정보가 아닙니다.",
+      "operating_hours": null,
+      "height_limit_m": null,
+      "sprinkler": null,
+      "covered_building_connection": null,
+      "parking_discount": null,
+      "charger_connector": null,
+      "charger_power_kw": null,
+      "charger_live_status_available": false,
+      "spaces": [
+        {
+          "space_id": "A-01",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-02",
+          "space_type": "general",
+          "features": [
+            "영화관 연결부 가까움"
+          ],
+          "evidence": "project_scenario_proposal",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-03",
+          "space_type": "general",
+          "features": [
+            "영화관 연결부 가까움",
+            "주차 편의 우선 추천"
+          ],
+          "evidence": "project_scenario_proposal",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-04",
+          "space_type": "general",
+          "features": [
+            "영화관 연결부 가까움",
+            "기둥 인접으로 승하차 주의"
+          ],
+          "evidence": "project_scenario_proposal",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-05",
+          "space_type": "accessible",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-06",
+          "space_type": "accessible",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-07",
+          "space_type": "accessible",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-08",
+          "space_type": "accessible",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-09",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-10",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-11",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-12",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-13",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-14",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-15",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "A-16",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-01",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-02",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-03",
+          "space_type": "general",
+          "features": [
+            "백화점 연결 엘리베이터 가까움",
+            "주차 편의 우선 추천"
+          ],
+          "evidence": "project_scenario_proposal",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-04",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-05",
+          "space_type": "accessible",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-06",
+          "space_type": "accessible",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-07",
+          "space_type": "accessible",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-08",
+          "space_type": "accessible",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-09",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-10",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-11",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-12",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-13",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-14",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-15",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "B-16",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "C-01",
+          "space_type": "general",
+          "features": [
+            "몰 쪽 계단 가까움"
+          ],
+          "evidence": "project_scenario_proposal",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "C-02",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "C-03",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "C-04",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "C-05",
+          "space_type": "ev",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "C-06",
+          "space_type": "ev",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "C-07",
+          "space_type": "ev",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "C-08",
+          "space_type": "ev",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "C-09",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "C-10",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "C-11",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "C-12",
+          "space_type": "general",
+          "features": [
+            "몰 출입구 가까움"
+          ],
+          "evidence": "project_scenario_proposal",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "C-13",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "C-14",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "C-15",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "C-16",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "D-01",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "D-02",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "D-03",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "D-04",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "D-05",
+          "space_type": "ev",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "D-06",
+          "space_type": "ev",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "D-07",
+          "space_type": "ev",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "D-08",
+          "space_type": "ev",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "D-09",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "D-10",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "D-11",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "D-12",
+          "space_type": "general",
+          "features": [
+            "식당가 연결부 가까움"
+          ],
+          "evidence": "project_scenario_proposal",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "D-13",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "D-14",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "D-15",
+          "space_type": "general",
+          "features": [],
+          "evidence": "repository_space_layout",
+          "width_m": null,
+          "height_limit_m": null
+        },
+        {
+          "space_id": "D-16",
+          "space_type": "general",
+          "features": [
+            "백화점 쪽 계단 가까움"
+          ],
+          "evidence": "project_scenario_proposal",
+          "width_m": null,
+          "height_limit_m": null
+        }
+      ],
+      "facilities": [
+        {
+          "facility_id": "D_cinema",
+          "name": "영화관 연결부",
+          "type": "cinema",
+          "nearby_space_ids": [
+            "A-04",
+            "A-03",
+            "A-02",
+            "A-01",
+            "A-12",
+            "A-11"
+          ],
+          "description": "프로젝트 설정상 영화관 연결부 부근에 A-04, A-03, A-02, A-01, A-12, A-11 칸이 있습니다. 실제 거리·동선·운영 상태는 미확인입니다.",
+          "evidence": "project_scenario_proposal",
+          "operating_status": null
+        },
+        {
+          "facility_id": "D_mall_elevator",
+          "name": "몰 연결 엘리베이터",
+          "type": "elevator",
+          "nearby_space_ids": [
+            "A-04",
+            "A-03",
+            "A-02",
+            "A-01"
+          ],
+          "description": "프로젝트 설정상 몰 연결 엘리베이터 부근에 A-04, A-03, A-02, A-01 칸이 있습니다. 실제 거리·동선·운영 상태는 미확인입니다.",
+          "evidence": "project_scenario_proposal",
+          "operating_status": null
+        },
+        {
+          "facility_id": "D_department_elevator",
+          "name": "백화점 연결 엘리베이터",
+          "type": "elevator",
+          "nearby_space_ids": [
+            "B-04",
+            "B-03",
+            "B-02",
+            "B-01"
+          ],
+          "description": "프로젝트 설정상 백화점 연결 엘리베이터 부근에 B-04, B-03, B-02, B-01 칸이 있습니다. 실제 거리·동선·운영 상태는 미확인입니다.",
+          "evidence": "project_scenario_proposal",
+          "operating_status": null
+        },
+        {
+          "facility_id": "D_mall_entrance",
+          "name": "몰 출입구",
+          "type": "entrance",
+          "nearby_space_ids": [
+            "C-12",
+            "C-13",
+            "C-11",
+            "C-14"
+          ],
+          "description": "프로젝트 설정상 몰 출입구 부근에 C-12, C-13, C-11, C-14 칸이 있습니다. 실제 거리·동선·운영 상태는 미확인입니다.",
+          "evidence": "project_scenario_proposal",
+          "operating_status": null
+        },
+        {
+          "facility_id": "D_department_entrance",
+          "name": "백화점 출입구",
+          "type": "entrance",
+          "nearby_space_ids": [
+            "D-12",
+            "D-13",
+            "D-11",
+            "D-14"
+          ],
+          "description": "프로젝트 설정상 백화점 출입구 부근에 D-12, D-13, D-11, D-14 칸이 있습니다. 실제 거리·동선·운영 상태는 미확인입니다.",
+          "evidence": "project_scenario_proposal",
+          "operating_status": null
+        },
+        {
+          "facility_id": "D_mall_escalator",
+          "name": "몰 에스컬레이터",
+          "type": "escalator",
+          "nearby_space_ids": [
+            "C-15",
+            "C-16",
+            "C-14"
+          ],
+          "description": "프로젝트 설정상 몰 에스컬레이터 부근에 C-15, C-16, C-14 칸이 있습니다. 실제 거리·동선·운영 상태는 미확인입니다.",
+          "evidence": "project_scenario_proposal",
+          "operating_status": null
+        },
+        {
+          "facility_id": "D_department_escalator",
+          "name": "백화점 에스컬레이터",
+          "type": "escalator",
+          "nearby_space_ids": [
+            "D-15",
+            "D-16",
+            "D-14"
+          ],
+          "description": "프로젝트 설정상 백화점 에스컬레이터 부근에 D-15, D-16, D-14 칸이 있습니다. 실제 거리·동선·운영 상태는 미확인입니다.",
+          "evidence": "project_scenario_proposal",
+          "operating_status": null
+        },
+        {
+          "facility_id": "D_foodcourt",
+          "name": "식당가 연결부",
+          "type": "foodcourt",
+          "nearby_space_ids": [
+            "D-12",
+            "D-13",
+            "D-11",
+            "D-14"
+          ],
+          "description": "프로젝트 설정상 식당가 연결부 부근에 D-12, D-13, D-11, D-14 칸이 있습니다. 실제 거리·동선·운영 상태는 미확인입니다.",
+          "evidence": "project_scenario_proposal",
+          "operating_status": null
+        },
+        {
+          "facility_id": "D_restroom",
+          "name": "몰 방향 화장실",
+          "type": "restroom",
+          "nearby_space_ids": [
+            "C-12",
+            "C-13",
+            "C-11"
+          ],
+          "description": "프로젝트 설정상 몰 방향 화장실 부근에 C-12, C-13, C-11 칸이 있습니다. 실제 거리·동선·운영 상태는 미확인입니다.",
+          "evidence": "project_scenario_proposal",
+          "operating_status": null
+        },
+        {
+          "facility_id": "D_mall_stairs",
+          "name": "몰 쪽 계단",
+          "type": "stairs",
+          "nearby_space_ids": [
+            "C-01",
+            "C-02"
+          ],
+          "description": "프로젝트 설정상 몰 쪽 계단 부근에 C-01, C-02 칸이 있습니다. 실제 거리·동선·운영 상태는 미확인입니다.",
+          "evidence": "project_scenario_proposal",
+          "operating_status": null
+        },
+        {
+          "facility_id": "D_department_stairs",
+          "name": "백화점 쪽 계단",
+          "type": "stairs",
+          "nearby_space_ids": [
+            "D-15",
+            "D-16"
+          ],
+          "description": "프로젝트 설정상 백화점 쪽 계단 부근에 D-15, D-16 칸이 있습니다. 실제 거리·동선·운영 상태는 미확인입니다.",
+          "evidence": "project_scenario_proposal",
+          "operating_status": null
+        },
+        {
+          "facility_id": "D_assembly",
+          "name": "옥외 집결지 후보",
+          "type": "assembly_point",
+          "nearby_space_ids": [],
+          "description": "프로젝트 설정상의 집결지 후보입니다. 정확한 위치와 실제 대피소 지정 여부는 미확인입니다.",
+          "evidence": "project_scenario_proposal",
+          "operating_status": null
+        }
+      ],
+      "recommendations": [
+        {
+          "destination_id": "D_cinema",
+          "ranked_general_space_ids": [
+            "A-04",
+            "A-03",
+            "A-02",
+            "A-01",
+            "A-12",
+            "A-11",
+            "A-10",
+            "A-09"
+          ],
+          "reason": "프로젝트 설정의 시설 인접도 순서입니다. 실측 거리나 이동시간 순위가 아닙니다.",
+          "evidence": "project_scenario_proposal",
+          "distance_m": null,
+          "walk_minutes": null
+        },
+        {
+          "destination_id": "D_mall_elevator",
+          "ranked_general_space_ids": [
+            "A-04",
+            "A-03",
+            "A-02",
+            "A-01",
+            "A-12"
+          ],
+          "reason": "프로젝트 설정의 시설 인접도 순서입니다. 실측 거리나 이동시간 순위가 아닙니다.",
+          "evidence": "project_scenario_proposal",
+          "distance_m": null,
+          "walk_minutes": null
+        },
+        {
+          "destination_id": "D_department_elevator",
+          "ranked_general_space_ids": [
+            "B-04",
+            "B-03",
+            "B-02",
+            "B-01",
+            "B-12"
+          ],
+          "reason": "프로젝트 설정의 시설 인접도 순서입니다. 실측 거리나 이동시간 순위가 아닙니다.",
+          "evidence": "project_scenario_proposal",
+          "distance_m": null,
+          "walk_minutes": null
+        },
+        {
+          "destination_id": "D_foodcourt",
+          "ranked_general_space_ids": [
+            "D-12",
+            "D-13",
+            "D-11",
+            "D-14",
+            "D-10"
+          ],
+          "reason": "프로젝트 설정의 시설 인접도 순서입니다. 실측 거리나 이동시간 순위가 아닙니다.",
+          "evidence": "project_scenario_proposal",
+          "distance_m": null,
+          "walk_minutes": null
+        },
+        {
+          "destination_id": "D_mall_entrance",
+          "ranked_general_space_ids": [
+            "C-12",
+            "C-13",
+            "C-11",
+            "C-14",
+            "C-10"
+          ],
+          "reason": "프로젝트 설정의 시설 인접도 순서입니다. 실측 거리나 이동시간 순위가 아닙니다.",
+          "evidence": "project_scenario_proposal",
+          "distance_m": null,
+          "walk_minutes": null
+        }
+      ],
+      "emergency": {
+        "assembly_point_id": "D_assembly",
+        "verified_shelter": null,
+        "extinguisher_locations": null,
+        "hydrant_locations": null,
+        "route_safety_live_available": false
+      },
+      "language_profile": {
+        "types": [
+          "백화점 주차장",
+          "쇼핑몰 주차장",
+          "영화관 주차장"
+        ],
+        "related_places": [
+          "신세계백화점",
+          "몰",
+          "영화관",
+          "식당가"
+        ],
+        "purposes": [
+          "영화 보기",
+          "쇼핑",
+          "식사"
+        ],
+        "semantic_examples": [
+          "영화 보러 왔는데 편한 자리",
+          "백화점 엘리베이터 가까운 데"
+        ],
+        "ambiguous_examples": [
+          "신세게",
+          "다른 백화점",
+          "극장 근처"
+        ],
+        "name_variants": [
+          "신세계백화점주차장",
+          "신세계",
+          "신세계백화점",
+          "백화점",
+          "신세계 주차장",
+          "디",
+          "신세계 백화점",
+          "센텀",
+          "센텀시티",
+          "신세계센텀시티"
+        ],
+        "interpretation_policy": "명시적 장소와 부정 표현을 우선하고 최근 확인된 맥락을 사용합니다. 후보가 여러 개거나 명시된 다른 장소와 충돌하면 확인 질문합니다. 등록되지 않은 실존 장소를 임의로 대응시키지 않습니다."
+      }
+    }
+  ],
+  "language_evaluation_scenarios": [
+    {
+      "id": "L01",
+      "question": "기차주차장 자리 있어?",
+      "context": null,
+      "expected_action": "resolve",
+      "expected_lot_id": "B",
+      "expected_destination_id": null
+    },
+    {
+      "id": "L02",
+      "question": "역 주차장 남은 자리",
+      "context": null,
+      "expected_action": "resolve",
+      "expected_lot_id": "B",
+      "expected_destination_id": null
+    },
+    {
+      "id": "L03",
+      "question": "기차 타러 가는데 가까운 자리",
+      "context": null,
+      "expected_action": "resolve",
+      "expected_lot_id": "B",
+      "expected_destination_id": "B_station"
+    },
+    {
+      "id": "L04",
+      "question": "부산역 말고 공항 주차장",
+      "context": null,
+      "expected_action": "resolve",
+      "expected_lot_id": "C",
+      "expected_destination_id": null
+    },
+    {
+      "id": "L05",
+      "question": "영화 보러 왔어",
+      "context": null,
+      "expected_action": "resolve",
+      "expected_lot_id": "D",
+      "expected_destination_id": "D_cinema"
+    },
+    {
+      "id": "L06",
+      "question": "국제선 가는데 충전 자리 있어?",
+      "context": null,
+      "expected_action": "resolve",
+      "expected_lot_id": "C",
+      "expected_destination_id": "C_international"
+    },
+    {
+      "id": "L07",
+      "question": "역 근처 주차장",
+      "context": null,
+      "expected_action": "clarify",
+      "expected_lot_id": null,
+      "expected_destination_id": null
+    },
+    {
+      "id": "L08",
+      "question": "터미널 주차장",
+      "context": null,
+      "expected_action": "clarify",
+      "expected_lot_id": null,
+      "expected_destination_id": null
+    },
+    {
+      "id": "L09",
+      "question": "엘리베이터 옆 빈자리",
+      "context": null,
+      "expected_action": "clarify",
+      "expected_lot_id": null,
+      "expected_destination_id": null
+    },
+    {
+      "id": "L10",
+      "question": "거기 빈자리 있어?",
+      "context": {
+        "lot_id": "B"
+      },
+      "expected_action": "resolve",
+      "expected_lot_id": "B",
+      "expected_destination_id": null
+    },
+    {
+      "id": "L11",
+      "question": "거기 빈자리 있어?",
+      "context": null,
+      "expected_action": "clarify",
+      "expected_lot_id": null,
+      "expected_destination_id": null
+    },
+    {
+      "id": "L12",
+      "question": "영화관 가까운 자리",
+      "context": {
+        "lot_id": "B"
+      },
+      "expected_action": "clarify",
+      "expected_lot_id": null,
+      "expected_destination_id": null
+    },
+    {
+      "id": "L13",
+      "question": "서울역 주차장",
+      "context": null,
+      "expected_action": "unsupported",
+      "expected_lot_id": null,
+      "expected_destination_id": null
+    },
+    {
+      "id": "L14",
+      "question": "부산역이랑 공항 중 어디가 비어?",
+      "context": null,
+      "expected_action": "compare",
+      "expected_lot_id": null,
+      "expected_destination_id": null
+    },
+    {
+      "id": "L15",
+      "question": "부산역 영화 보러 공항 가까운 데",
+      "context": null,
+      "expected_action": "clarify",
+      "expected_lot_id": null,
+      "expected_destination_id": null
+    },
+    {
+      "id": "L16",
+      "question": "신세게 주차장",
+      "context": null,
+      "expected_action": "clarify",
+      "expected_lot_id": null,
+      "expected_destination_id": null
+    }
+  ]
+}

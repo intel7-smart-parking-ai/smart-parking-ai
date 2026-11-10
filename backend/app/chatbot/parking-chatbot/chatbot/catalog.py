@@ -15,7 +15,8 @@ SPACE_ID = re.compile(r"[A-Z]-[0-9]{2}\Z")
 SPACE_INPUT = re.compile(r"([A-Za-z])\s*-?\s*([0-9]{1,2})\Z")
 RATE_KEYS = ("base_minutes", "base_fee", "unit_minutes", "extra_fee", "daily_cap")
 # info_gaps.TOPICS의 키와 같아야 한다(test_v2160_natural_replies에서 확인).
-GUIDE_KEYS = frozenset({"terminal", "elevator", "stairs", "restroom", "entrance", "hours", "shuttle", "height", "amenity"})
+GUIDE_KEYS = frozenset({"terminal", "elevator", "stairs", "restroom", "entrance", "hours", "shuttle", "height", "amenity",
+                        "discount", "reservation", "overnight", "refund", "payment_help", "exit_rules", "lookup_help", "discount_steps", "walking", "ev_usage", "lost_found", "vehicle_rules", "passes"})
 
 
 def normalize_space(value):

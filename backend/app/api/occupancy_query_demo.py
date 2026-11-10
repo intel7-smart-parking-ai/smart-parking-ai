@@ -16,6 +16,7 @@ Source = Literal["vision", "simulation", "manual"]
 
 
 class DemoSpace(SpaceResponse):
+    charging: dict | None = None
     source: Source | None = None
     is_mock: bool | None = None
     session_id: str | None = None

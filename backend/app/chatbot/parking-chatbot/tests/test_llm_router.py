@@ -5,16 +5,38 @@ import threading
 import time
 import unittest
 from concurrent.futures import ThreadPoolExecutor
-from contextvars import copy_context
+from contextlib import contextmanager
 from types import SimpleNamespace
 from unittest.mock import patch
 
 from chatbot import config, engine as e, parser, llm_router as r
 from chatbot.adapters import CachedAdapter, MockAdapter, request_deadline
+from chatbot.agents import AgentResult
+from chatbot.tools import ReadTools
 
 
 def message(name='get_fee', args=None):
     return SimpleNamespace(tool_calls=[{'name': name, 'args': args if args is not None else {}}])
+
+
+@contextmanager
+def conversation_reply(reply):
+    """Exercise engine orchestration with an injected conversation result."""
+    with (patch.object(config, "LLM_ENGINE", "langchain"),
+          patch.object(config, "LLM_PROVIDER", "openrouter"),
+          patch.object(config, "LLM_MODEL", "test-only"),
+          patch.object(config, "api_key", return_value="test-only"),
+          patch.object(ReadTools, "langchain_tools", return_value=[object()]),
+          patch("chatbot.agents.run_conversation", side_effect=reply) as invoke):
+        yield invoke
+
+
+def admin_proposal(*_):
+    proposal = {"intent": "call_admin", "params": {}}
+    observed = {"tool": "propose_action", "call_id": "proposal1",
+                "result": {"ok": True, "proposal": proposal, "executed": False}}
+    return AgentResult(text=e.T.SUGGEST_ADMIN_CALL, status="ok",
+                       tool_results=[observed], proposals=[proposal], metadata={"model_calls": 2})
 
 
 class Model:
@@ -81,18 +103,24 @@ class RouterTests(unittest.TestCase):
             parser.parse('관리자 말고 뿌잉')
             call.assert_not_called()
 
-    def test_lv2_skips_router_and_direct_classifier(self):
+    def test_lv2_skips_agent_and_direct_classifier(self):
         e.data.set_alert(2,'A',6)
-        for mode in ('langchain','direct'):
-            with patch.object(config,'LLM_ENGINE',mode), patch.object(r,'route') as route, patch('chatbot.llm.classify') as direct:
-                got = e.handle(mode,text='자동차 사용료를 산출해 줘')
-                route.assert_not_called(); direct.assert_not_called()
-                self.assertIsNotNone(got['safety'])
+        with conversation_reply(admin_proposal) as invoke:
+            got = e.handle('langchain',text='자동차 사용료를 산출해 줘')
+            invoke.assert_not_called()
+            self.assertIsNotNone(got['safety'])
+        with patch.object(config,'LLM_ENGINE','direct'), patch('chatbot.llm.classify') as direct:
+            got = e.handle('direct',text='자동차 사용료를 산출해 줘')
+            direct.assert_not_called()
+            self.assertIsNotNone(got['safety'])
 
-    def test_alarm_escalating_during_classification_discards_choice(self):
-        model=self.ready();entered,release=threading.Event(),threading.Event()
-        def delayed(_):entered.set();release.wait(2);return message('call_admin')
-        with patch.object(model,'invoke',side_effect=delayed):
+    def test_alarm_escalating_during_agent_turn_discards_choice(self):
+        entered,release=threading.Event(),threading.Event()
+        def delayed(*_):
+            entered.set()
+            self.assertTrue(release.wait(2))
+            return admin_proposal()
+        with conversation_reply(delayed):
             with ThreadPoolExecutor(max_workers=1) as pool:
                 task=pool.submit(e.handle,'s',text='뿌잉')
                 try:
@@ -123,9 +151,9 @@ class RouterTests(unittest.TestCase):
         response = message('help'); response.content='요금 0원, 결제 완료'
         response.tool_calls.append({'name':'call_admin','args':{}})
         self.ready(Model(response))
-        result = e.handle('s',text='뿌잉')
-        self.assertEqual(result['meta']['intent'],'help')
-        self.assertNotIn('결제 완료',result['text']); self.assertFalse(e.ADMIN_CALLS)
+        result = r.route('뿌잉')
+        self.assertEqual(result, {'intent':'help','params':{}})
+        self.assertFalse(e.ADMIN_CALLS)
 
     def test_rejects_invalid_tool_payloads(self):
         cases = [(SimpleNamespace(tool_calls=[]),'no_tool_call'),
@@ -160,20 +188,27 @@ class RouterTests(unittest.TestCase):
             m.response = message(intent,{'car_id':'18'})
             self.assertEqual(r.route('뿌잉'),{'intent':intent,'params':{}})
 
-    def test_payment_tool_still_requires_vehicle_and_amount_confirmations(self):
-        self.ready(Model(message('pay_fee')))
-        got = e.handle('s',text='뿌잉')
-        self.assertEqual(got['flow'],'ask_vehicle')
-        e.handle('s',text='33'); got=e.handle('s',text='네')
+    def test_agent_payment_proposal_does_not_approve_payment(self):
+        def propose(*_):
+            return AgentResult(text="모의 결제를 원하시면 결제를 선택해 주세요.", status="ok",
+                               proposals=[{"intent": "pay_fee", "params": {}}])
+        with conversation_reply(propose):
+            got = e.handle('s',text='뿌잉')
+        self.assertIsNone(got['confirmation_token'])
+        self.assertFalse(e.data.get_fee('33')['paid'])
+        self.assertEqual(e.handle('s',chip_id='pay')['flow'],'ask_vehicle')
+        self.assertEqual(e.handle('s',text='33')['flow'],'confirm_vehicle')
+        got=e.handle('s',text='네')
         self.assertEqual(got['flow'],'confirm_action')
         self.assertFalse(e.data.get_fee('33')['paid'])
         e.handle('s',chip_id='confirm_yes',confirmation_token=got['confirmation_token'])
         self.assertTrue(e.data.get_fee('33')['paid'])
 
-    def test_admin_tool_registers_once_after_call_chip(self):
-        self.ready(Model(message('call_admin')))
-        first=e.handle('s',text='뿌잉',request_id='same')
-        second=e.handle('s',text='뿌잉',request_id='same')
+    def test_agent_admin_proposal_registers_once_after_call_chip(self):
+        with conversation_reply(admin_proposal) as invoke:
+            first=e.handle('s',text='뿌잉',request_id='same')
+            second=e.handle('s',text='뿌잉',request_id='same')
+        invoke.assert_called_once()
         self.assertEqual(len(e.ADMIN_CALLS),0)
         self.assertIn('call_admin',[c['id'] for c in first['chips']])
         e.handle('s',chip_id='call_admin',request_id='call-chip')

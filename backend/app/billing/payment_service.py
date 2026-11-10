@@ -12,6 +12,8 @@ from typing import Any
 
 KST = datetime.timezone(datetime.timedelta(hours=9))
 
+from .db import KST_PAYMENT_HOUR_SQL, demo_history_cutoff
+
 def now_kst_iso() -> str:
   return datetime.datetime.now(KST).strftime("%Y-%m-%dT%H:%M:%S+09:00")
 
@@ -71,15 +73,23 @@ def _find_by_idempotency_key(cur: sqlite3.Cursor, idempotency_key: str, session_
 
 
 def list_mock_payments(
-    conn: sqlite3.Connection, lot_id: str | None = None, status: str | None = None, car_id: str | None = None
+    conn: sqlite3.Connection, lot_id: str | None = None, status: str | None = None, car_id: str | None = None,
+    *, limit: int | None = None, payment_day: str | None = None,
 ) -> list[dict[str, Any]]:
   """결제 목록 (최신순). 필터는 모두 선택."""
+  cutoff = demo_history_cutoff(conn)
   cur = conn.cursor()
   cur.execute(
-      """SELECT * FROM mock_payments
-         WHERE (? IS NULL OR lot_id = ?) AND (? IS NULL OR status = ?) AND (? IS NULL OR car_id = ?)
-         ORDER BY created_at DESC, payment_id""",
-      (lot_id, lot_id, status, status, car_id, car_id),
+      f"""SELECT payment.*, plate.plate_number
+         FROM mock_payments AS payment
+         LEFT JOIN session_vehicle_plates AS plate ON plate.session_id = payment.session_id
+         WHERE (? IS NULL OR payment.lot_id = ?) AND (? IS NULL OR payment.status = ?)
+           AND (? IS NULL OR payment.car_id = ?)
+           AND (? IS NULL OR substr({KST_PAYMENT_HOUR_SQL}, 1, 10) = ?)
+           AND (? IS NULL OR payment.session_id NOT GLOB 'demo-*'
+                OR julianday(payment.created_at) <= julianday(?))
+         ORDER BY julianday(payment.created_at) DESC, payment.payment_id LIMIT ?""",
+      (lot_id, lot_id, status, status, car_id, car_id, payment_day, payment_day, cutoff, cutoff, -1 if limit is None else limit),
   )
   return [dict(r) for r in cur.fetchall()]
 

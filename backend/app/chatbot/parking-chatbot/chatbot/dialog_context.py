@@ -16,7 +16,7 @@ import re
 import time
 
 from . import config
-from .parser import ParseResult, extract_lot
+from .parser import ParseResult, extract_lot, extract_lots
 
 ANAPHOR = re.compile(r"(?<![가-힣])(?:그\s*주차장|이\s*주차장|해당\s*주차장|거기|그곳|그쪽|여기|이곳)")
 ORDINAL = re.compile(r"(?<![가-힣0-9])(?:(첫|두|세|네)\s*(?:번째|번\s*째)|([1-4])\s*번째|(마지막))")
@@ -77,6 +77,9 @@ def rewrite(s, text: str) -> str:
     """맥락으로 문장을 완성한다. 맥락이 없거나 이미 주차장이 분명하면 그대로 돌려준다."""
     if not text:
         return text
+    corrected = _lot_correction(s, text)
+    if corrected:
+        return corrected
     lot_now, choices = focus(s), offered(s)
     if not lot_now and not choices:
         return text
@@ -98,6 +101,31 @@ def rewrite(s, text: str) -> str:
             # 동률 등으로 하나를 정할 수 없으면 여러 주차장을 넣어 '어느 곳인가요?'로 되묻게 한다.
             text = ANAPHOR.sub(" ".join(_name(k) for k in choices), text, count=1)
     return text
+
+
+_CORRECTION = re.compile(r"^\s*(?:아니|아뇨|아니요|아니야|아니고|말고)[\s,.~!]*(?P<rest>.+?)\s*(?:이요|요|으로|로|이야|야)?\s*[.!?~]*\s*$")
+
+
+def _lot_correction(s, text):
+    """'아니 김해공항'처럼 주차장만 바꿔 말한 정정. 바로 앞 질문의 주제를 새 주차장으로 다시 묻는다."""
+    m = _CORRECTION.match(text)
+    if not m:
+        return None
+    rest = m["rest"]
+    lots = extract_lots(rest)
+    if len(lots) != 1 or re.search(r"\d|번\s*차|요금|얼마|자리|칸|빈", rest):
+        return None
+    previous = next((content for role, content in reversed(list(s.history)[:-1])
+                     if role == "user" and isinstance(content, str)), "")
+    if re.search(r"요금|얼마|기준|주차비", previous):
+        topic = "요금 기준 알려줘"
+    elif re.search(r"충전|전기차", previous):
+        topic = "충전 구역 빈자리 몇 개야?"
+    elif re.search(r"장애인", previous):
+        topic = "장애인 구역 빈자리 몇 개야?"
+    else:
+        topic = "빈자리 몇 개야?"
+    return f"{_name(lots[0])} {topic}"
 
 
 def _has_section(lot, letter):

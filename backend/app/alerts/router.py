@@ -30,7 +30,7 @@ from fastapi import APIRouter, Depends, Header, Query, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, field_validator
 
-from backend.app.billing.db import get_db_conn
+from backend.app.billing.db import demo_history_cutoff, get_db_conn
 
 AlertStatus = Literal["active", "acknowledged", "resolved"]
 LotId = Literal["A", "B", "C", "D"]
@@ -242,7 +242,9 @@ def ingest_led_fire_event(conn: sqlite3.Connection, event: LedFireEvent) -> tupl
 
 def list_alerts(conn: sqlite3.Connection, *, lot_id: Optional[str] = None, status_filter: Optional[str] = None,
                 alert_type: Optional[str] = None, limit: int = 100) -> AlertListResponse:
-    clauses, params = [], []
+    cutoff = demo_history_cutoff(conn)
+    clauses = ["(? IS NULL OR alert_id NOT GLOB 'demo-alert-*' OR julianday(detected_at) <= julianday(?))"]
+    params = [cutoff, cutoff]
     for column, value in (("lot_id", lot_id), ("status", status_filter), ("type", alert_type)):
         if value:
             clauses.append(f"{column} = ?")
@@ -254,7 +256,8 @@ def list_alerts(conn: sqlite3.Connection, *, lot_id: Optional[str] = None, statu
             LIMIT ?""",
         (*params, limit),
     ).fetchall()
-    count_where, count_params = ("WHERE lot_id = ?", [lot_id]) if lot_id else ("", [])
+    count_where = "WHERE " + clauses[0] + (" AND lot_id = ?" if lot_id else "")
+    count_params = [cutoff, cutoff, lot_id] if lot_id else [cutoff, cutoff]
     counts = {r["status"]: r["cnt"] for r in conn.execute(
         f"SELECT status, COUNT(*) AS cnt FROM alerts {count_where} GROUP BY status", count_params)}
     items = [_item(r) for r in rows]

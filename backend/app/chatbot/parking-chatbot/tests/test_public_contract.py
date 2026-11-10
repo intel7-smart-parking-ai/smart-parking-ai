@@ -54,7 +54,8 @@ def http_contract():
 
         calls = {}
         calls["chat"] = chat("home", chip_id="empty_all")
-        calls["vehicle_confirmation"] = chat("car", text="11번 차 어디 있어?")
+        # Lookup no longer enters this state. Explicit vehicle changes still do.
+        calls["vehicle_confirmation"] = chat("car", text="11번 차로 바꿔")
         pending = chat("fee", text="11번 결제").json()
         calls["payment_confirmation"] = chat("fee", chip_id="confirm_yes",
                                              confirmation_token=pending.get("confirmation_token"))

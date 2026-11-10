@@ -1,0 +1,10 @@
+.presentation-demo { max-width: 1150px; margin: auto; padding: 20px; color: #192d47; background: #f5f8fd; }
+.presentation-demo header, .presentation-demo nav { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.presentation-demo header { justify-content: space-between; margin-bottom: 14px; }
+.presentation-demo header a { font-weight: 800; color: #174cab; }
+.presentation-stage { padding: 16px 20px; border: 1px solid #cbd9ef; background: white; border-radius: 12px; }
+.presentation-stage h1, .presentation-stage p { margin: 0 0 7px; }
+.presentation-stage strong { color: #174cab; }
+.presentation-demo nav { margin-block: 12px; }
+.presentation-demo nav button { min-height: 44px; padding: 6px 12px; border: 1px solid #b7c8e3; border-radius: 7px; background: white; color: #192d47; }
+.presentation-demo nav button:disabled { opacity: .5; }

@@ -20,14 +20,14 @@ class RepoV28Tests(unittest.TestCase):
         self.f.session_id='opaque-session'
         original=self.f.api._request_uncached
         answers=[]
-        for state in ('active','exited','closed','future-state',None,[],{}):
+        for index, state in enumerate(('active','exited','closed','future-state',None,[],{})):
             def request(method,path,body=None):
                 status,value,headers=original(method,path,body)
                 if '/sessions/' in path:
                     value={**value,'session_status':state}
                 return status,value,headers
             with patch.object(self.f.api,'_request_uncached',side_effect=request):
-                r=self.f.ask('11번 요금')
+                r=self.f.ask('11번 요금', sid=f'status-{index}')
             answers.append((r['text'],r['card']['data']['fee'],r['card']['data']['paid']))
         baseline=answers[0]
         for state,answer in zip(('active','exited','closed','future-state',None,[],{}),answers):

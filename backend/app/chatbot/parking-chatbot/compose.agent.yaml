@@ -1,0 +1,19 @@
+# Run together with the repository root compose.yaml (see docs/agent_runbook.md).
+services:
+  api:
+    build:
+      dockerfile: backend/app/chatbot/parking-chatbot/Dockerfile.agent
+      target: runtime
+      args:
+        INSTALL_MONITORING: ${INSTALL_MONITORING:-0}
+    environment:
+      LLM_PROVIDER: openrouter
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:?Set OPENROUTER_API_KEY privately before starting the chatbot agent}
+      # 선택: Langfuse 모니터링. 기본 off. 켜려면 루트 .env에 MONITOR_BACKEND=langfuse와 키를 넣고 INSTALL_MONITORING=1로 빌드
+      MONITOR_BACKEND: ${MONITOR_BACKEND:-off}
+      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}
+      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}
+      LANGFUSE_HOST: ${LANGFUSE_HOST:-https://cloud.langfuse.com}
+      MONITOR_CAPTURE_TEXT: ${MONITOR_CAPTURE_TEXT:-1}
+      # local 기록 위치: 컨테이너에서 쓰기 가능한 데이터 볼륨(/data)
+      MONITOR_LOCAL_PATH: ${MONITOR_LOCAL_PATH:-/data/monitor/turns.jsonl}

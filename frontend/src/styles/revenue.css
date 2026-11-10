@@ -4,3 +4,28 @@ html[data-theme='light'] .revenue-workspace{--rev-line:#d8e2cf;--rev-soft:#f5f8f
 
 /* Keep the calendar in view on laptop-sized administrator windows. */
 .revenue-workspace .operation-intro{margin-bottom:14px}.revenue-workspace .revenue-controls{padding:12px;gap:10px;margin-bottom:12px}.revenue-workspace .revenue-month{gap:7px}.revenue-workspace .revenue-month label{min-width:135px}.revenue-workspace .revenue-month>button{padding:5px 9px}.revenue-workspace .revenue-view button{padding:8px 10px}.revenue-workspace .operation-stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0 16px}.revenue-workspace .operation-stats article{padding:12px 10px}.revenue-workspace .operation-stats strong{font-size:21px;margin:8px 0}.revenue-workspace .operation-stats small{display:none}.revenue-workspace .revenue-main .panel-header{padding:16px 18px!important}.revenue-workspace .revenue-day,.revenue-workspace .revenue-blank{min-height:88px}.revenue-workspace .revenue-day{gap:8px;padding:10px}.revenue-workspace .revenue-day small{font-size:9px}@media(max-width:600px){.revenue-workspace .operation-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.revenue-workspace .operation-stats strong{font-size:20px}.revenue-workspace .revenue-controls{padding:10px}.revenue-workspace .revenue-month{width:auto;flex:1}.revenue-workspace .revenue-controls>label{flex:1 1 110px}.revenue-workspace .revenue-controls>.button{width:auto}.revenue-workspace .revenue-day{padding:9px}}
+
+.revenue-plot-scroll{overflow-x:auto;padding:16px 20px}
+.revenue-plot{display:grid;grid-template-columns:repeat(var(--bar-count),minmax(36px,1fr));gap:5px;min-width:max-content}
+.revenue-bar{display:grid;grid-template-rows:150px auto;gap:7px;min-width:36px;padding:0;text-align:center;color:inherit}
+.revenue-bar-track{display:flex;align-items:flex-end;justify-content:center;border-bottom:1px solid var(--line)}
+.revenue-bar-track>span{width:65%;min-width:8px;background:#3b72da;border-radius:4px 4px 0 0}
+.revenue-bar small{white-space:nowrap;font-size:11px}
+
+.revenue-lot-scope{flex-wrap:wrap;max-width:100%}
+
+.revenue-usage-stats{padding:12px 16px;margin:0}
+.revenue-usage-table,.revenue-usage-note{margin:12px 16px}
+.revenue-usage-table summary{cursor:pointer;font-weight:600}
+.revenue-usage-note{font-size:12px;color:var(--muted)}
+
+.revenue-stay-bands{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;padding:14px 18px}
+.revenue-stay-bands label{display:grid;gap:4px}
+.revenue-stay-bands progress{width:100%;height:10px;accent-color:#3468cf}
+.revenue-stay-bands span{font-size:12px;color:var(--muted)}
+.revenue-heatmaps{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px;padding:12px 18px}
+.revenue-heatmap{min-width:0}
+.revenue-heatmap h4{margin:0 0 8px}
+.revenue-heatmap-scroll{overflow-x:auto}
+.revenue-heatmap table{width:100%;min-width:380px;border-spacing:2px;table-layout:fixed;text-align:center;font-size:10px}
+.revenue-heatmap td{height:13px;border-radius:2px;background:var(--line)}

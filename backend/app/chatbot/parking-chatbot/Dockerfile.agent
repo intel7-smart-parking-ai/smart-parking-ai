@@ -1,0 +1,16 @@
+# Base is built from the same checkout using the team Dockerfile (see docs/agent_runbook.md).
+FROM smart-parking-api-base:chatbot AS runtime
+# 1이면 Langfuse 모니터링 SDK도 설치한다(선택). 0이면 지금과 같은 이미지다.
+ARG INSTALL_MONITORING=0
+USER root
+COPY backend/app/chatbot /app/backend/app/chatbot
+RUN python -m pip install --no-cache-dir \
+        --constraint /app/requirements-runtime.lock \
+        --requirement /app/backend/app/chatbot/parking-chatbot/requirements-llm.txt \
+    && if [ "$INSTALL_MONITORING" = "1" ]; then \
+        python -m pip install --no-cache-dir \
+            --requirement /app/backend/app/chatbot/parking-chatbot/requirements-monitoring.txt \
+        && python -c "from langfuse import Langfuse"; fi \
+    && python -m pip check \
+    && python -c "from langchain.agents import create_agent; from langchain_openai import ChatOpenAI"
+USER parking

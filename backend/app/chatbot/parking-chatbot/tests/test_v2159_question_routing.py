@@ -62,11 +62,10 @@ class QuestionHTTPTests(unittest.TestCase):
     ask=fixtures.ApiContractTests.ask
     posts=fixtures.ApiContractTests.posts
 
-    def test_presence_requires_confirmation_then_reads_official_location(self):
+    def test_presence_immediately_reads_official_location(self):
         r=e.handle('s',text='11번 차량은 있나?')
-        self.assertEqual(r['flow'],'confirm_vehicle')
-        self.assertFalse(any('/vehicles/' in path for _,path,_ in self.requests))
-        r=e.handle('s',chip_id='confirm_yes',confirmation_token=r['confirmation_token'])
+        self.assertEqual(r['flow'],'idle')
+        self.assertIsNone(r['confirmation_token'])
         self.assertEqual(r['card']['type'],'car_location')
         self.assertEqual(r['card']['data']['car_id'],'11')
         self.assertIn(('GET','/api/v1/vehicles/11/location',None),self.requests)

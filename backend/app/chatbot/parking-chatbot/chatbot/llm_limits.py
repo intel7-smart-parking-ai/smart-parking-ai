@@ -17,6 +17,7 @@ class RouteLimits:
     def __init__(self):
         self.lock = threading.Lock()
         self.minute = deque()
+        self.turns = deque()
         self.day = None
         self.daily_calls = 0
         self.cache = OrderedDict()
@@ -36,6 +37,25 @@ class RouteLimits:
                     or (config.LLM_MAX_PER_DAY and self.daily_calls >= config.LLM_MAX_PER_DAY)):
                 return False
             self.minute.append((current, session))
+            self.daily_calls += 1
+            return True
+
+    def admit_turn(self, session):
+        """대화 에이전트용: 질문(턴) 1개를 한 번만 센다. 한 턴 안의 도구 선택·답 작성 호출은 따로 세지 않는다."""
+        if session is None:
+            return True
+        with self.lock:
+            current = time.monotonic()
+            while self.turns and current - self.turns[0][0] >= 60:
+                self.turns.popleft()
+            today = datetime.now(config.KST).date()
+            if self.day is None or today > self.day:
+                self.day, self.daily_calls = today, 0
+            if (len(self.turns) >= config.LLM_MAX_PER_MIN
+                    or sum(sid == session for _, sid in self.turns) >= config.LLM_MAX_PER_SESSION_MIN
+                    or (config.LLM_MAX_PER_DAY and self.daily_calls >= config.LLM_MAX_PER_DAY)):
+                return False
+            self.turns.append((current, session))
             self.daily_calls += 1
             return True
 

@@ -141,6 +141,10 @@ class MockAdapter:
         self.payments = {}
         self.quotes = {}
 
+    def congestion_forecast(self, lot_id, at):
+        """mock 데이터에는 시연 이력이 없으므로 예측 숫자를 만들지 않는다."""
+        raise DataUnavailable("시연 이력이 없어 혼잡 예측을 할 수 없습니다.")
+
     def get_empty_spots(self) -> C.OccupancySnapshot:
         with self.lock:
             lots, states = {}, {}
@@ -169,9 +173,29 @@ class MockAdapter:
                 **self._vehicle_metadata(car_id),
                 "entry_at": iso(car["entry_at"]), "updated_at": iso(now())}
 
+    def find_virtual(self, number: str, plate: str | None = None):
+        """목업: lots.json mock_virtual_plates(차량 → 번호판)로 가상 C/D 차량을 찾는다."""
+        plates = config.catalog.settings.get("mock_virtual_plates") or {}
+        matches = [(car_id, p) for car_id, p in plates.items()
+                   if p[-4:] == number and (plate is None or p == plate)]
+        if len(matches) != 1:
+            return None
+        car_id, found_plate = matches[0]
+        location = self.find_car(car_id)
+        if not location or location["lot_id"] not in ("C", "D"):
+            return None
+        return {**location, "car_id": None, "mock_car": car_id, "plate_number": found_plate,
+                "vehicle_number": number, "session_id": None, "data_source": "mock"}
+
+    def virtual_fee(self, location):
+        fee = self.get_fee((location or {}).get("mock_car") or "")
+        if not fee:
+            return None
+        return {"fee": fee["fee"], "minutes": fee["minutes"], "paid": fee["paid"]}
+
     @staticmethod
     def _vehicle_metadata(car_id):
-        """Only the mock fixture's explicit D-39 assignment supplies its type."""
+        """Only the mock fixture's explicit D-54 assignment supplies its type."""
         kind = config.catalog.settings.get("mock_vehicle_types", {}).get(car_id)
         return {"vehicle_type": kind} if kind is not None else {}
 
@@ -564,6 +588,14 @@ class ApiAdapter:
             cache[key] = result
         return result
 
+    def congestion_forecast(self, lot_id, at):
+        """가상 시연 이력 기반 혼잡 예측 (조회 전용). 실패하면 DataUnavailable."""
+        from urllib.parse import urlencode
+        status, value, _ = self._request("GET", "/api/v1/congestion/forecast?" + urlencode({"lot_id": lot_id, "at": at.isoformat()}))
+        if status != 200 or not isinstance(value, dict):
+            raise DataUnavailable("혼잡 예측을 확인할 수 없습니다.")
+        return value
+
     def get_empty_spots(self) -> C.OccupancySnapshot:
         status, value, headers = self._request("GET", config.API_PATHS["lots"])
         if status != 200:
@@ -660,6 +692,42 @@ class ApiAdapter:
                 "status": value.get("status"), "confidence": value.get("confidence"),
                 "capacity": config.catalog.space_count(lot), "entry_at": value.get("entry_at"),
                 "updated_at": value.get("observed_at"), **provenance}
+
+    def find_virtual(self, number: str, plate: str | None = None):
+        """가상 C/D 차량: 번호판 뒤 4자리로 서버 단일 결과를 찾는다(API_CONTRACT · vehicle-search).
+        None = 찾지 못함/여러 대, {"status": "unavailable"} = 조회 실패."""
+        base = config.API_PATHS.get("virtual_search")
+        if not base:
+            return {"status": "unavailable", "unavailable": True, "reason": "not_configured"}
+        status, value, headers = self._request("GET", base + "?vehicle_number=" + quote(number, safe=""))
+        if status == 404:
+            return None
+        if status != 200:
+            return self._failure(status, value, headers)
+        lot = value.get("lot_id")
+        if not isinstance(lot, str) or config.catalog.lot(lot) is None or not isinstance(value.get("space_id"), str):
+            return {"status": "unavailable", "unavailable": True}
+        found_plate = value.get("plate_number") if isinstance(value.get("plate_number"), str) else None
+        if plate and found_plate and found_plate.replace(" ", "") != plate:
+            return None
+        return {"car_id": None, "plate_number": found_plate, "vehicle_number": value.get("vehicle_number") or number,
+                "lot_id": lot, "space_id": value["space_id"],
+                "session_id": value.get("session_id") if isinstance(value.get("session_id"), str) else None,
+                "entry_at": value.get("entry_at"), "updated_at": value.get("observed_at"), **self._meta(headers)}
+
+    def virtual_fee(self, location):
+        """가상 차량의 서버 요금(세션 기준). 실패하면 None — 요금을 지어내지 않는다."""
+        session_id = (location or {}).get("session_id")
+        if not session_id:
+            return None
+        path = config.API_PATHS["fee"].format(session_id=quote(session_id, safe=""))
+        status, value, _headers = self._request("GET", path)
+        amount = value.get("amount_krw") if status == 200 else None
+        if type(amount) is not int:
+            return None
+        minutes = value.get("duration_minutes")
+        return {"fee": amount, "minutes": minutes if type(minutes) is int else None,
+                "paid": value.get("payment_status") == "paid"}
 
     def get_fee(self, car_id):
         car = self.find_car(car_id)

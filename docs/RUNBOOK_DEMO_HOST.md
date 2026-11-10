@@ -157,3 +157,13 @@ WEB_BIND_ADDRESS=0.0.0.0으로 되돌려 web을 재생성한다. 다른 매핑�
 ```powershell
 netsh interface portproxy delete v4tov4 listenaddress=0.0.0.0 listenport=80
 ```
+
+## 챗봇 관리자 호출 화면 연결 (11/09)
+
+관리자 화면의 "고객 호출 · 문의"는 챗봇 관리자 API(`/api/v1/chat/admin/calls`)를 읽는다. 이 API는
+`Authorization: Bearer <ADMIN_TOKEN>`이 있어야 열린다. 브라우저에는 키를 두지 않고, 관리자 로그인
+(`auth_request`)을 통과한 `/admin-api/` 요청에만 nginx가 키를 붙인다.
+
+- 비공개 `.env`에 `CHATBOT_ADMIN_TOKEN=<긴 임의 문자열>` 추가 → `api`(ADMIN_TOKEN)와 `web`(nginx)에 같은 값이 들어간다
+- 값이 없으면 지금처럼 "챗봇 관리자 권한 연결이 필요합니다."가 표시된다
+- 키는 디스코드·저장소에 쓰지 않는다

@@ -7,5 +7,5 @@
   "alerts": "/api/v1/alerts",
   "sessions": "/api/v1/sessions",
   "rate_policies": "/api/v1/rate-policies",
-  "virtual_search": null
+  "virtual_search": "/api/v1/vehicle-search"
 }

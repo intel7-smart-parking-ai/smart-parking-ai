@@ -15,3 +15,6 @@ docs/history/validation*/
 # Preserve old raw evidence locally; do not stage new dumps.
 docs/history/*.txt
 docs/history/*.json
+
+# Local monitoring records (MONITOR_BACKEND=local)
+.monitoring/

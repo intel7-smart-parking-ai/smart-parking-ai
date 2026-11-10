@@ -82,8 +82,11 @@ class OccupancyExperiment(InMemoryEventStore):
         car = event.car_id if target == 'occupied' else None
         observed_type = event.vehicle_type if target == 'occupied' else None
         signature = (target, car, event.source, observed_type)
-        if (candidate is None or candidate[0] != signature or gap is None
-                or gap > self.policy.max_gap_seconds):
+        max_gap = self.policy.max_gap_seconds
+        if event.source == 'simulation' and event.lot_id in ('C', 'D'):
+            # The virtual loop refreshes both lots sequentially under database load.
+            max_gap = max(max_gap, 5)
+        if candidate is None or candidate[0] != signature or gap is None or gap > max_gap:
             candidate = (signature, event.observed_at)
         elapsed = (event.observed_at - candidate[1]).total_seconds()
         required = self.policy.occupy_seconds if target == 'occupied' else self.policy.empty_seconds

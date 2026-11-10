@@ -14,7 +14,7 @@ function readReservations() {
   }
 }
 
-export default function AirportPanel({lot}) {
+export default function AirportPanel({lot,compact=false}) {
   const [zone, setZone] = useState('A');
   const [reservations, setReservations] = useState(readReservations);
   const [message, setMessage] = useState('');
@@ -60,10 +60,10 @@ export default function AirportPanel({lot}) {
     if (store([...records, item])) setMessage(zones[zone] + t(' 예약이 저장됐습니다.'));
   }
 
-  return <section className="panel airport-panel" aria-label={t('주차 예약')}>
+  return <section className={`panel airport-panel${compact?' airport-panel--chat':''}`} aria-label={t('주차 예약')}>
     <header>
-      <div><h2>{t('김해공항 주차 예약')}</h2></div>
-      <button type="button" className="button primary" onClick={() => {setMessage(''); dialog.current.showModal();}}>{t('예약')}</button>
+      {!compact&&<div><h2>{t('김해공항 주차 예약')}</h2></div>}
+      <button type="button" className="button primary" onClick={() => {setMessage(''); dialog.current.showModal();}}>{t(compact?'예약하기':'예약')}</button>
     </header>
     <dialog className="airport-reservation-dialog" ref={dialog} aria-labelledby={titleId}>
       <div className="airport-dialog-heading">
