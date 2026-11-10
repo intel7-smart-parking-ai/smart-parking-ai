@@ -1,0 +1,41 @@
+{
+  "product_version": "V53",
+  "build_revision": 35,
+  "camera_restarts": 3,
+  "enabled_to_full_api_ms": [
+    958.4,
+    940.8,
+    930.3
+  ],
+  "start_to_enable_ms": [
+    5744.9,
+    4562.9,
+    5297.6
+  ],
+  "lit_vehicles": 3,
+  "correct_full_monitor_samples": 115,
+  "correct_optical_scene_vehicles": 19,
+  "observed_empty_spaces": 9,
+  "receipts": {
+    "accepted": 612
+  },
+  "edge_painted_rows": 444,
+  "edge_subsecond": 444,
+  "edge_median_ms": 489.2,
+  "edge_p95_ms": 849.8,
+  "edge_max_ms": 992.7,
+  "edge_fire_rows": {
+    "B/A-01": 27,
+    "A/A-05": 27,
+    "A/B-05": 25
+  },
+  "protected_sessions": 10,
+  "billing_writes": 0,
+  "external_docker": "unverified",
+  "physical_hand_to_display": "unverified",
+  "six_vs_eighteen_accuracy": "unverified",
+  "server_tests": 597,
+  "frontend_tests": 79,
+  "frontend_build": "passed",
+  "site": "loopback"
+}

@@ -1,0 +1,50 @@
+{
+  "product_version": "V53",
+  "models": [
+    {
+      "role": "sticker_color",
+      "name": "yolox_s",
+      "task": "detection",
+      "labels": [
+        "sticker_blue",
+        "sticker_green",
+        "sticker_white"
+      ],
+      "model_type": "ssd",
+      "xml_sha256": "86bb8d6ee1bac7156a8c856122b29c5aa648056b66c28e6fd1958f0f9e9a6cd5",
+      "bin_sha256": "45ba73c3498bd5a826dc8a70a44efc5402958357fb2ef5205a163acb6f4b8ac7"
+    },
+    {
+      "role": "occupancy",
+      "name": "mobilenetv3_large",
+      "task": "classification",
+      "labels": [
+        "empty",
+        "occupied"
+      ],
+      "model_type": "Classification",
+      "xml_sha256": "3ce7ff9377df420775f633c3bd08f708390e7e5ddae6df36cebfd83bebefce2e",
+      "bin_sha256": "b8710fe1420716a9b32faddca79dc85f831fd09ed777e894d312b66dc029d9bb"
+    },
+    {
+      "role": "number_color",
+      "name": "mobilenetv3_large",
+      "task": "classification",
+      "labels": [
+        "color_blue",
+        "color_green",
+        "color_white",
+        "number_11",
+        "number_28",
+        "number_34",
+        "number_49",
+        "number_77",
+        "number_87"
+      ],
+      "model_type": "Classification",
+      "xml_sha256": "d5357cd99319dbf5d5074822534d78a3667cfc1811be9d39cd634a1b0a94eebb",
+      "bin_sha256": "6697b29ba781d9572e099eb49eb6451eebdfb219a6ec8819716943ba2661d16f"
+    }
+  ],
+  "files_included": false
+}

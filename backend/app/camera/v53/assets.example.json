@@ -1,0 +1,11 @@
+{
+  "detector": "../private_models/sticker_color/model.xml",
+  "team_directory": "../private_models/parking_combo_align_feedback",
+  "legacy_board_directory": "../private_reference/board_print",
+  "fire_led_model": "models/red_led.npz",
+  "glow_model": "models/red_glow.npz",
+  "empty_bays": "models/empty_bays.npz",
+  "empty_bays_lit": "models/empty_bays_lit.npz",
+  "ocr_python": "",
+  "ocr_models": ""
+}

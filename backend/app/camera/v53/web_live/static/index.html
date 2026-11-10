@@ -1,0 +1,616 @@
+<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>주차장 관제 · V53 35차</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f1f4f7;color:#172b40;font:16px/1.4 system-ui,"Malgun Gothic",sans-serif}
+[hidden]{display:none!important}
+header,main{max-width:2500px;margin:auto;padding:12px clamp(12px,1.3vw,30px)}
+header{display:flex;align-items:center;gap:16px;justify-content:space-between;flex-wrap:wrap}
+h1,h2,h3,p,figure{margin:0}
+h1{font-size:clamp(21px,1.6vw,30px);letter-spacing:-.04em}
+h2{font-size:22px}h3{font-size:17px}p{color:#42596d}
+main{padding-top:0}.bar,.meta{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+button,select{font:inherit;padding:6px 10px;border:1px solid #c8d3de;border-radius:7px;background:#fff;color:#203b53;cursor:pointer}
+button.primary{background:#174e68;border-color:#174e68;color:white}
+button:disabled{opacity:.48;cursor:default}button:hover:not(:disabled){filter:brightness(.95)}
+button:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #3f91c1;outline-offset:2px}
+kbd{font:12px monospace;background:#eaf0f4;border:1px solid #d4dee4;border-radius:4px;padding:1px 4px;color:#40586e}
+.notice,.fire-alert{padding:6px 12px;margin-bottom:5px;border-radius:6px;background:#e3edf4;color:#25475c;white-space:pre-line}
+.notice.error,.fire-alert{background:#8d2531;color:#fff}.fire-alert{font-weight:700}
+#parkingIssues{background:#fff0d7;color:#744600}.total{font-weight:650;color:#344d62;margin:6px 0}
+.grid{display:grid;gap:12px;align-items:start}
+.card,details{min-width:0;background:white;border:1px solid #d5dfe7;border-radius:10px;padding:12px}
+.card{display:grid;gap:10px}.card-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.spacer{flex:1}.chip{font-size:14px;font-weight:650;border-radius:16px;padding:5px 12px;background:#e2ebed}
+.frame{position:relative;width:100%;aspect-ratio:16/9;background:#142334;border-radius:7px;overflow:hidden}
+.review-plane{position:absolute;left:50%;top:50%;width:100%;height:100%;transform:translate(-50%,-50%)}
+.frame img,.labels,.placeholder{display:block;position:absolute;inset:0;width:100%;height:100%}
+.frame img{object-fit:contain}.labels{pointer-events:none}
+.sticker-label{position:absolute;transform:translate(-50%,0) rotate(var(--upright,0deg));background:#142334eb;color:#fff;
+  font-weight:700;font-size:clamp(11px,.8vw,16px);padding:0 3px;border-radius:3px;line-height:1.2}
+.placeholder{display:grid;place-items:center;color:#d6e2e9}
+.camera-view,.tables,.bay-table{min-width:0}.view-caption{display:flex;align-items:baseline;justify-content:space-between;gap:6px;flex-wrap:wrap;margin-bottom:4px}
+.sheet-title{margin:0 0 6px;font-size:18px}.notice:empty{display:none}
+.meta,.summary,.muted,.help{font-size:14px;color:#465e72}.summary{white-space:pre-line}
+.meta{margin:5px 0;font-variant-numeric:tabular-nums}.review-controls{margin-top:6px}
+.tables{display:grid;gap:8px;align-content:start}
+table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:clamp(16px,.96vw,21px);line-height:1.28;font-variant-numeric:tabular-nums}
+th,td{text-align:left;vertical-align:middle;padding:5px 6px;border-bottom:1px solid #e1e7ed;overflow-wrap:anywhere;word-break:keep-all}
+th{background:#eaf0f4;color:#324b60;font-size:.96em;font-weight:700}
+th:nth-child(1){width:15%}th:nth-child(2){width:12%}th:nth-child(3){width:11%}
+th:nth-child(4){width:17%}th:nth-child(5){width:11%}
+.bay,.number{font-size:1.08em;font-weight:750}.bay{white-space:nowrap}
+.zone,.vehicle-type{display:inline-block;color:#53687a;font-size:.94em}
+.dot{display:inline-block;width:.67em;height:.67em;border-radius:50%;border:1px solid #8797a8;vertical-align:.02em;margin-right:.22em}
+.dot.white{background:#fff}.dot.green{background:#238753}.dot.blue{background:#3774be}
+.occupied{color:#155f4c}.warn{color:#805310}.reason{color:#334b60}
+details{margin-top:10px}summary{cursor:pointer;font-weight:650}details p{margin:6px 0}
+label{display:inline-flex;gap:8px;align-items:center;margin:8px 12px 8px 0}.preview{max-width:100%;height:auto}
+#replayPanel{margin-top:12px}a{color:#1b617e}
+.camera-visual{min-width:0}.card-head{margin-bottom:8px}
+.section-head{display:flex;gap:6px 16px;align-items:baseline;flex-wrap:wrap;margin:22px 0 10px}
+.section-head .total{margin:0;font-size:14px}
+.sheet-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0 0 12px}
+.metric{background:white;border:1px solid #d5dfe7;border-top:3px solid #365776;border-radius:8px;padding:9px 14px}
+.metric:nth-child(2){border-top-color:#18775f}.metric:nth-child(3){border-top-color:#9a681c}.metric:nth-child(4){border-top-color:#b0343a}
+.metric dt{color:#40586d;font-weight:650}.metric dd{margin:2px 0 0;font-size:26px;font-weight:750;line-height:1.15}
+.slot-sheet{min-width:0}.tables{gap:0}.bay-table table{font-size:clamp(16px,1vw,19px)}
+.bay-table th{width:auto}.bay-table th:nth-child(1){width:16%}.bay-table th:nth-child(2){width:15%}
+.bay-table th:nth-child(3){width:22%}.bay-table th:nth-child(4){width:11%}.bay-table th:nth-child(5){width:19%}
+.bay-table th:nth-child(6){width:11%}.bay-table tbody+tbody{border-top:2px solid #bacbd5}
+.badge{display:inline-block;padding:3px 7px;border-radius:5px;font-weight:650;line-height:1.3}
+.present{color:#204c75;background:#e6eff8}.vacant,.match{color:#155f49;background:#e3f2eb}
+.unknown{color:#754c0a;background:#fff1d6}.mismatch{color:#992934;background:#fce6e7}
+.parking-wrong{box-shadow:inset 3px 0 #bd414a;background:#fff9f8}
+.parking-status{display:inline-flex;align-items:center;flex-wrap:wrap;gap:2px}
+.fire-mark{display:inline-block;white-space:nowrap;background:#8d2531;color:white;font-weight:750;border-radius:4px;padding:2px 4px}
+.historic{color:#76541c}.frame-time{font-variant-numeric:tabular-nums}.reason{font-size:.94em}
+.reason,.bay-table th:last-child{text-align:right}.reason-info{position:relative;display:inline-flex}
+.info-button{font:700 15px/1 Georgia,serif;border-radius:50%;padding:0;width:24px;height:24px;color:#35536a;background:#f3f7fa}
+.reason-tip{display:none;position:absolute;z-index:4;top:100%;right:0;width:max-content;max-width:min(300px,75vw);
+  text-align:left;background:#203749;color:white;padding:9px 12px;border-radius:6px;font:15px/1.45 system-ui,sans-serif;box-shadow:0 3px 12px #192a3a30}
+.reason-info:hover .reason-tip,.reason-info:focus-within .reason-tip{display:block}
+.dash{color:#697b88}
+@media(min-width:800px){#cameras{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(min-width:1750px){#sheets{grid-template-columns:repeat(2,minmax(0,1fr))}}
+#cameras.zoom{grid-template-columns:1fr}#cameras.zoom .frame{max-width:min(100%,146vh);margin:auto}
+@media(max-width:620px){
+  header,main{padding-left:10px;padding-right:10px}.card{padding:10px}header{gap:8px}
+  .metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.metric dd{font-size:23px}
+  .bay-table table,.bay-table tbody{display:block}
+  .bay-table thead{position:absolute;width:1px;height:1px;clip-path:inset(50%);overflow:hidden}
+  .bay-table tr{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;padding:9px 6px;border-bottom:1px solid #d5dfe7}
+  .bay-table td{display:block;padding:0;border:0}
+  .bay-table td:before{content:attr(data-field);display:block;color:#526679;font-size:12px;font-weight:600}
+  .bay-table .reason{grid-column:1/-1}.bay-table .reason:before{display:none}
+}
+</style>
+<header><h1>주차장 실시간 관제</h1><div class="bar"><span id="status" class="chip">연결 확인 중</span><button id="start" class="primary">카메라 시작 <kbd>F5</kbd></button><button id="stop">정지 <kbd>Esc</kbd></button><button id="save">결과 저장 <kbd>Space</kbd></button></div></header>
+<main>
+<div id="message" class="notice" role="status"></div>
+<p id="fireHelp" class="notice" hidden></p>
+<div id="fireAlert" class="fire-alert" role="alert" hidden></div>
+<div id="parkingIssues" class="notice warn" role="status" hidden></div>
+<div class="grid" id="cameras" aria-label="실시간 판독 화면"></div>
+<section aria-labelledby="overview"><div class="section-head"><h2 id="overview">주차 현황</h2><span id="scope" class="muted"></span><span id="total" class="total"></span></div>
+<dl class="metrics"><div class="metric"><dt>차량 있음</dt><dd id="occupiedCount">—</dd></div><div class="metric"><dt>빈자리</dt><dd id="emptyCount">—</dd></div><div class="metric"><dt>판독 대기</dt><dd id="unknownCount">—</dd></div><div class="metric"><dt>비정상 주차</dt><dd id="wrongCount">-</dd></div></dl>
+<div class="grid" id="sheets"></div></section>
+<details><summary>서버 전송 · 설정</summary><p class="help">도면 확인 후 전송을 켜세요. 칸 상태가 바뀌면 즉시 보내고, 같은 상태는 1초 간격으로 보냅니다.</p>
+<p class="muted">카메라 전송 A·B · 시뮬레이터 C·D</p><div class="bar"><button id="sendOn" class="primary">관측 전송 켜기</button><button id="sendOff">전송 끄기</button><span id="apiStatus" class="muted"></span></div>
+<div id="sendStats" class="notice" style="white-space:pre-line">전송 꺼짐</div><label>스티커 탐지 기준 <input id="threshold" type="number" min="0.50" max="0.99" step="0.01" value="0.85"></label><span class="muted">서버 점유 기준 0.80</span> <button id="apply">설정 적용</button><p id="ocrStatus" class="muted"></p><p class="muted">API_BASE_URL·VISION_TOKEN은 실행 PC 환경변수로 설정합니다. 입출차는 수신 서버에서 확정합니다.</p></details>
+<details><summary>카메라 없이 저장 자료로 점검</summary><p class="help">팀 예제는 기능 점검용입니다. 학습 사진과의 중복 여부가 확인되지 않아 독립 정확도로 계산하지 않습니다. 이 결과는 서버로 보내지 않습니다.</p><div class="bar"><button id="sampleA">A 12칸 예제</button><button id="sampleB">B 16칸 예제</button><button id="upload">사진 선택</button><input hidden id="file" type="file" accept="image/jpeg,image/png,image/webp"></div><div id="replayPanel"></div></details>
+<details><summary>판독 기준과 사용 방법</summary><p>F5로 시작하면 양쪽 카메라의 판독 데이터를 이 PC의 runtime/collection.db에 자동 기록합니다. 탭을 닫아도 서버가 켜져 있으면 계속 수집합니다. Esc 또는 정지 버튼으로 두 카메라의 수집을 종료하세요. Space로 현재 결과 JSON을 내려받을 수 있습니다. 원본 영상의 연속 녹화는 제공하지 않습니다.</p><p>서버에 보내려면 각 판독 화면의 칸 이름과 실제 도면을 대조해 ‘칸 위치 맞음’을 누르세요. 빈칸 관측에는 차량·손·물체가 없는 상태에서 등록한 빈 기준이 필요합니다. 흰색은 일반, 초록은 전기차, 파랑은 장애인 차량입니다. 번호 후보와 보류는 표에 구분해 표시합니다.</p></details></main>
+<script>
+const $=id=>document.getElementById(id);let state=null,replay=null,busy=false,operation=0,lastStateAt=0;const requests=new Set();
+const escape=s=>String(s??'—').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const types={general:'일반',ev:'전기차',accessible:'장애인'},colors={white:'흰색',green:'초록',blue:'파랑'};
+function notice(s,error=false){$('message').textContent=s;$('message').className='notice'+(error?' error':'');}
+async function request(path,options={}){
+  const controller=new AbortController();
+  const cameraCommand=path==='/live/start'||path==='/live/stop';
+  if(!cameraCommand)requests.add(controller);
+  const timeout=cameraCommand?30000:path.startsWith('/live/state')?3000:(path.startsWith('/replay/')||path==='/analyze-image')?20000:8000;
+  const timer=setTimeout(()=>controller.abort(),timeout);
+  try{
+    const response=await fetch(path,{...options,signal:controller.signal});
+    const value=await response.json();
+    if(!response.ok)throw new Error(value.detail||'요청 실패');
+    return value;
+  }catch(e){if(e.name==='AbortError')throw new Error('요청이 취소되었거나 응답 시간이 초과됐습니다.');throw e;}
+  finally{clearTimeout(timer);requests.delete(controller);}
+}
+async function api(path,data){return request(path,data===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});}
+function displayLabels(camera,result){
+  const layer=$('labels'+camera);
+  layer.replaceChildren();
+  if(!result)return;
+  const [width,height]=result.image_size;
+  for(const d of result.detections){
+    const [x,y,u,v]=d.bbox_xyxy;
+    const id=d.space_id ? result.spaces?.find(s=>s.space_id===d.space_id)?.car_id : d.print_read?.number;
+    const label=document.createElement('span');
+    label.className='sticker-label';
+    label.style.left=Math.max(10,Math.min(90,(x+u)*50/width))+'%';
+    label.style.top=Math.min(92,100*v/height)+'%';
+    label.textContent=id||'?';
+    layer.appendChild(label);
+  }
+}
+const total=$('total');
+function occupancy(s,board){
+  if(s.observation==='occupied')return 'occupied';
+  if(s.observation==='empty' && s.sendable && s.empty_evidence_ok)return 'empty';
+  if(board?.registration_ok && s.observation==='unknown' && !s.quality_reason &&
+     s.model_observation===s.display_occupancy && ['empty','occupied'].includes(s.display_occupancy))return s.display_occupancy;
+  return 'unknown';
+}
+function fireVisible(light){
+  return light?.state==='confirmed' || (light?.state==='candidate' && ['red_emission','lens_brightening'].includes(light.method));
+}
+function showTotal(results){
+  const approved=approvedBoards(results);
+  const places={aisle:'통로',boundary:'칸 경계',outside:'주차판 밖',unregistered:'위치 미확인'};
+  const fires=new Map();
+  for(const r of approved){
+    for(const s of r.spaces){
+      if(!fireVisible(s.fire_led))continue;
+      const place=r.lot_id+' 주차장 '+s.space_id;
+      const vehicle=s.fire_led.on_vehicle?(s.car_id?s.car_id+'번':'차량 번호 미확인'):'';
+      fires.set(place,vehicle?place+' '+vehicle:place);
+    }
+  }
+  for(const [camera,r] of Object.entries(results)){
+    for(const light of r.fire_lights||[]){
+      const text=approved.includes(r)?r.lot_id+' 주차장 '+(light.space_id||places[light.location]||'위치 미확인'):'카메라 '+camera+' · 위치 미확인';
+      if(fireVisible(light) && !fires.has(text))fires.set(text,text);
+    }
+  }
+  const violations=approved.flatMap(r=>r.spaces.filter(s=>parkingState(s,r)==='mismatch')
+    .map(s=>r.lot_id+' 주차장 '+s.space_id+(s.car_id?' '+s.car_id+'번':'')+' ('+types[s.vehicle_type]+' 차량 · '+types[s.zone_type]+' 칸)'));
+  $('parkingIssues').textContent=violations.length?'비정상 주차 '+violations.length+'칸 · '+violations.slice(0,2).join(', ')+(violations.length>2?' 외 '+(violations.length-2)+'칸':''):'';
+  $('parkingIssues').hidden=!violations.length;
+  const banner=$('fireAlert');
+  const message=fires.size?'모의 화재 · '+[...fires.values()].join(', '):'';
+  if(banner.textContent!==message)banner.textContent=message;
+  banner.hidden=!message;
+  const ids=new Set(approved.flatMap(r=>
+    r.spaces.filter(s=>s.observation==='occupied'&&s.sendable&&s.car_id&&s.vehicle_type).map(s=>s.car_id)));
+  total.textContent='번호·차종 전송 가능 '+ids.size+'대 / 위치 확인 '+approved.reduce((n,r)=>n+r.spaces.length,0)+'/28칸';
+  const visible={...results};let recent=false;
+  for(const c of ['1','2']){
+    if(visible[c] || !state)continue;
+    const saved=collectedFrames[c];
+    if(!saved || saved.key!==state.collection?.channels?.[c]?.key)continue;
+    if(state.running===false){visible[c]=saved.r;continue;}
+    const age=Date.now()-Date.parse(saved?.r.observed_at);
+    if(state.cameras?.[c]==='실시간 수신 중' && age>=0 && age<=5000){
+      visible[c]=saved.r;recent=true;
+    }
+  }
+  const boards=Object.values(visible).filter(r=>['A','B'].includes(r.lot_id)
+    && Object.values(visible).filter(o=>o.lot_id===r.lot_id).length===1);
+  const rows=boards.flatMap(r=>r.spaces);
+  const presence=boards.flatMap(b=>b.spaces.map(s=>occupancy(s,b)));
+  const occupied=presence.filter(value=>value==='occupied').length;
+  const empty=presence.filter(value=>value==='empty').length;
+  $('scope').textContent=rows.length?[state?.running===false?'마지막 저장 기록':'','판독 '+rows.length+'/28칸',
+    boards.some(r=>!r.roi_confirmed)?'칸 위치 확인 전':'',recent?'최근 저장 포함':''].filter(Boolean).join(' · '):'수신 대기';
+  $('occupiedCount').textContent=rows.length?occupied+'칸':'—';
+  $('emptyCount').textContent=rows.length?empty+'칸':'—';
+  $('unknownCount').textContent=rows.length?rows.length-occupied-empty+'칸':'-';
+  const parking=boards.flatMap(b=>b.spaces.map(s=>parkingState(s,b)));
+  $('wrongCount').textContent=empty||parking.some(Boolean)?parking.filter(x=>x==='mismatch').length+'칸':'-';
+}
+function approvedBoards(results){
+  const boards=Object.values(results);
+  return boards.filter(r=>r.roi_confirmed && ['A','B'].includes(r.lot_id) &&
+    boards.filter(other=>other.lot_id===r.lot_id).length===1);
+}
+const fields=['주차칸 · 구역','차량 유무','주차 상태','차량 번호','스티커 · 차종','전송 점수','사유'];
+const badges={occupied:['present','차량 있음'],empty:['vacant','빈자리'],unknown:['unknown','—'],
+  matched:['match','정상 주차'],mismatch:['mismatch','비정상 주차']};
+const badge=key=>'<span class="badge '+badges[key][0]+'">'+badges[key][1]+'</span>';
+const stickerTypes={white:'general',green:'ev',blue:'accessible'};
+function parkingState(s,board){
+  if(!board || !['A','B'].includes(board.lot_id) || s.observation!=='occupied')return null;
+  if(!Object.hasOwn(types,s.zone_type) || !Object.hasOwn(types,s.vehicle_type))return null;
+  const fit=s.zone_type==='general' || s.vehicle_type===s.zone_type?'matched':'mismatch';
+  if(board.roi_confirmed)return ['matched','mismatch'].includes(s.parking_rule_status)?fit:null;
+  if(!board.registration_ok || s.parking_rule_status!=='unverified' || s.quality_reason ||
+    !s.sticker_bbox || !Number.isFinite(s.confidence) || s.confidence<.8 || s.confidence>1 ||
+    !Object.hasOwn(stickerTypes,s.sticker_color) ||
+    stickerTypes[s.sticker_color]!==s.vehicle_type)return null;
+  if(board.candidates?.some(c=>c.spaces?.includes(s.space_id) &&
+    ['sticker_multiple_spaces','sticker_outside_or_boundary'].includes(c.kind)))return null;
+  return fit;
+}
+function bayRow(s,board,scope='sample'){
+  const occupied=occupancy(s,board);
+  const rule=parkingState(s,board);
+  const vehicleFire=rule && fireVisible(s.fire_led) && s.fire_led.on_vehicle===true;
+  const parking='<span class="parking-status">'+(rule?badge(rule):'<span class="dash">-</span>')+
+    (vehicleFire?'<strong class="fire-mark">(모의 화재)</strong>':'')+'</span>';
+  const number=s.car_id || (s.number_candidate?'미확인 (후보 '+s.number_candidate+')':occupied==='occupied'?'미확인':'—');
+  const led=fireVisible(s.fire_led)?'모의 화재':'';
+  const fit=rule?types[s.zone_type]+' 구역 / '+types[s.vehicle_type]+' 차량':occupied==='occupied'&&!s.vehicle_type?'차종 미확인':'';
+  const location=!board?'도면 중복 · 칸 위치 확인':!board.roi_confirmed?'칸 위치 승인 전':'';
+  const reasons=[...new Set([led,fit,location,s.reason,!s.car_id && s.number_reason].filter(Boolean))];
+  const tipId=escape('reason-'+scope+'-'+s.space_id);
+  const info=reasons.length?'<span class="reason-info"><button type="button" class="info-button" aria-label="'+escape(s.space_id)+' 검토 사유" aria-describedby="'+tipId+'">i</button><span class="reason-tip" role="tooltip" id="'+tipId+'">'+escape(reasons.join(' · '))+'</span></span>':'<span class="dash">—</span>';
+  const dot=Object.hasOwn(colors,s.sticker_color)?'<i aria-hidden="true" class="dot '+s.sticker_color+'"></i>':'';
+  const values=[
+    '<strong class="bay">'+escape(s.space_id)+'</strong> <span class="zone">'+escape(types[s.zone_type])+'</span>',
+    badge(occupied),parking,escape(number),
+    (dot||s.vehicle_type)?dot+escape(colors[s.sticker_color])+' <span class="vehicle-type">'+escape(types[s.vehicle_type])+'</span>':'—',
+    s.sendable && Number.isFinite(s.confidence)?s.confidence.toFixed(2):'—',
+    info];
+  const classes=['','','',s.car_id?'number':'','','','reason'];
+  return '<tr data-space="'+escape(s.space_id)+'" class="'+(rule==='mismatch'?'parking-wrong':'')+'">'+values.map((v,i)=>'<td data-field="'+fields[i]+'" class="'+classes[i]+'">'+v+'</td>').join('')+'</tr>';
+}
+function table(r,board=r,scope='sample',rows=null){
+  const groups=new Map();
+  for(const s of r.spaces){
+    const group=(s.space_id||'').split('-')[0];
+    if(!groups.has(group))groups.set(group,[]);
+    groups.get(group).push(rows?.get(s.space_id)??bayRow(s,board,scope));
+  }
+  const head=fields.map(f=>'<th scope="col">'+f+'</th>').join('');
+  if(!groups.size)return '<p class="muted">주차칸 확인 중</p>';
+  return '<div class="bay-table"><table aria-label="'+escape(r.lot_id||'미확인')+' 주차장"><thead><tr>'+head+'</tr></thead>'+
+    [...groups.values()].map(rows=>'<tbody>'+rows.join('')+'</tbody>').join('')+'</table></div>';
+}
+for(const region of ['sheets','replayPanel']){
+  $(region).onclick=e=>{
+    const info=e.target.closest('.info-button');
+    if(info)info.focus({preventScroll:true});
+  };
+}
+const reviewFrames={}, loadingFrames={}, queuedFrames={}, collectedFrames={}, rotations={}, sheetViews={};
+function renderSheet(c,r,board){
+  const container=$('rows'+c),scope='camera'+c;
+  const layout=JSON.stringify([r.lot_id,...r.spaces.map(s=>s.space_id)]);
+  const rows=new Map(r.spaces.map(s=>[s.space_id,bayRow(s,board,scope)]));
+  const prev=sheetViews[c];
+  if(!prev||prev.layout!==layout||!container.querySelectorAll){
+    container.innerHTML=table(r,board,scope,rows);
+    const nodes=new Map(Array.from(container.querySelectorAll?.('tbody tr')||[],node=>[node.dataset.space,node]));
+    sheetViews[c]={layout,rows,nodes};
+    return;
+  }
+  for(const [sid,html] of rows){
+    if(html===prev.rows.get(sid))continue;
+    const tr=prev.nodes.get(sid),body=document.createElement('tbody');
+    body.innerHTML=html;
+    const next=body.firstElementChild;
+    tr.className=next.className;
+    Array.from(tr.cells).forEach((cell,i)=>{
+      const other=next.cells[i];
+      cell.className=other.className;
+      if(cell.innerHTML===other.innerHTML)return;
+      const tip=cell.querySelector('.reason-tip'),newTip=other.querySelector('.reason-tip');
+      if(tip && newTip)tip.textContent=newTip.textContent;
+      else cell.innerHTML=other.innerHTML;
+    });
+  }
+  prev.rows=rows;
+}
+function orientReview(c) {
+  const [w,h]=collectedFrames[c]?.r.image_size||[16,9];
+  const turns=rotations[c];
+  const scale=turns%2?Math.min(16/h,9/w):Math.min(16/w,9/h);
+  const style=$('plane'+c).style;
+  style.width=(w*scale/16*100)+'%';
+  style.height=(h*scale/9*100)+'%';
+  style.transform='translate(-50%,-50%) rotate('+turns*90+'deg)';
+  $('labels'+c).style.setProperty('--upright',(-turns*90)+'deg');
+}
+let captureSession=null;
+function clearReview(c) {
+  loadingFrames[c]?.cancel();
+  loadingFrames[c]=null;
+  queuedFrames[c]=null;
+  reviewFrames[c]=null;
+  const img=$('image'+c);
+  img.hidden=true;
+  img.removeAttribute('src');
+  displayLabels(c,null);
+  delete collectedFrames[c];
+  delete sheetViews[c];
+  $('waiting'+c).hidden=false;
+  $('rows'+c).innerHTML='';
+  $('title'+c).textContent='카메라 '+c;
+  $('sheetTitle'+c).textContent='카메라 '+c+' · 칸별 현황';
+  $('sheetTime'+c).textContent='수신 대기';
+  $('confirm'+c).disabled=$('empty'+c).disabled=true;
+}
+function reviewStatus(c) {
+  const saved=collectedFrames[c], r=state?.results?.[c];
+  const match=Boolean(state?.running && saved && r && r.stream_epoch===saved.r.stream_epoch &&
+    r.frame_sequence===saved.r.frame_sequence && r.observed_at===saved.r.observed_at);
+  reviewFrames[c]=match?{epoch:r.stream_epoch,sequence:r.frame_sequence,observed_at:r.observed_at,lot_id:r.lot_id}:null;
+  $('confirm'+c).disabled=!match||!r.registration_ok;
+  $('empty'+c).disabled=!match||!r.roi_confirmed;
+  if(saved) {
+    const displayed=match?r:saved.r;
+    $('title'+c).textContent='카메라 '+c+(displayed.lot_id?' · '+displayed.lot_id+' 주차장':' · 도면 미확인');
+    $('sheetTitle'+c).textContent=$('title'+c).textContent+' · 칸별 현황';
+    const signature=JSON.stringify([displayed.detections.map(d=>[d.bbox_xyxy,d.space_id,d.print_read?.number]),displayed.spaces.map(s=>s.car_id)]);
+    if(saved.labels!==signature){displayLabels(c,displayed);saved.labels=signature;}
+    const other=c==='1'?'2':'1';
+    const peer=state?.results?.[other]??collectedFrames[other]?.r;
+    renderSheet(c,displayed,peer?.lot_id===displayed.lot_id?null:displayed);
+    const t=new Date(saved.r.observed_at).toLocaleTimeString('ko-KR',{hour12:false});
+    const timeLabel=(match?'실시간':'마지막 저장 기록')+' · '+t;
+    $('frameStatus'+c).textContent=timeLabel+' · #'+saved.r.frame_sequence;
+    $('sheetTime'+c).textContent=timeLabel;
+    $('sheetTime'+c).className=match?'frame-time muted':'frame-time historic';
+  }
+}
+function updateReview(c,entry) {
+  if(entry?.result?.annotated_image && loadingFrames[c]?.key!==entry.key && collectedFrames[c]?.key!==entry.key){
+    if(loadingFrames[c]){
+      queuedFrames[c]=entry;
+      reviewStatus(c);
+      return;
+    }
+    const key=entry.key,r=entry.result;
+    const job={key};
+    loadingFrames[c]=job;
+    const next=new Image();
+    next.src=r.annotated_image;
+    function advance(){
+      if(loadingFrames[c]!==job)return;
+      loadingFrames[c]=null;
+      const latest=queuedFrames[c];queuedFrames[c]=null;
+      if(latest)updateReview(c,latest);
+    }
+    const timer=setTimeout(()=>{job.cancel();advance();},4000);
+    job.cancel=()=>{clearTimeout(timer);next.removeAttribute?.('src');};
+    next.decode().then(()=>{
+      if(loadingFrames[c]!==job)return;
+      const img=$('image'+c);
+      img.src=next.src;img.hidden=false;$('waiting'+c).hidden=true;
+      collectedFrames[c]={key,r,labels:collectedFrames[c]?.labels};
+      orientReview(c);
+      reviewStatus(c);
+    }).catch(()=>{}).finally(()=>{clearTimeout(timer);advance();});
+  }
+  reviewStatus(c);
+}
+for(const c of ['1','2']) {
+  $('cameras').insertAdjacentHTML('beforeend',`<section id="camera${c}" class="card" aria-labelledby="title${c}">
+    <div class="camera-visual"><div class="card-head"><h2 id="title${c}">카메라 ${c}</h2><span class="spacer"></span>
+      <button id="zoom${c}" aria-pressed="false">화면 확대</button><button id="turn${c}" aria-label="카메라 ${c} 수집 화면 90도 회전">90° 회전</button>
+      <select id="lot${c}" aria-label="카메라 ${c} 주차장"><option value="auto">도면 자동</option><option value="A">A 12칸</option><option value="B">B 16칸</option></select></div>
+    <div class="camera-view">
+      <figure class="frame"><div id="waiting${c}" class="placeholder">첫 판독 저장 대기</div>
+        <div class="review-plane" id="plane${c}"><img hidden id="image${c}" alt="카메라 ${c} 수집 판독 사진"><div class="labels" id="labels${c}" aria-hidden="true"></div></div></figure>
+      <div class="meta"><span id="frameStatus${c}"></span><span id="disk${c}"></span></div>
+      <div class="bar review-controls"><button disabled id="confirm${c}">칸 위치 맞음</button><button disabled id="empty${c}">빈칸 기준 등록</button><span id="summary${c}" class="summary">연결 대기</span></div></div></div></section>`);
+  $('sheets').insertAdjacentHTML('beforeend',`<section class="card slot-sheet"><div class="sheet-head"><h3 id="sheetTitle${c}">카메라 ${c} · 칸별 현황</h3><span class="muted" id="sheetTime${c}">수신 대기</span></div><div id="rows${c}" class="tables"></div></section>`);
+  $('zoom'+c).onclick=()=>{
+    const expand=$('zoom'+c).getAttribute('aria-pressed')!=='true';
+    $('camera'+(c==='1'?'2':'1')).hidden=expand;
+    $('cameras').className=expand?'grid zoom':'grid';
+    $('zoom'+c).setAttribute('aria-pressed',String(expand));
+    $('zoom'+c).textContent=expand?'두 화면 보기':'화면 확대';
+  };
+  const rotationKey='v53-collected-quarter-turns-'+c;
+  rotations[c]=0;
+  try{rotations[c]=Number(localStorage.getItem(rotationKey))&3;}catch{}
+  $('turn'+c).onclick=()=>{
+    rotations[c]=(rotations[c]+1)%4;
+    try{localStorage.setItem(rotationKey,String(rotations[c]));}catch{}
+    orientReview(c);
+  };
+  $('confirm'+c).onclick=()=>{
+    const reviewed=reviewFrames[c];
+    if(reviewed)run(()=>api('/live/confirm-roi/'+c,{reviewed}),'확인한 화면의 칸 위치를 등록했습니다.');
+  };
+  $('empty'+c).onclick=()=>{
+    const reviewed=reviewFrames[c];
+    if(reviewed)run(()=>api('/live/empty/'+c,{visually_empty:true,reviewed}),'확인한 빈 화면을 기준으로 등록했습니다.');
+  };
+}
+async function run(fn,message,urgent=false){if(busy&&!urgent)return;if(urgent)for(const controller of requests)controller.abort();const own=++operation;busy=true;try{await fn();if(own===operation&&message)notice(message);}catch(e){if(own===operation)notice(e.message,true);}finally{if(own===operation)busy=false;}}
+let nextCameraCommand=null,cameraWork=null,controlRevision=0;
+function controlCamera(start){
+  const alreadyRunning=start&&state?.running&&Date.now()-lastStateAt<1500;
+  nextCameraCommand=start;
+  controlRevision++;
+  for(const c of ['1','2']){
+    reviewFrames[c]=null;
+    $('confirm'+c).disabled=$('empty'+c).disabled=true;
+  }
+  if(!start){
+    operation++;busy=false;
+    for(const controller of requests)controller.abort();
+  }
+  const pending=alreadyRunning?liveStatus(state):start?'카메라 시작 중':'카메라 정지 중';
+  $('status').textContent=pending;
+  notice(pending);
+  if(!cameraWork)cameraWork=(async()=>{
+    try{
+      while(nextCameraCommand!==null){
+        const requested=nextCameraCommand;
+        nextCameraCommand=null;
+        try{
+          const response=await api(requested?'/live/start':'/live/stop',{});
+          if(nextCameraCommand===requested)nextCameraCommand=null;
+          if(nextCameraCommand===null){
+            state=response;lastStateAt=Date.now();
+            if(!requested){showTotal({});for(const c of ['1','2'])reviewStatus(c);}
+            $('status').textContent=requested?(Object.keys(response.results||{}).length?liveStatus(response):'첫 카메라 영상 대기'):'정지';
+            notice(requested?'카메라를 시작했습니다. 채널별 수신 상태를 확인하세요.':'카메라 수집과 관측 전송을 정지했습니다.');
+          }
+        }catch(e){if(nextCameraCommand===null){notice(e.message,true);$('status').textContent='카메라 상태 확인 중';}}
+      }
+    }finally{cameraWork=null;controlRevision++;}
+  })();
+  return cameraWork;
+}
+$('start').onclick=()=>controlCamera(true);
+$('stop').onclick=()=>controlCamera(false);
+function deliveryStats(t){
+  const labels={accepted:'정상 접수',session_review:'입차 대조 접수',duplicate:'중복(200)',HTTP_409:'충돌(409)',HTTP_422:'규격 오류(422)',delivery_unconfirmed:'응답 미확인'};
+  const names={SESSION_IDENTITY_CONFLICT:'칸의 기존 번호와 다름',ACTIVE_SESSION_EXISTS:'다른 활성 입차가 있음',SESSION_EXIT_REVIEW:'빈칸 확인 · 기존 입차 출차 보류',EVENT_ID_CONFLICT:'같은 이벤트 ID의 내용이 다름',UNSPECIFIED:'서버 원인 미제공',NETWORK:'네트워크 실패',VALIDATION_ERROR:'입력 오류'};
+  function line(label,counts={},reasons={}){
+    const totals=Object.entries(labels).map(([k,v])=>v+' '+(counts[k]||0));
+    const details=Object.entries(reasons).filter(([key])=>!key.endsWith('/NETWORK')).map(([key,n])=>(labels[key.split('/')[0]]||key)+' · '+(names[key.split('/')[1]]||'기타')+' '+n);
+    totals.push('네트워크 실패 '+(reasons['delivery_unconfirmed/NETWORK']||0));
+    const extra=Object.entries(counts).filter(([k])=>!labels[k]).map(([k,n])=>k+' '+n);
+    return label+'　'+totals.concat(extra).join(' / ')+(details.length?'\n　'+details.join(' / '):'');
+  }
+  return line('최근 1분',t.recent_counts,t.recent_reasons)+'\n'+line('누적',t.counts,t.reasons);
+}
+$('sendOn').onclick=()=>run(()=>api('/live/send',{enabled:true}),'관측 전송을 켰습니다. 아래 수신 결과를 확인하세요.');
+$('sendOff').onclick=()=>run(()=>api('/live/send',{enabled:false}),'관측 전송을 껐습니다.',true);
+$('apply').onclick=()=>run(()=>api('/live/config',{threshold:Number($('threshold').value),lots:{'1':$('lot1').value,'2':$('lot2').value}}),'설정 변경으로 도면·빈 기준을 초기화했습니다. 위치를 다시 확인하세요.');
+function analyzeReplay(inputName,load){
+  return run(async()=>{
+    const own=operation;
+    replay=null;
+    $('replayPanel').replaceChildren();
+    notice(inputName+' 판독 중');
+    const r=await load();
+    if(own!==operation)return;
+    $('replayPanel').innerHTML=`<p>${escape(inputName)} · ${escape(r.lot_id||'도면 미확인')} · ${r.total_ms.toFixed(0)}ms · 스티커 ${r.detections.length}개 · 서버 전송 없음${r.ocr_pending?' · 일부 OCR 처리 대기':''}</p><img class="preview" alt="저장 자료 분석 결과" src="${r.annotated_image}">${table(r)}`;
+    replay={...r,input_name:inputName};
+    // Keep Space usable after choosing a photo without moving focus away
+    // from another control the operator selected while inference was running.
+    if(['upload','file','sampleA','sampleB'].includes(document.activeElement?.id)){
+      $('save').focus({preventScroll:true});
+    }
+  },'사진 판독을 마쳤습니다. Space로 결과를 저장할 수 있습니다.');
+}
+for(const lot of ['A','B'])$('sample'+lot).onclick=()=>analyzeReplay(lot+' 주차장 예제',()=>api('/replay/'+lot,{}));
+$('upload').onclick=()=>$('file').click();
+$('file').onchange=()=>{
+  const file=$('file').files[0];
+  if(!file)return;
+  $('file').value='';
+  return analyzeReplay(file.name,()=>{
+    const body=new FormData();
+    body.append('file',file);
+    return request('/analyze-image',{method:'POST',body});
+  });
+};
+$('save').onclick=()=>{
+  expireLive();
+  const live=state?.running && Object.keys(state.results||{}).length ? state : null;
+  const collected={};
+  if(captureSession && (!state || state.collection?.session===captureSession)){
+    for(const [c,frame] of Object.entries(collectedFrames)){
+      const current=state?.results?.[c];
+      const matches=!!(state?.running&&current&&current.stream_epoch===frame.r.stream_epoch&&current.frame_sequence===frame.r.frame_sequence&&current.observed_at===frame.r.observed_at);
+      const {annotated_image,...result}=matches?current:frame.r;
+      collected[c]={session:captureSession,key:frame.key,state:matches?'current':'last_saved',result};
+    }
+  }
+  if(!live&&!replay&&!Object.keys(collected).length)return notice('저장할 결과가 없습니다.',true);
+  const payload=structuredClone({product_version:'V53',exported_at:new Date().toISOString(),live,collected,replay});
+  for(const r of Object.values(payload.live?.results||{}))delete r.annotated_image;
+  for(const channel of Object.values(payload.live?.collection?.channels||{}))delete channel.result;
+  if(payload.replay)delete payload.replay.annotated_image;
+  const link=document.createElement('a');
+  link.href=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}));
+  link.download='parking-v53-'+new Date().toISOString().replace(/[:.]/g,'-')+'.json';
+  link.click();
+  setTimeout(()=>URL.revokeObjectURL(link.href),1000);
+  notice('JSON 다운로드 요청 · '+link.download+' · 브라우저 다운로드 목록(Ctrl+J)에서 위치를 확인하세요.');
+};
+document.addEventListener('keydown',e=>{
+  if(e.ctrlKey||e.metaKey||e.altKey)return;
+  const key=e.key||e.code;
+  if(key==='Escape'||key==='F5'){
+    e.preventDefault();
+    if(!e.repeat)controlCamera(key==='F5');
+    return;
+  }
+  if(e.repeat||e.target.isContentEditable||['INPUT','SELECT','TEXTAREA','BUTTON'].includes(e.target.tagName))return;
+  if(e.code==='Space'){e.preventDefault();$('save').click();}
+},true);
+function clearLive(message) {
+  state=null;showTotal({});total.textContent='';
+  $('fireAlert').textContent='';$('fireAlert').hidden=true;
+  $('parkingIssues').textContent='';$('parkingIssues').hidden=true;
+  for(const c of ['1','2']) {
+    reviewStatus(c);
+    $('summary'+c).textContent='현재 판독 상태 응답 대기';
+  }
+  $('status').textContent=message;$('sendStats').textContent='현재 수신 상태 확인 불가';
+}
+function liveStatus(s) {
+  if(!s.running)return s.watchdog_stopped?'화면 응답 중단으로 정지 · F5로 재시작':'정지';
+  const results=Object.values(s.results);
+  if(!s.sending){
+    if(results.length && !results.some(r=>r.roi_confirmed))return '로컬 판독 · 칸 위치 확인 후 전송 켜기';
+    if(s.send_stopped?.reason==='operator_screen_idle_30s'){
+      const at=new Date(s.send_stopped.at);
+      return '로컬 판독 · 화면 응답 30초 없음으로 서버 전송 꺼짐'+(isNaN(at)?'':' ('+at.toLocaleTimeString('ko-KR')+')');
+    }
+    return '로컬 판독 · 서버 전송 꺼짐';
+  }
+  if(!results.length)return '전송 대기 · 새 카메라 관측 필요';
+  if(!results.some(r=>r.roi_confirmed))
+    return s.last_pause_seconds!=null?'전송 대기 · 중단 후 도면 재확인 필요':'전송 대기 · 도면 위치 확인 필요';
+  const eligible=approvedBoards(s.results).some(r=>r.spaces.some(row=>row.sendable) ||
+    r.fire_lights?.some(light=>['space','boundary','aisle'].includes(light.location)));
+  return eligible?'인식 중 · 관측 전송 켜짐':'전송 대기 · 전송 가능한 칸 없음';
+}
+async function poll() {
+  const revision=controlRevision;
+  let nextPoll=650;
+  try {
+    const started=Date.now();
+    const firstPoll=lastStateAt===0;
+    const seen=c=>encodeURIComponent(queuedFrames[c]?.key||loadingFrames[c]?.key||collectedFrames[c]?.key||'');
+    const next=await api('/live/state?images=false&collected=true&seen1='+seen('1')+'&seen2='+seen('2')+'&wait='+Boolean(state?.running));
+    if(cameraWork||revision!==controlRevision)return;
+    lastStateAt=started;
+    state=next;
+    if(expireLive())return;
+    if(firstPoll && state.running)notice('');
+    if(captureSession!==next.collection?.session){
+      captureSession=next.collection?.session;
+      for(const c of ['1','2']){clearReview(c);$('frameStatus'+c).textContent='';}
+    }
+    showTotal(state.results);
+    $('ocrStatus').textContent=state.ocr_status;
+    $('status').textContent=liveStatus(state);
+    $('sendStats').textContent=deliveryStats(state.transport);
+    for(const c of ['1','2']) {
+      const r=state.results[c];
+      const entry=state.collection?.channels[c];
+      $('disk'+c).textContent=entry?'저장 '+entry.saved+'건'+(entry.failed?' · 실패 '+entry.failed+'건':'')+(entry.error?' · '+entry.error:''):'저장 대기';
+      updateReview(c,entry);
+      if(r) {
+        const status=[r.roi_confirmed?'위치 확인됨':'칸 위치 확인 필요',`${r.total_ms.toFixed(0)}ms`].join(' · ');
+        const routine=['도면 위치 확인 필요 · 화면의 칸 이름과 실제 칸을 대조하세요.','칸별 관측 중 · 입출차 확정은 수신 서버에서 처리합니다.'];
+        $('summary'+c).textContent=r.note&&!routine.includes(r.note)?status+' · '+r.note:status;
+      } else {
+        $('summary'+c).textContent=state.errors[c]||state.cameras[c]||'연결 대기';
+      }
+    }
+    if(next.running && next.frame_wait)nextPoll=0;
+  } catch {if(!cameraWork&&revision===controlRevision)clearLive('관측 상태 연결 지연 · 이전 판정 숨김');}
+  finally {setTimeout(poll,nextPoll);}
+}
+function expireLive(){
+  const age=Date.now()-lastStateAt;
+  if(state&&(age<0||age>2500)){
+    clearLive('새 관측 수신 지연 · 이전 판정 숨김');
+    return true;
+  }
+  return false;
+}
+setInterval(expireLive,500);
+api('/health').then(h=>{
+  if(h.metadata?.fire_led_ready===false){$('fireHelp').hidden=false;$('fireHelp').textContent=(h.metadata.fire_led_error||'즉시 점등 모델이 없습니다.')+' models/red_glow.npz를 확인하고 프로그램을 다시 실행하세요.';}
+  $('apiStatus').textContent=h.api_configured?'서버 환경변수 설정됨':'서버 환경변수 미설정 · 인식 시험 가능';
+  if(h.ready)notice('');
+  else if(h.models_ready)notice('주차판과 스티커 모델이 준비됐습니다. 보조 OCR 상태는 아래에서 확인하세요.');
+  else notice(h.error||'모델과 도면 자료를 확인하세요.',true);
+}).catch(e=>notice(e.message,true));poll();
+</script></html>

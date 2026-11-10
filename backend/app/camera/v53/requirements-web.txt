@@ -1,0 +1,9 @@
+openvino~=2026.4.0
+openvino-model-api~=0.4.7
+opencv-python-headless~=4.13.0
+numpy>=2,<3
+Pillow~=12.0
+fastapi>=0.110,<1
+uvicorn>=0.30,<1
+python-multipart>=0.0.20,<1
+pyrealsense2~=2.59.0
