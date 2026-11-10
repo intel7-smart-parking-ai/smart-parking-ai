@@ -17,6 +17,59 @@ from .policy import (duplicate_identities,to_events,without_duplicate_identities
 from .transport import EventTransport,destination
 
 
+class FramePerf:
+    """Per-camera frame timing for delay diagnosis (11/11): logged once a minute, never changes behaviour.
+
+    Each camera's frames are analysed one after the other on one thread, so a slow
+    channel delays the other. median/p95 analysis time, detector time, frame rate and
+    capture->ready age show whether delay is in the camera PC or after delivery.
+    """
+    every=60.0
+
+    def __init__(self):
+        self.lock=threading.Lock();self.samples={};self.last_log=None;self.summary={}
+
+    def record(self,camera,result,age_ms,now):
+        with self.lock:
+            window=self.samples.setdefault(camera,deque(maxlen=600))
+            window.append((now,result.get('total_ms'),result.get('detector_ms'),age_ms))
+
+    @staticmethod
+    def _pct(values,q):
+        values=sorted(v for v in values if isinstance(v,(int,float)))
+        if not values:return None
+        return round(values[min(len(values)-1,int(len(values)*q))],1)
+
+    def maybe_log(self,now,transport_snapshot=None):
+        with self.lock:
+            if self.last_log is None:
+                self.last_log=now;return None
+            if now-self.last_log<self.every:return None
+            span=now-self.last_log;self.last_log=now
+            summary={}
+            for camera,window in self.samples.items():
+                recent=[s for s in window if s[0]>now-span]
+                if not recent:continue
+                summary[camera]=dict(frames=len(recent),fps=round(len(recent)/span,2),
+                    total_ms_median=self._pct([s[1] for s in recent],.5),total_ms_p95=self._pct([s[1] for s in recent],.95),
+                    detector_ms_median=self._pct([s[2] for s in recent],.5),
+                    capture_to_ready_ms_median=self._pct([s[3] for s in recent],.5),
+                    capture_to_ready_ms_max=self._pct([s[3] for s in recent],1.0))
+            self.summary=summary
+        recent=None
+        if transport_snapshot:
+            try:recent=transport_snapshot().get('recent_counts')
+            except Exception:recent=None
+        for camera,row in sorted(summary.items()):
+            logging.getLogger(__name__).info(
+                'frame perf camera=%s frames=%d fps=%.2f total_ms median=%s p95=%s detector_ms median=%s capture_to_ready_ms median=%s max=%s',
+                camera,row['frames'],row['fps'],row['total_ms_median'],row['total_ms_p95'],row['detector_ms_median'],
+                row['capture_to_ready_ms_median'],row['capture_to_ready_ms_max'])
+        if recent is not None:
+            logging.getLogger(__name__).info('delivery last 60s %s',recent)
+        return summary
+
+
 def unattended_send_allowed():
     """Opt-in for a demo PC whose camera screen may be closed (default: stop after 30s)."""
     return os.environ.get('V53_UNATTENDED_SEND','').strip()=='1'
@@ -204,6 +257,7 @@ class LiveSession:
                                 continue
                             result['analysis_fps']=round(1/(now-completed[camera]),2) if camera in completed else None
                             completed[camera]=now
+                            self._frame_perf().record(camera,result,(now-packet['received'])*1000,now)
                             with self.lock:
                                 if revision==self.revision and not self.stop_event.is_set():
                                     peers=self._fresh_results(now);peers[camera]=result
@@ -218,6 +272,7 @@ class LiveSession:
                                 self.review_frames.pop(camera,None)
                                 self.errors[camera]='분석 오류: '+type(error).__name__+' · 오류 기록을 확인하세요'
                             self.pipeline.invalidate(camera)
+                self._frame_perf().maybe_log(time.monotonic(),self.transport.snapshot)
                 if not changed:self.stop_event.wait(.03)
         finally:
             self.transport.cancel();self.hub.stop()
@@ -493,7 +548,11 @@ class LiveSession:
                 'last_pause_seconds':self.last_pause_seconds,'watchdog_stopped':self.watchdog_stopped,
                 'idle_sleep_request':self.idle_sleep_request,
                 'cameras':self.hub.snapshot() if self.hub else {},'threshold':self.threshold,'lots':dict(self.lots),
-                'transport':self.transport.snapshot(),'ocr_status':self.pipeline.numbers.status}
+                'transport':self.transport.snapshot(),'ocr_status':self.pipeline.numbers.status,
+                'frame_perf':self._frame_perf().summary}
+
+    def _frame_perf(self):
+        return self.__dict__.setdefault('frame_perf',FramePerf())
 
     def stop(self):
         with self.lifecycle:
