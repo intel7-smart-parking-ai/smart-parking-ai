@@ -166,7 +166,7 @@ class OccupancyExperiment(InMemoryEventStore):
             raise HTTPException(404, '주차장이 없습니다.')
         for row in rows:
             row.pop('candidate')
-            for key in ('identity_evidence', 'identity_match', 'identity_observation'):
+            for key in ('identity_evidence', 'identity_match', 'identity_observation', 'move_streak'):
                 row.pop(key, None)
             timestamp = row['observed_at']
             if timestamp is not None and (as_of - timestamp).total_seconds() > self.policy.stale_seconds:

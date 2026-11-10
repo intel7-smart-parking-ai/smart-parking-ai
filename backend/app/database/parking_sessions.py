@@ -114,6 +114,48 @@ def identify(conn: sqlite3.Connection, *, session_id: str, car_id: str) -> Parki
         return _find(conn, session_id)
 
 
+def init_session_moves(conn):
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS session_moves (
+            move_id INTEGER PRIMARY KEY, session_id TEXT NOT NULL REFERENCES parking_sessions(session_id),
+            lot_id TEXT NOT NULL, from_space_id TEXT NOT NULL, to_space_id TEXT NOT NULL,
+            observed_at TEXT NOT NULL
+        )
+    """)
+
+
+def move_sessions(conn, *, lot_id, moves, observed_at, save_snapshots):
+    """Move active sessions as one transaction with their recovery checkpoints."""
+    stamp = _timestamp(observed_at)
+    origins = {source for _, source, _ in moves}
+    targets = {target for _, _, target in moves}
+    with _write(conn):
+        if len(origins) != len(moves) or len(targets) != len(moves):
+            raise SessionError(409, "SESSION_MOVE_CONFLICT", "주차칸 이동 근거가 중복됩니다.")
+        for session_id, source, target in moves:
+            session = _find(conn, session_id)
+            if (session is None or session.status != "active" or session.car_id is None
+                    or (session.lot_id, session.space_id) != (lot_id, source)
+                    or datetime.fromisoformat(session.entry_at) > observed_at):
+                raise SessionError(409, "SESSION_MOVE_CONFLICT", "활성 세션의 출발 칸이 변경됐습니다.")
+            occupants = conn.execute(
+                "SELECT session_id FROM parking_sessions WHERE lot_id=? AND space_id=? AND status='active'",
+                (lot_id, target),
+            ).fetchall()
+            expected = {sid for sid, origin, _ in moves if origin == target}
+            if {row[0] for row in occupants} != expected:
+                raise SessionError(409, "SESSION_MOVE_CONFLICT", "이동 대상 칸의 활성 세션이 변경됐습니다.")
+        conn.executemany("UPDATE parking_sessions SET space_id=NULL WHERE session_id=?",
+                         [(session_id,) for session_id, _, _ in moves])
+        for session_id, source, target in moves:
+            conn.execute("UPDATE parking_sessions SET space_id=? WHERE session_id=?", (target, session_id))
+            conn.execute("""
+                INSERT INTO session_moves (session_id, lot_id, from_space_id, to_space_id, observed_at)
+                VALUES (?, ?, ?, ?, ?)
+            """, (session_id, lot_id, source, target, stamp))
+        save_snapshots()
+
+
 def exit_session(conn: sqlite3.Connection, *, session_id: str, exit_at: datetime) -> ParkingSession:
     """Close a confirmed session by ID, including unidentified vehicles."""
     timestamp = _timestamp(exit_at)
