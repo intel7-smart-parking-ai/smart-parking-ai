@@ -56,9 +56,21 @@ def minutes(text):
     return total if 1 <= total <= MAX_ESTIMATE_MINUTES else None
 
 
+_AHEAD = re.compile(r"(?:(\d{1,2})\s*시간(?:\s*(\d{1,2})\s*분|\s*(반))?|(\d{1,3})\s*분)\s*(?:뒤|후|더|있다가|지나서|지나면)")
+
+
+def ahead_minutes(text):
+    """'60분 뒤에 나가면', '1시간 후', '1시간 반 뒤', '30분 더 있으면' → 지금부터 몇 분 뒤. 없으면 None."""
+    m = _AHEAD.search(text or "")
+    if not m:
+        return None
+    total = int(m[1]) * 60 + (int(m[2]) if m[2] else 30 if m[3] else 0) if m[1] else int(m[4])
+    return total if 1 <= total <= MAX_ESTIMATE_MINUTES else None
+
+
 # 별명: 정식 이름 없이 부르는 말 → 주차장. 주차장 명부(lots.json) 별칭에 없는 짧은 말만 둔다.
 NICKNAMES = (
-    ("B", re.compile(r"(?<![가-힣])역(?=\s|에|앞|의|쪽|근처|주차|$)|역전|역\s*광장")),
+    ("B", re.compile(r"(?<![가-힣])역(?=\s|에|앞|의|쪽|근처|주차|이랑|랑|하고|이나|이든|$)|역전|역\s*광장")),
     ("C", re.compile(r"(?<![가-힣])김해(?!\s*공항)(?=\s|에|쪽|주차|$)|비행기\s*타는\s*(?:곳|데)")),
     ("D", re.compile(r"(?<![가-힣])센텀(?=\s|에|쪽|주차|$)|쇼핑몰")),
 )

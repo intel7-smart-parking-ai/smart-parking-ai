@@ -37,6 +37,11 @@ LEAVING = re.compile(r"(?:이제\s*)?(?:나가려|나갈\s*(?:건데|거|려|게
                      r"집에\s*(?:가|갈)|빼\s*(?:가려|갈게|려고)|차\s*빼)")
 LEAVING_REPLY = ("출차 전에 요금을 확인하고, 미리 모의 결제(사전 정산)를 하시면 돼요. 결제는 견적을 보여 드린 뒤 승인하셔야 진행돼요.\n"
                  "차량 번호를 알려 주시면 요금부터 보여 드릴게요. 실물 주차장은 차 지붕 스티커 두 자리, 김해공항·신세계는 번호판 뒤 4자리예요.")
+# '스크래치 났어', '차가 긁혔어', '누가 박았어' — 손상·접촉 사고는 챗봇이 판단할 수 없고 현장 확인이 필요하다(봇 점검 11/10)
+DAMAGE = re.compile(r"스크래치|긁(?:혔|힌|었|어)|찍혔|파손|부서졌|깨졌|찌그러|흠집|문콕|접촉\s*사고|사고\s*(?:났|나서)|"
+                    r"(?:박았|박혔|들이받|부딪)")
+DAMAGE_REPLY = ("차량 손상이나 접촉 사고는 제가 확인하거나 판단할 수 없어요. 현장 관리자가 직접 확인해야 해요.\n"
+                "아래 '관리자 호출'을 누르면 조회한 차량 정보와 최근 문의가 관리자 화면에 함께 전달돼요.")
 FORGOT_NUMBER = re.compile(r"(?:차\s*)?번호\S*\s*(?:를|가|도)?\s*(?:까먹|잊어|잊었|모르|기억\s*(?:안|이\s*안|나지\s*않))")
 FORGOT_REPLY = ("차 지붕에 붙은 두 자리 숫자 스티커가 차량 번호예요(10~99). 김해공항·신세계 차량은 번호판 뒤 4자리로도 찾을 수 있어요.\n"
                 "확인이 어려우면 아래 '관리자 호출'로 도움을 받을 수 있어요.")
@@ -117,6 +122,8 @@ def guard(s, text, alert=None):
         return LEAVING_REPLY, {"intent": "exit_payment", "chips": ["fee", "find_car"]}
     if FORGOT_NUMBER.search(text):
         return FORGOT_REPLY, {"intent": "forgot_number", "chips": ["call_admin", "find_car"]}
+    if DAMAGE.search(text) and not re.search(r"화재|불|연기", text):
+        return DAMAGE_REPLY, {"intent": "vehicle_damage", "chips": ["call_admin", "find_car"]}
     if not getattr(s, "pending", None) and BARE_CANCEL.fullmatch(text.strip()):
         return "어떤 요청을 취소할까요? 취소할 대상을 알려주세요.", {"intent": "cancel_clarify"}
     missing = _missing_space(text)

@@ -173,5 +173,83 @@ class ForeignTimingTests(unittest.TestCase):
         self.assertGreaterEqual(h.FOREIGN_TURN_SEC, 5.0)              # 미리 조회 뒤 모델 1회(평균 2~3초) + 고쳐 쓰기 여유
 
 
+class BotReview1515Tests(Base):
+    """봇 점검(11/10 15:15) PR #95 🟠·🟡 항목."""
+
+    def test_ahead_minutes(self):
+        from chatbot import plan
+        self.assertEqual(plan.ahead_minutes("6172 차 60분 뒤에 나가면 얼마야?"), 60)
+        self.assertEqual(plan.ahead_minutes("1시간 반 뒤"), 90)
+        self.assertEqual(plan.ahead_minutes("30분 더 있으면"), 30)
+        self.assertIsNone(plan.ahead_minutes("3시간이면?"))
+
+    def test_virtual_car_future_fee(self):
+        r = self.ask("1724 차 60분 뒤에 나가면 얼마야?")
+        self.assertIn("1시간 뒤에 나가면 예상 요금은", r["text"])
+        self.assertIn("실제 금액은 출차·결제 때 서버가 정해요", r["text"])
+
+    def test_real_car_future_fee_without_ai(self):
+        r = self.ask("34번 차 60분 뒤 얼마?", sid="real")
+        self.assertIn("1시간 뒤에 나가면 예상 요금은", r["text"], r["meta"].get("route"))
+
+    def test_admin_call_keeps_virtual_vehicle(self):
+        self.ask("내차 1724 위치", sid="adm")
+        self.ask("스크래치 났어", sid="adm")
+        r = self.ask("관리자 불러줘", sid="adm")
+        call = r["card"]["data"]
+        self.assertIsNone(call["car_id"])
+        self.assertEqual(call["plate_number"], "17가1724")
+        self.assertIn("17가1724 차량(가상)", call["summary"])
+        self.assertNotIn("차량 번호 미확인", call["summary"])
+
+    def test_language_guess_without_language(self):
+        from chatbot.http_router import _guess_language
+        self.assertEqual(_guess_language("Is there parking at Gimhae Airport?"), "en")
+        self.assertEqual(_guess_language("金海机场有车位吗"), "zh-CN")
+        self.assertEqual(_guess_language("空港に空きはありますか"), "ja")
+        for text in ("공항 자리 있어?", "OK", "EV", "23"):
+            self.assertEqual(_guess_language(text), "ko", text)
+
+    def test_cheapest_between_named_lots_only(self):
+        r = self.ask("역이랑 공항 중 어디가 싸?", sid="rank")
+        self.assertNotIn("개발원", r["text"])
+        self.assertNotIn("신세계", r["text"])
+
+    def test_translation_unit_duplicates_removed(self):
+        # 개수 자리표시(__COUNT0__)는 '34 spaces'처럼 단위까지 돌려준다. 번역이 단위를 또 붙여도 한 번만 남긴다.
+        from chatbot import response_locale as rl
+        token = "__COUNT0__"
+        for translated, value, want in (("There are __COUNT0__ spaces.", "34 spaces", "There are 34 spaces."),
+                                        ("有__COUNT0__ 个空车位。", "33个车位", "有33个车位。"),
+                                        ("__COUNT0__ 台あります", "5台", "5台あります"),
+                                        ("There are __COUNT0__ left.", "34 spaces", "There are 34 spaces left.")):
+            with self.subTest(translated=translated):
+                self.assertEqual(rl._restore(translated, token, {token: value}), want)
+
+
+class DamageAndHoursTests(Base):
+    """실모델 재확인(11/10): '스크래치 났어'가 AI 시간 초과 → '이해하지 못했어요', 운영 시간 답이 자료 없는 주차장 언급으로 탈락."""
+
+    def test_damage_goes_to_admin_notice(self):
+        for text in ("스크래치 났어", "차가 긁혔어요", "누가 내 차 박았어"):
+            with self.subTest(text=text):
+                r = self.ask(text, sid=text)
+                self.assertIn("관리자", r["text"])
+                self.assertNotIn("이해하지 못했어요", r["text"])
+        self.assertNotIn("관리자가 직접 확인", self.ask("차에서 연기 나", sid="smoke")["text"])
+
+    def test_no_data_sentence_may_name_unread_lots(self):
+        from chatbot.agents.evidence import check_answer
+        q = "주차장 몇 시까지 해?"
+        obs = [{"tool": "search_knowledge", "args": {}, "result": {"tool": "search_knowledge", "ok": True, "data": {
+            "matches": [{"lot_id": "C", "topic": "hours", "text": "시연 기준 매일 24시간 입·출차할 수 있어요."}],
+            "missing": False, "unregistered": []}, "source": {}}}]
+        honest = ("김해공항 주차장은 시연 기준 매일 24시간 이용할 수 있어요.\n"
+                  "개발원주차장과 부산역주차장은 운영 시간 자료가 없어요.")
+        self.assertNotEqual(check_answer(honest, q, obs), "unsupported_lot")
+        claim = "김해공항 주차장은 시연 기준 매일 24시간 이용할 수 있어요. 개발원주차장은 지금 비어 있어요."
+        self.assertEqual(check_answer(claim, q, obs), "unsupported_lot")
+
+
 if __name__ == "__main__":
     unittest.main()

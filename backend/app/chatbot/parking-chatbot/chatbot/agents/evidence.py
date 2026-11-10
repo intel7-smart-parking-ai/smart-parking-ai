@@ -240,7 +240,10 @@ def check_answer(answer, request, observations):
             return "unsupported_place"
 
     lot_entries = [row for row in entries if row.get("lot_id")]
-    mentions = _mentions(answer)
+    # 자료 없음만 말하는 문장(숫자·상태 주장 없음)의 주차장 이름은 조회 대상이 아니어도 된다(봇 점검 11/10: 운영 시간)
+    claimed = "\n".join(s for s in re.split(r"(?<=[.!?。])\s+|\n+", answer)
+                        if not (_REFUSAL.search(s) and not _NUMBER.search(s) and not _STATE_CLAIM.search(_REFUSAL.sub(" ", s))))
+    mentions = _mentions(claimed)
     if lot_entries:
         lot_ids = {row["lot_id"] for row in lot_entries} | _asked_lots(request)
         if any(lot not in lot_ids for _, lot in mentions):

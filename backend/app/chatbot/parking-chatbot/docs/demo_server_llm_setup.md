@@ -39,3 +39,18 @@ compose 파일의 `environment`에 **없는 변수는 `.env`에 적어도 컨테
 | gemma-4-26b-a4b-it | 21/24 | 1.9초 | 약 $0.0003 |
 
 나머지 2턴은 일부러 코드가 맡는 충전 현황 카드·혼잡 예측이다. 근거: `docs/eval/EVAL_LOG.md`.
+
+## 5. 채린님 PC(`compose.preview.yaml`)에서 켜기 — 11/10 17:00 배포용
+
+`compose.preview.yaml`은 저장소에 없는 로컬 파일이라, 오버레이를 **뒤에** 붙여 함께 지정한다. 봇 PC에서 먼저 같은 조합을 시험한 뒤 적용한다(봇 PC는 `compose.yaml + 오버레이`로 성공).
+
+```powershell
+docker build --target runtime -t smart-parking-api-base:chatbot -f backend/Dockerfile .
+docker compose -f compose.preview.yaml -f backend/app/chatbot/parking-chatbot/compose.agent.yaml up -d --build
+```
+
+확인: 챗봇에 "공항 자리 있어?" → 개발자 도구 `POST /api/v1/chat` 응답 `meta.route`에 `agent:ok`, `meta.prefetched`에 조회한 도구 이름. `agent:off`면 오버레이·키 확인.
+
+## 6. D-44 모델 결정용 한 줄 (11/10 실측, 미리 조회 적용 뒤)
+
+Haiku 5.5: 화면 사례 AI 답 22/24, 평균 2.3초, 턴당 약 $0.0009 · gemma-4-26b: 21/24, 1.9초, 턴당 약 $0.0003. 둘 다 시연 가능, 답 품질은 Haiku가 근소하게 앞서고 비용은 gemma가 1/3. 키 한도(Limit)는 시연 전 PM 확인.

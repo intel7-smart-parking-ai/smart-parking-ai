@@ -326,7 +326,8 @@ def reply_to(text, session, adapter, alert, vehicle, refresh_alert, admin_status
     route.mark("agent", "answer", source="llm" if reply.meta.get("source") == "llm" else "rule_render",
                policy="D-05로 대체" if policy_conflict else None)
     if result:
-        reply.meta.update(agent_status=result.status, model_calls=result.metadata.get("model_calls", 0))
+        reply.meta.update(agent_status=result.status, model_calls=result.metadata.get("model_calls", 0),
+                          prefetched=list(result.metadata.get("prefetched") or []))
         for key in ("repaired", "repeated", "smalltalk", "grounding_error", "repair_reason"):
             if result.metadata.get(key):
                 reply.meta[key] = result.metadata[key]

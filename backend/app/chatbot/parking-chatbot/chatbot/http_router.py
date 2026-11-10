@@ -2,6 +2,7 @@
 from contextlib import asynccontextmanager
 from functools import partial, wraps
 from typing import Literal
+import re
 import time
 
 import anyio
@@ -60,6 +61,17 @@ Language = Literal["ko", "en", "zh-CN", "ja"]
 QUESTION_TRANSLATE_SEC = 3.0   # 외국어 질문 → 한국어
 FOREIGN_TURN_SEC = 6.0         # 번역된 질문의 대화 처리(대화 AI 포함)
 ANSWER_DEADLINE_SEC = 17.0     # 시작부터 답 번역까지 끝낼 시각(화면 제한 20초)
+
+
+def _guess_language(text):
+    """language 없이 온 질문의 언어. 한글이 있거나 짧은 영문(OK, EV)이면 한국어로 둔다."""
+    if not text or re.search(r"[가-힣]", text):
+        return "ko"
+    if re.search(r"[ぁ-んァ-ヶ]", text):
+        return "ja"
+    if re.search(r"[一-鿿]", text):
+        return "zh-CN"
+    return "en" if len(re.findall(r"[A-Za-z]{2,}", text)) >= 2 else "ko"
 
 
 class ChatIn(BaseModel):
@@ -132,7 +144,9 @@ def _team_chat_response(response):
 
 @router.post("")
 async def chat(body: ChatIn):
-    language = resolve_language(body.language, body.text) if body.language else "ko"
+    # language가 없어도 한글 없이 영어 문장·가나·한자만 있으면 그 언어로 본다(봇 점검 11/10 🟠4)
+    language = (resolve_language(body.language, body.text) if body.language
+                else _guess_language(body.text))
     def work():
         started = time.monotonic()
         # 외국어 질문은 한국어로 바꿔 엔진에 넣고, 답은 아래 localize_response가 다시 그 언어로 옮긴다.
@@ -151,7 +165,7 @@ async def chat(body: ChatIn):
         finally:
             if cap_token is not None:
                 engine.budget_cap.reset(cap_token)
-        if not body.language:
+        if not body.language and language == "ko":
             return response
         # 질문 번역·대화 처리에 쓴 시간을 빼고 남은 시간만 답 번역에 쓴다(화면 제한 20초 안, 여유 3초).
         token = translate_timeout.set(max(2.0, ANSWER_DEADLINE_SEC - (time.monotonic() - started)))

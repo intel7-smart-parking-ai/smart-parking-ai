@@ -493,11 +493,44 @@ def _billing():
                            _answer_evidence.set, _uncertain_payments, now)
 
 
+def _ahead_line(fee, lot_id, ahead):
+    """'60분 뒤에 나가면 예상 요금은 X원' — 서버 지금 금액이 billing 결과와 같을 때만(tools.read.future_fee). 아니면 None."""
+    from .tools.read import duration_text, future_fee
+    if not ahead or not isinstance(fee, dict) or fee.get("paid"):
+        return None
+    policy = fee.get("rate_policy")
+    if not isinstance(policy, dict):
+        try:
+            policy = ((data.get_rate_policies() or {}).get("policies") or {}).get(lot_id)
+        except DataUnavailable:
+            policy = None
+    future = future_fee(fee.get("fee"), fee.get("minutes"), policy, ahead, fee.get("entry_at"), fee.get("updated_at"))
+    if future is None:
+        return None
+    return f"{duration_text(ahead)} 뒤에 나가면 예상 요금은 {future[0]:,}원이에요. 실제 금액은 출차·결제 때 서버가 정해요."
+
+
 def h_get_fee(s, p):
-    return _billing().fee(s, p)
+    result = _billing().fee(s, p)
+    ahead = plan.ahead_minutes(s.history[-1][1] if s.history else "")
+    if ahead and s.car_id and isinstance(result, tuple) and isinstance(result[0], str):
+        # AI가 꺼졌거나 실패해도 '34번 차 60분 뒤 얼마?'에 미래 금액을 답한다(봇 점검 11/10 🟠3)
+        try:
+            fee = data.get_fee(s.car_id)
+        except DataUnavailable:
+            fee = None
+        line = _ahead_line(fee, (fee or {}).get("lot_id"), ahead) if isinstance(fee, dict) else None
+        if line:
+            result = (result[0] + "\n" + line,) + tuple(result[1:])
+    return result
 
 
 def h_fee_rule(s, p):
+    if p.get("fee_rank") and not p.get("only_lots") and s.history:
+        said = plan.for_text(s.history[-1][1])
+        named = list(dict.fromkeys(list(said.lots) + list(plan.nickname_lots(said.text))))
+        if len(named) >= 2:
+            p = {**p, "only_lots": named}   # 물은 주차장끼리만(봇 점검 11/10 🟡)
     result = _billing().fee_rule(s, p)
     minutes, lot = p.get("estimate_minutes"), p.get("lot_id")
     if minutes == -1 and isinstance(result, tuple) and isinstance(result[0], str):
@@ -921,10 +954,12 @@ def _with_guess_note(resp, params):
 # 안전·보안·상태 변경이 아닌 '안내성' 가로채기. 확정 안내로 대화 AI에 넘긴다.
 # (연기 신고·결제·관리자 접수·지시 무시·남의 차·매출은 지금처럼 코드가 바로 답한다)
 NOTICE_TOPICS = {"self_intro", "lot_names", "forgot_number", "parking_permission", "space_missing", "cancel_clarify",
-                 "reservation", "discount", "admin_where", "unknown_lot", "admin_help", "payment_help", "exit_payment"}
+                 "reservation", "discount", "admin_where", "unknown_lot", "admin_help", "payment_help", "exit_payment",
+                 "vehicle_damage"}
 # AI 답이 확정 안내의 핵심을 지켰는지(모두 맞아야 함). 못 지키면 정해진 문장을 쓴다.
 _NOTICE_KEEP = {
     "forgot_number": (r"스티커",),
+    "vehicle_damage": (r"관리자", r"확인|판단"),
     "cancel_clarify": (r"취소",),
     "reservation": (r"예약|보장", r"없|안\s*돼|않|불가|어려"),
     "discount": (r"할인|감면|깎", r"없|수\s*없|안\s*돼|않|어려|불가"),
@@ -1292,6 +1327,13 @@ def _virtual_vehicle_reply(s, raw, intent):
         lines.append(f"{entry}에 들어와서 " + (f"{duration_text(minutes)}째 주차 중이에요." if minutes else "주차 중이에요."))
     if fee and intent in ("get_fee", "pay_fee", "find_my_car", "unknown"):
         lines.append(f"지금까지 요금은 {fee['fee']:,}원이에요." + (" 이미 결제됐어요." if fee.get("paid") else ""))
+        ahead = plan.ahead_minutes(s.history[-1][1] if s.history else "")
+        line = _ahead_line(fee, location["lot_id"], ahead) if intent in ("get_fee", "unknown") else None
+        if line:
+            lines.append(line)   # '6172 차 60분 뒤 얼마?'(봇 점검 11/10 🟠1)
+    # 관리자 호출 요약에 이 차를 넣는다(실물 car_id가 없는 가상 차량, 봇 점검 🟠2)
+    s.virtual_vehicle = {"plate_number": location.get("plate_number"), "vehicle_number": number,
+                         "lot_id": location["lot_id"], "space_id": location.get("space_id")}
     if intent == "pay_fee" and not (fee or {}).get("paid"):
         lines.append("가상 주차장 차량의 모의 결제는 화면의 차량번호 조회에서 진행해 주세요.")
     # car_location 카드는 실물 car_id 계약이라 쓰지 않는다(가상 차량은 문장으로 안내).

@@ -227,7 +227,8 @@ class MockAdapter:
         fee = self.get_fee((location or {}).get("mock_car") or "")
         if not fee:
             return None
-        return {"fee": fee["fee"], "minutes": fee["minutes"], "paid": fee["paid"]}
+        return {"fee": fee["fee"], "minutes": fee["minutes"], "paid": fee["paid"],
+                "rate_policy": fee.get("rate_policy"), "entry_at": fee.get("entry_at"), "updated_at": fee.get("updated_at")}
 
     @staticmethod
     def _vehicle_metadata(car_id):
@@ -763,7 +764,10 @@ class ApiAdapter:
             return None
         minutes = value.get("duration_minutes")
         return {"fee": amount, "minutes": minutes if type(minutes) is int else None,
-                "paid": value.get("payment_status") == "paid"}
+                "paid": value.get("payment_status") in ("paid", C.PAYMENT_COMPLETED),
+                # 예상 요금 일치 확인용(서버가 줄 때만)
+                **{k: v for k, v in (("rate_policy", value.get("rate_policy")), ("entry_at", value.get("entry_at")),
+                                     ("updated_at", value.get("target_at"))) if v is not None}}
 
     def get_fee(self, car_id):
         car = self.find_car(car_id)

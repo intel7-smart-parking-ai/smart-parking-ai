@@ -1,0 +1,352 @@
+{
+ "meta": {
+  "label": "bot1515_haiku",
+  "at": "2026-11-10T15:32:02+0900",
+  "commit": "6997b6f+",
+  "model": "anthropic/claude-haiku-5.5",
+  "provider": "openrouter",
+  "question_file": "error_zip_1110.json",
+  "settings": {
+   "REQUEST_BUDGET_SEC": 8.0,
+   "LLM_ANSWER_TIMEOUT_SEC": 5.0,
+   "LLM_MAX_OUTPUT_TOKENS": 600,
+   "LLM_REPAIR_MIN_SEC": 1.5,
+   "DATA_SOURCE": "mock"
+  }
+ },
+ "summary": {
+  "turns": 7,
+  "ai_answers": 2,
+  "ai_ratio_excluding_rule": 0.33,
+  "grades": {
+   "ai": 2,
+   "rule": 1,
+   "fallback_notice": 2,
+   "fallback_ungrounded": 1,
+   "not_understood": 1
+  },
+  "avg_sec": 2.9,
+  "max_sec": 6.3
+ },
+ "rows": [
+  {
+   "id": "B01",
+   "kind": "가상 차량 N분 뒤",
+   "q": "1724 차 60분 뒤에 나가면 얼마야?",
+   "a": "17가1724 차량은 김해공항 주차장 A-07에 있어요.\n오후 3시 4분에 들어와서 29분째 주차 중이에요.\n지금까지 요금은 3,000원이에요.\n1시간 뒤에 나가면 예상 요금은 7,800원이에요. 실제 금액은 출차·결제 때 서버가 정해요.",
+   "route": "guard:pass > plan:fee+future > boundary:pass > agent:skip > rule:get_fee",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "fee+future",
+     "why": "wants=fee+future"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "skip",
+     "why": "virtual_vehicle"
+    },
+    {
+     "stage": "rule",
+     "outcome": "get_fee"
+    }
+   ],
+   "agent": {},
+   "sec": 0.1,
+   "expect": "지금 요금 + 1시간 뒤 예상 요금(billing)",
+   "grade": "fallback_notice"
+  },
+  {
+   "id": "B02",
+   "kind": "실물 차량 N분 뒤",
+   "q": "34번 차 60분 뒤 얼마?",
+   "a": "34번 차는 부산역주차장 A-05 칸에 있어요. 지금까지 46분 주차해 현재 요금은 3,400원이에요.\n\n60분 더 세우면 총 1시간 45분이 되고, 예상 요금은 7,600원이에요. 다만 이것은 예상 금액이고, 실제 금액은 출차·결제 때 서버가 정해요.",
+   "route": "guard:pass > plan:fee+future > boundary:pass > agent:ok > agent:answer",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "fee+future",
+     "why": "wants=fee+future car=34"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ok",
+     "calls": 2,
+     "prefetched": [
+      "vehicle_info"
+     ],
+     "tools": [
+      "vehicle_info",
+      "estimate_fee"
+     ]
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer",
+     "source": "llm"
+    }
+   ],
+   "agent": {
+    "model_calls": 2,
+    "tool_calls": 1,
+    "input_tokens": 15353,
+    "output_tokens": 209,
+    "prefetched": [
+     "vehicle_info"
+    ],
+    "latency_ms": 5043.8,
+    "status": "ok"
+   },
+   "sec": 5.5,
+   "expect": "1시간 뒤 예상 요금",
+   "grade": "ai"
+  },
+  {
+   "id": "B03",
+   "kind": "가상 차량 관리자 호출",
+   "q": "내차 1724 위치",
+   "a": "17가1724 차량은 김해공항 주차장 A-07에 있어요.\n오후 3시 4분에 들어와서 29분째 주차 중이에요.\n지금까지 요금은 3,000원이에요.",
+   "route": "guard:pass > plan:location > boundary:pass > agent:skip > rule:find_my_car",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "location",
+     "why": "wants=location"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "skip",
+     "why": "virtual_vehicle"
+    },
+    {
+     "stage": "rule",
+     "outcome": "find_my_car"
+    }
+   ],
+   "agent": {},
+   "sec": 0.0,
+   "expect": "관리자 호출 요약에 17가1724",
+   "grade": "fallback_notice"
+  },
+  {
+   "id": "B03",
+   "kind": "가상 차량 관리자 호출",
+   "q": "스크래치 났어",
+   "a": "잘 이해하지 못했어요. 저는 주차 안내(빈자리, 내 차 위치, 요금·모의 결제)만 도와드려요. 아래 버튼에서 골라 주세요.",
+   "route": "guard:pass > plan:none > boundary:pass > agent:timeout > agent:dropped > fallback:unknown",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "none",
+     "why": "wants=-"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "timeout",
+     "calls": 2
+    },
+    {
+     "stage": "agent",
+     "outcome": "dropped",
+     "why": "검사 통과 답 없음 → 규칙 답"
+    },
+    {
+     "stage": "fallback",
+     "outcome": "unknown"
+    }
+   ],
+   "agent": {
+    "model_calls": 2,
+    "tool_calls": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "retried_timeout": 1,
+    "latency_ms": 6233.0,
+    "status": "timeout"
+   },
+   "sec": 6.3,
+   "expect": "관리자 호출 요약에 17가1724",
+   "grade": "not_understood"
+  },
+  {
+   "id": "B03",
+   "kind": "가상 차량 관리자 호출",
+   "q": "관리자 불러줘",
+   "a": "관리자에게 확인을 요청했어요. 차량 정보와 최근 문의를 요약해 관리자 화면에 함께 등록했어요.",
+   "route": "guard:pass > plan:none > boundary:pass > workflow:call_admin > rule:call_admin",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "none",
+     "why": "wants=-"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "workflow",
+     "outcome": "call_admin",
+     "why": "상태를 바꾸거나 안전이 걸린 요청은 규칙이 처리"
+    },
+    {
+     "stage": "rule",
+     "outcome": "call_admin"
+    }
+   ],
+   "agent": {},
+   "sec": 0.0,
+   "expect": "관리자 호출 요약에 17가1724",
+   "grade": "rule"
+  },
+  {
+   "id": "B04",
+   "kind": "별명 두 곳 비교",
+   "q": "역이랑 공항 중 어디가 싸?",
+   "a": "부산역주차장을 말씀하시는 거라면, 요금은 부산역주차장이 더 싸요. 처음 30분 기본요금이 2,000원으로, 김해공항 주차장(3,000원)보다 1,000원 저렴해요. 다만 부산역주차장은 지금 만차라 들어갈 수 없고, 김해공항 주차장은 빈자리가 62칸이라 바로 주차할 수 있어요.",
+   "route": "guard:pass > plan:rates+compare > boundary:pass > agent:ok > agent:answer",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "rates+compare",
+     "why": "wants=rates+compare lots=C+B guessed=B(역)"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ok",
+     "calls": 1,
+     "prefetched": [
+      "compare_lots"
+     ],
+     "tools": [
+      "compare_lots"
+     ]
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer",
+     "source": "llm"
+    }
+   ],
+   "agent": {
+    "model_calls": 1,
+    "tool_calls": 0,
+    "input_tokens": 7781,
+    "output_tokens": 308,
+    "prefetched": [
+     "compare_lots"
+    ],
+    "latency_ms": 2380.6,
+    "status": "ok"
+   },
+   "sec": 2.4,
+   "expect": "부산역·김해공항만 비교",
+   "grade": "ai"
+  },
+  {
+   "id": "B05",
+   "kind": "운영 시간",
+   "q": "주차장 몇 시까지 해?",
+   "a": "어느 주차장의 운영 시간 정보를 확인할까요? 주차장을 선택하거나 이름을 알려주세요.",
+   "route": "guard:pass > plan:vacancy > boundary:pass > agent:ungrounded > agent:dropped > fallback:help",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "vacancy",
+     "why": "wants=vacancy"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ungrounded",
+     "calls": 3,
+     "prefetched": [
+      "search_knowledge"
+     ],
+     "tools": [
+      "search_knowledge",
+      "search_knowledge"
+     ],
+     "problem": "unsupported_lot"
+    },
+    {
+     "stage": "agent",
+     "outcome": "dropped",
+     "why": "검사 통과 답 없음 → 규칙 답"
+    },
+    {
+     "stage": "fallback",
+     "outcome": "help"
+    }
+   ],
+   "agent": {
+    "model_calls": 3,
+    "tool_calls": 1,
+    "input_tokens": 23273,
+    "output_tokens": 680,
+    "prefetched": [
+     "search_knowledge"
+    ],
+    "repair_reason": "unsupported_lot",
+    "repair_failed": "unsupported_lot",
+    "grounding_error": "unsupported_lot",
+    "latency_ms": 5834.6,
+    "status": "ungrounded"
+   },
+   "sec": 5.9,
+   "expect": "자료 있는 곳·없는 곳을 빠짐없이",
+   "grade": "fallback_ungrounded"
+  }
+ ]
+}

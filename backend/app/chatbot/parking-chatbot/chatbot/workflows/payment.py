@@ -54,7 +54,9 @@ class PaymentWorkflow:
         if not policies:
             return "요금 정책을 확인할 수 없어요. 차량 요금 조회를 선택해 주세요.", None, ["fee", "call_admin"], None
         if p.get("fee_rank"):
-            return I.fee_rank(policies, high=p["fee_rank"] == "high"), None, "after_fee_rule", None
+            only = p.get("only_lots")
+            ranked = {k: v for k, v in policies.items() if not only or k in only} or policies
+            return I.fee_rank(ranked, high=p["fee_rank"] == "high"), None, "after_fee_rule", None
         return T.fee_rule(policies, p.get("lot_id")), None, "after_fee_rule", None
 
     def prepare(self, s, p):
