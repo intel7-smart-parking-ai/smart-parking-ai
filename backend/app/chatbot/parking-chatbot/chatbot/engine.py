@@ -89,10 +89,28 @@ def get_session(sid: str) -> Session:
                 finally:
                     old.lock.release()
         if sid not in SESSIONS:
-            if len(SESSIONS) >= config.MAX_SESSIONS:
+            if len(SESSIONS) >= config.MAX_SESSIONS and not _evict_oldest_idle(sid):
                 raise Conflict("접속 세션이 많습니다. 잠시 후 다시 접속해 주세요.")
             SESSIONS[sid] = Session()
         return SESSIONS[sid]
+
+
+def _evict_oldest_idle(keep):
+    """한도에 닿으면 처리 중이 아닌 세션 중 가장 오래 안 쓴 것을 정리한다(_lock 안에서 호출).
+
+    11/10 점검 P0-3: 예전에는 한도(200)에서 새 대화를 거절해, QR·키오스크 사용자가 쌓이면
+    최대 SESSION_IDLE_SEC(2시간) 동안 모든 신규 사용자가 챗봇을 쓸 수 없었다.
+    """
+    for key, old in sorted(SESSIONS.items(), key=lambda item: item[1].last_seen):
+        if key == keep or _session_users[key] or not old.lock.acquire(blocking=False):
+            continue
+        try:
+            SESSIONS.pop(key, None)
+            notifications.forget(key)
+            return True
+        finally:
+            old.lock.release()
+    return False
 
 
 @contextmanager

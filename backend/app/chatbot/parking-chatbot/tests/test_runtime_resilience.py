@@ -38,11 +38,17 @@ class RuntimeResilienceTests(unittest.TestCase):
             for i in range(3):
                 e.handle(str(i), chip_id='help')
                 e.notifications.enqueue(str(i), {'text':'notice'})
-            with self.assertRaises(Conflict): e.handle('overflow', text='빈자리')
+            # 11/10 P0-3: 한도에서는 거절하지 않고 가장 오래 안 쓴 유휴 세션('0')을 정리한다.
+            e.handle('overflow', text='빈자리')
+            self.assertEqual(set(e.SESSIONS), {'1', '2', 'overflow'})
+            self.assertNotIn('0', e.notifications.streams)
+            # 모든 세션이 처리 중일 때만 거절한다.
+            with patch.dict(e._session_users, {'1': 1, '2': 1, 'overflow': 1}):
+                with self.assertRaises(Conflict): e.handle('blocked', text='빈자리')
             for session in e.SESSIONS.values(): session.last_seen -= config.SESSION_IDLE_SEC + 1
             e.handle('replacement', text='빈자리')
             self.assertEqual(set(e.SESSIONS), {'replacement'})
-            self.assertFalse(any(s in e.notifications.streams for s in ['0','1','2']))
+            self.assertFalse(any(s in e.notifications.streams for s in ['0','1','2','overflow']))
 
     def test_replay_history_log_and_notification_queues_stay_bounded(self):
         for i in range(1100):
