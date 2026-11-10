@@ -10,6 +10,9 @@ from starlette.exceptions import HTTPException
 
 from backend.app.api.vision_event_store import InMemoryEventStore
 
+# C·D 시뮬레이터 관측 간격 허용(초). 조회 stale 10초보다 작아야 한다.
+SIMULATION_MAX_GAP_SECONDS = 8
+
 
 @dataclass(frozen=True)
 class ExperimentPolicy:
@@ -85,7 +88,8 @@ class OccupancyExperiment(InMemoryEventStore):
         max_gap = self.policy.max_gap_seconds
         if event.source == 'simulation' and event.lot_id in ('C', 'D'):
             # The virtual loop refreshes both lots sequentially under database load.
-            max_gap = max(max_gap, 5)
+            # Stay below the 10s query staleness so a slow round never resets confirmed bays.
+            max_gap = max(max_gap, SIMULATION_MAX_GAP_SECONDS)
         if candidate is None or candidate[0] != signature or gap is None or gap > max_gap:
             candidate = (signature, event.observed_at)
         elapsed = (event.observed_at - candidate[1]).total_seconds()
