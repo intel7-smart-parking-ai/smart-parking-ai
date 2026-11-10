@@ -96,7 +96,7 @@ class FlexibleFallbackTests(unittest.TestCase):
         from chatbot.conversation_turn import readings
         r = readings("현재 우리가 일본 여행중인데 친구가 올거거든 주차장 자리가 얼마나 여유가 있어?")
         self.assertEqual(r["purpose_lot"], "C")
-        self.assertEqual(r["rule"]["intent"], "get_empty_spots")
+        self.assertNotIn("rule", r)   # 규칙 의도는 AI에 넘기지 않음
         self.assertEqual(readings("부산역 장애인 칸")["zone"], "accessible")
 
 

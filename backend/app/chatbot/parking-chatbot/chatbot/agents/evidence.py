@@ -94,13 +94,20 @@ def _entries(data):
     return [data] if data else []
 
 
+def _asked_lots(request):
+    """사용자 문장에 나온 주차장(이름·별칭). 답에서 그 이름을 다시 말하는 것은 조회 없이도 허용한다."""
+    return {lot for _, lot in _mentions(request or "")}
+
+
 def _mentions(answer):
     found = []
     for lot_id, lot in config.catalog.lots().items():
         names = [lot.get("name", ""), *lot.get("aliases", []), *lot.get("loose_aliases", [])]
         names = {n for n in names if len(n) > 1}
         if names:
-            pattern = "|".join(re.escape(v) for v in sorted(names, key=len, reverse=True))
+            # 짧은 별칭(2글자 이하: '기차', '공항', '센텀')은 다른 단어의 일부면 주차장이 아니다('전기차'의 '기차').
+            pattern = "|".join((r"(?<![가-힣])" if len(v) <= 2 else "") + re.escape(v)
+                               for v in sorted(names, key=len, reverse=True))
             found.extend((match.start(), lot_id) for match in re.finditer(pattern, answer, re.I))
     return sorted(found)
 
@@ -134,7 +141,11 @@ def no_tool_reply_ok(request, answer):
     """조회 없이 답해도 되는 짧은 대화(인사·감사·자기소개)인지. 운영 사실이나 실행 주장은 하나도 없어야 한다."""
     if not isinstance(answer, str) or not answer.strip() or len(answer) > 220:
         return False
-    if _NUMBER.search(answer) or _SLOT.search(answer) or _mentions(answer):
+    if _NUMBER.search(answer) or _SLOT.search(answer):
+        return False
+    # 주차장 이름은 '쇼핑이면 신세계백화점주차장'처럼 성격 안내일 때만 허용: 거절·자료 없음 안내가 함께 있어야 한다
+    # 운영 질문('어디가 싸?')에서 주차장 이름을 말하면 조회가 필요하다('개발원 정보는 없어요'도 틀린 말).
+    if _mentions(answer) and (_DATA_QUESTION.search(request or "") or not _REFUSAL.search(answer)):
         return False
     # 운영 질문이어도 '실외 여부는 안내 자료에 없어요'처럼 자료 없음만 말하는 답은 허용한다(주차장·숫자·상태 주장 없음).
     if _DATA_QUESTION.search(request or "") and not _REFUSAL.search(answer):
@@ -150,7 +161,7 @@ _REFUSAL = re.compile(r"(?:확인|안내|알려|답|도와|제공)\S*\s*(?:드�
                       # '안내 자료에 없어요'(정보 없음)는 운영 상태 주장이 아니다.
                       r"(?:자료|안내\s*자료|정보)(?:에|에는|는|가)?\s*(?:아직\s*)?없(?:어요|습니다|어서|지만)")
 # '확인해 드릴 수 있어요'(도움 제안)도 상태 주장이 아니다. 단, 이것만으로는 운영 질문의 답이 되지 않는다.
-_OFFER = re.compile(r"(?:확인|조회|안내|알려|도와)\S*\s*(?:드릴\s*)?수\s*(?:있어요|있습니다)")
+_OFFER = re.compile(r"(?:확인|조회|안내|알려|도와|찾아)\S*\s*(?:드릴|드려\s*볼|볼)?\s*수\s*(?:있어요|있습니다)")
 
 
 _POLICY_PERMIT = re.compile(r"(?:일반\s*(?:차|차량)|전기차가?\s*아니|비전기차|장애인\s*차량이?\s*아니)[^.!?\n]{0,40}"
@@ -218,7 +229,7 @@ def check_answer(answer, request, observations):
     lot_entries = [row for row in entries if row.get("lot_id")]
     mentions = _mentions(answer)
     if lot_entries:
-        lot_ids = {row["lot_id"] for row in lot_entries}
+        lot_ids = {row["lot_id"] for row in lot_entries} | _asked_lots(request)
         if any(lot not in lot_ids for _, lot in mentions):
             return "unsupported_lot"
     status_rows = [row for observation in observations

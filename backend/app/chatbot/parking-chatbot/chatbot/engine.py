@@ -400,6 +400,12 @@ _PURPOSE_LABEL = {"C": "여행·출국이라면 공항에 있는", "B": "역·�
 def h_get_empty_spots(s, p):
     result = parking.empty_spots(s, p, _occupancy(), current_alert(), api=isinstance(data.inner, ApiAdapter))
     lot = p.get("lot_id")
+    if p.get("profile_ack") and isinstance(result, tuple) and isinstance(result[0], str):
+        said = {"ev": "전기차", "accessible": "장애인 차량", "general": "일반 차량"}[p["profile_ack"]]
+        lead = f"{said}시군요. 이 대화에서는 {said} 기준으로 안내할게요.\n"
+        if p["profile_ack"] == "general":
+            lead += "일반 차량은 전기차·장애인 전용 칸에 주차할 수 없어요.\n"
+        result = (lead + result[0],) + tuple(result[1:])
     if p.get("purpose_hint") and lot in _PURPOSE_LABEL and isinstance(result, tuple) and isinstance(result[0], str):
         # '여행 가는데 어디가 좋아?' → 목적에 맞는 주차장을 고른 이유를 앞에 붙인다(사실은 그대로).
         lead = f"{_PURPOSE_LABEL[lot]} {config.catalog.name(lot)}을 안내할게요. 출발 전에 다시 확인해 주세요.\n"
@@ -454,7 +460,21 @@ def h_get_fee(s, p):
 
 
 def h_fee_rule(s, p):
-    return _billing().fee_rule(s, p)
+    result = _billing().fee_rule(s, p)
+    minutes, lot = p.get("estimate_minutes"), p.get("lot_id")
+    if minutes == -1 and isinstance(result, tuple) and isinstance(result[0], str):
+        result = ("예상 요금은 3일까지만 계산해 드려요. 그보다 길면 아래 요금 기준과 하루 최대 요금을 참고해 주세요.\n"
+                  + result[0],) + tuple(result[1:])
+    elif minutes and lot and isinstance(result, tuple) and isinstance(result[0], str):
+        # '3시간이면?' → 서버 요금 정책으로 코드가 계산한 예상 요금(결제 금액 아님)
+        from .tools.read import ReadTools
+        est = ReadTools(data, current_alert).estimate_fee(minutes, lot_id=lot)
+        info = est.get("data") or {}
+        if est.get("ok") and type(info.get("estimated_fee")) is int:
+            line = (f"{info['name']}에 {info['total_time_text']} 세우면 예상 요금은 {info['estimated_fee']:,}원이에요. "
+                    "실제 금액은 출차·결제 때 서버가 정해요.")
+            result = (line + "\n" + result[0],) + tuple(result[1:])
+    return result
 
 
 def h_pay_fee(s, p):
@@ -743,6 +763,9 @@ def _dispatch(s: Session, sid: str, intent: str, params: dict, vehicle_only: boo
             s.clear()
         s.fail_count += 1
         hint_text = s.history[-1][1] if s.history and s.history[-1][0] == "user" else ""
+        if params.get("out_of_scope"):
+            # 무슨 말인지는 알지만 주차 안내 범위 밖('근처 맛집 알려줘')
+            return _respond(s, T.OUT_OF_SCOPE, meta={"out_of_scope": True})
         response = _respond(s, T.UNKNOWN_AGAIN if s.fail_count >= 2 else T.UNKNOWN_FIRST,
                             chip_set="unknown_again" if s.fail_count >= 2 else "default",
                             meta={"fallback": min(s.fail_count, 2)})
@@ -841,6 +864,89 @@ def _seed_alert(s):
     s.alert_seeded = True
 
 
+_OUT_OF_SCOPE = re.compile(r"맛집|음식점|식당|카페|날씨|기온|비\s*와|뉴스|주식|환율|호텔|숙소|영화|노래|게임|"
+                           r"관광|여행지|명소|쇼핑\s*목록|버스\s*시간|지하철|택시")
+
+
+def _with_guess_note(resp, params):
+    """주차장을 별명으로 짐작했으면('역', '공항', '김해') 답 앞에 '부산역주차장을 말씀하시는 거라면,'을 붙인다."""
+    current = plan._current.get()
+    lot = params.get("lot_id") if isinstance(params, dict) else None
+    if not current or not lot or lot not in current.guessed or params.get("purpose_hint") or params.get("profile_ack"):
+        return resp
+    if isinstance(resp, dict) and isinstance(resp.get("text"), str) and "말씀하시는 거라면" not in resp["text"]:
+        resp["text"] = f"{config.catalog.name(lot)}을 말씀하시는 거라면,\n" + resp["text"]
+        resp.setdefault("meta", {})["guessed_lot"] = lot
+    return resp
+
+
+# 안전·보안·상태 변경이 아닌 '안내성' 가로채기. 확정 안내로 대화 AI에 넘긴다.
+# (연기 신고·결제·관리자 접수·지시 무시·남의 차·매출은 지금처럼 코드가 바로 답한다)
+NOTICE_TOPICS = {"self_intro", "lot_names", "forgot_number", "parking_permission", "space_missing", "cancel_clarify",
+                 "reservation", "discount", "admin_where", "unknown_lot", "admin_help", "payment_help"}
+# AI 답이 확정 안내의 핵심을 지켰는지(모두 맞아야 함). 못 지키면 정해진 문장을 쓴다.
+_NOTICE_KEEP = {
+    "forgot_number": (r"스티커",),
+    "cancel_clarify": (r"취소",),
+    "reservation": (r"예약|보장", r"없|안\s*돼|않|불가|어려"),
+    "discount": (r"할인|감면|깎", r"없|수\s*없|안\s*돼|않|어려|불가"),
+    "admin_where": (r"호출",),
+    "admin_help": (r"관리자",),
+    "payment_help": (r"모의",),
+    "lot_names": (r"개발원", r"부산역", r"김해|공항", r"신세계|백화점"),
+}
+
+
+def _agent_usable():
+    return config.LLM_PROVIDER != "none" and config.LLM_ENGINE == "langchain" and bool(config.api_key(config.LLM_PROVIDER))
+
+
+def _notice_kept(notice, answer):
+    if not isinstance(answer, str) or not answer.strip():
+        return False
+    patterns = list(_NOTICE_KEEP.get(notice["topic"], ()))
+    fixed = notice["text"]
+    if notice["topic"] == "parking_permission" and "수 없" in fixed:
+        patterns.append(r"수\s*없|안\s*돼|불가|못")
+    if notice["topic"] == "space_missing":
+        label = re.search(r"[A-D]-\d{2}", fixed)
+        patterns += [re.escape(label[0]) if label else r"칸", r"없"]
+    if notice["topic"] == "unknown_lot":
+        patterns += [re.escape(fixed.split(" 주차장")[0].split("은 ")[0]) if " 주차장" in fixed else r"주차장", r"등록|없"]
+    return all(re.search(p, answer) for p in patterns)
+
+
+def _notice_turn(s, session_id, text, notice):
+    """확정 안내를 근거로 대화 AI가 답하게 한다. AI가 꺼졌거나 실패하거나 안내를 지키지 못하면 정해진 문장."""
+    from .conversation_turn import reply_to
+    deadline_token = request_deadline.set(_turn_deadline.get())
+    turn = None
+    try:
+        turn = reply_to(text, s, data, current_alert, _find_vehicle, _refresh_workflow_alert,
+                        admin_status=lambda: _admin_store.snapshot(session_id),
+                        notice={"topic": notice["topic"], "text": notice["text"]})
+    except DataUnavailable:
+        turn = None
+    finally:
+        request_deadline.reset(deadline_token)
+    if turn is not None and turn.reply.meta.get("source") == "llm" and _notice_kept(notice, turn.reply.text):
+        route.mark("agent", "answer_with_notice", topic=notice["topic"])
+        # 안내 질문에서는 AI의 작업 제안(관리자 호출·결제 버튼)을 쓰지 않는다. 버튼은 정해진 안내의 버튼
+        turn.suggest_admin = turn.payment = False
+        turn.reply.meta.pop("pay_suggestion", None)
+        if "chips" in notice:
+            turn.reply.chip_set = notice["chips"]
+        turn.reply.meta.update(intent=notice["topic"], notice=notice["topic"])
+        return _conversation_response(s, session_id, turn)
+    route.mark("rule", notice["topic"], why="AI 답 없음 또는 확정 안내를 지키지 않음 → 정해진 문장")
+    if "boundary" in notice:
+        return _boundary_response(s, session_id, notice["boundary"], notice["rule"])
+    meta = dict(notice.get("meta") or {})
+    if meta.pop("clear", False):
+        s.clear()
+    return _respond(s, notice["text"], chip_set=notice.get("chips", "default"), meta=meta)
+
+
 def _plausible_reading(s, r, text):
     """모델 없이 규칙으로 답할 때, 첫 해석이 문장과 안 맞으면 계획표(plan)를 보고 더 맞는 해석으로 바꾼다.
 
@@ -852,10 +958,45 @@ def _plausible_reading(s, r, text):
         return r
     from .parser import ParseResult
     p = plan.for_text(text)
+    own_zone = {"ev": "ev", "accessible": "accessible"}.get(s.vehicle_type)
+    focus_lot = DC.focus(s)
+    # '23번이 내 차야' → 그 차 위치
+    if p.own_car and r.intent in ("unknown", "help", "get_fee", "find_my_car") and not p.wants:
+        return ParseResult("find_my_car", {"car_id": p.own_car}, "rule")
+    # '결제는 하지 말고 23번 요금만' → 요금 조회(취소가 아님)
+    if r.intent == "cancel_action" and p.car and "fee" in p.wants:
+        return ParseResult("get_fee", {"car_id": p.car}, "rule")
+    # 차 없이 묻는 요금('김해공항 요금은?', 공항 이야기 뒤 '요금은?', '3시간이면?') → 그 주차장 요금 기준(+예상 요금)
+    if r.intent in ("get_fee", "unknown") and not r.params.get("car_id") and not s.car_id and not p.talk.get("car") \
+            and ("fee" in p.wants or p.minutes):
+        lot = p.single_lot or r.params.get("lot_id") or focus_lot
+        if lot in config.catalog.ids():
+            return ParseResult("fee_rule", {"lot_id": lot, **({"estimate_minutes": p.minutes} if p.minutes else {})}, "rule")
+    # '불 꺼져 있던데 정상이야?', '빨간 불' → 경보 상태
+    if r.intent == "unknown" and "alert" in p.wants:
+        return ParseResult("get_alerts", {}, "rule")
+    if p.self_only and p.self_vehicle:
+        # '나 전기차야'만 말함 → 그 차가 쓸 칸의 빈자리
+        zone = {"ev": "ev", "accessible": "accessible"}.get(p.self_vehicle)
+        return ParseResult("get_empty_spots", {**({"zone": zone} if zone else {}), "profile_ack": p.self_vehicle}, "rule")
+    if r.intent == "get_empty_spots" and own_zone and not r.params.get("zone") and not p.talk.get("spot"):
+        # 전기차·장애인 차량이라고 말한 사용자의 추천 질문('여행 가는데 어디가 좋아?')도 그 칸 기준
+        r = ParseResult("get_empty_spots", {**r.params, "zone": own_zone}, "rule")
     if not p.talk.get("spot"):
+        # 주차와 무관한 주제(맛집·날씨 등)를 물었을 때만. 낯선 표현의 주차 질문은 기존 '이해 못함 + 추천 버튼'으로 둔다.
+        if r.intent == "unknown" and _OUT_OF_SCOPE.search(text):
+            return ParseResult("unknown", {"out_of_scope": True}, "rule")
         return r
+    # 목적이 여럿('기차 먼저, 나중에 비행기') → 그 주차장들 비교
+    if len(p.purpose_lots) >= 2 and r.intent in ("unknown", "get_empty_spots") and not r.params.get("lot_id"):
+        return ParseResult("get_empty_spots", {"rank": "compare", "lots": list(p.purpose_lots),
+                                               **({"zone": p.zone or own_zone} if (p.zone or own_zone) else {})}, "rule")
+    # 규칙이 주차장을 놓친 경우('백화점 꽉 찼어?') 계획표의 주차장을 채운다
+    if r.intent == "get_empty_spots" and p.single_lot and not r.params.get("lot_id") and not r.params.get("lots") \
+            and r.params.get("rank") != "compare":
+        r = ParseResult("get_empty_spots", {**{k: v for k, v in r.params.items() if k != "rank"}, "lot_id": p.single_lot}, "rule")
     hint = p.purpose_lot
-    params = {k: v for k, v in (("lot_id", p.single_lot or hint), ("zone", p.zone)) if v}
+    params = {k: v for k, v in (("lot_id", p.single_lot or hint), ("zone", p.zone or own_zone)) if v}
     if hint:
         params["purpose_hint"] = True
     needs_car = r.intent in ("get_fee", "find_my_car") and not r.params.get("car_id") and not s.car_id
@@ -864,7 +1005,11 @@ def _plausible_reading(s, r, text):
     if r.intent == "unknown":
         return ParseResult("get_empty_spots", params, "rule")
     if r.intent == "get_empty_spots" and hint and not r.params.get("lot_id") and not r.params.get("rank"):
-        return ParseResult("get_empty_spots", {**r.params, "lot_id": hint, "purpose_hint": True}, "rule")
+        return ParseResult("get_empty_spots", {**r.params, "lot_id": hint, "purpose_hint": True,
+                                               **({"zone": own_zone} if own_zone and not r.params.get("zone") else {})}, "rule")
+    if r.intent == "get_empty_spots" and own_zone and not r.params.get("zone") and not r.params.get("rank"):
+        # 전기차·장애인 차량이라고 말한 사용자의 빈자리 질문은 그 칸 기준
+        return ParseResult("get_empty_spots", {**r.params, "zone": own_zone}, "rule")
     return r
 
 
@@ -908,27 +1053,44 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
         from .turn_guard import guard as _turn_guard
         alert_now = current_alert()
         _reply, _meta = _turn_guard(s, text, alert_now)
+        notice = None
         if _reply is not None:
             route.mark("guard", _meta.get("intent", "answer"))
-            if _meta.pop("clear", False):
-                s.clear()
-            return _respond(s, _reply, chip_set=_meta.pop("chips", "default"), meta=_meta)
-        route.mark("guard", "pass", why="Lv2 경보 중" if alert_now.get("level", 0) >= 2 else None)
+            if _meta.get("intent") in NOTICE_TOPICS and _agent_usable() and alert_now.get("level", 0) < 2:
+                # 안내성 답은 확정 안내로 대화 AI에 넘긴다(앞 대화·다른 조회와 엮어 자연스럽게). 못 지키면 아래에서 정해진 문장
+                notice = {"topic": _meta["intent"], "text": _reply, "chips": _meta.pop("chips", "default"), "meta": _meta}
+            else:
+                if _meta.pop("clear", False):
+                    s.clear()
+                return _respond(s, _reply, chip_set=_meta.pop("chips", "default"), meta=_meta)
+        else:
+            route.mark("guard", "pass", why="Lv2 경보 중" if alert_now.get("level", 0) >= 2 else None)
         # 계획표: 이 문장을 여러 방식으로 읽은 결과. 대화 AI 참고 정보와 규칙 답 고르기가 같은 것을 본다.
         turn_plan = plan.make(text)
         plan.use(turn_plan)
+        if turn_plan.self_vehicle:
+            s.vehicle_type = turn_plan.self_vehicle   # '나 전기차야' → 이후 안내 기준
+        if turn_plan.own_car:   # OWN_CAR 정규식이 10~99만 받는다
+            s.car_id = turn_plan.own_car               # '23번이 내 차야' → 이후 '얼마 나왔어?'의 대상
         route.mark("plan", "+".join(turn_plan.wants) or "none", why=turn_plan.summary())
-        from .parser import extract_vehicle, extract_virtual, normalize_car_id
+        from .parser import explicit_cars, extract_vehicle, extract_virtual, normalize_car_id
         from .conversation_turn import reply_to
         raw_id, only = extract_vehicle(text)
         # Buttons, exact confirmation words and identified workflows stay deterministic.
         rule = parse(text, allow_llm=False)
         # 서비스 범위 밖 요청(예약·할인·매출·타인 차량·지시 무시·미등록 주차장)은 모델·키워드보다 먼저 정해진 답을 낸다.
         boundary = boundaries.match(text)
-        if boundary:
+        if boundary and notice is None and boundary.key in NOTICE_TOPICS and _agent_usable() \
+                and alert_now.get("level", 0) < 2:
+            route.mark("boundary", boundary.key)
+            notice = {"topic": boundary.key, "text": boundary.text, "boundary": boundary, "rule": rule}
+        elif boundary:
             route.mark("boundary", boundary.key)
             return _boundary_response(s, session_id, boundary, rule)
-        route.mark("boundary", "pass")
+        elif notice is None:
+            route.mark("boundary", "pass")
+        if notice is not None:
+            return _notice_turn(s, session_id, text, notice)
         # 상태를 바꾸거나 안전·현장 대응이 걸린 요청만 규칙이 바로 처리한다.
         # 경보·위반·문의 상태 같은 조회 질문은 대화 에이전트가 다른 자료와 묶어 답할 수 있다
         # (모델을 쓸 수 없으면 아래 규칙 처리로 그대로 대체된다).
@@ -940,12 +1102,20 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
             controlled = True
         if rule.intent == "call_admin" and text.rstrip(" .!?") in {"관리자 불러줘", "관리자 호출", "직원 불러줘"}:
             controlled = True
+        if rule.intent in ("admin_help", "payment_help") and text and _agent_usable() and alert_now.get("level", 0) < 2:
+            # 관리자 비용·결제 수단 질문은 상태를 바꾸지 않는 안내 → 확정 안내로 대화 AI(실제 호출·결제는 버튼으로만)
+            fixed, _, chips, _ = HANDLERS[rule.intent](s, {})
+            route.mark("workflow", rule.intent, why="안내성 → 확정 안내로 대화 AI")
+            return _notice_turn(s, session_id, text, {"topic": rule.intent, "text": fixed, "chips": chips,
+                                                      "meta": {"intent": rule.intent}})
         if rule.intent not in {"confirm_yes", "confirm_no"} and s.expire():
             s.dialog_query = None
         if (only and text.startswith("아니") and normalize_car_id(raw_id)
                 and not s.pending and s.last_intent in {"find_my_car", "get_fee"}):
             s.begin(Flow.ASK_VEHICLE, s.last_intent)
-        invalid_id = raw_id and (not normalize_car_id(raw_id) or
+        # 번호를 여러 개 말한 것('23번이랑 41번')은 잘못된 번호가 아니다 → 대화 AI가 각각 조회(직접 쓴 번호만)
+        multi_cars = raw_id == "ambiguous" and len(explicit_cars(text)) > 1
+        invalid_id = raw_id and not multi_cars and (not normalize_car_id(raw_id) or
             (config.DATA_SOURCE == "mock" and config.ASSIGNED_CAR_IDS is not None and raw_id not in config.ASSIGNED_CAR_IDS))
         skip = ("workflow" if controlled else "invalid_car_id" if invalid_id else "virtual_vehicle" if extract_virtual(text)
                 else "alert_lv2" if current_alert().get("level", 0) >= 2 else None)
@@ -991,6 +1161,7 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
         resp = _respond(s, T.REQUEST_UNAVAILABLE, meta={"unavailable": True})
     if intent in DC.LOT_INTENTS and params.get("lot_id") in config.catalog.ids():
         DC.remember(s, params["lot_id"])
+    resp = _with_guess_note(resp, params)
     resp["meta"].update({"intent": intent, "source": source})
     return resp
 
@@ -1071,6 +1242,12 @@ def _conversation_response(s, sid, turn):
         s.car_id = target
     if q and q.candidates:
         DC.remember(s, q.candidates[0] if len(q.candidates) == 1 else None, offered_lots=q.candidates)
+    else:
+        # 계획표에 주차장이 하나만 나왔거나 목적 주차장이 있으면 '거기'의 기준으로 기억한다
+        last_text = next((m for who, m in reversed(s.history) if who == "user"), "")
+        turn_plan = plan.for_text(last_text)
+        if turn_plan.single_lot or turn_plan.purpose_lot:
+            DC.remember(s, turn_plan.single_lot or turn_plan.purpose_lot)
     text, card, chips, updated = reply.text, reply.card, reply.chip_set, reply.updated_at
     evidence = reply.meta.get("source_evidence", {})
     if evidence or reply.meta.get("payment_blocked"):
