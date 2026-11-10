@@ -164,6 +164,10 @@ _REFUSAL = re.compile(r"(?:확인|안내|알려|답|도와|제공)\S*\s*(?:드�
 _OFFER = re.compile(r"(?:확인|조회|안내|알려|도와|찾아)\S*\s*(?:드릴|드려\s*볼|볼)?\s*수\s*(?:있어요|있습니다)")
 
 
+# 장소의 위치·방향 주장('영화관 방향 표시는 몰 쪽 A·C구역', '영화관은 2층')
+_PLACE_CLAIM = re.compile(r"구역|쪽|방향|층|근처|가까|위치|옆|앞|건너|표시")
+
+
 _POLICY_PERMIT = re.compile(r"(?:일반\s*(?:차|차량)|전기차가?\s*아니|비전기차|장애인\s*차량이?\s*아니)[^.!?\n]{0,40}"
                             r"(?:할\s*수\s*있|가능|돼요|됩니다|괜찮|대셔도|세우셔도|하셔도)")
 _POLICY_DENY = re.compile(r"없|안\s*돼|안\s*됩|불가|못|금지|안\s*되")
@@ -191,6 +195,7 @@ REPAIR_HINTS = {
     "missing_goal": "질문에서 요청한 정보 중 일부를 조회하지 않았습니다.",
     "no_evidence": "조회 없이 빈자리·요금·추천 같은 운영 정보를 말했습니다. 목적에 맞는 주차장(주차장 성격 참고)을 parking_status나 compare_lots로 먼저 조회한 뒤 그 값으로 답하세요. 인사나 범위 밖 질문이면 운영 정보 없이 짧게 답하세요.",
     "empty_answer": "답이 비어 있습니다. 질문에 맞는 조회를 한 뒤 사용자에게 보일 답을 쓰세요.",
+    "unsupported_place": "안내 자료에 없는 장소(not_in_guide)의 위치·방향·가까운 구역을 말했습니다. 그 장소는 '안내 자료에 없어요'라고만 하고, 조회한 빈자리나 자료에 있는 시설(엘리베이터 등)로 도우세요.",
 }
 
 
@@ -226,8 +231,19 @@ def check_answer(answer, request, observations):
     if any(not any(m[1].upper() in fact.upper() for fact in facts) for m in _SLOT.finditer(answer)):
         return "unsupported_location"
 
+    missing_places = {place for observation in observations
+                      if observation["tool"] == "search_knowledge" and readable(observation)
+                      for place in observation["result"]["data"].get("not_in_guide") or []}
+    for sentence in re.split(r"(?<=[.!?。])\s+|\n+", answer):
+        if (any(place in sentence for place in missing_places) and _PLACE_CLAIM.search(sentence)
+                and not _REFUSAL.search(sentence) and not re.search(r"알\s*수\s*없|모르|확인\s*(?:할|드릴)\s*수\s*없", sentence)):
+            return "unsupported_place"
+
     lot_entries = [row for row in entries if row.get("lot_id")]
-    mentions = _mentions(answer)
+    # 자료 없음만 말하는 문장(숫자·상태 주장 없음)의 주차장 이름은 조회 대상이 아니어도 된다(봇 점검 11/10: 운영 시간)
+    claimed = "\n".join(s for s in re.split(r"(?<=[.!?。])\s+|\n+", answer)
+                        if not (_REFUSAL.search(s) and not _NUMBER.search(s) and not _STATE_CLAIM.search(_REFUSAL.sub(" ", s))))
+    mentions = _mentions(claimed)
     if lot_entries:
         lot_ids = {row["lot_id"] for row in lot_entries} | _asked_lots(request)
         if any(lot not in lot_ids for _, lot in mentions):

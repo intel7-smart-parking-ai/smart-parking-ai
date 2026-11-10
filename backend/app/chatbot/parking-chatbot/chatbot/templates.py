@@ -74,7 +74,9 @@ def fee(d: dict) -> str:
     if d.get("api_result"):
         closed = "출차 완료된 주차예요. " if d.get("session_status") == C.SESSION_CLOSED else ""
         if d.get("paid"):
-            return closed + f"{d['car_id']}번 차는 이미 결제했어요."
+            receipt = d.get("payment") if isinstance(d.get("payment"), dict) else {}
+            amount = receipt.get("amount_krw") if type(receipt.get("amount_krw")) is int else d.get("fee")
+            return closed + f"{d['car_id']}번 차는 이미 결제했어요" + (f"(결제 금액 {won(amount)})." if type(amount) is int else ".")
         text = closed + ("결제가 취소된 상태예요. " if d.get("payment_status") == C.PAYMENT_CANCELED else "") + f"현재 요금은 {won(d['fee'])}이에요."
         if d.get("is_daily_capped"):
             text += " 하루 최대 요금이 적용됐어요."

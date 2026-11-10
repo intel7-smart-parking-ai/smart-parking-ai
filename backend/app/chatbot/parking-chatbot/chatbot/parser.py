@@ -361,6 +361,12 @@ def normalize_colloquial(text: str) -> str:
     return text
 
 
+# 목적지 설정은 '개발원 주차장으로 안내해줘', '공항 주차장으로 갈게', '신세계로 가줘'처럼 주차장 이름 바로 뒤에
+# '(으)로 + 안내·가·갈·이동'이 올 때만. 요금·빈자리·가까운 곳 질문이 섞이면 조회 질문이다(대화 AI·규칙 답).
+_DESTINATION = re.compile(r"(?:주차장|공항|역|백화점|신세계|개발원|(?<![A-Za-z])[A-Da-d])\s*(?:으로|로)\s*(?:안내|가[자줘요]?|갈[게래거]|갈\s*(?:게|래|거)|이동)")
+_NOT_DESTINATION = re.compile(r"경보|대피|호출|관리자|결제|요금|얼마|빈자리|자리\s*있|가까운|몇\s*(?:시|자리|칸)|붐|혼잡|어디")
+
+
 def parse_rules(text: str) -> ParseResult:
     text = normalize_colloquial(text)
     return _with_info_gap(text, _with_analytics(text, _parse_rules_core(text)))
@@ -482,7 +488,7 @@ def _parse_rules_core(text: str) -> ParseResult:
         params["zone"] = zone
     if re.search(r"목적지.{0,6}(?:취소|해제|지워)|안내\s*(?:하지\s*(?:마|말)|취소)|(?:로|으로)\s*(?:가지\s*(?:마|말)|안\s*갈)",text):
         return ParseResult("cancel_destination",params,"rule")
-    if lot and re.search(r"안내|(?:로|으로)\s*(?:갈|가겠|가줘)",text) and not re.search(r"경보|대피|호출|관리자|결제",text):
+    if lot and _DESTINATION.search(text) and not _NOT_DESTINATION.search(text):
         return ParseResult("set_destination",params,"rule")
     guarded = guarded_intent(text)
     scope = _vehicle_query_scope(text)

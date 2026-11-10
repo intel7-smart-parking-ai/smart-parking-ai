@@ -30,6 +30,8 @@ class Session:
     dialog_query: object | None = None
     focus_lot: str | None = None
     focus_at: float = 0
+    virtual_vehicle: dict | None = None   # 이 대화에서 조회한 가상 차량(번호판·주차장·칸) — 관리자 호출 요약에 씀
+    forecast_ask: dict | None = None   # 혼잡 예측이 '오전/오후'·시각을 되물은 질문(다음 답과 이어 붙임)
     offered_lots: tuple = ()
     offered_at: float = 0
     alert_unavailable_seen: bool = False

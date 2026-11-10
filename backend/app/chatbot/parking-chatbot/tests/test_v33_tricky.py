@@ -7,6 +7,7 @@
 - '스물세번 차'(고유어 숫자), '내 차 번호 까먹었어'
 - 범위 밖 정중한 거절(주차장 성격만 언급)은 근거 검사 통과
 """
+import importlib.util
 import json
 import unittest
 from pathlib import Path
@@ -212,6 +213,69 @@ class LeavingTests(unittest.TestCase):
             self.assertIn("pay", [c["id"] for c in r["chips"]])
             e.handle("leave-ctx", text="23번 차 어디야?")
             self.assertIn("원이에요", e.handle("leave-ctx", text="이제 나갈게")["text"])
+
+
+class BaselineRound1Tests(unittest.TestCase):
+    """11/10 Haiku 기준 실행(docs/eval/runs/20261110_1227_tricky_haiku_기준)에서 떨어진 턴의 원인 수정."""
+
+    def setUp(self):
+        e.reset_all()
+        self.addCleanup(e.reset_all)
+
+    def test_cheapest_with_space_compares_all_lots_with_fees(self):
+        # T16: 모델 실패 시 요금만 보는 답 대신 전 주차장 빈자리·기본요금 비교
+        with patch.object(config, "LLM_PROVIDER", "none"):
+            r = e.handle("cheap", text="제일 싼 데 어디야 근데 자리도 있어야 돼")
+        self.assertIn("기본요금이 가장 낮은 곳은 개발원주차장", r["text"])
+        self.assertIn("만차", r["text"])
+        self.assertIn("rates", plan.make("제일 싼 데 어디야 근데 자리도 있어야 돼").wants)
+
+    def test_coverage_accepts_general_or_users_zone(self):
+        # T17: 구역을 말하지 않은 빈자리 질문을 모델이 일반 구역(또는 사용자 차 종류 구역)으로 조회해도 '빠짐'이 아님
+        from chatbot.conversation_turn import _missing
+        from chatbot.dialog.query import Query
+        q = Query("공항 자리 있을까?", candidates=("C",), wants_parking=True)
+        general = [{"tool": "parking_status", "data": {"rows": [{"lot_id": "C", "zone": "general", "empty": 40}]}}]
+        ev = [{"tool": "parking_status", "data": {"rows": [{"lot_id": "C", "zone": "ev", "empty": 6}]}}]
+        self.assertEqual(_missing(q, general), "")
+        self.assertNotEqual(_missing(q, ev), "")
+        self.assertEqual(_missing(q, ev, ("ev",)), "")
+        self.assertNotEqual(_missing(Query("공항 충전 칸", candidates=("C",), wants_parking=True, zone="ev"), general), "")
+
+
+@unittest.skipUnless(importlib.util.find_spec("langchain") is not None, "optional LangChain not installed")
+class TimeoutRetryTests(unittest.IsolatedAsyncioTestCase):
+    async def test_first_call_timeout_is_retried_once_when_budget_remains(self):
+        # P02: 첫 호출이 제한 시간에 걸려 0토큰으로 끝나면 예산이 남아 있을 때 한 번 다시 부른다
+        import asyncio
+        from test_agent_runtime_v3 import ScriptedModel, tool_call, parking_status, repeat_observation
+        from langchain_core.tools import StructuredTool
+        from chatbot.agents.conversation import arun_conversation
+
+        async def slow(messages):
+            await asyncio.sleep(1.0)
+            return tool_call("parking_status")
+        model = ScriptedModel([slow, tool_call("parking_status"), repeat_observation])
+        with patch.object(config, "LLM_TIMEOUT_SEC", 0.3), patch.object(config, "REQUEST_BUDGET_SEC", 8.0):
+            result = await arun_conversation("공항에 몇 자리 있어?", [], {}, [StructuredTool.from_function(coroutine=parking_status)], model=model)
+        self.assertEqual(result.status, "ok")
+        self.assertEqual(result.metadata.get("retried_timeout"), 1)
+        self.assertIn("5자리", result.text)
+
+    async def test_no_retry_without_budget(self):
+        import asyncio
+        from test_agent_runtime_v3 import ScriptedModel, tool_call, parking_status
+        from langchain_core.tools import StructuredTool
+        from chatbot.agents.conversation import arun_conversation
+
+        async def slow(messages):
+            await asyncio.sleep(1.0)
+            return tool_call("parking_status")
+        model = ScriptedModel([slow, slow, slow])
+        with patch.object(config, "LLM_TIMEOUT_SEC", 0.3), patch.object(config, "REQUEST_BUDGET_SEC", 0.9):
+            result = await arun_conversation("공항에 몇 자리 있어?", [], {}, [StructuredTool.from_function(coroutine=parking_status)], model=model)
+        self.assertEqual(result.status, "timeout")
+        self.assertIsNone(result.metadata.get("retried_timeout"))
 
 
 class TrickySetFileTests(unittest.TestCase):

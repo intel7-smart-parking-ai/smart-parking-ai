@@ -1,0 +1,507 @@
+{
+ "meta": {
+  "label": "screens_haiku_미리조회_다듬기",
+  "at": "2026-11-10T13:11:51+0900",
+  "commit": "eed3f77+",
+  "model": "anthropic/claude-haiku-5.5",
+  "provider": "openrouter",
+  "question_file": "model_compare_1110.json",
+  "settings": {
+   "REQUEST_BUDGET_SEC": 8.0,
+   "LLM_ANSWER_TIMEOUT_SEC": 5.0,
+   "LLM_MAX_OUTPUT_TOKENS": 600,
+   "LLM_REPAIR_MIN_SEC": 1.5,
+   "DATA_SOURCE": "mock"
+  }
+ },
+ "summary": {
+  "turns": 9,
+  "ai_answers": 9,
+  "ai_ratio_excluding_rule": 1.0,
+  "grades": {
+   "ai": 8,
+   "ai_notice": 1
+  },
+  "avg_sec": 2.7,
+  "max_sec": 3.6
+ },
+ "rows": [
+  {
+   "id": "P04",
+   "kind": "여행 추천",
+   "q": "내가 지금 여행 가려고 하는데 어떤 주차장을 이용하면 좋을까?",
+   "a": "여행이라면 김해공항 주차장을 추천해요. 공항 이용 목적에 맞고, 지금 전체 64자리 중 62자리가 비어 있어요.\n다만 여행 계획이 나중이라면 출발 전에 다시 확인해 주세요. 시간에 따라 자리는 달라질 수 있어요.",
+   "route": "guard:pass > plan:vacancy > boundary:pass > agent:ok > agent:answer",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "vacancy",
+     "why": "wants=vacancy purpose=C"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ok",
+     "calls": 1,
+     "prefetched": [
+      "parking_status"
+     ],
+     "tools": [
+      "parking_status"
+     ]
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer",
+     "source": "llm"
+    }
+   ],
+   "agent": {
+    "model_calls": 1,
+    "tool_calls": 0,
+    "input_tokens": 7068,
+    "output_tokens": 119,
+    "prefetched": [
+     "parking_status"
+    ],
+    "latency_ms": 3056.8,
+    "status": "ok"
+   },
+   "sec": 3.6,
+   "expect": "김해공항 추천 + 이유 + 빈자리",
+   "grade": "ai"
+  },
+  {
+   "id": "P10",
+   "kind": "전기차 맥락",
+   "q": "나 전기차야",
+   "a": "전기차 충전 구역은 지금 김해공항 주차장 6자리, 신세계백화점주차장 8자리, 개발원주차장 2자리가 비어 있어요. 부산역주차장은 충전 구역이 만차예요.\n\n자리 여유를 보면 신세계백화점주차장이 가장 넉넉하고, 요금을 보면 개발원주차장이 가장 저렴해요(처음 30분 1,000원).",
+   "route": "guard:pass > plan:vacancy > boundary:pass > agent:ok > agent:answer",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "vacancy",
+     "why": "wants=vacancy zone=ev my_vehicle=ev"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ok",
+     "calls": 2,
+     "prefetched": [
+      "compare_lots"
+     ],
+     "tools": [
+      "compare_lots",
+      "search_knowledge"
+     ]
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer",
+     "source": "llm"
+    }
+   ],
+   "agent": {
+    "model_calls": 2,
+    "tool_calls": 1,
+    "input_tokens": 16035,
+    "output_tokens": 213,
+    "prefetched": [
+     "compare_lots"
+    ],
+    "latency_ms": 3449.3,
+    "status": "ok"
+   },
+   "sec": 3.5,
+   "expect": "전기차 기억 → 충전 구역 기준 추천",
+   "grade": "ai"
+  },
+  {
+   "id": "P10",
+   "kind": "전기차 맥락",
+   "q": "어디 대면 돼?",
+   "a": "전기차라면 자리가 가장 넉넉한 신세계백화점주차장(충전 구역 8자리)이 무난해요. 요금을 아끼고 싶으면 개발원주차장(충전 구역 2자리, 처음 30분 1,000원)이 좋아요. 목적지가 정해져 있으면 그곳 가까운 주차장을 골라 드릴게요.",
+   "route": "guard:pass > plan:none > boundary:pass > agent:ok > agent:answer",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "none",
+     "why": "wants=-"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ok",
+     "calls": 1,
+     "prefetched": [
+      "compare_lots"
+     ],
+     "tools": [
+      "compare_lots"
+     ]
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer",
+     "source": "llm"
+    }
+   ],
+   "agent": {
+    "model_calls": 1,
+    "tool_calls": 0,
+    "input_tokens": 7987,
+    "output_tokens": 279,
+    "prefetched": [
+     "compare_lots"
+    ],
+    "latency_ms": 3066.7,
+    "status": "ok"
+   },
+   "sec": 3.1,
+   "expect": "전기차 기억 → 충전 구역 기준 추천",
+   "grade": "ai"
+  },
+  {
+   "id": "P14",
+   "kind": "맥락 추천",
+   "q": "나 장애인 차량이야",
+   "a": "장애인 전용 칸은 지금 김해공항 주차장에 16자리로 가장 여유가 있어요. 신세계백화점주차장 8자리, 개발원주차장 1자리가 남아 있고, 부산역주차장은 전용 칸이 가득 찼어요.\n\n요금을 보면 개발원주차장이 처음 30분 1,000원으로 가장 저렴해요. 자리가 여유 있는 곳을 원하시면 김해공항 주차장, 저렴한 곳을 원하시면 개발원주차장이 좋아요.",
+   "route": "guard:pass > plan:none > boundary:pass > agent:ok > agent:answer",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "none",
+     "why": "wants=- zone=accessible my_vehicle=accessible"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ok",
+     "calls": 1,
+     "prefetched": [
+      "compare_lots"
+     ],
+     "tools": [
+      "compare_lots"
+     ]
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer",
+     "source": "llm"
+    }
+   ],
+   "agent": {
+    "model_calls": 1,
+    "tool_calls": 0,
+    "input_tokens": 7857,
+    "output_tokens": 195,
+    "prefetched": [
+     "compare_lots"
+    ],
+    "latency_ms": 2170.4,
+    "status": "ok"
+   },
+   "sec": 2.2,
+   "expect": "공항 장애인 칸 기준 추천",
+   "grade": "ai"
+  },
+  {
+   "id": "P14",
+   "kind": "맥락 추천",
+   "q": "여행 가는데 어디가 좋아?",
+   "a": "여행이라면 김해공항 주차장이 좋아요. 지금 장애인 전용 칸이 16자리 모두 비어 있고, 처음 30분 3,000원에 이후 10분마다 800원, 하루 최대 40,000원이에요. 지금 기준이라 출발 전에 한 번 더 확인해 보세요.",
+   "route": "guard:pass > plan:compare > boundary:pass > agent:ok > agent:answer",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "compare",
+     "why": "wants=compare purpose=C"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ok",
+     "calls": 1,
+     "prefetched": [
+      "compare_lots"
+     ],
+     "tools": [
+      "compare_lots"
+     ]
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer",
+     "source": "llm"
+    }
+   ],
+   "agent": {
+    "model_calls": 1,
+    "tool_calls": 0,
+    "input_tokens": 7504,
+    "output_tokens": 280,
+    "prefetched": [
+     "compare_lots"
+    ],
+    "latency_ms": 3048.2,
+    "status": "ok"
+   },
+   "sec": 3.1,
+   "expect": "공항 장애인 칸 기준 추천",
+   "grade": "ai"
+  },
+  {
+   "id": "P15",
+   "kind": "확정 안내 + 맥락",
+   "q": "공항 자리 있어?",
+   "a": "김해공항 주차장에 지금 빈자리가 62자리 있어요(전체 64자리 중). 여유가 충분한 편이에요.",
+   "route": "guard:pass > plan:vacancy > boundary:pass > agent:ok > agent:answer",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "vacancy",
+     "why": "wants=vacancy lots=C"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ok",
+     "calls": 1,
+     "prefetched": [
+      "parking_status"
+     ],
+     "tools": [
+      "parking_status"
+     ]
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer",
+     "source": "llm"
+    }
+   ],
+   "agent": {
+    "model_calls": 1,
+    "tool_calls": 0,
+    "input_tokens": 7047,
+    "output_tokens": 52,
+    "prefetched": [
+     "parking_status"
+    ],
+    "latency_ms": 1393.0,
+    "status": "ok"
+   },
+   "sec": 1.4,
+   "expect": "예약 불가 + 공항 빈자리를 함께",
+   "grade": "ai"
+  },
+  {
+   "id": "P15",
+   "kind": "확정 안내 + 맥락",
+   "q": "거기 예약 돼?",
+   "a": "김해공항 주차장은 자리 예약이나 보장이 안 돼요. 빈자리는 먼저 들어온 차가 쓰는 방식이라서요. 지금 기준으로는 64자리 중 62자리가 비어 있으니, 가실 때 자리가 있을 가능성이 높아요. 다만 실제로 도착했을 때 상황은 달라질 수 있으니 출발 전에 한 번 더 확인해 보시면 좋아요.",
+   "route": "guard:pass > plan:none > boundary:reservation > agent:ok > agent:answer > agent:answer_with_notice",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "none",
+     "why": "wants=-"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "reservation"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ok",
+     "calls": 1,
+     "prefetched": [
+      "service_notice",
+      "parking_status"
+     ],
+     "tools": [
+      "service_notice",
+      "parking_status"
+     ]
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer",
+     "source": "llm"
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer_with_notice",
+     "topic": "reservation"
+    }
+   ],
+   "agent": {
+    "model_calls": 1,
+    "tool_calls": 0,
+    "input_tokens": 7466,
+    "output_tokens": 164,
+    "prefetched": [
+     "service_notice",
+     "parking_status"
+    ],
+    "latency_ms": 2307.4,
+    "status": "ok"
+   },
+   "sec": 2.3,
+   "expect": "예약 불가 + 공항 빈자리를 함께",
+   "grade": "ai_notice"
+  },
+  {
+   "id": "M05",
+   "kind": "출차+맥락",
+   "q": "23번 차 어디야?",
+   "a": "23번 차는 개발원주차장에 있어요. A-03 칸이고, 오후 12시 59분에 들어와서 지금 13분 주차된 상태예요.",
+   "route": "guard:pass > plan:location > boundary:pass > agent:ok > agent:answer",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "location",
+     "why": "wants=location car=23"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ok",
+     "calls": 1,
+     "prefetched": [
+      "vehicle_info"
+     ],
+     "tools": [
+      "vehicle_info"
+     ]
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer",
+     "source": "llm"
+    }
+   ],
+   "agent": {
+    "model_calls": 1,
+    "tool_calls": 0,
+    "input_tokens": 7244,
+    "output_tokens": 60,
+    "prefetched": [
+     "vehicle_info"
+    ],
+    "latency_ms": 2040.0,
+    "status": "ok"
+   },
+   "sec": 2.1,
+   "expect": "23번 요금 + 결제 안내",
+   "grade": "ai"
+  },
+  {
+   "id": "M05",
+   "kind": "출차+맥락",
+   "q": "이제 나갈게",
+   "a": "23번 차는 개발원주차장 A-03 칸에 있고, 현재 요금은 1,000원이에요. 아직 결제되지 않은 상태라서 나가시기 전에 결제가 필요해요. 결제를 원하시면 말씀해 주세요. 아래 버튼으로 진행할 수 있어요. 실제 금액은 출차·결제 때 서버가 정해요.",
+   "route": "guard:pass > plan:none > boundary:pass > agent:ok > agent:answer",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "none",
+     "why": "wants=-"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ok",
+     "calls": 1,
+     "prefetched": [
+      "vehicle_info"
+     ],
+     "tools": [
+      "vehicle_info"
+     ]
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer",
+     "source": "llm"
+    }
+   ],
+   "agent": {
+    "model_calls": 1,
+    "tool_calls": 0,
+    "input_tokens": 7296,
+    "output_tokens": 345,
+    "prefetched": [
+     "vehicle_info"
+    ],
+    "latency_ms": 3041.9,
+    "status": "ok"
+   },
+   "sec": 3.1,
+   "expect": "23번 요금 + 결제 안내",
+   "grade": "ai"
+  }
+ ]
+}

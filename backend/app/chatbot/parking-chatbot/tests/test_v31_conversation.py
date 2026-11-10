@@ -165,6 +165,7 @@ class NaturalConversationTests(unittest.TestCase):
         self.assertNotEqual(first["text"], second["text"])
 
     def test_missing_goal_is_requested_before_fallback(self):
+        self.enterContext(patch.object(config, "LLM_PREFETCH", False))   # 모델이 직접 조회하는 경로 검사
         # 위치·요금을 같이 물었는데 모델이 위치만 조회하면, 빠진 항목을 알려 주고 다시 조회하게 한다.
         def write(messages):
             d = last(messages, "vehicle_info")["data"]
@@ -217,6 +218,7 @@ class NaturalConversationTests(unittest.TestCase):
 
     # ------------------------------------------------------------ 모니터링
     def test_local_monitoring_records_why(self):
+        self.enterContext(patch.object(config, "LLM_PREFETCH", False))   # 모델이 직접 조회하는 경로 검사
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder) / "turns.jsonl"
             with patch.object(config, "MONITOR_BACKEND", "local"), patch.object(config, "MONITOR_LOCAL_PATH", str(path)):

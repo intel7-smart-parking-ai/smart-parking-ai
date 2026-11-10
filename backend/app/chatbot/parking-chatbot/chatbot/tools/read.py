@@ -7,7 +7,9 @@ from functools import wraps
 import math
 
 from .. import config, navigation
-from ..adapters import DataUnavailable, MockAdapter, default_policy, fee_details, request_lot, request_timeout
+from ..info_gaps import near_place
+from ..adapters import (DataUnavailable, FeeCalculatorUnavailable, MockAdapter, default_policy, fee_details,
+                        request_lot, request_timeout)
 from ..contracts import timestamp
 from ..knowledge import TOPIC_KEYS, search
 from ..parser import normalize_car_id
@@ -71,6 +73,27 @@ _POLICY_KEYS = ("base_minutes", "base_fee", "unit_minutes", "extra_fee", "daily_
 
 def _valid_policy(policy):
     return isinstance(policy, dict) and all(type(policy.get(k)) is int and policy[k] > 0 for k in _POLICY_KEYS)
+
+
+def future_fee(current_fee, current_minutes, policy, minutes_ahead, entry_at=None, basis_at=None):
+    """지금부터 minutes_ahead분 뒤 (금액, 총 분). billing 계산 함수만 쓴다(규칙 4).
+    서버가 준 지금 금액이 같은 함수·같은 정책의 결과와 다르면(할인·감면·결제 영수증 등) 만들지 않는다(None).
+    서버가 입차·기준 시각을 주면 billing과 똑같이 실제 경과 초에 더해 분을 올림한다(방금 입차한 차의 1분 차이 방지)."""
+    if (not _valid_policy(policy) or type(current_fee) is not int or type(current_minutes) is not int
+            or current_minutes < 0 or type(minutes_ahead) is not int or minutes_ahead < 1):
+        return None
+    total = current_minutes + minutes_ahead
+    try:
+        elapsed = (timestamp(basis_at) - timestamp(entry_at)).total_seconds()
+        total = max(1, math.ceil(max(0.0, elapsed) / 60 + minutes_ahead))
+    except (TypeError, ValueError, OverflowError):
+        pass
+    try:
+        if fee_details(max(1, current_minutes), policy)[0] != current_fee:
+            return None
+        return fee_details(total, policy)[0], total
+    except FeeCalculatorUnavailable:
+        return None
 
 
 def policy_text(policy):
@@ -310,10 +333,13 @@ class ReadTools:
             return self._finish("search_knowledge", {}, kind="internal_knowledge",
                                 error="질문 또는 주제(topics)와 장소를 확인해 주세요.")
         matches, unregistered = search(query, lots, topics)
-        return self._finish("search_knowledge", {"matches": matches, "missing": not bool(matches),
-                                                 "unregistered": unregistered,
-                                                 "available_topics": list(TOPIC_KEYS)},
-                            kind="internal_knowledge", lots=lots)
+        data = {"matches": matches, "missing": not bool(matches), "unregistered": unregistered,
+                "available_topics": list(TOPIC_KEYS)}
+        place = near_place(query)
+        if place and not any(place in str(row) for row in matches):
+            # '영화관으로 가는 가장 가까운 곳'처럼 물은 장소가 안내 자료에 없다 → 위치·방향을 말하면 안 된다
+            data["not_in_guide"] = [place]
+        return self._finish("search_knowledge", data, kind="internal_knowledge", lots=lots)
 
     # ------------------------------------------------------------ 계산·요약 도구 (읽기 전용)
 
@@ -362,8 +388,8 @@ class ReadTools:
                 "source": source}
 
     def estimate_fee(self, minutes: int, car_id: str | None = None, lot_id: str | None = None) -> dict:
-        """Code-computed fee estimate. With car_id: the selected car's fee if it leaves `minutes` from now.
-        With lot_id only: the fee for parking `minutes` in total at that lot. Always an estimate, never a quote or payment."""
+        """Fee estimate. With car_id: the selected car's fee if it leaves `minutes` from now (billing function, checked against the server fee).
+        With lot_id only: billing's fee for parking `minutes` in total at that lot. Always an estimate, never a quote or payment."""
         if type(minutes) is not int or not 1 <= minutes <= 4320 or (car_id is None) == (lot_id is None):
             return self._finish("estimate_fee", {}, error="예상 시간(분)과 차량 또는 주차장 하나를 확인해 주세요.")
         try:
@@ -379,7 +405,12 @@ class ReadTools:
             policy = policies.get(lots[0])
             if not _valid_policy(policy):
                 return self._finish("estimate_fee", {}, lots=lots, error="해당 주차장의 요금 정책을 확인할 수 없습니다.")
-            amount = fee_details(minutes, policy)[0]
+            try:
+                amount = fee_details(minutes, policy)[0]   # billing 계산 함수 결과 그대로
+            except FeeCalculatorUnavailable:
+                return self._finish("estimate_fee", {"lot_id": lots[0], "name": config.catalog.name(lots[0]),
+                                                     "policy_text": policy_text(policy)}, lots=lots,
+                                    error="예상 금액은 계산할 수 없습니다. 요금 기준만 안내하세요.")
             data = {"lot_id": lots[0], "name": config.catalog.name(lots[0]), "total_minutes": minutes,
                     "total_time_text": duration_text(minutes), "estimated_fee": amount,
                     "policy_text": policy_text(policy), "estimate": True}
@@ -390,17 +421,16 @@ class ReadTools:
             return self._finish("estimate_fee", {}, error="현재 요금을 확인할 수 없어 예상 요금을 계산하지 못했습니다.")
         if fee.get("paid"):
             return self._finish("estimate_fee", {}, error="이미 결제된 주차 기록이라 예상 요금을 계산하지 않습니다.")
+        # 미래 시각 서버 조회(fee?now=)는 쓰지 않는다: 시연 서버가 now를 무시하고 견적만 쌓인다(봇 점검 11/10).
         raw = self._snapshot.get(("fee", car_id))
         policy = (raw or {}).get("rate_policy") if isinstance(raw, dict) else None
         policy = policy if _valid_policy(policy) else policies.get(fee.get("lot_id"))
         current = _elapsed_minutes(None, fee)
-        if not _valid_policy(policy) or current is None:
-            return self._finish("estimate_fee", {}, error="요금 정책을 확인할 수 없어 예상 요금을 계산하지 못했습니다.")
-        if fee_details(max(1, current), policy)[0] != fee["fee"]:
-            # 서버 금액과 같은 규칙인지 확인되지 않으면 예상값을 만들지 않는다(할인·감면 등).
-            return self._finish("estimate_fee", {}, error="서버 요금 규칙과 맞춰 볼 수 없어 예상 요금을 계산하지 않습니다.")
-        total = current + minutes
-        amount = fee_details(total, policy)[0]
+        future = (future_fee(fee["fee"], current, policy, minutes, fee.get("entry_at"), (raw or {}).get("updated_at"))
+                  if current is not None and isinstance(raw, dict) else None)
+        if future is None:
+            return self._finish("estimate_fee", {}, error="서버 요금과 맞춰 볼 수 없어 예상 요금을 계산하지 않습니다.")
+        amount, total = future
         data = {"car_id": car_id, "lot_id": fee.get("lot_id"), "name": config.catalog.name(fee.get("lot_id")),
                 "current_fee": fee["fee"], "after_minutes": minutes, "after_time_text": duration_text(minutes),
                 "total_minutes": total, "total_time_text": duration_text(total), "estimated_fee": amount,

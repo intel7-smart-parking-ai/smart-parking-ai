@@ -12,6 +12,7 @@
 ├─ 정해진 답   boundaries: 예약·할인·매출·남의 차·미등록 주차장  (규칙)
 ├─ 업무 흐름   결제 확인·관리자 호출·대피 안내                   (규칙, 상태 변경은 여기서만)
 ├─ 대화 AI     agents/conversation (지시문 conversation.md)     (AI 1개)
+│   ├─ 미리 조회: 문장에서 분명한 조회는 코드가 먼저 실행해 넘김 → 보통 모델 호출 1번(conversation_turn._prefetch)
 │   ├─ 참고 정보: 계획표 hints (결정권 없음)
 │   ├─ 읽기 도구: 빈자리·차량/요금·요금 기준·비교·예상 요금·경보·규칙 안내
 │   └─ 근거 검사 → 한 번 고쳐 쓰기 → 통과한 답만 화면으로
@@ -92,7 +93,7 @@ guard:emergency
 | 느림 | `agent:timeout`, `latency_ms` | `config.REQUEST_BUDGET_SEC`, 모델 호출 수 |
 | 번역이 이상함 | `translate_in:kept_original`(질문 번역 실패·숫자 바뀜), `translate_out:en` | `prompts/translate_*.md`, `response_locale.py` |
 
-다시 볼 턴을 모으는 방법은 [review_loop.md](review_loop.md).
+다시 볼 턴을 모으는 방법은 [review_loop.md](review_loop.md), 버전별 실행 기록·비교·문제 추적표는 [eval/EVAL_LOG.md](eval/EVAL_LOG.md).
 
 ## 6. 구조 점검 (11/09 밤)
 

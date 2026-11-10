@@ -36,7 +36,7 @@ OWN_CAR = re.compile(r"(?<!\d)([1-9]\d)\s*번\s*(?:차(?:량)?\s*)?(?:이|은|�
 LIGHT = re.compile(r"불\s*(?:이\s*)?(?:꺼져|꺼졌|켜져|켜졌|깜빡|들어와)|빨간\s*불|경보등|LED", re.I)
 _DURATION = re.compile(r"(\d{1,2})\s*시간(?:\s*(\d{1,2})\s*분)?|(\d{1,3})\s*분\s*(?:만|동안|세우|주차|이면|하면)")
 # '3일 주차', '이틀 동안', '하루 세우면' — 날짜('3일에 가면')와 헷갈리지 않게 뒤에 기간을 뜻하는 말이 올 때만
-_DAYS = re.compile(r"(?:(\d{1,2})\s*일|(하루|이틀|사흘|나흘))\s*(?:동안|간|정도|쯤|주차|세우|세울|대|이면|하면|짜리|있|머물|맡)")
+_DAYS = re.compile(r"(?:(\d{1,2})\s*일|(하루|이틀|사흘|나흘))\s*(?:동안|간|정도|쯤|주차|세우|세울|대|이면|하면|짜리|있|머물|맡|얼마|요금|비용|주차비)")
 _DAY_WORDS = {"하루": 1, "이틀": 2, "사흘": 3, "나흘": 4}
 MAX_ESTIMATE_MINUTES = 4320   # tools.read.estimate_fee가 계산하는 최대(3일)
 
@@ -56,9 +56,21 @@ def minutes(text):
     return total if 1 <= total <= MAX_ESTIMATE_MINUTES else None
 
 
+_AHEAD = re.compile(r"(?:(\d{1,2})\s*시간(?:\s*(\d{1,2})\s*분|\s*(반))?|(\d{1,3})\s*분)\s*(?:뒤|후|더|있다가|지나서|지나면)")
+
+
+def ahead_minutes(text):
+    """'60분 뒤에 나가면', '1시간 후', '1시간 반 뒤', '30분 더 있으면' → 지금부터 몇 분 뒤. 없으면 None."""
+    m = _AHEAD.search(text or "")
+    if not m:
+        return None
+    total = int(m[1]) * 60 + (int(m[2]) if m[2] else 30 if m[3] else 0) if m[1] else int(m[4])
+    return total if 1 <= total <= MAX_ESTIMATE_MINUTES else None
+
+
 # 별명: 정식 이름 없이 부르는 말 → 주차장. 주차장 명부(lots.json) 별칭에 없는 짧은 말만 둔다.
 NICKNAMES = (
-    ("B", re.compile(r"(?<![가-힣])역(?=\s|에|앞|의|쪽|근처|주차|$)|역전|역\s*광장")),
+    ("B", re.compile(r"(?<![가-힣])역(?=\s|에|앞|의|쪽|근처|주차|이랑|랑|하고|이나|이든|$)|역전|역\s*광장")),
     ("C", re.compile(r"(?<![가-힣])김해(?!\s*공항)(?=\s|에|쪽|주차|$)|비행기\s*타는\s*(?:곳|데)")),
     ("D", re.compile(r"(?<![가-힣])센텀(?=\s|에|쪽|주차|$)|쇼핑몰")),
 )
@@ -148,7 +160,7 @@ def _wants(text, zone=None):
         ("fee", bool(_FEE.search(text)) and (money or not _VACANCY_AMOUNT.search(text))),
         ("location", bool(_LOCATION.search(text)) and _car_talk(text)),
         ("payment", bool(_PAYMENT.search(text))),
-        ("rates", bool(re.search(r"요금\s*(?:기준|표|체계|정책)|기본\s*요금|시간당|최대\s*요금|싸|저렴|비싸", text))),
+        ("rates", bool(re.search(r"요금\s*(?:기준|표|체계|정책)|기본\s*요금|시간당|최대\s*요금|싸|싼|저렴|비싸", text))),
         ("policy", bool(_POLICY.search(text))),
         ("alert", bool(_ALERT.search(text)) or bool(LIGHT.search(text))),
         ("compare", bool(_CHOICE.search(text))),

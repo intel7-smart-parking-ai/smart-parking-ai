@@ -35,6 +35,10 @@ def summary(s, car_id, *, adapter, find_vehicle, alert, chips) -> str:
             parts.append(f"{car_id}번 차 · 위치 미확인")
         if fee and fee.get("status") not in {"unavailable", "error", "conflict"}:
             parts.append(("결제 완료" if fee["paid"] else f"미결제 {T.won(fee['fee'])}") + stale_note(fee) + f" · 요금 기준 {fee['updated_at']}")
+    elif getattr(s, "virtual_vehicle", None):
+        v = s.virtual_vehicle
+        parts.append(f"{v.get('plate_number') or '번호판 뒤 ' + str(v.get('vehicle_number'))} 차량(가상) · "
+                     f"{config.catalog.name(v['lot_id'])} {v.get('space_id') or ''}".rstrip())
     else:
         parts.append("차량 번호 미확인")
     skip = {chips["confirm_yes"]["label"], chips["confirm_no"]["label"], "네", "예", "응", "아니요"}
@@ -85,6 +89,9 @@ class AdminCalls:
                 self.sequence += 1
                 call = {"id": self.sequence, "at": iso(now()), "updated_at": iso(now()),
                         "car_id": car_id, "incident_id": inc_id, "alert_level": a.get("level", 0),
+                        **({"plate_number": session.virtual_vehicle.get("plate_number"),
+                            "vehicle_number": session.virtual_vehicle.get("vehicle_number")}
+                           if not car_id and getattr(session, "virtual_vehicle", None) else {}),
                         "summary": summary, "status": "접수", "revision": 1, "_session": params["_sid"], "_last_at": time.monotonic()}
                 self.calls.append(call)
                 self.pruned += prune_finished(

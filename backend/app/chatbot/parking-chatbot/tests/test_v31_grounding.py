@@ -87,11 +87,13 @@ class ComputedToolTests(unittest.TestCase):
         self.assertFalse(self.tools.estimate_fee(0, lot_id="C")["ok"])
 
     def test_estimate_refuses_when_server_fee_rule_differs(self):
+        # 서버 지금 금액이 billing 함수 결과와 다르면(할인·감면 등) 예상 금액을 만들지 않는다.
         with patch.object(self.tools.adapter, "get_fee", return_value={
-                "car_id": "23", "lot_id": "A", "fee": 777, "minutes": 40, "paid": False, "entry_at": "2026-11-09T14:05:00+09:00"}), \
-                patch.object(self.tools, "_vehicle", return_value={"car_id": "23", "lot_id": "A", "space_id": "A-03",
+                "car_id": "23", "lot_id": "A", "fee": 777, "minutes": 40, "paid": False, "entry_at": "2026-11-09T14:05:00+09:00"}),                 patch.object(self.tools, "_vehicle", return_value={"car_id": "23", "lot_id": "A", "space_id": "A-03",
                                                                     "entry_at": "2026-11-09T14:05:00+09:00"}):
-            self.assertFalse(self.tools.estimate_fee(30, car_id="23")["ok"])
+            result = self.tools.estimate_fee(30, car_id="23")
+        self.assertFalse(result["ok"])
+        self.assertNotIn("estimated_fee", result["data"])
 
     def test_read_only_admin_status(self):
         tools = ReadTools(CachedAdapter(MockAdapter()), lambda: {}, admin_status_provider=lambda: {"id": None})

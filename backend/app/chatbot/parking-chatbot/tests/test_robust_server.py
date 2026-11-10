@@ -141,10 +141,14 @@ class RobustServerTests(unittest.TestCase):
             self.assertLess(len(answer["text"]), 1000)
 
     def test_success_outage_recovery_not_failure_cached(self):
-        e.reset_all()
-        e.get_session("probe").car_id = "11"
-        self.assertIn("2,500", e.handle("probe", text="요금")["text"])
-        self.http.target, self.http.status = "fee", 503
-        self.assertIn("확인", e.handle("probe", text="요금")["text"])
-        self.http.target = None
-        self.assertIn("2,500", e.handle("probe", text="요금")["text"])
+        # 정상 조회는 요청 6개(명부·칸·경보·위치·요금)를 0.4초 안에 끝내야 해서, 부하가 걸린 PC에서는 간헐적으로 실패했다(11/10).
+        # 이 검사의 목적은 장애 응답을 캐시하지 않는지이므로 시간 예산에 여유를 준다(장애는 503 응답이라 시간과 무관).
+        # with 블록으로만 바꾼다: setUp의 patch보다 늦게 풀리면 다른 테스트에 0.4초 예산이 남는다.
+        with patch.object(config, "BACKEND_TIMEOUT_SEC", 1.0), patch.object(config, "REQUEST_BUDGET_SEC", 3.0):
+            e.reset_all()
+            e.get_session("probe").car_id = "11"
+            self.assertIn("2,500", e.handle("probe", text="요금")["text"])
+            self.http.target, self.http.status = "fee", 503
+            self.assertIn("확인", e.handle("probe", text="요금")["text"])
+            self.http.target = None
+            self.assertIn("2,500", e.handle("probe", text="요금")["text"])

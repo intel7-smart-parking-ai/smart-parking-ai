@@ -70,7 +70,12 @@ def _restore(text, masked, replacements):
         raise ValueError("Translation changed protected facts")
     if re.search(r"\d", _TOKEN.sub("", text)):
         raise ValueError("Translation added a number")
-    return _TOKEN.sub(lambda match: replacements[match.group()], text)
+    restored = _TOKEN.sub(lambda match: replacements[match.group()], text)
+    # 개수 자리표시는 단위까지 넣어 돌려주는데 번역이 단위를 또 붙이는 경우(봇 점검 11/10)
+    restored = re.sub(r"(\d[\d,]* spaces?)\s+(?:(?:available|empty|free|open|parking)\s+)*spaces?\b", r"\1", restored)
+    restored = re.sub(r"(\d[\d,]*个车位)\s*个?(?:空)?车位", r"\1", restored)
+    restored = re.sub(r"(\d[\d,]*台)\s*(?:分)?台", r"\1", restored)
+    return restored
 
 
 # 번역 호출 제한 시간(초). 화면 제한(약 8초) 안에 끝나도록 요청마다 남은 시간으로 줄인다.

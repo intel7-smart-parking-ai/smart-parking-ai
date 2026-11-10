@@ -6,6 +6,7 @@ API v1이 확정되면 ApiAdapter 안의 경로·필드 이름만 고치면 된�
 """
 from __future__ import annotations
 
+import importlib.util
 import json
 import logging
 import math
@@ -19,6 +20,7 @@ from copy import deepcopy
 from contextvars import ContextVar
 from concurrent.futures import Future
 from datetime import datetime, timedelta
+from pathlib import Path
 
 from .diagnostics import logger, warn_periodically
 from .snapshots import freeze
@@ -76,16 +78,50 @@ def default_policy():
             "extra_fee": config.UNIT_FEE, "daily_cap": config.DAILY_CAP}
 
 
+class FeeCalculatorUnavailable(RuntimeError):
+    """billing 요금 계산 함수를 불러올 수 없음(챗봇 폴더만 떼어 실행한 경우). 금액을 지어내지 않는다."""
+
+
+_BILLING_CALC = None
+_FEE_EPOCH = datetime(2026, 1, 1, tzinfo=KST)
+
+
+def _load_billing_file():
+    # 저장소 안에서 챗봇 폴더를 단독 실행(8080)할 때: 같은 저장소의 billing 파일을 수정·복사 없이 그대로 읽는다.
+    path = Path(__file__).resolve().parents[5] / "backend" / "app" / "billing" / "calculator.py"
+    if not path.is_file():
+        return None
+    try:
+        spec = importlib.util.spec_from_file_location("_parking_billing_calculator", path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+    except Exception:
+        return None
+    return getattr(module, "calculate_parking_fee_pure", None)
+
+
+def billing_calculator():
+    """요금 계산은 billing(윤명수)의 calculate_parking_fee_pure 하나만 쓴다.
+    규칙 4(요금은 서버 단일 계산)와 PR 전 점검(챗봇 폴더에 요금 계산식 금지)을 지키기 위해 챗봇은 계산식을 갖지 않는다."""
+    global _BILLING_CALC
+    if _BILLING_CALC is None:
+        try:
+            from backend.app.billing.calculator import calculate_parking_fee_pure as found
+        except Exception:
+            found = _load_billing_file()
+        _BILLING_CALC = found or False
+    if not _BILLING_CALC:
+        raise FeeCalculatorUnavailable("billing 요금 계산 함수를 찾을 수 없습니다.")
+    return _BILLING_CALC
+
+
 def fee_details(minutes: int, policy: dict | None = None) -> tuple[int, bool]:
-    """목업의 일 단위 상한·부분일 요금(billing calculate_parking_fee_pure와 같은 규칙). 서버 요금 계산에는 사용하지 않는다."""
+    """(금액, 일 최대 적용 여부) — billing 계산 함수 결과 그대로. 모의 서버와 예상 요금에만 쓴다.
+    실제 차량의 지금 요금은 서버 응답(amount_krw) 그대로다. 미래 요금은 서버 금액과 일치를 확인한 뒤에만 계산한다(tools/read.future_fee)."""
     p = policy or default_policy()
     minutes = max(1, math.ceil(minutes))
-    days, remaining = divmod(minutes, 1440)
-    remainder_fee = 0
-    if remaining or not days:
-        units = max(0, math.ceil((remaining - p["base_minutes"]) / p["unit_minutes"]))
-        remainder_fee = min(p["base_fee"] + units * p["extra_fee"], p["daily_cap"])
-    return days * p["daily_cap"] + remainder_fee, remainder_fee >= p["daily_cap"] or days > 0
+    result = billing_calculator()(iso(_FEE_EPOCH), iso(_FEE_EPOCH + timedelta(minutes=minutes)), p)
+    return result["amount_krw"], bool(result["is_daily_capped"])
 
 
 def build_payment_body(session_id, quote_id, idempotency_key):
@@ -191,7 +227,8 @@ class MockAdapter:
         fee = self.get_fee((location or {}).get("mock_car") or "")
         if not fee:
             return None
-        return {"fee": fee["fee"], "minutes": fee["minutes"], "paid": fee["paid"]}
+        return {"fee": fee["fee"], "minutes": fee["minutes"], "paid": fee["paid"],
+                "rate_policy": fee.get("rate_policy"), "entry_at": fee.get("entry_at"), "updated_at": fee.get("updated_at")}
 
     @staticmethod
     def _vehicle_metadata(car_id):
@@ -727,7 +764,10 @@ class ApiAdapter:
             return None
         minutes = value.get("duration_minutes")
         return {"fee": amount, "minutes": minutes if type(minutes) is int else None,
-                "paid": value.get("payment_status") == "paid"}
+                "paid": value.get("payment_status") in ("paid", C.PAYMENT_COMPLETED),
+                # 예상 요금 일치 확인용(서버가 줄 때만)
+                **{k: v for k, v in (("rate_policy", value.get("rate_policy")), ("entry_at", value.get("entry_at")),
+                                     ("updated_at", value.get("target_at"))) if v is not None}}
 
     def get_fee(self, car_id):
         car = self.find_car(car_id)

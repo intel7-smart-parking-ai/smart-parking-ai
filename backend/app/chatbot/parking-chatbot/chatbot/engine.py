@@ -23,7 +23,11 @@ from pathlib import Path
 from . import config, incidents, monitoring, navigation as N, templates as T
 from . import dialog_context as DC
 from . import boundaries
+from . import info_gaps
 from . import route
+from . import forecast_chat
+from .charging_intent import wants_status as _wants_charging
+from .turn_guard import guard as _turn_guard
 from . import plan
 from .contracts import LOCATION_PENDING, timestamp, alerts_source
 from .adapters import ApiAdapter, request_gets, request_lot, DataUnavailable, build_adapter, iso, now, request_deadline, request_timeout
@@ -101,7 +105,11 @@ def _evict_oldest_idle(keep):
     11/10 점검 P0-3: 예전에는 한도(200)에서 새 대화를 거절해, QR·키오스크 사용자가 쌓이면
     최대 SESSION_IDLE_SEC(2시간) 동안 모든 신규 사용자가 챗봇을 쓸 수 없었다.
     """
-    for key, old in sorted(SESSIONS.items(), key=lambda item: item[1].last_seen):
+    def order(item):
+        s = item[1]
+        busy = bool(s.pending and time.monotonic() < s.pending.expires_at) or bool(s.destination)
+        return busy, s.last_seen   # 확인(결제·차량)이나 목적지 안내가 진행 중인 대화는 맨 나중에
+    for key, old in sorted(SESSIONS.items(), key=order):
         if key == keep or _session_users[key] or not old.lock.acquire(blocking=False):
             continue
         try:
@@ -416,6 +424,14 @@ def _occupancy():
 _PURPOSE_LABEL = {"C": "여행·출국이라면 공항에 있는", "B": "역·기차 이용이라면 기차역에 있는", "D": "쇼핑이라면 백화점에 있는"}
 
 
+def _topic_particle(word):
+    """'영화관' → '영화관은', '엘리베이터' → '엘리베이터는' (마지막 글자 받침 기준)."""
+    last = word[-1:] if word else ""
+    if "가" <= last <= "힣":
+        return word + ("은" if (ord(last) - 0xAC00) % 28 else "는")
+    return word + "은(는)"
+
+
 def h_get_empty_spots(s, p):
     result = parking.empty_spots(s, p, _occupancy(), current_alert(), api=isinstance(data.inner, ApiAdapter))
     lot = p.get("lot_id")
@@ -424,6 +440,9 @@ def h_get_empty_spots(s, p):
         lead = f"{said}시군요. 이 대화에서는 {said} 기준으로 안내할게요.\n"
         if p["profile_ack"] == "general":
             lead += "일반 차량은 전기차·장애인 전용 칸에 주차할 수 없어요.\n"
+        result = (lead + result[0],) + tuple(result[1:])
+    if p.get("facility_missing") and isinstance(result, tuple) and isinstance(result[0], str):
+        lead = f"{_topic_particle(p['facility_missing'])} 아직 안내 자료에 없어요. 대신 지금 빈자리를 알려 드릴게요.\n"
         result = (lead + result[0],) + tuple(result[1:])
     if p.get("purpose_hint") and lot in _PURPOSE_LABEL and isinstance(result, tuple) and isinstance(result[0], str):
         # '여행 가는데 어디가 좋아?' → 목적에 맞는 주차장을 고른 이유를 앞에 붙인다(사실은 그대로).
@@ -474,11 +493,44 @@ def _billing():
                            _answer_evidence.set, _uncertain_payments, now)
 
 
+def _ahead_line(fee, lot_id, ahead):
+    """'60분 뒤에 나가면 예상 요금은 X원' — 서버 지금 금액이 billing 결과와 같을 때만(tools.read.future_fee). 아니면 None."""
+    from .tools.read import duration_text, future_fee
+    if not ahead or not isinstance(fee, dict) or fee.get("paid"):
+        return None
+    policy = fee.get("rate_policy")
+    if not isinstance(policy, dict):
+        try:
+            policy = ((data.get_rate_policies() or {}).get("policies") or {}).get(lot_id)
+        except DataUnavailable:
+            policy = None
+    future = future_fee(fee.get("fee"), fee.get("minutes"), policy, ahead, fee.get("entry_at"), fee.get("updated_at"))
+    if future is None:
+        return None
+    return f"{duration_text(ahead)} 뒤에 나가면 예상 요금은 {future[0]:,}원이에요. 실제 금액은 출차·결제 때 서버가 정해요."
+
+
 def h_get_fee(s, p):
-    return _billing().fee(s, p)
+    result = _billing().fee(s, p)
+    ahead = plan.ahead_minutes(s.history[-1][1] if s.history else "")
+    if ahead and s.car_id and isinstance(result, tuple) and isinstance(result[0], str):
+        # AI가 꺼졌거나 실패해도 '34번 차 60분 뒤 얼마?'에 미래 금액을 답한다(봇 점검 11/10 🟠3)
+        try:
+            fee = data.get_fee(s.car_id)
+        except DataUnavailable:
+            fee = None
+        line = _ahead_line(fee, (fee or {}).get("lot_id"), ahead) if isinstance(fee, dict) else None
+        if line:
+            result = (result[0] + "\n" + line,) + tuple(result[1:])
+    return result
 
 
 def h_fee_rule(s, p):
+    if p.get("fee_rank") and not p.get("only_lots") and s.history:
+        said = plan.for_text(s.history[-1][1])
+        named = list(dict.fromkeys(list(said.lots) + list(plan.nickname_lots(said.text))))
+        if len(named) >= 2:
+            p = {**p, "only_lots": named}   # 물은 주차장끼리만(봇 점검 11/10 🟡)
     result = _billing().fee_rule(s, p)
     minutes, lot = p.get("estimate_minutes"), p.get("lot_id")
     if minutes == -1 and isinstance(result, tuple) and isinstance(result[0], str):
@@ -902,10 +954,12 @@ def _with_guess_note(resp, params):
 # 안전·보안·상태 변경이 아닌 '안내성' 가로채기. 확정 안내로 대화 AI에 넘긴다.
 # (연기 신고·결제·관리자 접수·지시 무시·남의 차·매출은 지금처럼 코드가 바로 답한다)
 NOTICE_TOPICS = {"self_intro", "lot_names", "forgot_number", "parking_permission", "space_missing", "cancel_clarify",
-                 "reservation", "discount", "admin_where", "unknown_lot", "admin_help", "payment_help", "exit_payment"}
+                 "reservation", "discount", "admin_where", "unknown_lot", "admin_help", "payment_help", "exit_payment",
+                 "vehicle_damage"}
 # AI 답이 확정 안내의 핵심을 지켰는지(모두 맞아야 함). 못 지키면 정해진 문장을 쓴다.
 _NOTICE_KEEP = {
     "forgot_number": (r"스티커",),
+    "vehicle_damage": (r"관리자", r"확인|판단"),
     "cancel_clarify": (r"취소",),
     "reservation": (r"예약|보장", r"없|안\s*돼|않|불가|어려"),
     "discount": (r"할인|감면|깎", r"없|수\s*없|안\s*돼|않|어려|불가"),
@@ -967,6 +1021,10 @@ def _notice_turn(s, session_id, text, notice):
     return _respond(s, notice["text"], chip_set=notice.get("chips", "default"), meta=meta)
 
 
+_SPACE_TALK = re.compile(r"자리|빈\s*칸|빈칸|비어|비었|남은|남았|만차|여유")
+_FACILITY_LABEL = {"지하 여부": "실내·실외(지하) 여부"}
+
+
 def _plausible_reading(s, r, text):
     """모델 없이 규칙으로 답할 때, 첫 해석이 문장과 안 맞으면 계획표(plan)를 보고 더 맞는 해석으로 바꾼다.
 
@@ -978,6 +1036,10 @@ def _plausible_reading(s, r, text):
         return r
     from .parser import ParseResult
     p = plan.for_text(text)
+    if (r.intent == "find_my_car" and not r.params.get("car_id")
+            and re.search(r"비었|비어|빈\s*(?:자리|칸|곳)|자리\s*(?:있|남)|칸\s*(?:있|남)", text)):
+        # '장애인 주차 어디가 비었어?'는 내 차 찾기가 아니라 빈자리(봇 점검 11/10, AI 시간 초과 뒤 규칙 답)
+        return ParseResult("get_empty_spots", {k: v for k, v in r.params.items() if k in ("zone", "lot_id")}, "rule")
     own_zone = {"ev": "ev", "accessible": "accessible"}.get(s.vehicle_type)
     focus_lot = DC.focus(s)
     from .turn_guard import LEAVING
@@ -1012,6 +1074,11 @@ def _plausible_reading(s, r, text):
         if r.intent == "unknown" and _OUT_OF_SCOPE.search(text):
             return ParseResult("unknown", {"out_of_scope": True}, "rule")
         return r
+    # '제일 싼 데, 근데 자리도 있어야 돼' → 요금 기준만 보는 답 대신 전 주차장의 빈자리·기본요금 비교
+    if "rates" in p.wants and _SPACE_TALK.search(text) and not p.lots and r.intent in ("fee_rule", "get_empty_spots", "unknown") \
+            and not r.params.get("lots"):
+        return ParseResult("get_empty_spots", {"rank": "compare", "lots": list(config.catalog.ids()),
+                                               **({"zone": p.zone or own_zone} if (p.zone or own_zone) else {})}, "rule")
     # 목적이 여럿('기차 먼저, 나중에 비행기') → 그 주차장들 비교
     if len(p.purpose_lots) >= 2 and r.intent in ("unknown", "get_empty_spots") and not r.params.get("lot_id"):
         return ParseResult("get_empty_spots", {"rank": "compare", "lots": list(p.purpose_lots),
@@ -1028,7 +1095,24 @@ def _plausible_reading(s, r, text):
     if needs_car and not p.talk.get("car") and not p.talk.get("money"):
         return ParseResult("get_empty_spots", params, "rule")
     if r.intent == "unknown":
+        # '실외 주차장은 어디야?'처럼 등록되지 않은 시설 정보를 물었으면, 없다고 밝힌 뒤 빈자리를 안내
+        from .knowledge import search as _knowledge_search
+        try:
+            _, unregistered = _knowledge_search(text, list(config.catalog.ids()), None)
+        except Exception:
+            unregistered = []
+        if unregistered:
+            params["facility_missing"] = "·".join(_FACILITY_LABEL.get(u, u) for u in unregistered)
         return ParseResult("get_empty_spots", params, "rule")
+    near = info_gaps.near_place(text)
+    if r.intent == "get_empty_spots" and near and not r.params.get("facility_missing"):
+        from .knowledge import search as _knowledge_search
+        try:
+            found, _ = _knowledge_search(text, list(config.catalog.ids()), None)
+        except Exception:
+            found = [None]
+        if not any(near in str(row) for row in found or []):
+            r = ParseResult("get_empty_spots", {**r.params, "facility_missing": near}, "rule")
     if r.intent == "get_empty_spots" and hint and not r.params.get("lot_id") and not r.params.get("rank"):
         return ParseResult("get_empty_spots", {**r.params, "lot_id": hint, "purpose_hint": True,
                                                **({"zone": own_zone} if own_zone and not r.params.get("zone") else {})}, "rule")
@@ -1075,7 +1159,6 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
         text = (text or "").strip()[:200]
         s.history.append(("user", text))
         # 안전 신고·허용 여부·없는 칸·자기소개처럼 짧게 확정되는 질문(turn_guard). Lv2 경보 중에는 대피 안내가 우선이라 건너뛴다.
-        from .turn_guard import guard as _turn_guard
         alert_now = current_alert()
         _reply, _meta = _turn_guard(s, text, alert_now)
         notice = None
@@ -1099,7 +1182,6 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
             s.car_id = turn_plan.own_car               # '23번이 내 차야' → 이후 '얼마 나왔어?'의 대상
         route.mark("plan", "+".join(turn_plan.wants) or "none", why=turn_plan.summary())
         # 충전 현황 질문은 화면의 충전 현황 카드(칸별 충전 상태·남은 시간)로 연결한다 (김채린 charging_intent 이식).
-        from .charging_intent import wants_status as _wants_charging
         if notice is None and _wants_charging(text):
             route.mark("rule", "charging_status", why="충전 현황 질문 → 충전 현황 카드")
             from .parser import extract_lots
@@ -1108,13 +1190,18 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
                 return _respond(s, "어느 주차장의 충전 현황을 열까요?", chip_set=["lot_" + lot for lot in _lots])
             if current_alert().get("level", 0) >= 2:
                 return _respond(s, "경보 중에는 현장 안전 안내를 먼저 따라 주세요.", chip_set="alert")
-            _lot = _lots[0] if _lots else DC.focus(s) or "C"
+            _named = _lots[0] if _lots else DC.focus(s)
+            if _named and _named not in ("C", "D"):
+                return _respond(s, f"칸별 충전 현황은 김해공항·신세계 주차장에서 볼 수 있어요. {config.catalog.name(_named)}은 "
+                                   "전기차 칸 빈자리로 안내해 드릴게요. ‘전기차 빈자리’라고 물어봐 주세요.",
+                                meta={"intent": "charging_status", "source": "rule"})
+            _lot = _named or "C"
+            _which = "" if _named else "주차장을 말씀하지 않아 김해공항부터 보여 드려요. 신세계는 ‘신세계 충전 현황’이라고 해 주세요.\n"
             return _respond(
-                s, f"{config.catalog.name(_lot)} 충전 현황이에요. 아래 ‘충전 현황’ 버튼을 누르면 칸별 충전 상태와 남은 시간을 볼 수 있어요.",
+                s, f"{_which}{config.catalog.name(_lot)} 충전 현황이에요. 아래 ‘충전 현황’ 버튼을 누르면 칸별 충전 상태와 남은 시간을 볼 수 있어요.",
                 card={"type": "charging_status", "data": {"lot_id": _lot}},
                 meta={"intent": "charging_status", "source": "rule"})
         # 혼잡도 예측(C+안): 미래 시점의 혼잡 질문 → 서버 예측 조회 결과만으로 답한다.
-        from . import forecast_chat
         from .parser import extract_lots as _extract_lots
         _forecast = None if notice is not None else forecast_chat.answer(sys.modules[__name__], s, text, _extract_lots(text + " 주차"))
         if _forecast is not None:
@@ -1244,6 +1331,13 @@ def _virtual_vehicle_reply(s, raw, intent):
         lines.append(f"{entry}에 들어와서 " + (f"{duration_text(minutes)}째 주차 중이에요." if minutes else "주차 중이에요."))
     if fee and intent in ("get_fee", "pay_fee", "find_my_car", "unknown"):
         lines.append(f"지금까지 요금은 {fee['fee']:,}원이에요." + (" 이미 결제됐어요." if fee.get("paid") else ""))
+        ahead = plan.ahead_minutes(s.history[-1][1] if s.history else "")
+        line = _ahead_line(fee, location["lot_id"], ahead) if intent in ("get_fee", "unknown") else None
+        if line:
+            lines.append(line)   # '6172 차 60분 뒤 얼마?'(봇 점검 11/10 🟠1)
+    # 관리자 호출 요약에 이 차를 넣는다(실물 car_id가 없는 가상 차량, 봇 점검 🟠2)
+    s.virtual_vehicle = {"plate_number": location.get("plate_number"), "vehicle_number": number,
+                         "lot_id": location["lot_id"], "space_id": location.get("space_id")}
     if intent == "pay_fee" and not (fee or {}).get("paid"):
         lines.append("가상 주차장 차량의 모의 결제는 화면의 차량번호 조회에서 진행해 주세요.")
     # car_location 카드는 실물 car_id 계약이라 쓰지 않는다(가상 차량은 문장으로 안내).

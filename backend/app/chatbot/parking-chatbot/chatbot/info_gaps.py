@@ -94,6 +94,19 @@ def hinted_lot(text: str) -> str | None:
     return found[0] if len(found) == 1 else None
 
 
+# '영화관으로 가는 가장 가까운 주차면', '화장실이랑 제일 가까운 자리' → 영화관·화장실. 조사가 붙은 명사만(동사 '하는데' 제외).
+_NEAR_PLACE = re.compile(r"([가-힣A-Za-z0-9]{2,12}?)(?:으로|로|에서|이랑|랑|와|과|하고|이|가|에)\s*(?:가는|가기|가려면|갈\s*때)?\s*(?:제일|가장)\s*가까운")
+_NOT_PLACE = re.compile(r"주차|공항|부산역|백화점|신세계|개발원|구역|자리|칸|면$|길$|곳$|데$|쪽$")
+
+
+def near_place(text):
+    """'○○(으)로/이랑 가장 가까운' 질문의 ○○(장소). 주차장·구역 이름이나 장소가 아니면 None."""
+    m = _NEAR_PLACE.search(text or "")
+    if not m or _NOT_PLACE.search(m[1]):
+        return None
+    return m[1]
+
+
 def classify(text: str):
     """(gap, topic_key, topic_label) 또는 None.
 

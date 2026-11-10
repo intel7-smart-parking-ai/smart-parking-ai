@@ -124,7 +124,9 @@ def _provider_model(options: AgentOptions):
     key = config.api_key(provider)
     if not key or not config.LLM_MODEL:
         raise _Stopped("missing_key")
-    timeout = request_timeout(config.LLM_TIMEOUT_SEC)
+    # HTTP 연결 제한은 두 호출 중 긴 쪽(답 쓰기 LLM_ANSWER_TIMEOUT_SEC)으로 둔다. 호출마다의 제한(도구 선택 3초 / 답 쓰기 5초)은
+    # TurnLimits가 따로 건다. 예전에는 연결 자체가 LLM_TIMEOUT_SEC(3초)에서 끊겨 답 쓰기 5초가 적용되지 않았다(봇 점검 11/10, gemma 3.1초 끊김).
+    timeout = request_timeout(max(config.LLM_TIMEOUT_SEC, config.LLM_ANSWER_TIMEOUT_SEC))
     kwargs = {"model": config.LLM_MODEL, "api_key": key, "temperature": 0,
               "max_tokens": _output_tokens(options), "timeout": timeout, "max_retries": 0}
     if provider == "anthropic":
@@ -321,15 +323,26 @@ async def _arun_conversation(text, history, state, tools, model=None, *, options
             if not await _acquire_slot(slots, min(config.LLM_SLOT_WAIT_SEC, max(0.0, time_left() - 0.5))):
                 raise _Stopped("busy")
             try:
-                timeout = min(time_left(), limit)
-                metadata["model_calls"] += 1
-                with _stats_lock:
-                    _active_models += 1
-                try:
-                    response = await asyncio.wait_for(handler(request), timeout)
-                finally:
+                attempts = 0
+                while True:
+                    attempts += 1
+                    timeout = min(time_left(), limit)
+                    metadata["model_calls"] += 1
                     with _stats_lock:
-                        _active_models -= 1
+                        _active_models += 1
+                    try:
+                        response = await asyncio.wait_for(handler(request), timeout)
+                        break
+                    except Exception as exc:
+                        # 제공자가 느려 제한 시간 안에 한 글자도 못 받은 경우(11/09·10 실측 P02): 예산이 남아 있으면 한 번만 다시 부른다.
+                        timed_out = isinstance(exc, (TimeoutError, asyncio.TimeoutError)) or type(exc).__name__ in ("APITimeoutError", "ReadTimeout")
+                        if (not timed_out or attempts >= 2 or metadata["model_calls"] >= options.max_model_calls
+                                or time_left() < limit * 0.8 + 0.5):
+                            raise
+                        metadata["retried_timeout"] = metadata.get("retried_timeout", 0) + 1
+                    finally:
+                        with _stats_lock:
+                            _active_models -= 1
                 for message in getattr(response, "result", []):
                     usage = getattr(message, "usage_metadata", None) or {}
                     for key in ("input_tokens", "output_tokens"):
@@ -392,6 +405,20 @@ async def _arun_conversation(text, history, state, tools, model=None, *, options
         # Engine history often already includes the current input; avoid duplication.
         if not messages or messages[-1] != {"role": "user", "content": text}:
             messages.append({"role": "user", "content": text})
+        # 코드가 미리 실행한 조회(conversation_turn._prefetch). 모델이 방금 호출해 받은 결과와 같은 형태로 넣는다.
+        # 근거 검사도 이 결과를 이번 턴의 조회로 본다. 모델은 이것으로 바로 답하거나, 부족하면 조회를 더 한다.
+        calls = []
+        for index, item in enumerate(extras.get("prefetched") or ()):
+            if item.get("tool") in tool_names and isinstance(item.get("result"), dict):
+                call_id = f"prefetch_{index}"
+                calls.append({"name": item["tool"], "args": dict(item.get("args") or {}), "id": call_id, "type": "tool_call"})
+                observations.append({"tool": item["tool"], "call_id": call_id, "result": item["result"], "prefetched": True})
+        if calls:
+            from langchain_core.messages import AIMessage
+            messages.append(AIMessage(content="", tool_calls=calls))
+            messages.extend(ToolMessage(content=json.dumps(row["result"], ensure_ascii=False, default=str),
+                                        tool_call_id=row["call_id"], name=row["tool"]) for row in observations)
+            metadata["prefetched"] = [call["name"] for call in calls]
         output = await asyncio.wait_for(agent.ainvoke({"messages": messages}, run_config), time_left())
         answer = _message_text(output["messages"][-1])
         if metadata["input_tokens"] + metadata["output_tokens"] > token_limit:
