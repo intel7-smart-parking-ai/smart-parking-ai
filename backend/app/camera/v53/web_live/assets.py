@@ -25,6 +25,12 @@ def settings():
     for key in ('detector', 'team_directory', 'legacy_board_directory', 'landmark_directory', 'printed_numbers', 'fire_led_model','glow_model','empty_bays','empty_bays_lit','reviewed_empty_bays'):
         path = Path(defaults[key])
         defaults[key] = (path if path.is_absolute() else ROOT/path).resolve()
-    defaults['ocr_python'] = os.environ.get('V53_OCR_PYTHON', data.get('ocr_python', ''))
-    defaults['ocr_models'] = os.environ.get('V53_OCR_MODELS', data.get('ocr_models', ''))
+    # A relative OCR path in assets.local.json is relative to this folder, like the
+    # other assets. Windows cannot start '.venv-ocr/Scripts/python.exe' as written
+    # (FileNotFoundError, OCR silently off), so pass an absolute path instead.
+    for key in ('ocr_python', 'ocr_models'):
+        value = data.get(key, '')
+        if isinstance(value, str) and value and not Path(value).is_absolute():
+            value = str((ROOT / value).resolve())
+        defaults[key] = os.environ.get('V53_' + key.upper(), value)
     return defaults
