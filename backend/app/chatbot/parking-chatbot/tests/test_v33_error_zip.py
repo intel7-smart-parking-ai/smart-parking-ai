@@ -220,11 +220,16 @@ class BotReview1515Tests(Base):
         from chatbot import response_locale as rl
         token = "__COUNT0__"
         for translated, value, want in (("There are __COUNT0__ spaces.", "34 spaces", "There are 34 spaces."),
-                                        ("有__COUNT0__ 个空车位。", "33个车位", "有33个车位。"),
+                                        ("有__COUNT0__ 个空车位。", "33个车位", "有33个空车位。"),   # 16:40: '空'은 살린다
                                         ("__COUNT0__ 台あります", "5台", "5台あります"),
-                                        ("There are __COUNT0__ left.", "34 spaces", "There are 34 spaces left.")):
+                                        ("There are __COUNT0__ left.", "34 spaces", "There are 34 spaces left."),
+                                        ("There are __COUNT0__ vacant spaces.", "24 spaces", "There are 24 vacant spaces.")):
             with self.subTest(translated=translated):
                 self.assertEqual(rl._restore(translated, token, {token: value}), want)
+        # 봇 실측 문장: 'There are 24 spaces vacant spaces out of 64 spaces'
+        two = rl._restore("There are __COUNT0__ vacant spaces out of __COUNT1__.", "__COUNT0____COUNT1__",
+                          {"__COUNT0__": "24 spaces", "__COUNT1__": "64 spaces"})
+        self.assertEqual(two, "There are 24 vacant spaces out of 64 spaces.")
 
 
 class DamageAndHoursTests(Base):

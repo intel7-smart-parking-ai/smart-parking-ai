@@ -123,7 +123,11 @@ def guard(s, text, alert=None):
     if FORGOT_NUMBER.search(text):
         return FORGOT_REPLY, {"intent": "forgot_number", "chips": ["call_admin", "find_car"]}
     if DAMAGE.search(text) and not re.search(r"화재|불|연기", text):
-        return DAMAGE_REPLY, {"intent": "vehicle_damage", "chips": ["call_admin", "find_car"]}
+        car, virtual = getattr(s, "car_id", None), getattr(s, "virtual_vehicle", None)
+        label = f"{car}번 차" if car else (f"{virtual.get('plate_number') or virtual.get('vehicle_number')} 차량"
+                                          if virtual else None)
+        reply = DAMAGE_REPLY.replace("조회한 차량 정보", f"조회한 차량({label}) 정보") if label else DAMAGE_REPLY
+        return reply, {"intent": "vehicle_damage", "chips": ["call_admin", "find_car"]}
     if not getattr(s, "pending", None) and BARE_CANCEL.fullmatch(text.strip()):
         return "어떤 요청을 취소할까요? 취소할 대상을 알려주세요.", {"intent": "cancel_clarify"}
     missing = _missing_space(text)

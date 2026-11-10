@@ -961,7 +961,8 @@ _NOTICE_KEEP = {
     "forgot_number": (r"스티커",),
     "vehicle_damage": (r"관리자", r"확인|판단"),
     "cancel_clarify": (r"취소",),
-    "reservation": (r"예약|보장", r"없|안\s*돼|않|불가|어려"),
+    # 같은 뜻의 다른 말('미리 자리를 잡아 둘 수는 없어요')도 안내를 지킨 것으로 본다
+    "reservation": (r"예약|보장|미리\s*(?:잡|맡)|확보|선점", r"없|안\s*돼|않|불가|어려"),
     "discount": (r"할인|감면|깎", r"없|수\s*없|안\s*돼|않|어려|불가"),
     "admin_where": (r"호출",),
     "admin_help": (r"관리자",),
@@ -1012,6 +1013,10 @@ def _notice_turn(s, session_id, text, notice):
             turn.reply.chip_set = notice["chips"]
         turn.reply.meta.update(intent=notice["topic"], notice=notice["topic"])
         return _conversation_response(s, session_id, turn)
+    if turn is not None and turn.reply.meta.get("source") == "llm":
+        current = monitoring.current()
+        if current:
+            current.note(notice_dropped={"topic": notice["topic"], "text": monitoring.capture(turn.reply.text)})
     route.mark("rule", notice["topic"], why="AI 답 없음 또는 확정 안내를 지키지 않음 → 정해진 문장")
     if "boundary" in notice:
         return _boundary_response(s, session_id, notice["boundary"], notice["rule"])

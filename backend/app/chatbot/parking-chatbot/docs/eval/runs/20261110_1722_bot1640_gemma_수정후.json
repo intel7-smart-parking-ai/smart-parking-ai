@@ -1,0 +1,516 @@
+{
+ "meta": {
+  "label": "bot1640_gemma_수정후",
+  "at": "2026-11-10T17:22:20+0900",
+  "commit": "b753724+",
+  "model": "google/gemma-4-26b-a4b-it",
+  "provider": "openrouter",
+  "question_file": "error_zip_1110.json",
+  "settings": {
+   "REQUEST_BUDGET_SEC": 8.0,
+   "LLM_ANSWER_TIMEOUT_SEC": 5.0,
+   "LLM_MAX_OUTPUT_TOKENS": 600,
+   "LLM_REPAIR_MIN_SEC": 1.5,
+   "DATA_SOURCE": "mock"
+  }
+ },
+ "summary": {
+  "turns": 10,
+  "ai_answers": 5,
+  "ai_ratio_excluding_rule": 0.83,
+  "grades": {
+   "ai": 4,
+   "ai_notice": 1,
+   "rule": 4,
+   "fallback_notice": 1
+  },
+  "avg_sec": 0.7,
+  "max_sec": 3.2
+ },
+ "rows": [
+  {
+   "id": "E04",
+   "kind": "자료 없는 시설",
+   "q": "신세계 백화점 주차장에서 영화관으로 가는 가장 가까운 주차면이 어디야?",
+   "a": "영화관의 위치는 안내 자료에 없어요. 대신 신세계백화점주차장의 현재 빈자리를 알려드릴게요.\n\n· 신세계백화점주차장: 62자리 있음",
+   "route": "guard:pass > plan:vacancy > boundary:pass > agent:ok > agent:answer",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "vacancy",
+     "why": "wants=vacancy lots=D"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ok",
+     "calls": 1,
+     "prefetched": [
+      "search_knowledge",
+      "parking_status"
+     ],
+     "tools": [
+      "search_knowledge",
+      "parking_status"
+     ]
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer",
+     "source": "llm"
+    }
+   ],
+   "agent": {
+    "model_calls": 1,
+    "tool_calls": 0,
+    "input_tokens": 4199,
+    "output_tokens": 49,
+    "prefetched": [
+     "search_knowledge",
+     "parking_status"
+    ],
+    "calls": [
+     {
+      "kind": "answer",
+      "limit_s": 5.0,
+      "ms": 1503,
+      "status": "ok"
+     }
+    ],
+    "latency_ms": 2645.5,
+    "status": "ok",
+    "drafts": null
+   },
+   "sec": 3.2,
+   "expect": "영화관 정보는 없다고 먼저 밝힘 + 대신 도울 수 있는 것",
+   "grade": "ai"
+  },
+  {
+   "id": "B03",
+   "kind": "가상 차량 관리자 호출",
+   "q": "내차 1724 위치",
+   "a": "17가1724 차량은 김해공항 주차장 A-07에 있어요.\n오후 4시 54분에 들어와서 29분째 주차 중이에요.\n지금까지 요금은 3,000원이에요.",
+   "route": "guard:pass > plan:location > boundary:pass > agent:skip > rule:find_my_car",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "location",
+     "why": "wants=location"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "skip",
+     "why": "virtual_vehicle"
+    },
+    {
+     "stage": "rule",
+     "outcome": "find_my_car"
+    }
+   ],
+   "agent": {},
+   "sec": 0.0,
+   "expect": "관리자 호출 요약에 17가1724",
+   "grade": "fallback_notice"
+  },
+  {
+   "id": "B03",
+   "kind": "가상 차량 관리자 호출",
+   "q": "스크래치 났어",
+   "a": "차량 손상이나 접촉 사고는 제가 직접 확인하거나 판단할 수 없어요. 현장 관리자가 직접 확인해야 합니다.\n\n아래 버튼을 누르면 17가1724 차량 정보와 함께 관리자에게 문의가 전달돼요.",
+   "route": "guard:vehicle_damage > plan:none > agent:ok > agent:answer > agent:answer_with_notice",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "vehicle_damage"
+    },
+    {
+     "stage": "plan",
+     "outcome": "none",
+     "why": "wants=-"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ok",
+     "calls": 1,
+     "prefetched": [
+      "service_notice"
+     ],
+     "tools": [
+      "service_notice"
+     ]
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer",
+     "source": "llm"
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer_with_notice",
+     "topic": "vehicle_damage"
+    }
+   ],
+   "agent": {
+    "model_calls": 1,
+    "tool_calls": 0,
+    "input_tokens": 4145,
+    "output_tokens": 61,
+    "prefetched": [
+     "service_notice"
+    ],
+    "calls": [
+     {
+      "kind": "answer",
+      "limit_s": 5.0,
+      "ms": 953,
+      "status": "ok"
+     }
+    ],
+    "latency_ms": 1074.5,
+    "status": "ok",
+    "drafts": null
+   },
+   "sec": 1.1,
+   "expect": "관리자 호출 요약에 17가1724",
+   "grade": "ai_notice"
+  },
+  {
+   "id": "B03",
+   "kind": "가상 차량 관리자 호출",
+   "q": "관리자 불러줘",
+   "a": "관리자에게 확인을 요청했어요. 차량 정보와 최근 문의를 요약해 관리자 화면에 함께 등록했어요.",
+   "route": "guard:pass > plan:none > boundary:pass > workflow:call_admin > rule:call_admin",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "none",
+     "why": "wants=-"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "workflow",
+     "outcome": "call_admin",
+     "why": "상태를 바꾸거나 안전이 걸린 요청은 규칙이 처리"
+    },
+    {
+     "stage": "rule",
+     "outcome": "call_admin"
+    }
+   ],
+   "agent": {},
+   "sec": 0.0,
+   "expect": "관리자 호출 요약에 17가1724",
+   "grade": "rule"
+  },
+  {
+   "id": "B05",
+   "kind": "운영 시간",
+   "q": "주차장 몇 시까지 해?",
+   "a": "주차장마다 운영 시간이 조금씩 달라요.\n\n· 김해공항 주차장: 매일 24시간 입·출차할 수 있어요.\n· 신세계백화점주차장: 매일 10:00~22:00에 입차할 수 있고, 출차는 24시간 가능해요.\n· 개발원주차장, 부산역주차장: 운영 시간 자료가 없어요.\n\n더 궁금한 주차장이 있으신가요?",
+   "route": "guard:pass > plan:vacancy > boundary:pass > agent:ok > agent:answer",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "vacancy",
+     "why": "wants=vacancy"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ok",
+     "calls": 1,
+     "prefetched": [
+      "search_knowledge"
+     ],
+     "tools": [
+      "search_knowledge"
+     ]
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer",
+     "source": "llm"
+    }
+   ],
+   "agent": {
+    "model_calls": 1,
+    "tool_calls": 0,
+    "input_tokens": 4130,
+    "output_tokens": 115,
+    "prefetched": [
+     "search_knowledge"
+    ],
+    "calls": [
+     {
+      "kind": "answer",
+      "limit_s": 5.0,
+      "ms": 1159,
+      "status": "ok"
+     }
+    ],
+    "latency_ms": 1281.1,
+    "status": "ok",
+    "drafts": null
+   },
+   "sec": 1.3,
+   "expect": "자료 있는 곳·없는 곳을 빠짐없이",
+   "grade": "ai"
+  },
+  {
+   "id": "B06",
+   "kind": "결제 완료 뒤 요금·출차",
+   "q": "44번 차 결제해줘",
+   "a": "44번 차 맞으세요?",
+   "route": "guard:pass > plan:payment > boundary:pass > workflow:pay_fee > rule:pay_fee",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "payment",
+     "why": "wants=payment car=44"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "workflow",
+     "outcome": "pay_fee",
+     "why": "상태를 바꾸거나 안전이 걸린 요청은 규칙이 처리"
+    },
+    {
+     "stage": "rule",
+     "outcome": "pay_fee"
+    }
+   ],
+   "agent": {},
+   "sec": 0.0,
+   "expect": "결제 완료 뒤 '이미 결제했어요'+결제 금액, 출차는 현장 안내(챗봇이 출차를 해 준다고 하지 않음, 가짜 버튼 없음)",
+   "grade": "rule"
+  },
+  {
+   "id": "B06",
+   "kind": "결제 완료 뒤 요금·출차",
+   "q": "넵",
+   "a": "44번 차 요금은 5,500원이에요. 이 금액으로 모의 결제할까요?",
+   "route": "guard:pass > plan:none > boundary:pass > workflow:confirm_yes > rule:confirm_yes",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "none",
+     "why": "wants=-"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "workflow",
+     "outcome": "confirm_yes",
+     "why": "상태를 바꾸거나 안전이 걸린 요청은 규칙이 처리"
+    },
+    {
+     "stage": "rule",
+     "outcome": "confirm_yes"
+    }
+   ],
+   "agent": {},
+   "sec": 0.0,
+   "expect": "결제 완료 뒤 '이미 결제했어요'+결제 금액, 출차는 현장 안내(챗봇이 출차를 해 준다고 하지 않음, 가짜 버튼 없음)",
+   "grade": "rule"
+  },
+  {
+   "id": "B06",
+   "kind": "결제 완료 뒤 요금·출차",
+   "q": "네",
+   "a": "5,500원 결제됐어요. 출구 개방 여부는 현장에서 확인해 주세요. (모의 결제)",
+   "route": "guard:pass > plan:none > boundary:pass > workflow:confirm_yes > rule:confirm_yes",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "none",
+     "why": "wants=-"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "workflow",
+     "outcome": "confirm_yes",
+     "why": "상태를 바꾸거나 안전이 걸린 요청은 규칙이 처리"
+    },
+    {
+     "stage": "rule",
+     "outcome": "confirm_yes"
+    }
+   ],
+   "agent": {},
+   "sec": 0.0,
+   "expect": "결제 완료 뒤 '이미 결제했어요'+결제 금액, 출차는 현장 안내(챗봇이 출차를 해 준다고 하지 않음, 가짜 버튼 없음)",
+   "grade": "rule"
+  },
+  {
+   "id": "B06",
+   "kind": "결제 완료 뒤 요금·출차",
+   "q": "44번 차 얼마야?",
+   "a": "44번 차량은 이미 5,500원을 결제했어요.",
+   "route": "guard:pass > plan:fee > boundary:pass > agent:ok > agent:answer",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "fee",
+     "why": "wants=fee car=44"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ok",
+     "calls": 1,
+     "prefetched": [
+      "vehicle_info"
+     ],
+     "tools": [
+      "vehicle_info"
+     ]
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer",
+     "source": "llm"
+    }
+   ],
+   "agent": {
+    "model_calls": 1,
+    "tool_calls": 0,
+    "input_tokens": 4338,
+    "output_tokens": 22,
+    "prefetched": [
+     "vehicle_info"
+    ],
+    "calls": [
+     {
+      "kind": "answer",
+      "limit_s": 5.0,
+      "ms": 721,
+      "status": "ok"
+     }
+    ],
+    "latency_ms": 840.4,
+    "status": "ok",
+    "drafts": null
+   },
+   "sec": 0.9,
+   "expect": "결제 완료 뒤 '이미 결제했어요'+결제 금액, 출차는 현장 안내(챗봇이 출차를 해 준다고 하지 않음, 가짜 버튼 없음)",
+   "grade": "ai"
+  },
+  {
+   "id": "B06",
+   "kind": "결제 완료 뒤 요금·출차",
+   "q": "이제 나갈게",
+   "a": "44번 차량은 이미 결제를 마쳤어요. 출구에서 현장 안내를 따라 주세요.",
+   "route": "guard:pass > plan:none > boundary:pass > agent:ok > agent:answer",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "none",
+     "why": "wants=-"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ok",
+     "calls": 1,
+     "prefetched": [
+      "vehicle_info"
+     ],
+     "tools": [
+      "vehicle_info"
+     ]
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer",
+     "source": "llm"
+    }
+   ],
+   "agent": {
+    "model_calls": 1,
+    "tool_calls": 0,
+    "input_tokens": 4354,
+    "output_tokens": 27,
+    "prefetched": [
+     "vehicle_info"
+    ],
+    "calls": [
+     {
+      "kind": "answer",
+      "limit_s": 5.0,
+      "ms": 733,
+      "status": "ok"
+     }
+    ],
+    "latency_ms": 853.3,
+    "status": "ok",
+    "drafts": null
+   },
+   "sec": 0.9,
+   "expect": "결제 완료 뒤 '이미 결제했어요'+결제 금액, 출차는 현장 안내(챗봇이 출차를 해 준다고 하지 않음, 가짜 버튼 없음)",
+   "grade": "ai"
+  }
+ ]
+}

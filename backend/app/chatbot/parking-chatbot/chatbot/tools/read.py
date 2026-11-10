@@ -335,6 +335,17 @@ class ReadTools:
         matches, unregistered = search(query, lots, topics)
         data = {"matches": matches, "missing": not bool(matches), "unregistered": unregistered,
                 "available_topics": list(TOPIC_KEYS)}
+        # 일부 주차장에만 등록된 시설 주제(예: 운영 시간은 김해공항·신세계만) → 나머지는 '자료 없음'(봇 점검 11/10 16:40)
+        from ..knowledge import TOPICS as _TOPICS
+        labels = {key: label for key, label, _ in _TOPICS}
+        by_topic = {}
+        for row in matches:
+            if row.get("lot_id") and row.get("id") in labels:
+                by_topic.setdefault(row["id"], set()).add(row["lot_id"])
+        missing = {labels[key]: [config.catalog.name(lot) for lot in lots if lot not in have]
+                   for key, have in by_topic.items() if len(lots) > 1 and set(lots) - have}
+        if missing:
+            data["missing_by_lot"] = missing
         place = near_place(query)
         if place and not any(place in str(row) for row in matches):
             # '영화관으로 가는 가장 가까운 곳'처럼 물은 장소가 안내 자료에 없다 → 위치·방향을 말하면 안 된다

@@ -211,6 +211,7 @@ class AdmissionTests(unittest.IsolatedAsyncioTestCase):
 
         with (patch.object(config, "EMBEDDED", True),
               patch.object(config, "CHAT_MAX_CONCURRENT", 1),
+              patch.object(config, "CHAT_QUEUE_WAIT_SEC", 0.2),   # 11/10: 바로 거절하지 않고 잠깐 줄을 선다 → 그 뒤 '바쁨'
               patch.object(engine, "data", adapters.CachedAdapter(adapters.MockAdapter())),
               patch.object(engine, "handle", side_effect=blocked) as handler):
             engine.reset_all()

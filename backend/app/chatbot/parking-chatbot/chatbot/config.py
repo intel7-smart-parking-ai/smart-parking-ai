@@ -164,9 +164,16 @@ for _key in ("ADMIN_CALL_LIMIT", "INCIDENT_LIMIT", "UNCERTAIN_PAYMENT_LIMIT"):
     if globals()[_key] < 1:
         raise ValueError(f"{_key}는 양의 정수여야 합니다.")
 
-CHAT_MAX_CONCURRENT = _number("CHAT_MAX_CONCURRENT", str(EMBEDDED_CHAT_WORKERS), int)
+# 팀 서버 안에서 동시에 처리하는 대화 수. 대화 스레드는 대부분 모델 응답을 기다리는 중이라 조회·폴링용
+# EMBEDDED_CHAT_WORKERS(4)와 따로 둔다. 자리가 없으면 바로 '바쁨'으로 거절하지 않고 CHAT_QUEUE_WAIT_SEC까지 기다린다.
+CHAT_MAX_CONCURRENT = _number("CHAT_MAX_CONCURRENT", "12", int)
 if CHAT_MAX_CONCURRENT < 1:
     raise ValueError("CHAT_MAX_CONCURRENT는 양의 정수여야 합니다.")
+# language 없이 온 외국어 질문을 글자로 판별해 번역(기본 끔 — 계약은 '생략하면 한국어'. PM 승인·계약 갱신 뒤 켠다)
+CHAT_GUESS_LANGUAGE = getenv("CHAT_GUESS_LANGUAGE", "0") == "1"
+CHAT_QUEUE_WAIT_SEC = _number("CHAT_QUEUE_WAIT_SEC", "3", float)
+if not math.isfinite(CHAT_QUEUE_WAIT_SEC) or CHAT_QUEUE_WAIT_SEC < 0:
+    raise ValueError("CHAT_QUEUE_WAIT_SEC는 0 이상의 유한한 값이어야 합니다.")
 
 BACKEND_BREAKER_FAILS = _number("BACKEND_BREAKER_FAILS", "3", int)
 BACKEND_BREAKER_OPEN_SEC = _number("BACKEND_BREAKER_OPEN_SEC", "10", float)
@@ -175,8 +182,11 @@ if BACKEND_BREAKER_FAILS < 1:
 if not math.isfinite(BACKEND_BREAKER_OPEN_SEC) or BACKEND_BREAKER_OPEN_SEC <= 0:
     raise ValueError("BACKEND_BREAKER_OPEN_SEC는 유한한 양수여야 합니다.")
 
-LLM_MAX_PER_SESSION_MIN = _number("LLM_MAX_PER_SESSION_MIN", "5", int)
-LLM_MAX_PER_MIN = _number("LLM_MAX_PER_MIN", "30", int)
+# 한 대화 1분 질문 수·서버 전체 1분 질문 수. 넘으면 그 질문은 규칙 답(agent:rate_limited).
+# 11/10 부하 실험: 5/30이면 시연자 한 명이 6번째 질문부터, 12명이 번갈아 물으면 31번째부터 규칙 답 → 12/60.
+# 비용 상한은 하루 한도(LLM_MAX_PER_DAY)와 OpenRouter 키 한도가 맡는다.
+LLM_MAX_PER_SESSION_MIN = _number("LLM_MAX_PER_SESSION_MIN", "12", int)
+LLM_MAX_PER_MIN = _number("LLM_MAX_PER_MIN", "60", int)
 LLM_MAX_PER_DAY = _number("LLM_MAX_PER_DAY", "1000", int)
 LLM_ROUTE_CACHE_SEC = _number("LLM_ROUTE_CACHE_SEC", "600", float)
 for _key in ("LLM_MAX_PER_SESSION_MIN", "LLM_MAX_PER_MIN"):
@@ -195,8 +205,10 @@ FALLBACK_HINTS = getenv("FALLBACK_HINTS", "0") == "1"
 # 대화 에이전트는 LLM_MAX_PER_SESSION_MIN·LLM_MAX_PER_MIN·LLM_MAX_PER_DAY를 '모델 호출'이 아니라
 # '질문(턴)' 단위로 센다(llm_limits.admit_turn). 질문 1개는 보통 모델 호출 2~3회다.
 # 서버 전체 동시 모델 호출 자리와, 자리가 없을 때 기다리는 최대 시간(초)
-LLM_MAX_INFLIGHT = _number("LLM_MAX_INFLIGHT", "4", int)
-LLM_SLOT_WAIT_SEC = _number("LLM_SLOT_WAIT_SEC", "1", float)
+# 11/10 부하 실험: 자리 4·대기 1초면 동시 6명 중 2명, 12명 중 8명이 규칙 답. 응답 예산은 8초이고 모델은 2~3초라
+# 자리를 더 기다리는 편이 낫다 → 자리 8, 대기 최대 4초(모델 호출에 쓸 3초는 남긴다: agents/conversation.py).
+LLM_MAX_INFLIGHT = _number("LLM_MAX_INFLIGHT", "8", int)
+LLM_SLOT_WAIT_SEC = _number("LLM_SLOT_WAIT_SEC", "4", float)
 # 조회 결과를 받은 뒤 답을 쓰는 모델 호출의 제한 시간(초). 도구 선택 호출은 LLM_TIMEOUT_SEC
 LLM_ANSWER_TIMEOUT_SEC = _number("LLM_ANSWER_TIMEOUT_SEC", "5", float)
 # 대화 AI 답의 출력 토큰 상한. 너무 낮으면 추천·비교 답이 잘리고, 너무 높으면 긴 목록 답으로 시간 초과가 잦다.
