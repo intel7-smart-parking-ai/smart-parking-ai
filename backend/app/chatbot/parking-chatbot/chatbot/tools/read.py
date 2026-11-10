@@ -7,6 +7,7 @@ from functools import wraps
 import math
 
 from .. import config, navigation
+from ..info_gaps import near_place
 from ..adapters import (DataUnavailable, FeeCalculatorUnavailable, MockAdapter, default_policy, fee_details,
                         request_lot, request_timeout)
 from ..contracts import timestamp
@@ -332,10 +333,13 @@ class ReadTools:
             return self._finish("search_knowledge", {}, kind="internal_knowledge",
                                 error="질문 또는 주제(topics)와 장소를 확인해 주세요.")
         matches, unregistered = search(query, lots, topics)
-        return self._finish("search_knowledge", {"matches": matches, "missing": not bool(matches),
-                                                 "unregistered": unregistered,
-                                                 "available_topics": list(TOPIC_KEYS)},
-                            kind="internal_knowledge", lots=lots)
+        data = {"matches": matches, "missing": not bool(matches), "unregistered": unregistered,
+                "available_topics": list(TOPIC_KEYS)}
+        place = near_place(query)
+        if place and not any(place in str(row) for row in matches):
+            # '영화관으로 가는 가장 가까운 곳'처럼 물은 장소가 안내 자료에 없다 → 위치·방향을 말하면 안 된다
+            data["not_in_guide"] = [place]
+        return self._finish("search_knowledge", data, kind="internal_knowledge", lots=lots)
 
     # ------------------------------------------------------------ 계산·요약 도구 (읽기 전용)
 

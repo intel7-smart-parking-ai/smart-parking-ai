@@ -1,0 +1,194 @@
+{
+ "meta": {
+  "label": "error_zip_haiku_장소검사",
+  "at": "2026-11-10T15:13:39+0900",
+  "commit": "3c50a51+",
+  "model": "anthropic/claude-haiku-5.5",
+  "provider": "openrouter",
+  "question_file": "error_zip_1110.json",
+  "settings": {
+   "REQUEST_BUDGET_SEC": 8.0,
+   "LLM_ANSWER_TIMEOUT_SEC": 5.0,
+   "LLM_MAX_OUTPUT_TOKENS": 600,
+   "LLM_REPAIR_MIN_SEC": 1.5,
+   "DATA_SOURCE": "mock"
+  }
+ },
+ "summary": {
+  "turns": 3,
+  "ai_answers": 3,
+  "ai_ratio_excluding_rule": 1.0,
+  "grades": {
+   "ai": 3
+  },
+  "avg_sec": 3.5,
+  "max_sec": 5.7
+ },
+ "rows": [
+  {
+   "id": "E02",
+   "kind": "청사 가까운 곳(목적지 아님)",
+   "q": "김해공항 국내선 청사로 갈려고 하는데 가장 가까운 주차면이 어디야",
+   "a": "김해공항 주차장에는 지금 62자리가 비어 있어요(전체 64자리). 국내선 청사로 가신다면 시연 배치도상 P1 구역이 국내선이에요. 다만 P1의 빈자리 수와 청사까지 가장 가까운 칸은 제가 확인할 수 없어서, 주차장에 들어가셔서 P1 표시를 따라가시는 게 가장 확실해요.",
+   "route": "guard:pass > plan:vacancy > boundary:pass > agent:ok > agent:answer",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "vacancy",
+     "why": "wants=vacancy lots=C"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ok",
+     "calls": 1,
+     "prefetched": [
+      "search_knowledge",
+      "parking_status"
+     ],
+     "tools": [
+      "search_knowledge",
+      "parking_status"
+     ]
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer",
+     "source": "llm"
+    }
+   ],
+   "agent": {
+    "model_calls": 1,
+    "tool_calls": 0,
+    "input_tokens": 7689,
+    "output_tokens": 353,
+    "prefetched": [
+     "search_knowledge",
+     "parking_status"
+    ],
+    "latency_ms": 5066.8,
+    "status": "ok"
+   },
+   "sec": 5.7,
+   "expect": "국내선 쪽(P1) 안내 + 빈자리. 목적지 설정 아님",
+   "grade": "ai"
+  },
+  {
+   "id": "E03",
+   "kind": "엘리베이터 가까운 곳",
+   "q": "신세계 백화점 주차장에서 엘리베이터가 가장 가까운 주차면이 어디야",
+   "a": "신세계백화점주차장에서 엘리베이터가 가장 가까운 주차면은 지금 자료로는 정확히 알 수 없어요. 자료에는 엘리베이터가 화면 위쪽의 몰 A·C구역과 백화점 B·D구역에 표시된다는 내용까지만 있어요.\n\n지금은 전체 64면 중 62면이 비어 있어서, 원하시면 전기차나 장애인 전용 칸 상황도 함께 확인해 드릴게요.",
+   "route": "guard:pass > plan:vacancy > boundary:pass > agent:ok > agent:answer",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "vacancy",
+     "why": "wants=vacancy lots=D"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ok",
+     "calls": 1,
+     "prefetched": [
+      "search_knowledge",
+      "parking_status"
+     ],
+     "tools": [
+      "search_knowledge",
+      "parking_status"
+     ]
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer",
+     "source": "llm"
+    }
+   ],
+   "agent": {
+    "model_calls": 1,
+    "tool_calls": 0,
+    "input_tokens": 7659,
+    "output_tokens": 279,
+    "prefetched": [
+     "search_knowledge",
+     "parking_status"
+    ],
+    "latency_ms": 2572.4,
+    "status": "ok"
+   },
+   "sec": 2.6,
+   "expect": "엘리베이터 위치(몰 A·C, 백화점 B·D) 근거로 자연스럽게",
+   "grade": "ai"
+  },
+  {
+   "id": "E04",
+   "kind": "자료 없는 시설",
+   "q": "신세계 백화점 주차장에서 영화관으로 가는 가장 가까운 주차면이 어디야?",
+   "a": "신세계백화점주차장에는 지금 62자리가 비어 있어요. 다만 영화관은 안내 자료에 없어서, 영화관에서 가장 가까운 주차면은 알려 드릴 수 없어요. 대신 주차장 안의 위치 정보도 등록되어 있지 않아서 어느 구역이 가까운지도 말씀드리기 어려워요. 방문 전에 주차장 안내 표지를 함께 확인해 주세요.",
+   "route": "guard:pass > plan:vacancy > boundary:pass > agent:ok > agent:answer",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "vacancy",
+     "why": "wants=vacancy lots=D"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ok",
+     "calls": 1,
+     "prefetched": [
+      "search_knowledge",
+      "parking_status"
+     ],
+     "tools": [
+      "search_knowledge",
+      "parking_status"
+     ]
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer",
+     "source": "llm"
+    }
+   ],
+   "agent": {
+    "model_calls": 1,
+    "tool_calls": 0,
+    "input_tokens": 7521,
+    "output_tokens": 165,
+    "prefetched": [
+     "search_knowledge",
+     "parking_status"
+    ],
+    "latency_ms": 2110.2,
+    "status": "ok"
+   },
+   "sec": 2.1,
+   "expect": "영화관 정보는 없다고 먼저 밝힘 + 대신 도울 수 있는 것",
+   "grade": "ai"
+  }
+ ]
+}

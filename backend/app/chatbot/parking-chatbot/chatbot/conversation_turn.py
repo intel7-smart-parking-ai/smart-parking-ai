@@ -85,7 +85,8 @@ def _prefetch(text, session, toolbox, target, notice=None):
             unregistered = knowledge_search(text, list(config.catalog.ids()), None)[1]
         except Exception:
             unregistered = []
-        if not notice and (facility or unregistered or "policy" in wants):
+        nearest = bool(gap and gap[0] == "nearest") or bool(info_gaps.near_place(text))
+        if not notice and (facility or nearest or unregistered or "policy" in wants):
             calls.append(("search_knowledge", {"query": text[:400], "lot_ids": lots or None}))
         asks_space = not facility and bool(wants & {"vacancy", "rates", "compare"} or _CROWD.search(text)
                                            or p.talk.get("spot") or p.self_only)

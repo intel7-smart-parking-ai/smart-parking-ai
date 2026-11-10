@@ -23,6 +23,7 @@ from pathlib import Path
 from . import config, incidents, monitoring, navigation as N, templates as T
 from . import dialog_context as DC
 from . import boundaries
+from . import info_gaps
 from . import route
 from . import forecast_chat
 from .charging_intent import wants_status as _wants_charging
@@ -423,6 +424,14 @@ def _occupancy():
 _PURPOSE_LABEL = {"C": "여행·출국이라면 공항에 있는", "B": "역·기차 이용이라면 기차역에 있는", "D": "쇼핑이라면 백화점에 있는"}
 
 
+def _topic_particle(word):
+    """'영화관' → '영화관은', '엘리베이터' → '엘리베이터는' (마지막 글자 받침 기준)."""
+    last = word[-1:] if word else ""
+    if "가" <= last <= "힣":
+        return word + ("은" if (ord(last) - 0xAC00) % 28 else "는")
+    return word + "은(는)"
+
+
 def h_get_empty_spots(s, p):
     result = parking.empty_spots(s, p, _occupancy(), current_alert(), api=isinstance(data.inner, ApiAdapter))
     lot = p.get("lot_id")
@@ -433,7 +442,7 @@ def h_get_empty_spots(s, p):
             lead += "일반 차량은 전기차·장애인 전용 칸에 주차할 수 없어요.\n"
         result = (lead + result[0],) + tuple(result[1:])
     if p.get("facility_missing") and isinstance(result, tuple) and isinstance(result[0], str):
-        lead = f"{p['facility_missing']}는 아직 안내 자료에 없어요. 대신 지금 빈자리를 알려 드릴게요.\n"
+        lead = f"{_topic_particle(p['facility_missing'])} 아직 안내 자료에 없어요. 대신 지금 빈자리를 알려 드릴게요.\n"
         result = (lead + result[0],) + tuple(result[1:])
     if p.get("purpose_hint") and lot in _PURPOSE_LABEL and isinstance(result, tuple) and isinstance(result[0], str):
         # '여행 가는데 어디가 좋아?' → 목적에 맞는 주차장을 고른 이유를 앞에 붙인다(사실은 그대로).
@@ -1056,6 +1065,15 @@ def _plausible_reading(s, r, text):
         if unregistered:
             params["facility_missing"] = "·".join(_FACILITY_LABEL.get(u, u) for u in unregistered)
         return ParseResult("get_empty_spots", params, "rule")
+    near = info_gaps.near_place(text)
+    if r.intent == "get_empty_spots" and near and not r.params.get("facility_missing"):
+        from .knowledge import search as _knowledge_search
+        try:
+            found, _ = _knowledge_search(text, list(config.catalog.ids()), None)
+        except Exception:
+            found = [None]
+        if not any(near in str(row) for row in found or []):
+            r = ParseResult("get_empty_spots", {**r.params, "facility_missing": near}, "rule")
     if r.intent == "get_empty_spots" and hint and not r.params.get("lot_id") and not r.params.get("rank"):
         return ParseResult("get_empty_spots", {**r.params, "lot_id": hint, "purpose_hint": True,
                                                **({"zone": own_zone} if own_zone and not r.params.get("zone") else {})}, "rule")
@@ -1133,9 +1151,15 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
                 return _respond(s, "어느 주차장의 충전 현황을 열까요?", chip_set=["lot_" + lot for lot in _lots])
             if current_alert().get("level", 0) >= 2:
                 return _respond(s, "경보 중에는 현장 안전 안내를 먼저 따라 주세요.", chip_set="alert")
-            _lot = _lots[0] if _lots else DC.focus(s) or "C"
+            _named = _lots[0] if _lots else DC.focus(s)
+            if _named and _named not in ("C", "D"):
+                return _respond(s, f"칸별 충전 현황은 김해공항·신세계 주차장에서 볼 수 있어요. {config.catalog.name(_named)}은 "
+                                   "전기차 칸 빈자리로 안내해 드릴게요. ‘전기차 빈자리’라고 물어봐 주세요.",
+                                meta={"intent": "charging_status", "source": "rule"})
+            _lot = _named or "C"
+            _which = "" if _named else "주차장을 말씀하지 않아 김해공항부터 보여 드려요. 신세계는 ‘신세계 충전 현황’이라고 해 주세요.\n"
             return _respond(
-                s, f"{config.catalog.name(_lot)} 충전 현황이에요. 아래 ‘충전 현황’ 버튼을 누르면 칸별 충전 상태와 남은 시간을 볼 수 있어요.",
+                s, f"{_which}{config.catalog.name(_lot)} 충전 현황이에요. 아래 ‘충전 현황’ 버튼을 누르면 칸별 충전 상태와 남은 시간을 볼 수 있어요.",
                 card={"type": "charging_status", "data": {"lot_id": _lot}},
                 meta={"intent": "charging_status", "source": "rule"})
         # 혼잡도 예측(C+안): 미래 시점의 혼잡 질문 → 서버 예측 조회 결과만으로 답한다.
