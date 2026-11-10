@@ -3,6 +3,8 @@ import {loadLots,pollInterval} from './api.js';
 import {Icon} from './components.jsx';
 import ParkingLayoutMap from './ParkingLayoutMap.jsx';
 import {welcomeText} from './welcomeLocales.js';
+import {t} from './serviceLocale.js';
+import {airportZone, airportZoneLabels} from './airportZones.js';
 import './styles/charging.css';
 const copy={
  ko:['충전 현황','실시간 충전 현황','빈 전용칸','전체','주차 가능','주차 중','확인 필요','이용 불가','충전 상태 정보 미연동','현재 주차칸 점유 기준입니다. 충전기 연결·충전 여부와 출력은 아직 제공되지 않습니다.','새로고침','닫기','불러오는 중…','정보를 불러오지 못했습니다. 다시 조회해 주세요.','전기차 전용칸이 없습니다.','조회 시각'],
@@ -39,7 +41,7 @@ function formatDuration(seconds,language) {
    minutes ? unit(minutes,'minute') : unit(seconds,'second');
 }
 
-function ChargerCard({space,c,sim,detail,language,onShowMap}) {
+function ChargerCard({space,lotId,c,sim,detail,language,onShowMap}) {
  const parking = c[parkingStatus[space.status] ?? 6];
  const charge = space.charging?.is_mock ? space.charging : null;
  const available = charge?.status === 'available';
@@ -48,7 +50,7 @@ function ChargerCard({space,c,sim,detail,language,onShowMap}) {
  const timestamp = available ? charge.last_used_at : charging ? charge.started_at : completed ? charge.completed_at : null;
  const elapsed = timestamp ? elapsedTime(timestamp,charge.observed_at,language) : '';
  return <article className={'charger-card '+space.status}>
-  <div><span>{space.space_id}</span><ChargingIcon/></div>
+  <div><span>{lotId==='C'&&<small className="charger-zone">{t(airportZoneLabels[airportZone(space)])} </small>}{space.space_id}</span><ChargingIcon/></div>
   <strong>{charge ? sim[chargerStatus[charge.status] ?? 6] : parking}</strong>
   <small>{charge ? parking : c[8]}</small>
   {charge?.rated_power_kw!=null&&<small>{charge.rated_power_kw} kW</small>}
@@ -74,10 +76,10 @@ export default function ChargingStatus({language='ko',initialLot='A',onClose}){
   <nav className="charging-lots" aria-label={welcomeText[language].lot}>{['A','B','C','D'].map((id,i)=><button key={id} aria-pressed={id===selected} onClick={()=>{setSelected(id);setMapSpace(null)}}>{welcomeText[language].lots[i]}</button>)}</nav>
   {['C','D'].includes(selected)&&<p className="charging-updated">{detail[8]}</p>}
   <div className="charging-section-title"><h3>{c[1]}</h3><button aria-label={c[10]} disabled={busy} onClick={()=>setReload(v=>v+1)}><Icon name="refresh"/></button></div>
-  {error?<div role="alert" className="charging-error">{c[13]}</div>:busy&&!lots.length?<p role="status">{c[12]}</p>:<><div className="charging-summary"><ChargingIcon/><span>{c[2]} <b>{available}</b><small> / {spaces.length}</small></span><span>{c[3]} {spaces.length}</span></div>{spaces.some(s=>s.charging?.is_mock)&&<p className="charging-updated">{sim[0]}</p>}{spaces.some(s=>s.charging?.is_mock)&&<p className="charging-updated">{detail[5]} {spaces.filter(s=>s.charging?.status==='charging').length} · {detail[6]} {spaces.filter(s=>s.charging?.status==='completed').length}</p>}
+  {error?<div role="alert" className="charging-error">{c[13]}</div>:busy&&!lots.length?<p role="status">{c[12]}</p>:<><div className="charging-summary"><ChargingIcon/><span>{c[2]} <b>{available}</b><small> / {spaces.length}</small></span><span>{c[3]} {spaces.length}</span></div>{spaces.some(s=>s.charging?.is_mock)&&<p className="charging-updated">{sim[0]}</p>}{spaces.some(s=>s.charging?.is_mock)&&<p className="charging-updated charging-counts">{sim[1]} {spaces.filter(s=>s.charging?.status==='available').length} · {detail[5]} {spaces.filter(s=>s.charging?.status==='charging').length} · {detail[6]} {spaces.filter(s=>s.charging?.status==='completed').length} · {sim[6]} {spaces.filter(s=>s.charging?.status==='unknown').length}</p>}
   {mapSpace&&lot?<div className="charging-map"><button type="button" className="button white small" onClick={()=>setMapSpace(null)}>{detail[4]}</button>
    <ParkingLayoutMap lot={lot} filter={mapFilter} setFilter={setMapFilter} alerts={[]} found={{lot_id:lot.lot_id,space_id:mapSpace}} onSpace={space=>setMapSpace(space.space_id)} hidePreviewControls/>
-  </div>:<div className="charging-grid">{spaces.map(s=><ChargerCard key={s.space_id} space={s} c={c} sim={sim} detail={detail} language={language}
+  </div>:<div className="charging-grid">{spaces.map(s=><ChargerCard key={s.space_id} space={s} lotId={selected} c={c} sim={sim} detail={detail} language={language}
    onShowMap={id=>{setMapFilter('all');setMapSpace(id)}}/>)}</div>}{!spaces.length&&<p>{c[14]}</p>}</>}
   {stamp&&<p className="charging-updated">{c[15]} · {stamp.toLocaleTimeString(language==='ko'?'ko-KR':language,{hour:'2-digit',minute:'2-digit',second:'2-digit'})}{error?' · —':''}</p>}
  </dialog>
