@@ -116,8 +116,8 @@ def billing_calculator():
 
 
 def fee_details(minutes: int, policy: dict | None = None) -> tuple[int, bool]:
-    """(금액, 일 최대 적용 여부) — billing 계산 함수 결과 그대로. 모의 서버와 '주차장 기준 가정 질문'에만 쓴다.
-    실제 차량 요금은 서버 응답(amount_krw)을 쓰고, 미래 시각 요금도 서버에 묻는다(ApiAdapter.fee_at)."""
+    """(금액, 일 최대 적용 여부) — billing 계산 함수 결과 그대로. 모의 서버와 예상 요금에만 쓴다.
+    실제 차량의 지금 요금은 서버 응답(amount_krw) 그대로다. 미래 요금은 서버 금액과 일치를 확인한 뒤에만 계산한다(tools/read.future_fee)."""
     p = policy or default_policy()
     minutes = max(1, math.ceil(minutes))
     result = billing_calculator()(iso(_FEE_EPOCH), iso(_FEE_EPOCH + timedelta(minutes=minutes)), p)
@@ -265,17 +265,6 @@ class MockAdapter:
             "quote_expires_at": iso(expires),
             "updated_at": iso(now()),
         }
-
-    def fee_at(self, car_id: str, minutes_ahead: int) -> dict | None:
-        """모의 서버의 '미래 시각 요금 조회'(서버 GET fee?now= 대응). 견적은 만들지 않는다."""
-        with self.lock:
-            car = self.cars.get(car_id)
-            car = dict(car) if car else None
-        if not car or car["paid_at"]:
-            return None
-        total = max(1, math.ceil((now() - car["entry_at"]).total_seconds() / 60)) + minutes_ahead
-        policy = config.catalog.rate_policy(car["lot_id"]) or default_policy()
-        return {"car_id": car_id, "lot_id": car["lot_id"], "fee": calc_fee(total, policy), "minutes": total}
 
     def pay(self, car_id: str, *, idempotency_key=None, quote_amount=None, entry_at=None, quote_id=None) -> dict:
         with self.lock:
@@ -467,7 +456,6 @@ class ApiAdapter:
 
     @staticmethod
     def _request_group(path):
-        path = path.split("?", 1)[0]   # 미래 시각 요금 조회(?now=)도 결제·요금 묶음
         if path == config.API_PATHS["alerts"]:
             return "alerts"
         fee_prefix, _, fee_suffix = config.API_PATHS["fee"].partition("{session_id}")
@@ -826,26 +814,6 @@ class ApiAdapter:
                 **({"payment": receipt} if receipt is not None else {}),
                 **({"payment_blocked": value["payment_blocked"]} if "payment_blocked" in value else {}),
                 "updated_at": basis or iso(now()), **self._meta(headers)}
-
-    def fee_at(self, car_id, minutes_ahead):
-        """지금부터 minutes_ahead분 뒤 요금을 서버가 계산한 값 그대로(계약 6장 GET fee?now=, 지침서 '예상 요금').
-        서버는 이 조회에도 견적을 저장하지만 미래 금액이므로 견적 번호는 받지 않고 결제에 쓰지 않는다."""
-        car = self.find_car(car_id)
-        session_id = (car or {}).get("session_id") if isinstance(car, dict) else None
-        if not isinstance(session_id, str) or not session_id:
-            return None
-        target = iso(now() + timedelta(minutes=minutes_ahead))
-        path = (config.API_PATHS["fee"].format(session_id=quote(session_id, safe=""))
-                + "?now=" + quote(target, safe=""))
-        status, value, headers = self._request("GET", path)
-        if status != 200:
-            return None
-        self._require_visit(value, car)
-        amount, minutes = value.get("amount_krw"), value.get("duration_minutes")
-        if type(amount) is not int or type(minutes) is not int or value.get("exit_at"):
-            return None
-        return {"car_id": car_id, "lot_id": value.get("lot_id") or car.get("lot_id"), "fee": amount,
-                "minutes": minutes, **self._meta(headers)}
 
     def _fee_receipt(self, value, car):
         """Validate the server's optional D-49 receipt without recalculating it."""

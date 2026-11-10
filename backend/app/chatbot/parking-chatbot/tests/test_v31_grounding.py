@@ -86,9 +86,11 @@ class ComputedToolTests(unittest.TestCase):
         self.assertFalse(self.tools.estimate_fee(30, car_id="24")["ok"])  # 허용된 차량만
         self.assertFalse(self.tools.estimate_fee(0, lot_id="C")["ok"])
 
-    def test_estimate_refuses_when_server_gives_no_future_fee(self):
-        # 11/11: 차량 예상 요금은 서버가 계산한다(fee?now=). 서버 값이 없으면 챗봇이 대신 계산하지 않는다(규칙 4).
-        with patch.object(MockAdapter, "fee_at", return_value=None):
+    def test_estimate_refuses_when_server_fee_rule_differs(self):
+        # 서버 지금 금액이 billing 함수 결과와 다르면(할인·감면 등) 예상 금액을 만들지 않는다.
+        with patch.object(self.tools.adapter, "get_fee", return_value={
+                "car_id": "23", "lot_id": "A", "fee": 777, "minutes": 40, "paid": False, "entry_at": "2026-11-09T14:05:00+09:00"}),                 patch.object(self.tools, "_vehicle", return_value={"car_id": "23", "lot_id": "A", "space_id": "A-03",
+                                                                    "entry_at": "2026-11-09T14:05:00+09:00"}):
             result = self.tools.estimate_fee(30, car_id="23")
         self.assertFalse(result["ok"])
         self.assertNotIn("estimated_fee", result["data"])

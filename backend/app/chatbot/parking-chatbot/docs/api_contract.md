@@ -31,7 +31,8 @@
 - 요금 응답의 실제 키(billing_router): `session_id, lot_id, space_id, car_id, entry_at, exit_at, target_at, duration_minutes, fee_breakdown, amount_krw, is_daily_capped, payment_status, rate_policy, quote_id, quote_expires_at`.
   - `schemas.py` 설명의 `calculated_at`·`applied_policy_id`·`session_status`는 실제 응답에 없다 → 요구하지 않는다(있으면 사용).
 - 금액은 `amount_krw` 그대로. 챗봇은 요금 계산식을 갖지 않는다(규칙 4, PR 전 점검). 11/11 정리:
-  - 내 차 예상 요금("1시간 더 있으면?"): `GET /sessions/{id}/fee?now=<미래 시각>` — 서버가 계산(`ApiAdapter.fee_at`). 서버가 이 조회에도 견적을 저장하지만 미래 금액이므로 `quote_id`는 받지 않고 결제에 쓰지 않는다.
+  - 내 차 예상 요금("1시간 더 있으면?"): 이번 턴에 받은 서버 요금(`amount_krw`·`duration_minutes`·`rate_policy`·`entry_at`·`target_at`)으로 billing 함수 결과가 서버 금액과 같은지 확인한 뒤, 같은 함수로 미래 금액을 계산한다(`tools/read.future_fee`). 다르면(할인·감면·영수증) 계산하지 않는다.
+  - `fee?now=<미래 시각>`은 쓰지 않는다: 시연 서버(`runtime.py`)가 `now`를 무시해 지금 금액이 나오고 견적만 쌓인다(봇 점검 11/10).
   - 세션 없는 가정 질문("공항 3일 얼마?"): 서버 API가 없어 billing의 `calculate_parking_fee_pure`를 수정 없이 불러 쓴다(`adapters.billing_calculator`). 불러올 수 없으면 금액 없이 요금 기준만 안내한다.
   - 모의 서버(`DATA_SOURCE=mock`)도 같은 billing 함수를 쓴다.
 - 결제 body는 `build_payment_body` 한 곳: `{session_id, quote_id, idempotency_key, payment_method:"MOCK_CARD"}`.

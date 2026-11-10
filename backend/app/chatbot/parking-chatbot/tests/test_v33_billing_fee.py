@@ -1,8 +1,8 @@
 """규칙 4(요금은 서버 단일 계산)와 PR 전 점검(챗봇 폴더에 요금 계산식 금지)을 지키는지 확인한다. 11/11.
 
 - 챗봇 안에는 요금 계산식이 없다. 금액은 billing의 calculate_parking_fee_pure 결과 그대로다.
-- 내 차 예상 요금은 서버가 계산한다(GET /sessions/{id}/fee?now=미래 시각).
-- 서버가 그 조회에도 견적을 만들지만, 미래 금액이므로 견적 번호를 받지 않는다(결제에 쓰이지 않게).
+- 내 차 예상 요금은 서버가 준 지금 금액이 billing 결과와 같을 때만 같은 함수로 계산한다.
+- 미래 시각 서버 조회(fee?now=)는 쓰지 않는다: 시연 서버가 now를 무시하고 견적만 남긴다(봇 점검 11/10).
 """
 import re
 import unittest
@@ -11,7 +11,7 @@ from unittest.mock import patch
 
 from chatbot import adapters, config, engine as e
 from chatbot.adapters import ApiAdapter, FeeCalculatorUnavailable, MockAdapter, fee_details
-from chatbot.tools.read import ReadTools
+from chatbot.tools.read import ReadTools, future_fee
 
 ROOT = Path(__file__).resolve().parents[1]
 POLICIES = [
@@ -44,55 +44,112 @@ class BillingSourceTests(unittest.TestCase):
         self.assertEqual(hits, [])
 
 
-class FakeApi(ApiAdapter):
-    def __init__(self, value, status=200):
-        super().__init__("http://backend.test")
-        self.value, self.status, self.paths = value, status, []
+class FutureFeeTests(unittest.TestCase):
+    """내 차 예상 요금: 서버 지금 금액과 billing 결과가 같을 때만, 같은 함수로 미래 금액."""
+    POLICY = POLICIES[1]
 
-    def find_car(self, car_id):
-        return {"car_id": car_id, "lot_id": "A", "session_id": "ses_1", "entry_at": "2026-11-11T09:00:00+09:00"}
+    def test_future_is_billing_result_after_consistency_check(self):
+        now_fee = fee_details(95, self.POLICY)[0]
+        self.assertEqual(future_fee(now_fee, 95, self.POLICY, 60), (fee_details(155, self.POLICY)[0], 155))
+        self.assertGreaterEqual(future_fee(now_fee, 95, self.POLICY, 60)[0], now_fee)
+        # 시각이 있으면 실제 경과 초 기준(94분 30초 + 60분 → 155분)
+        self.assertEqual(future_fee(now_fee, 95, self.POLICY, 60, "2026-11-11T09:00:00+09:00", "2026-11-11T10:34:30+09:00")[1], 155)
 
-    def _request(self, method, path, body=None):
-        self.paths.append((method, path))
-        return self.status, dict(self.value), {}
+    def test_refuses_when_server_amount_differs_or_inputs_bad(self):
+        now_fee = fee_details(95, self.POLICY)[0]
+        self.assertIsNone(future_fee(now_fee + 500, 95, self.POLICY, 60))   # 할인·감면·영수증 금액 등
+        self.assertIsNone(future_fee(now_fee, 95, {"base_fee": 1000}, 60))
+        self.assertIsNone(future_fee(now_fee, None, self.POLICY, 60))
+        with patch("chatbot.adapters.billing_calculator", side_effect=FeeCalculatorUnavailable("없음")):
+            self.assertIsNone(future_fee(now_fee, 95, self.POLICY, 60))
+
+    def test_no_future_time_server_call(self):
+        # 시연 서버(runtime)는 fee?now=를 무시하고 견적만 남긴다 → 챗봇은 미래 시각 조회를 하지 않는다.
+        source = (ROOT / "chatbot" / "adapters.py").read_text(encoding="utf-8")
+        self.assertNotIn("?now=", source)
+        self.assertFalse(hasattr(ApiAdapter, "fee_at"))
 
 
-class ServerEstimateTests(unittest.TestCase):
-    SERVER = {"session_id": "ses_1", "lot_id": "A", "car_id": "23", "entry_at": "2026-11-11T09:00:00+09:00",
-              "exit_at": None, "amount_krw": 4500, "duration_minutes": 95, "payment_status": "unpaid",
-              "quote_id": "quote_future", "quote_expires_at": "2026-11-11T11:00:00+09:00"}
+def _runtime():
+    import sys
+    repo = str(ROOT.parents[3])   # 저장소 루트(backend 패키지)
+    if (ROOT.parents[3] / "backend" / "app" / "runtime.py").is_file() and repo not in sys.path:
+        sys.path.append(repo)
+    try:
+        from fastapi.testclient import TestClient
+        from backend.app.runtime import create_runtime_app
+        return TestClient, create_runtime_app
+    except Exception:
+        return None
 
-    def test_asks_server_with_future_time_and_drops_quote(self):
-        api = FakeApi(self.SERVER)
-        result = api.fee_at("23", 60)
-        self.assertEqual((result["fee"], result["minutes"]), (4500, 95))
-        self.assertNotIn("quote_id", result)            # 미래 금액 견적은 결제에 쓰지 않는다
-        method, path = api.paths[0]
-        self.assertEqual(method, "GET")
-        self.assertTrue(path.startswith("/api/v1/sessions/ses_1/fee?now="), path)
-        self.assertEqual(ApiAdapter._request_group(path), "billing")
 
-    def test_closed_or_failed_returns_nothing(self):
-        self.assertIsNone(FakeApi({**self.SERVER, "exit_at": "2026-11-11T10:00:00+09:00"}).fee_at("23", 60))
-        self.assertIsNone(FakeApi({}, status=503).fee_at("23", 60))
+@unittest.skipUnless(_runtime(), "저장소 루트(backend 패키지)가 없으면 건너뜀")
+class RuntimeAppTests(unittest.TestCase):
+    """봇 점검 11/10: 실제 시연 앱(create_runtime_app, mode=demo)의 요금 응답으로 확인한다."""
+    TOKEN = "chatbot-fee-test-token-123456"
 
-    def test_car_estimate_uses_server_value_not_local_math(self):
-        e.reset_all()
-        self.addCleanup(e.reset_all)
-        tools = ReadTools(e.data, e.current_alert, allowed_car_id="23")
-        # 모의 서버가 현재 요금을 만드는 건 서버 역할이다. 예상 금액은 서버(fee_at) 값 그대로여야 한다.
-        with patch.object(MockAdapter, "fee_at", return_value={"fee": 98765, "minutes": 999}) as asked:
-            r = tools.estimate_fee(60, car_id="23")
-        asked.assert_called_once_with("23", 60)
-        self.assertTrue(r["ok"], r)
-        self.assertEqual((r["data"]["estimated_fee"], r["data"]["total_minutes"]), (98765, 999))
+    def setUp(self):
+        import tempfile
+        TestClient, create_runtime_app = _runtime()
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.app = create_runtime_app(token=self.TOKEN, database=Path(self.tmp.name) / "fee.db", mode="demo")
+        self.client = TestClient(self.app)
+        self.client.__enter__()
+        self.addCleanup(self.client.__exit__, None, None, None)
+        r = self.client.post("/api/v1/simulation/D/entry",
+                             json={"space_id": "A-04", "vehicle_number": "0765", "vehicle_type": "general"})
+        self.assertEqual(r.status_code, 200, r.text)
+        self.session_id = self.client.get("/api/v1/vehicle-search?vehicle_number=0765").json()["session_id"]
 
-    def test_mock_future_fee_creates_no_quote(self):
-        mock = MockAdapter()
-        before = len(mock.quotes)
-        result = mock.fee_at("23", 60)
-        self.assertIsInstance(result["fee"], int)
-        self.assertEqual(len(mock.quotes), before)
+    def api(self, tamper=None):
+        client, token, session_id = self.client, self.TOKEN, self.session_id
+
+        class Runtime(ApiAdapter):
+            def find_car(self, car_id):
+                return {"car_id": None, "lot_id": "D", "session_id": session_id}
+
+            def _request(self, method, path, body=None):
+                r = client.request(method, path, json=body, headers={"Authorization": "Bearer " + token})
+                value = r.json()
+                if tamper and r.status_code == 200 and "rate_policy" in value:
+                    tamper(value)
+                return r.status_code, value, dict(r.headers)
+        return Runtime("http://runtime.test")
+
+    def quotes(self):
+        from contextlib import closing
+        with closing(self.app.state.pipeline.connection()) as conn:
+            return conn.execute("SELECT count(*) FROM fee_quotes WHERE session_id=?", (self.session_id,)).fetchone()[0]
+
+    def test_future_fee_matches_billing_and_adds_no_quote(self):
+        raw = self.api().get_fee("x")
+        before = self.quotes()
+        for ahead in (60, 3000):
+            with self.subTest(ahead=ahead):
+                future = future_fee(raw["fee"], raw["minutes"], raw["rate_policy"], ahead, raw["entry_at"], raw["updated_at"])
+                self.assertIsNotNone(future, raw)
+                amount = future[0]
+                self.assertGreaterEqual(amount, raw["fee"])
+                from datetime import datetime, timedelta
+                target = datetime.fromisoformat(raw["updated_at"]) + timedelta(minutes=ahead)
+                expected = adapters.billing_calculator()(raw["entry_at"], target.isoformat(), raw["rate_policy"])
+                self.assertEqual(amount, expected["amount_krw"])
+        self.assertEqual(self.quotes(), before)   # 예상 금액 계산은 서버에 견적을 남기지 않는다
+
+    def test_paid_car_gets_no_estimate(self):
+        raw = self.api().get_fee("x")
+        r = self.client.post("/api/v1/mock-payments", json={"session_id": self.session_id, "quote_id": raw["quote_id"],
+                                                            "idempotency_key": "fee-test-1", "payment_method": "MOCK_CARD"})
+        self.assertIn(r.status_code, (200, 201), r.text)
+        paid = self.api().get_fee("x")
+        self.assertTrue(paid["paid"])   # read.estimate_fee는 결제된 기록이면 계산하지 않는다
+
+    def test_server_rule_differs_gives_no_estimate(self):
+        def discount(value):
+            value["rate_policy"] = dict(value["rate_policy"], base_fee=value["rate_policy"]["base_fee"] + 1000)
+        raw = self.api(tamper=discount).get_fee("x")
+        self.assertIsNone(future_fee(raw["fee"], raw["minutes"], raw["rate_policy"], 60))
 
 
 class LotEstimateTests(unittest.TestCase):
