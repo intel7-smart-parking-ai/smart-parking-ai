@@ -109,6 +109,78 @@ def test_journal_failure_retries_and_recovers(tmp_path,monkeypatch):
         assert client.post('/api/v1/internal/vision-events',headers=HEADERS,json=event.model_dump(mode='json')).status_code==200
 
 
+def test_new_event_recovers_pending_exit_after_temporary_db_failure(tmp_path, monkeypatch):
+    now = [datetime(2026, 11, 10, tzinfo=timezone.utc)]
+    database = tmp_path / "pending-exit.sqlite3"
+    app = create_runtime_app(token=TOKEN, database=database, mode="real", clock=lambda: now[0])
+
+    with TestClient(app) as client:
+        store = app.state.pipeline
+
+        def send(event):
+            return client.post("/api/v1/internal/vision-events", headers=HEADERS, json=event)
+
+        def journal(event):
+            with closing(store.connection()) as conn:
+                return conn.execute(
+                    "SELECT applied FROM pipeline_events WHERE event_id=?", (event["event_id"],)
+                ).fetchone()
+
+        start = now[0]
+        for index in range(3):
+            now[0] = start + timedelta(seconds=index)
+            assert send(observation(now[0], index)).status_code == 202
+        sid = client.get("/api/v1/vehicles/10/location").json()["session_id"]
+        fee = client.get(f"/api/v1/sessions/{sid}/fee")
+        assert fee.status_code == 200
+        payment = dict(session_id=sid, quote_id=fee.json()["quote_id"],
+                       idempotency_key="pending-exit-payment", payment_method="MOCK_CARD")
+        paid = client.post("/api/v1/mock-payments", json=payment)
+        assert paid.status_code == 200
+
+        for index in range(3, 6):
+            now[0] = start + timedelta(seconds=index)
+            assert send(observation(now[0], index, kind="space_empty_observed")).status_code == 202
+
+        def fail_exit(*args, **kwargs):
+            raise sqlite3.OperationalError("synthetic exit write failure")
+
+        now[0] = start + timedelta(seconds=6)
+        pending = observation(now[0], 6, kind="space_empty_observed")
+        with monkeypatch.context() as patch:
+            patch.setattr(store, "session_exit", fail_exit)
+            assert send(pending).status_code == 503
+            now[0] += timedelta(seconds=1)
+            next_event = observation(now[0], 7)
+            assert send(next_event).status_code == 503
+            assert journal(pending)["applied"] == 0
+            assert journal(next_event) is None
+
+        assert send(next_event).status_code == 202
+        assert journal(pending)["applied"] == journal(next_event)["applied"] == 1
+        assert send(pending).status_code == send(next_event).status_code == 200
+        assert send(next_event | {"car_id": "11"}).status_code == 409
+        for index in range(8, 10):
+            now[0] = start + timedelta(seconds=index)
+            assert send(observation(now[0], index)).status_code == 202
+
+        repeated = client.post("/api/v1/mock-payments", json=payment)
+        assert repeated.status_code == 200
+        assert repeated.json()["payment_id"] == paid.json()["payment_id"]
+        with closing(store.connection()) as conn:
+            sessions = conn.execute(
+                "SELECT session_id, status, exit_at FROM parking_sessions ORDER BY entry_at"
+            ).fetchall()
+            assert len(sessions) == 2
+            assert tuple(sessions[0]) == (sid, "closed", pending["observed_at"])
+            assert sessions[1]["session_id"] != sid
+            assert sessions[1]["status"] == "active"
+            assert conn.execute("SELECT count(*) FROM mock_payments").fetchone()[0] == 1
+            assert conn.execute(
+                "SELECT count(*) FROM pipeline_events WHERE applied=0"
+            ).fetchone()[0] == 0
+
+
 def test_confirming_event_recovers_after_side_effect_before_applied_flag(tmp_path,monkeypatch):
     import sqlite3
     import pytest

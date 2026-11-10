@@ -21,7 +21,7 @@ from typing import Literal
 from uuid import uuid4
 from fastapi import APIRouter, Depends, HTTPException, Header
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 from backend.app.api.occupancy_query_demo import create_demo_app
 from backend.app.api.occupancy_prototype import OccupancyExperiment, SIMULATION_MAX_GAP_SECONDS
 from backend.app.api.vision_event_schema import VisionEvent
@@ -191,6 +191,11 @@ class EventPipeline(OccupancyExperiment):
             self.sync_session(row, event.observed_at)
         self._spaces[key] = row
 
+    def _replay_pending_event(self, conn, record):
+        event = VisionEvent.model_validate_json(record["payload"])
+        self._apply_journal_event(conn, event, already_applied=False)
+        self._finish_event(conn, event, record["event_id"])
+
     def recover(self):
         with self.gate, self._state_lock, closing(self.connection()) as conn:
             self._collect_identity_evidence = False
@@ -218,9 +223,7 @@ class EventPipeline(OccupancyExperiment):
                     "SELECT event_id,payload FROM pipeline_events WHERE applied=0 ORDER BY sequence"
                 ).fetchall()
                 for record in pending:
-                    event = VisionEvent.model_validate_json(record["payload"])
-                    self._apply_journal_event(conn, event, already_applied=False)
-                    self._finish_event(conn, event, record["event_id"])
+                    self._replay_pending_event(conn, record)
             finally:
                 self.recovering = False
                 self._collect_identity_evidence = True
@@ -297,10 +300,24 @@ class EventPipeline(OccupancyExperiment):
                     return Receipt.DUPLICATE
             journal_key = receipt["journal_key"] if receipt else None
             pending = conn.execute(
-                "SELECT event_id,payload FROM pipeline_events WHERE applied=0 ORDER BY sequence LIMIT 1"
-            ).fetchone()
-            if pending and pending["event_id"] != journal_key:
-                raise HTTPException(503, "미완료 이벤트를 같은 event_id로 먼저 재시도하세요.")
+                "SELECT event_id,payload FROM pipeline_events WHERE applied=0 ORDER BY sequence"
+            ).fetchall()
+            if pending:
+                # Release the receipt cleanup write lock before session recovery uses its own connection.
+                conn.commit()
+            for record in pending:
+                same_event = record["event_id"] == journal_key
+                try:
+                    self._replay_pending_event(conn, record)
+                except (HTTPException, sqlite3.Error, ValidationError) as exc:
+                    logging.getLogger(__name__).warning(
+                        "Failed to recover pending event %r", record["event_id"], exc_info=True,
+                    )
+                    if same_event and isinstance(exc, HTTPException):
+                        raise
+                    raise HTTPException(503, "미완료 이벤트를 복구하지 못했습니다. 잠시 후 다시 시도하세요.") from exc
+                if same_event:
+                    return Receipt.ACCEPTED
             if journal_key is None:
                 camera = self._is_camera_observation(event)
                 if camera:
@@ -341,7 +358,7 @@ class EventPipeline(OccupancyExperiment):
                 )
                 self._save_receipt(conn, event, canonical, now.timestamp(), journal_key)
             else:
-                event = VisionEvent.model_validate_json(pending["payload"])
+                raise HTTPException(503, "미완료 이벤트의 저널 기록을 찾을 수 없습니다.")
             conn.commit()
             try:
                 self._apply_journal_event(conn, event, already_applied=False)
