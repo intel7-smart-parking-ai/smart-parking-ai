@@ -124,12 +124,26 @@ class LauncherTests(unittest.TestCase):
             await asyncio.sleep(.3)
             yield
 
+        import logging, os, tempfile
+        root = logging.getLogger()
+        saved = (root.level, list(root.handlers))
+        logs = tempfile.TemporaryDirectory()
+        def restore():
+            for handler in root.handlers:
+                if handler not in saved[1]:
+                    handler.close()
+            root.handlers[:] = saved[1]
+            root.setLevel(saved[0])
+            logs.cleanup()
+        self.addCleanup(restore)
         with ThreadingHTTPServer(("127.0.0.1",0), OldUI) as old:
             runner = threading.Thread(target=old.serve_forever, daemon=True)
             runner.start()
             try:
+                # The launcher configures file logging; keep test output out of the field log.
                 with (patch("web_live.server.app", FastAPI(lifespan=lifespan)),
                       patch("webbrowser.open") as opened,
+                      patch.dict(os.environ, {"V53_LOG_DIR": logs.name}),
                       patch("sys.argv", ["launch_web.py","--port",str(old.server_port)])):
                     with self.assertRaises(SystemExit) as failure:
                         runpy.run_module("launch_web",run_name="__main__")

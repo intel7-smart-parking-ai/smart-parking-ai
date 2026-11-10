@@ -320,7 +320,8 @@ class LiveSession:
         was=self._approved.get(camera)
         self._approved[camera]=approved
         if approved:
-            self.approval_lost.pop(camera,None)
+            if self.approval_lost.pop(camera,None):
+                logging.getLogger(__name__).info('Camera %s board approval restored (lot=%s)',camera,result.get('lot_id'))
         elif was:
             self.approval_lost[camera]={'at':datetime.now(timezone.utc).isoformat(),'lot_id':result.get('lot_id'),
                                         'registration_ok':bool(result.get('registration_ok'))}

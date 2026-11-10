@@ -171,6 +171,13 @@ def same_pose(a,b,shape):
     return a is not None and b is not None and float(np.max(np.linalg.norm(a-b,axis=1)))<=max(shape[:2])*.008
 
 
+# How long an approved board may stay hidden or off-pose and still be restored automatically.
+# Restoring still needs two newer frames whose fixed landmarks verify the approved pose,
+# so a moved camera or board never restores. 11/10 classroom: hands placing several cars
+# hid a board for 12-60 s about 20 times; at 12 s each one needed a manual re-approval.
+APPROVAL_RECHECK_SECONDS = 90
+
+
 def probable_red_body(light):
     """A weak red-emission box spread over a large part of the bay is red car paint, not an LED.
 
@@ -449,8 +456,8 @@ class ParkingPipeline:
 
         Field 11/10: the A board's full search is unreliable. One frame where the
         fixed landmarks missed and the search returned a shifted outline erased an
-        approval for the rest of the run. Keep the reviewed fixed view for the
-        normal 12 s window; only two consecutive newer frames that verify the
+        approval for the rest of the run. Keep the reviewed fixed view for
+        APPROVAL_RECHECK_SECONDS; only two consecutive newer frames that verify the
         original pose restore it, and a real move never verifies.
         """
         approved=self.confirmed.get(camera)
@@ -459,7 +466,7 @@ class ParkingPipeline:
         if (views is None or not observed_at or camera in views or not isinstance(approved,tuple) or len(approved)!=4
                 or approved[0]!=epoch or tuple(approved[3])!=tuple(shape) or not fixed or fixed[0]!=epoch or fixed[1] is None):
             return False
-        views[camera]=(approved,fixed[1],time.monotonic()+12,None)
+        views[camera]=(approved,fixed[1],time.monotonic()+APPROVAL_RECHECK_SECONDS,None)
         return True
 
     def _recheck_interrupted(self,frame,camera,epoch,sequence,lot_hint,inspect):
@@ -551,7 +558,7 @@ class ParkingPipeline:
             approved=self.confirmed.get(camera)
             if (observed_at and fixed and fixed[0]==epoch and isinstance(approved,tuple) and len(approved)==4
                     and fixed[1] is not None and camera not in interrupted):
-                interrupted[camera]=(approved,fixed[1],time.monotonic()+12,None)
+                interrupted[camera]=(approved,fixed[1],time.monotonic()+APPROVAL_RECHECK_SECONDS,None)
             getattr(self,'floor_history',{}).pop(camera,None)
             getattr(self,'light_history',{}).pop(camera,None)
             if tracking is not None:tracking.pop(camera,None)

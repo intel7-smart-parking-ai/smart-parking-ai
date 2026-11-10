@@ -135,6 +135,55 @@ class LoggingSetupTests(unittest.TestCase):
         self.assertIn('frame perf camera=1 test', text)
 
 
+class LongOcclusionApprovalTests(unittest.TestCase):
+    """11/10: hands placing cars hid a board 12-60 s; the same pose must still restore."""
+
+    def test_same_pose_restores_after_a_minute_and_moved_pose_never(self):
+        from unittest.mock import patch
+        from web_live.pipeline import APPROVAL_RECHECK_SECONDS
+        from web_live.tests.test_round36 import ShiftedSearchApprovalTests
+        case = ShiftedSearchApprovalTests('test_moved_pose_never_restores')
+        self.assertGreaterEqual(APPROVAL_RECHECK_SECONDS, 60)
+        for pose_shift, restored in ((0, True), (40, False)):
+            m, image, outline = case.model()
+            now = time.monotonic()
+            with patch('web_live.pipeline.time.monotonic', return_value=now):
+                m._suspend_mismatched_approval('2', 7, image.shape, '2026-11-10T00:00:00+00:00')
+            m.confirmed.clear(); m.fixed_views.clear()
+            pose = {'lot_id': 'A', 'outline': outline + pose_shift}
+            m.registry.verify_fixed_view.side_effect = [pose, pose]
+            with patch('web_live.pipeline.time.monotonic', return_value=now + 60):
+                m._recheck_interrupted(image, '2', 7, 11, 'A', True)
+                m._recheck_interrupted(image, '2', 7, 12, 'A', True)
+            self.assertEqual('2' in m.confirmed, restored, pose_shift)
+
+    def test_past_the_window_nothing_restores(self):
+        from unittest.mock import patch
+        from web_live.pipeline import APPROVAL_RECHECK_SECONDS
+        from web_live.tests.test_round36 import ShiftedSearchApprovalTests
+        m, image, outline = ShiftedSearchApprovalTests('test_moved_pose_never_restores').model()
+        now = time.monotonic()
+        with patch('web_live.pipeline.time.monotonic', return_value=now):
+            m._suspend_mismatched_approval('2', 7, image.shape, '2026-11-10T00:00:00+00:00')
+        m.confirmed.clear(); m.fixed_views.clear()
+        same = {'lot_id': 'A', 'outline': outline.copy()}
+        m.registry.verify_fixed_view.side_effect = [same, same]
+        with patch('web_live.pipeline.time.monotonic', return_value=now + APPROVAL_RECHECK_SECONDS + 1):
+            m._recheck_interrupted(image, '2', 7, 11, 'A', True)
+            m._recheck_interrupted(image, '2', 7, 12, 'A', True)
+        self.assertNotIn('2', m.confirmed)
+
+    def test_restore_is_logged(self):
+        live = LiveSession(Pipeline(), transport_factory=Transport)
+        self.addCleanup(live.close)
+        with live.lock:
+            live._track_approval('2', {'roi_confirmed': True, 'lot_id': 'A'})
+            live._track_approval('2', {'roi_confirmed': False, 'lot_id': 'A'})
+        with self.assertLogs('web_live.live', 'INFO') as logs, live.lock:
+            live._track_approval('2', {'roi_confirmed': True, 'lot_id': 'A'})
+        self.assertIn('approval restored', '\n'.join(logs.output))
+
+
 class OcrRetryTests(unittest.TestCase):
     def test_ready_worker_resets_restart_budget(self):
         import inspect
@@ -146,3 +195,4 @@ class OcrRetryTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+

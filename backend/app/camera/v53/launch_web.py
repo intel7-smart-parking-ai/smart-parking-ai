@@ -2,6 +2,7 @@
 import argparse
 import logging
 import logging.handlers
+import os
 import threading
 import webbrowser
 from pathlib import Path
@@ -9,12 +10,15 @@ import uvicorn
 from web_live.server import app
 
 
-def setup_logging(folder=Path(__file__).resolve().parent/'runtime'/'logs'):
+def setup_logging(folder=None):
     """Show the 1-minute frame/heartbeat/delivery INFO lines (README) and keep them after the window closes.
 
     Without this the root logger stays at WARNING and those lines were dropped (11/10).
-    Logs never contain tokens or request bodies.
+    Logs never contain tokens or request bodies. V53_LOG_DIR overrides the folder
+    (tests use it so they never write into the field log).
     """
+    if folder is None:
+        folder=Path(os.environ.get('V53_LOG_DIR') or Path(__file__).resolve().parent/'runtime'/'logs')
     handlers=[logging.StreamHandler()]
     try:
         folder.mkdir(parents=True,exist_ok=True)
