@@ -80,10 +80,11 @@ class PlanTests(unittest.TestCase):
 
     def test_plate_is_car_talk_and_bare_station_is_busan(self):
         self.assertEqual(plan.make("17가1724 어디 주차했어?").wants, ("location",))
-        self.assertEqual(plan.make("역에 주차장 장애인 자리 몇개나 남았어?").purpose_lot, "B")
+        bare = plan.make("역에 주차장 장애인 자리 몇개나 남았어?")
+        self.assertEqual((bare.lots, bare.guessed), (("B",), {"B": "역"}))   # 단독 '역'은 부산역의 별명
         for text in ("서면역 주차장", "해운대역 근처", "역사 공부"):
             with self.subTest(text=text):
-                self.assertIsNone(plan.make(text).purpose_lot)
+                self.assertEqual((plan.make(text).lots, plan.make(text).guessed), ((), {}))
         e.reset_all()
         with patch.object(config, "LLM_PROVIDER", "none"):
             r = e.handle("station", text="역에 주차장 장애인 자리 몇개나 남았어?")

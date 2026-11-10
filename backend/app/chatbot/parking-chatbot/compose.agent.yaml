@@ -8,6 +8,9 @@ services:
         INSTALL_MONITORING: ${INSTALL_MONITORING:-0}
     environment:
       LLM_PROVIDER: openrouter
+      # 대화 AI가 자연스러운 답을 끝낼 시간(팀 compose 기본 6초 → 챗봇 오버레이 8초). 화면은 20초까지 기다린다
+      REQUEST_BUDGET_SEC: ${REQUEST_BUDGET_SEC:-8}
+      LLM_ANSWER_TIMEOUT_SEC: ${LLM_ANSWER_TIMEOUT_SEC:-5}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:?Set OPENROUTER_API_KEY privately before starting the chatbot agent}
       # 선택: Langfuse 모니터링. 기본 off. 켜려면 루트 .env에 MONITOR_BACKEND=langfuse와 키를 넣고 INSTALL_MONITORING=1로 빌드
       MONITOR_BACKEND: ${MONITOR_BACKEND:-off}

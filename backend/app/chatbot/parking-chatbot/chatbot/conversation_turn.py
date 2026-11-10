@@ -10,7 +10,7 @@ from .agents.evidence import contradicts_restricted_policy
 from .dialog import Query, Reply, interpret, render_query
 from .dialog.query import _STOP_PAYMENT
 from .dialog.render import _parking_card, render_knowledge, render_observed_parking
-from .parser import extract_lots, extract_vehicle, guarded_intent, normalize_car_id
+from .parser import explicit_cars, extract_lots, extract_vehicle, guarded_intent, normalize_car_id
 from .tools import ReadTools
 from .workflows.views import fee_card
 
@@ -47,7 +47,7 @@ def readings(text):
     return plan.for_text(text).hints()
 
 
-def _model_reply(text, session, toolbox, target, candidates, query=None):
+def _model_reply(text, session, toolbox, target, candidates, query=None, notice=None):
     if config.LLM_PROVIDER == "none" or config.LLM_ENGINE != "langchain" or not config.api_key(config.LLM_PROVIDER):
         return None
     try:
@@ -61,6 +61,8 @@ def _model_reply(text, session, toolbox, target, candidates, query=None):
         "offered_lots": dialog_context.offered(session),
         "lots": {k: config.catalog.name(k) for k in config.catalog.ids()},
         "readings": readings(text),
+        "user_vehicle_type": getattr(session, "vehicle_type", None),
+        "service_notice_topic": (notice or {}).get("topic"),
     }
     # Give the model part of the shared turn budget and reserve time for verified fallback.
     deadline = request_deadline.get()
@@ -72,7 +74,12 @@ def _model_reply(text, session, toolbox, target, candidates, query=None):
         # 확인된 대체 답을 만들 시간만 남기고(최대 0.7초) 나머지는 모델 답(고쳐 쓰기 포함)에 쓴다.
         token = request_deadline.set(deadline - min(0.7, remaining / 4))
     turn_monitor = monitoring.current()
-    extra = {"coverage": (lambda observations: _missing(query, _observed_rows(observations))) if query else None,
+    def coverage(observations):
+        missing = _missing(query, _observed_rows(observations)) if query else ""
+        if notice and not any(row["tool"] == "service_notice" and row["result"].get("ok") for row in observations):
+            missing = ", ".join(x for x in (missing, "확정 안내(service_notice)") if x)
+        return missing
+    extra = {"coverage": coverage if (query or notice) else None,
              "avoid": _recent_answers(session),
              "callbacks": turn_monitor.callbacks() if turn_monitor else None}
     extras_token = agent_extras.set(extra)
@@ -147,7 +154,7 @@ def _observation_card(evidence, toolbox):
     return None
 
 
-def reply_to(text, session, adapter, alert, vehicle, refresh_alert, admin_status=None):
+def reply_to(text, session, adapter, alert, vehicle, refresh_alert, admin_status=None, notice=None):
     query = interpret(text, session)
     explicit, only = extract_vehicle(text)
     previous = session.pending
@@ -155,6 +162,8 @@ def reply_to(text, session, adapter, alert, vehicle, refresh_alert, admin_status
     if only and not resumed:
         route.mark("agent", "skip", why="차량 번호만 입력(업무 흐름)")
         return None
+    if query and query.clarification and explicit == "ambiguous" and len(explicit_cars(text)) > 1:
+        query = None   # '23번이랑 41번 비교' — 되묻지 않고 대화 AI가 두 차를 각각 조회
     if query and query.clarification:
         route.mark("plan", "clarify", why=query.clarification)
         return Turn(Reply(query.clarification, meta={"intent": "clarify"}), query)
@@ -166,13 +175,15 @@ def reply_to(text, session, adapter, alert, vehicle, refresh_alert, admin_status
         route.mark("plan", "ask_vehicle", why="위치·요금을 함께 물었지만 차량 번호 없음")
         return Turn(Reply(T.ASK_VEHICLE, meta={"intent": "ask_vehicle"}), query, ask_vehicle=True)
 
-    target = query.car_id if query and query.car_id else normalize_car_id(explicit) or session.car_id
+    cars = explicit_cars(text)
+    target = query.car_id if query and query.car_id else normalize_car_id(explicit) or (cars[0] if len(cars) > 1 else None)         or session.car_id
     candidates = query.candidates if query else extract_lots(text + " 빈자리")
     if session.selected_candidate and target == session.car_id:
         target = None
     toolbox = ReadTools(adapter, alert, vehicle_provider=vehicle, allowed_car_id=target,
-                        allowed_lots=candidates or None, admin_status_provider=admin_status)
-    result = _model_reply(text, session, toolbox, target, candidates, query)
+                        allowed_lots=candidates or None, admin_status_provider=admin_status, notice=notice,
+                        extra_car_ids=cars[1:] if len(cars) > 1 else ())
+    result = _model_reply(text, session, toolbox, target, candidates, query, notice)
     if result is None:
         route.mark("agent", "off", why="모델 꺼짐·호출 한도·남은 시간 부족")
     else:

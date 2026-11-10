@@ -96,7 +96,7 @@ class FlexibleFallbackTests(unittest.TestCase):
         from chatbot.conversation_turn import readings
         r = readings("현재 우리가 일본 여행중인데 친구가 올거거든 주차장 자리가 얼마나 여유가 있어?")
         self.assertEqual(r["purpose_lot"], "C")
-        self.assertEqual(r["rule"]["intent"], "get_empty_spots")
+        self.assertNotIn("rule", r)   # 규칙 의도는 AI에 넘기지 않음
         self.assertEqual(readings("부산역 장애인 칸")["zone"], "accessible")
 
 
@@ -195,7 +195,15 @@ class FeedbackTests(unittest.TestCase):
         self.assertNotIn("s", row["session"][:0] or "")
 
 
-@unittest.skipUnless(importlib.util.find_spec("opentelemetry") is not None, "opentelemetry 미설치")
+def _has_otel_sdk():
+    try:
+        return importlib.util.find_spec("opentelemetry.sdk") is not None
+    except ModuleNotFoundError:   # opentelemetry 자체가 없으면
+        return False
+
+
+# Langfuse 모니터링은 선택 기능(requirements-monitoring.txt). opentelemetry-sdk가 없는 환경에서는 건너뛴다.
+@unittest.skipUnless(_has_otel_sdk(), "monitoring extras(opentelemetry-sdk) not installed")
 class PrivateTracerTests(unittest.TestCase):
     """Langfuse가 전역 tracer가 되면 FastAPI의 모든 HTTP 요청(헬스 체크·폴링)이 trace로 전송된다(11/09 하루 7만 건)."""
 

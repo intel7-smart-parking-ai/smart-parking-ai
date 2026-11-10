@@ -47,12 +47,22 @@ class AdminSuggestionTests(unittest.TestCase):
         self.assertTrue(replay['meta']['replayed'])
 
     def test_admin_cost_questions_do_not_register_or_propose_call(self):
+        # v3.3: 비용 질문은 확정 안내로 대화 AI에 갈 수 있다. 그래도 호출 접수·호출 제안은 절대 없다.
         for question in ("관리자 부르면 돈 들어?", "관리자 불러도 돈 들어요?", "관리자 호출하면 돈 들어요?"):
             with self.subTest(question=question):
                 reply = e.handle('s', text=question)
                 self.assertEqual(reply['meta']['intent'], 'admin_help')
                 self.assertIsNone(reply['card'])
-        self.invoke.assert_not_called()
+                self.assertNotEqual(reply['text'], T.SUGGEST_ADMIN_CALL)
+                self.assertFalse(reply['meta'].get('admin_suggestion'))
+        self.assertEqual(e.admin_calls(), [])
+
+    def test_admin_cost_question_ignores_model_call_proposal(self):
+        with patch.object(config, 'LLM_PROVIDER', 'openrouter'), patch.object(config, 'api_key', return_value='t'),                 conversation_reply(lambda text, *_: admin_proposal()):
+            reply = e.handle('cost', text='관리자 부르면 돈 들어?')
+        self.assertEqual(reply['meta']['intent'], 'admin_help')
+        self.assertFalse(reply['meta'].get('admin_suggestion'))
+        self.assertIsNone(reply['confirmation_token'])
         self.assertEqual(e.admin_calls(), [])
 
     def test_rule_request_still_registers_immediately(self):

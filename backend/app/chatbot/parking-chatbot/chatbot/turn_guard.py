@@ -32,6 +32,14 @@ IDENTITY = re.compile(r"(?:너|넌|당신|챗봇|봇)\s*(?:은|는|의)?\s*(?:�
                       r"who\s+are\s+you|your\s+name", re.I)
 GREETING = re.compile(r"^(?:안녕(?:하세요|하십니까)?|반가워(?:요)?|하이|hello|hi|hey)[!.~?\s]*$", re.I)
 LOT_NAMES = re.compile(r"주차장\s*(?:은|는|이)?\s*(?:이름|목록|종류|어디\s*어디|몇\s*곳|몇\s*개|뭐\s*뭐|뭐\s*있)")
+# '이제 나가려고 하는데 뭐 해야 돼?', '출차하려면 어떻게 해?' — 출차 전 요금 확인·사전 정산 안내(윤명수 시제품 56번 취지)
+LEAVING = re.compile(r"(?:이제\s*)?(?:나가려|나갈\s*(?:건데|거|려|게)|나가기\s*전|출차\s*(?:하려|할게|할래|하려면|하고\s*싶|전에?)|"
+                     r"집에\s*(?:가|갈)|빼\s*(?:가려|갈게|려고)|차\s*빼)")
+LEAVING_REPLY = ("출차 전에 요금을 확인하고, 미리 모의 결제(사전 정산)를 하시면 돼요. 결제는 견적을 보여 드린 뒤 승인하셔야 진행돼요.\n"
+                 "차량 번호를 알려 주시면 요금부터 보여 드릴게요. 실물 주차장은 차 지붕 스티커 두 자리, 김해공항·신세계는 번호판 뒤 4자리예요.")
+FORGOT_NUMBER = re.compile(r"(?:차\s*)?번호\S*\s*(?:를|가|도)?\s*(?:까먹|잊어|잊었|모르|기억\s*(?:안|이\s*안|나지\s*않))")
+FORGOT_REPLY = ("차 지붕에 붙은 두 자리 숫자 스티커가 차량 번호예요(10~99). 김해공항·신세계 차량은 번호판 뒤 4자리로도 찾을 수 있어요.\n"
+                "확인이 어려우면 아래 '관리자 호출'로 도움을 받을 수 있어요.")
 INTRO = "저는 PARK:ON 주차 안내 챗봇이에요. 빈자리, 내 차 위치, 요금·모의 결제, 모의 화재 경보 안내를 도와드려요. 아래 버튼을 누르거나 편하게 물어보세요."
 
 _D05 = next(rule.text.split(". ")[0].rstrip(".") + "." for rule in RULES if rule.key == "restricted_spaces")
@@ -104,6 +112,11 @@ def guard(s, text, alert=None):
         permission = parking_permission(text)
         if permission:
             return permission, {"intent": "parking_permission"}
+    has_car = re.search(r"(?<!\d)\d{2,4}\s*(?:번|차)|\d{2,3}[가-힣]\d{4}", text) or getattr(s, "car_id", None)
+    if LEAVING.search(text) and not has_car and not getattr(s, "pending", None):
+        return LEAVING_REPLY, {"intent": "exit_payment", "chips": ["fee", "find_car"]}
+    if FORGOT_NUMBER.search(text):
+        return FORGOT_REPLY, {"intent": "forgot_number", "chips": ["call_admin", "find_car"]}
     if not getattr(s, "pending", None) and BARE_CANCEL.fullmatch(text.strip()):
         return "어떤 요청을 취소할까요? 취소할 대상을 알려주세요.", {"intent": "cancel_clarify"}
     missing = _missing_space(text)

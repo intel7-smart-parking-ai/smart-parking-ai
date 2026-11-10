@@ -92,6 +92,18 @@ def extract_virtual(text: str) -> str | None:
 _FULLWIDTH = str.maketrans("０１２３４５６７８９", "0123456789")
 
 
+_NATIVE_TENS = {"열": 10, "스물": 20, "서른": 30, "마흔": 40, "쉰": 50, "예순": 60, "일흔": 70, "여든": 80, "아흔": 90}
+_NATIVE_UNITS = {"하나": 1, "한": 1, "둘": 2, "두": 2, "셋": 3, "세": 3, "넷": 4, "네": 4, "다섯": 5, "여섯": 6,
+                 "일곱": 7, "여덟": 8, "아홉": 9}
+# '스물세번 차', '서른두 번 차량'. 뒤에 차·차량이 올 때만 바꾼다('열 번 물어봤어'는 차량 번호가 아님).
+RE_NATIVE_CAR = re.compile(r"(?<![가-힣])(열|스물|서른|마흔|쉰|예순|일흔|여든|아흔)\s*"
+                           r"(하나|한|둘|두|셋|세|넷|네|다섯|여섯|일곱|여덟|아홉)?\s*번(?=\s*(?:차량|차)(?!단))")
+
+
+def _native_car_numbers(text: str) -> str:
+    return RE_NATIVE_CAR.sub(lambda m: f"{_NATIVE_TENS[m[1]] + _NATIVE_UNITS.get(m[2] or '', 0)}번", text)
+
+
 def _spoken_vehicle_text(text: str) -> tuple[str, bool]:
     """Normalize scoped Sino-Korean numbers; preserve the user's stored text.
 
@@ -101,6 +113,7 @@ def _spoken_vehicle_text(text: str) -> tuple[str, bool]:
     as a whole instead of falling back to a previously selected vehicle.
     """
     invalid = False
+    text = _native_car_numbers(text)
 
     def replace(match):
         nonlocal invalid
@@ -118,6 +131,16 @@ def _spoken_vehicle_text(text: str) -> tuple[str, bool]:
         return match[0]
 
     return RE_SPOKEN_NUMBER.sub(replace, text), invalid
+
+
+def explicit_cars(text: str) -> list:
+    """문장에 사용자가 직접 쓴 두 자리 차량 번호 전부('23번이랑 41번' → ['23', '41']). 범위 밖·잘못된 번호는 뺀다."""
+    if not isinstance(text, str):
+        return []
+    text = mask_spaces(RE_PLATE.sub(" ", text.translate(_FULLWIDTH)))
+    text, _ = _spoken_vehicle_text(text)
+    found = [m[1] for rx in (RE_NUM_BEON, RE_NUM_CAR) for m in rx.finditer(text)]
+    return [c for c in dict.fromkeys(normalize_car_id(x) for x in found) if c]
 
 
 def extract_vehicle(text: str) -> tuple[str | None, bool]:
@@ -219,7 +242,7 @@ RULES: list[tuple[str, re.Pattern]] = [
     ("cancel_action", re.compile(r"^(?:일단\s*)?취소(?:할래요|해줘|해주세요)?[.!?]?$|(?:결제|정산|관리자|직원|상담원|호출).{0,15}(?:하지\s*말|말아|안\s*해도|필요\s*없|부르지\s*(?:마|말))")),
     ("call_status", re.compile(r"(?:문의|호출)\s*(?:상태|진행|현황)|관리자.{0,5}확인했")),
     ("change_vehicle", re.compile(r"차량\s*변경|내\s*차\s*바꿔|(?:차|차량).{0,8}(?:로|으로)\s*바꿔")),
-    ("confirm_yes", re.compile(r"^\s*(네\s*[,，]?\s*(?:맞아요|맞습니다)|네|예|응|어|맞아|맞아요|맞습니다|ㅇㅇ|ㅇㅋ|yes|ok|오케이)\s*[.!]?\s*$", re.I)),
+    ("confirm_yes", re.compile(r"^\s*(네\s*[,，]?\s*(?:맞아요|맞습니다)|네네|넵|넹|네|예|응|어|맞아|맞아요|맞습니다|ㅇㅇ|ㅇㅋ|yes|ok|오케이)\s*[.!]?\s*$", re.I)),
     ("confirm_no", re.compile(r"^\s*(아뇨\s*틀렸어요|아니에요|아니|아니요|아뇨|틀려|틀렸어|no)\s*[.!]?\s*$", re.I)),
     ("cancel_action", re.compile(r"^\s*(취소|그만|잘못\s*말했어|진행\s*중\s*요청\s*취소)[.!?]?\s*$|(?:결제|정산|관리자|호출).{0,15}(취소|하지\s*마|안\s*할|부르지\s*(?:마|말))")),
     ("call_admin", re.compile(r"관리자|직원|상담원|사람\s*(좀\s*)?(불러|연결)|호출")),
@@ -353,7 +376,7 @@ _RANK = re.compile(r"(?:제일|가장|젤|최고로)\s*(?:널널|한산|여유|�
                    r"(?:어떤|어느|무슨)\s*주차장\S*\s*(?:\S+\s*){0,3}(?:좋을까|좋아|좋은|나을까|나아|추천|괜찮)")
 # 목적만 말한 추천 질문('여행 가는데 어디 대?'). 목적이 한 주차장을 가리키면 그곳 빈자리로 답한다.
 _PURPOSE_ASK = re.compile(r"어디\s*(?:에\s*)?(?:대|세우|주차|가)|(?:추천|좋을까|좋아\?|나을까|괜찮을까)")
-_COMPARE = re.compile(r"중에|중\s|(?:이)?랑|하고|비교|vs|어디가|어느\s*(?:곳|쪽|주차장)|더\s*(?:많|여유|널널|한산|비)", re.I)
+_COMPARE = re.compile(r"중에|중\s|(?:이)?랑|하고|비교|vs|각각|둘\s*다|어디가|어느\s*(?:곳|쪽|주차장)|더\s*(?:많|여유|널널|한산|비)", re.I)
 _OCCUPANCY = re.compile(r"얼마나\s*(?:찼|차\s*있|차있|들어\s*차|붐비|사람)|몇\s*(?:퍼센트|%|프로)|점유율|이용률|혼잡도|"
                         r"꽉\s*(?:찼|차\s*있)|몇\s*대\s*(?:있|주차|들어|세워)")
 _VACANCY_AMOUNT = re.compile(r"얼마나\s*(?:\S+\s*){0,2}?(?:여유|남|비어|비었|빈|있|넉넉|한산|많)|(?:자리|칸|공간)\S*\s*얼마나")

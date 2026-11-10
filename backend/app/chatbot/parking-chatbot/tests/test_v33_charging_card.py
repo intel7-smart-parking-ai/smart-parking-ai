@@ -25,3 +25,17 @@ class ChargingCardTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ChargingVsVacancyTests(unittest.TestCase):
+    """v3.3 통합: '남은/남았'만 있는 빈자리 질문은 충전 현황 카드가 아니다(대화 AI·빈자리 조회로)."""
+
+    def test_remaining_spots_are_vacancy(self):
+        from chatbot.charging_intent import wants_status
+        for text in ("충전 칸 남은 자리 있어?", "충전 자리 몇 개 남았어?"):
+            with self.subTest(text=text):
+                self.assertFalse(wants_status(text))
+        for text in ("전기차 충전 남은 시간", "공항 충전 현황", "충전 중인 차 언제 끝나?"):
+            with self.subTest(text=text):
+                self.assertTrue(wants_status(text))
+
