@@ -229,6 +229,36 @@ class RedBodyTests(unittest.TestCase):
         self.assertFalse(probable_red_body(dict(method='lens_brightening', bay_area_fraction=.2, confidence=.85)))
 
 
+class FilteredLightRecordTests(unittest.TestCase):
+    """Review 11/10: record every excluded LED box so a rehearsal can see a filtered real LED."""
+
+    def test_split_keeps_real_leds_and_records_excluded_values(self):
+        from web_live.pipeline import split_filtered_lights
+        red = dict(method='red_emission', space_id='B-01', location='space', bbox_xyxy=[1389, 171, 1470, 252],
+                   confidence=.8556, bay_area_fraction=.17102)
+        real = dict(method='red_emission', space_id='A-02', location='space', bbox_xyxy=[1, 2, 30, 31],
+                    confidence=.874, bay_area_fraction=.056)
+        glint = dict(method='red_emission', space_id='A-03', location='space', bbox_xyxy=[5, 5, 9, 9],
+                     confidence=.98, bay_area_fraction=.002)
+        rows = {'A-03': dict(sticker_color='white', observation='occupied')}
+        kept, filtered = split_filtered_lights([red, real, glint], rows)
+        self.assertEqual(kept, [real])
+        self.assertEqual([(f['space_id'], f['reason'], f['confidence'], f['bay_area_fraction']) for f in filtered],
+                         [('B-01', 'red_body', .856, .171), ('A-03', 'paint_glint', .98, .002)])
+        self.assertEqual(filtered[0]['bbox_xyxy'], [1389, 171, 1470, 252])
+
+    def test_log_once_per_bay_and_reason_per_minute(self):
+        from web_live.pipeline import ParkingPipeline
+        m = ParkingPipeline.__new__(ParkingPipeline)
+        item = dict(space_id='B-01', reason='red_body', confidence=.856, bay_area_fraction=.171, bbox_xyxy=[1, 1, 2, 2])
+        with self.assertLogs('web_live.pipeline', level='INFO') as logs:
+            self.assertEqual(m._log_filtered_lights('2', [item], now=100.0), [('2', 'B-01', 'red_body')])
+        self.assertIn('bay=B-01 reason=red_body', logs.output[0])
+        self.assertEqual(m._log_filtered_lights('2', [item], now=130.0), [])
+        self.assertEqual(m._log_filtered_lights('1', [item], now=130.0), [('1', 'B-01', 'red_body')])
+        self.assertEqual(m._log_filtered_lights('2', [item], now=161.0), [('2', 'B-01', 'red_body')])
+
+
 class RejectionCodeTests(unittest.TestCase):
     def test_exit_review_and_store_full_are_kept(self):
         from web_live.transport import KNOWN_REJECTION_CODES
