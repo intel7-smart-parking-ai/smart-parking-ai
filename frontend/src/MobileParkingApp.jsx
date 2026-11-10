@@ -23,6 +23,8 @@ export default function MobileParkingApp({initialLotId = 'A', initialTab = 'home
   const [lots, setLots] = useState([]);
   const [alerts,setAlerts]=useState([]);
   const [lotId, setLotId] = useState(initialLotId);
+  const lotIdRef = useRef(lotId);
+  lotIdRef.current = lotId;
   const [filter, setFilter] = useState('all');
   const [kind, setKind] = useState(['C', 'D'].includes(initialLotId) ? 'plate' : 'sticker');
   const [car, setCar] = useState('');
@@ -39,7 +41,8 @@ export default function MobileParkingApp({initialLotId = 'A', initialTab = 'home
     if (refreshing.current) return;
     refreshing.current = true;
     try {
-      const [data,safety]=await Promise.all([loadLots(),api('/alerts')]);setAlerts(safety);
+      // 보고 있는 주차장만 매번, 나머지는 30초마다 (11/10 부하 점검)
+      const [data,safety]=await Promise.all([loadLots(undefined,{focusLotId:lotIdRef.current}),api('/alerts')]);setAlerts(safety);
       setLots(data); setUpdatedAt(dataSource==='team'&&data[0]?.updated_at?new Date(data[0].updated_at):new Date()); setConnected(true);
     } catch {
       setConnected(false);
@@ -57,6 +60,7 @@ export default function MobileParkingApp({initialLotId = 'A', initialTab = 'home
     document.addEventListener('visibilitychange', visible);
     return () => {clearInterval(timer); window.removeEventListener('offline', offline); window.removeEventListener('online', online); document.removeEventListener('visibilitychange', visible);};
   }, [refresh]);
+  useEffect(() => {if (!refreshing.current) refresh();}, [lotId]); // eslint-disable-line react-hooks/exhaustive-deps
   const lot = lots.find(item => item.lot_id === lotId);
   const empty = item => item.spaces.filter(bay => bay.status === 'empty').length;
   const totalEmpty = lots.reduce((count, item) => count + empty(item), 0);

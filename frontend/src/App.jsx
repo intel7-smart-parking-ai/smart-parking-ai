@@ -18,6 +18,7 @@ import {submitMockPayment,isQuoteExpired,staleQuoteCodes} from './payments.js';
 import PaymentChooser, {paymentMethods} from './PaymentChooser.jsx';
 import {useCallback,useEffect,useRef,useState} from 'react';
 import {api,loadLots,dataSource,lookupVehicle,pollInterval} from './api.js';
+const HEAVY_REFRESH_MS=30000;
 const isDemo=dataSource==='demo';
 import {Icon,Badge,Detail,Search,money,time,ChatbotIcon} from './components.jsx';
 const seedFilters={kind:'month',period:currentKSTMonth(),lot_id:''};
@@ -147,22 +148,31 @@ function Dashboard({admin=false}){
  const [car,setCar]=useState(''),[invoice,setInvoice]=useState(null),[space,setSpace]=useState(null),[busy,setBusy]=useState(false),[loading,setLoading]=useState(true),[error,setError]=useState(''),[refreshError,setRefreshError]=useState(''),[toast,setToast]=useState('');
  const paymentKeys=useRef({}),invoiceRef=useRef(null),busyRef=useRef(false),refreshing=useRef(false),refreshSequence=useRef(0);
  invoiceRef.current=invoice;busyRef.current=busy;
- const refresh=useCallback(async()=>{
+ // 11/10 부하 점검: 자동 갱신(light)은 보고 있는 주차장 칸·경보·현재 세션만 매번,
+ // 무거운 목록(결제·매출·요금 정책)은 30초마다. 페이지·필터 변경과 결제·취소 직후(일반 refresh)는 전부 즉시.
+ const dataRef=useRef(data),heavyAt=useRef(0),lotIdRef=useRef(lotId);dataRef.current=data;lotIdRef.current=lotId;
+ const refresh=useCallback(async({light=false}={})=>{
   const sequence=++refreshSequence.current;
+  const heavy=!light||Date.now()-heavyAt.current>=HEAVY_REFRESH_MS;
+  if(heavy)heavyAt.current=Date.now();
+  const previous=dataRef.current;
   const reportQuery=new URLSearchParams({[reportFilters.kind]:reportFilters.period,...(reportFilters.lot_id?{lot_id:reportFilters.lot_id}:{})});
   const query=f=>new URLSearchParams(Object.fromEntries(Object.entries(f).filter(([,value])=>value)));
-  const lots=await loadLots();
+  const lots=await loadLots(undefined,{focusLotId:lotIdRef.current});
   const errors={};
   const optional=async(key,fn,fallback)=>{try{return await fn()}catch(error){if(isDemo)throw error;errors[key]=error.message;return fallback}};
   const [policies,payments,alerts,sessions,report,alertRows]=await Promise.all([
-    optional('policies',()=>api('/rate-policies'),[]),
-    mode==='admin'&&page==='payments'?optional('payments',async()=>(await api('/mock-payments?'+query({...paymentFilters,limit:paymentFilters.date?1000:200}))).slice(0,paymentFilters.date?1000:200),[]):Promise.resolve([]),
+    heavy?optional('policies',()=>api('/rate-policies'),[]):Promise.resolve(previous.policies),
+    mode==='admin'&&page==='payments'&&!heavy?Promise.resolve(previous.payments):mode==='admin'&&page==='payments'?optional('payments',async()=>(await api('/mock-payments?'+query({...paymentFilters,limit:paymentFilters.date?1000:200}))).slice(0,paymentFilters.date?1000:200),[]):Promise.resolve([]),
     optional('alerts',()=>api('/alerts'),[]),
     mode==='admin'?optional('sessions',()=>api('/sessions?status=active'),[]):Promise.resolve([]),
-    mode==='admin'&&page==='revenue'?optional('revenue',()=>api('/reports/revenue?'+reportQuery),null):Promise.resolve(null),
-    optional('alerts',()=>api('/alerts?'+query(alertFilters)),[])]);
-  if(sequence===refreshSequence.current)setData({lots,policies,payments,alerts,sessions,report,alertRows,featureErrors:errors});
+    mode==='admin'&&page==='revenue'&&!heavy?Promise.resolve(previous.report):mode==='admin'&&page==='revenue'?optional('revenue',()=>api('/reports/revenue?'+reportQuery),null):Promise.resolve(null),
+    // 경보 필터가 비어 있으면 위 /alerts 결과를 그대로 쓴다(같은 요청 2번 방지)
+    Object.values(alertFilters).some(Boolean)?optional('alerts',()=>api('/alerts?'+query(alertFilters)),[]):null]);
+  if(sequence===refreshSequence.current)setData({lots,policies,payments,alerts,sessions,report,alertRows:alertRows??alerts,featureErrors:errors});
  },[mode,page,reportFilters,paymentFilters,alertFilters]);
+ // 주차장을 바꾸면 그 주차장 칸을 바로 받아 온다(로딩 표시 없이)
+ useEffect(()=>{if(!refreshing.current)refresh({light:true}).catch(()=>{})},[lotId]); // eslint-disable-line react-hooks/exhaustive-deps
  useEffect(()=>{let active=true;setLoading(true);refresh().then(()=>{if(active)setRefreshError('')}).catch(e=>{if(active)setRefreshError(e.message)}).finally(()=>{if(active)setLoading(false)});return()=>{active=false}},[refresh]);
  useEffect(()=>{document.documentElement.dataset.theme=theme;localStorage.setItem('parkon-react-theme',theme)},[theme]);
  useEffect(()=>{if(!toast)return;const id=setTimeout(()=>setToast(''),4000);return()=>clearTimeout(id)},[toast]);
@@ -171,7 +181,7 @@ function Dashboard({admin=false}){
   const id=setInterval(async()=>{
    if(busyRef.current||refreshing.current||document.hidden||document.querySelector('dialog[open]'))return;
    refreshing.current=true;
-   try{await refresh();if(active)setRefreshError('')}
+   try{await refresh({light:true});if(active)setRefreshError('')}
    catch(e){if(active)setRefreshError(e.message)}
    finally{refreshing.current=false}
   },pollInterval);

@@ -1,23 +1,13 @@
-import {useEffect,useState} from 'react';
-import {request} from './api.js';
+import {useState} from 'react';
+import {useSessionFees} from './sessionFees.js';
 import {time,money} from './components.jsx';
 import './styles/virtual-vehicles.css';
 
 export default function VirtualVehicleDashboard({lot,onSpace,invoice,compact=false}){
- const [selected,setSelected]=useState(invoice?.space_id||''),[fees,setFees]=useState({}),[query,setQuery]=useState('');
+ const [selected,setSelected]=useState(invoice?.space_id||''),[query,setQuery]=useState('');
  const vehicles=lot.spaces.filter(space=>space.status==='occupied');
  const sessions=vehicles.map(space=>space.session_id).filter(Boolean).sort().join(',');
- useEffect(()=>{
-  let active=true;
-  async function refresh(){
-   const entries=await Promise.all(sessions.split(',').filter(Boolean).map(async id=>{
-    try{return [id,await request('/sessions/'+encodeURIComponent(id)+'/fee')]}catch{return [id,null]}
-   }));
-   if(active)setFees(Object.fromEntries(entries));
-  }
-  refresh();const timer=setInterval(refresh,15000);
-  return()=>{active=false;clearInterval(timer)};
- },[sessions]);
+ const fees=useSessionFees(sessions);
  const filtered=vehicles.filter(space=>(!compact||space.space_id===invoice?.space_id)&&(space.plate_number||space.vehicle_number||'').includes(query));
  const vehicle=filtered.find(space=>space.space_id===selected)||filtered[0];
  const fee=vehicle&&fees[vehicle.session_id];

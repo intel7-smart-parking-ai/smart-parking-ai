@@ -9,11 +9,13 @@ export default function SessionHistoryPanel({lots}){
   let active=true, timer;
   async function load(){
    try {
+    if(typeof document!=='undefined'&&document.hidden)return;
     const query=new URLSearchParams({status,limit:'100',...(lot?{lot_id:lot}:{})});
     const data=await api('/sessions?'+query);
     if(active){setRows(data.slice(0,100));setError('')}
    } catch(e){if(active)setError(e.message)}
-   finally {if(active)timer=setTimeout(load,3000)}
+   // 출차 이력 조회는 무겁다(연속 시연 이력 22만 건) → 30초마다, 탭이 안 보이면 쉬기 (11/10 부하 점검)
+   finally {if(active)timer=setTimeout(load,30000)}
   }
   setRows([]);
   load();

@@ -133,3 +133,25 @@ test('fee API not implemented preserves successful location',async()=>{
  globalThis.fetch=async path=>path.includes('/location')?ok({car_id:'12',session_id:'ses_12'}):{ok:false,status:404,json:async()=>({detail:'Not Found'})};
  const result=await lookupVehicle('12','sticker','team');assert.equal(result.car_id,'12');assert.equal(result.fee,null);assert.match(result.fee_notice,/연결 대기/);
 });
+
+test('focus lot is refreshed every time, other lots reuse spaces for 30 seconds', async () => {
+  const {clearLotCache} = await import('../src/api.js');
+  clearLotCache();
+  const calls = [];
+  globalThis.fetch = async path => {
+    calls.push(path);
+    return path.endsWith('/spaces') ? ok({items: [{space_id: 'A-01', status: 'empty'}], as_of: '2026-11-10T13:00:00+09:00'})
+      : ok({items: ['A', 'B', 'C', 'D'].map(lot_id => ({lot_id, type: 'real'}))});
+  };
+  await loadLots('team', {focusLotId: 'C'});
+  assert.equal(calls.filter(p => p.endsWith('/spaces')).length, 4);  // first load: every lot
+  calls.length = 0;
+  const lots = await loadLots('team', {focusLotId: 'C'});
+  assert.deepEqual(calls, ['/api/v1/parking-lots', '/api/v1/parking-lots/C/spaces']);
+  assert.equal(lots.length, 4);
+  assert.ok(lots.every(lot => lot.spaces.length === 1));  // cached lots still have their bays
+  calls.length = 0;
+  await loadLots('team');  // no focus → all lots (unchanged behaviour)
+  assert.equal(calls.filter(p => p.endsWith('/spaces')).length, 4);
+  clearLotCache();
+});
