@@ -306,6 +306,62 @@ class FramePerfTests(unittest.TestCase):
         self.assertIs(live._frame_perf(), live._frame_perf())
 
 
+class HeldFrameHeartbeatTests(unittest.TestCase):
+    """Team decision 11/10: server gap stays 2 s; the camera bridges <=2 held frames of an occupied bay."""
+
+    def harness(self):
+        from web_live.tests import test_round29
+        case = test_round29.ChangedBayTests('test_moves_only_send_changed_bays_and_cannot_retry_old_positions')
+        case.setUp()
+        self.addCleanup(case.doCleanups)
+        return case
+
+    def offer_at(self, case, seconds_later):
+        import time
+        from unittest.mock import patch
+        later = time.monotonic() + seconds_later
+        case.live.hub.packets['1']['received'] = later
+        with patch('web_live.live.time.monotonic', return_value=later):
+            return case.offer()
+
+    def bay(self, events, sid='A-01'):
+        return [e for e in events if e['space_id'] == sid and e['event_type'] == 'vehicle_observed']
+
+    def test_one_and_two_held_frames_resend_last_occupied_then_stop(self):
+        case = self.harness()
+        case.frame(1, occupied=[0])
+        first, = self.bay(case.offer())
+        sent = []
+        for n, seq in enumerate((2, 3, 4), 1):
+            case.frame(seq, held=[0])
+            events = self.bay(self.offer_at(case, 1.01 * n))
+            sent.append(events)
+            if n <= 2:
+                held, = events
+                self.assertEqual((held['car_id'], held['vehicle_type'], held['_hold_over']), (first['car_id'], first['vehicle_type'], n))
+                self.assertNotEqual(held['event_id'], first['event_id'])
+                self.assertIn(f':{seq}:', held['frame_id'])
+                self.assertEqual(held['observed_at'], case.live.packets['1']['observed_at'])
+                self.assertTrue(case.live._valid_event(held))
+                self.assertNotIn('_hold_over', wire_event(held))
+        self.assertEqual(sent[2], [])   # third consecutive held frame: stop (exit must not be delayed)
+
+    def test_reading_returns_resets_and_empty_bays_are_never_held(self):
+        case = self.harness()
+        case.frame(1)                                   # A-01 confirmed empty
+        case.offer()
+        case.frame(2, held=[0])
+        self.assertEqual([e for e in self.offer_at(case, 1.01) if e['space_id'] == 'A-01'], [])
+        case.frame(3, occupied=[0])
+        self.offer_at(case, 2.02)
+        case.frame(4, held=[0])
+        held, = self.bay(self.offer_at(case, 3.03))
+        self.assertEqual(held['_hold_over'], 1)
+        # The same held event is refused at send time once the bay reads as confirmed empty.
+        case.frame(5)
+        self.assertFalse(case.live._valid_event(dict(held, frame_id=held['frame_id'].replace(':4:', ':5:'))))
+
+
 class RejectionCodeTests(unittest.TestCase):
     def test_exit_review_and_store_full_are_kept(self):
         from web_live.transport import KNOWN_REJECTION_CODES

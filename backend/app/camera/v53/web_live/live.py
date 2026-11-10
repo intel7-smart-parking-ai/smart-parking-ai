@@ -3,6 +3,7 @@ import threading
 import logging
 import os
 import time
+import uuid
 import sys
 from datetime import datetime,timezone
 import cv2
@@ -364,6 +365,10 @@ class LiveSession:
                 return bool(row and row['sendable'] and row['observation']=='occupied' and fire.get('state')=='confirmed'
                             and 'since_seq' in fire
                             and seq.isdecimal() and fire['since_seq']<=int(seq)<=r['frame_sequence'])
+            if event.get('_hold_over'):
+                # Held-frame heartbeat: only while this bay is still held on the current frame.
+                return bool(event['event_type']=='vehicle_observed' and 0<event['_hold_over']<=self.HELD_HEARTBEAT_MAX
+                            and row and not row.get('sendable') and row.get('observation')!='empty')
             if not row or not row['sendable'] or row['observation']!=('occupied' if event['event_type']=='vehicle_observed' else 'empty'):
                 return False
             if event['event_type']=='space_empty_observed' and not row.get('empty_evidence_ok'):
@@ -383,6 +388,41 @@ class LiveSession:
             timeout=.5 if deadline is None else max(0,min(.5,deadline-time.monotonic()))
             self.publication_ready.wait(timeout)
 
+    HELD_HEARTBEAT_MAX=2
+
+    def _held_heartbeats(self,scope,result,packet,events):
+        """Bridge a short reading hold on an occupied bay (team decision 11/10, server gap stays 2s).
+
+        At 1.0-1.2 fps one held frame left a bay >2s without an observation and the
+        receiver reset it to uncertain. For up to HELD_HEARTBEAT_MAX consecutive held
+        frames, resend that bay's last confirmed *occupied* observation with a new
+        event_id, this frame's observed_at and frame_id. Never for empty bays (an
+        occlusion must not keep a bay "empty"), never across a reconnect/re-approval,
+        and never when the current frame rejects the bay as empty.
+        """
+        state=self.__dict__.setdefault('held_state',{})
+        camera,lot,epoch=scope[0],scope[1],scope[2]
+        for key in [k for k in state if k[0][0]==camera and k[0]!=scope]:del state[key]
+        if not events or not result.get('roi_confirmed'):return []
+        seq=packet['sequence'];rows={r['space_id']:r for r in result.get('spaces',())}
+        present=set()
+        for e in events:
+            if e['event_type'] in ('vehicle_observed','space_empty_observed'):
+                present.add(e['space_id'])
+                state[(scope,e['space_id'])]=dict(event=e,held=0,seq=seq)
+        camera_id={'A':'camera_a','B':'camera_b'}[lot]
+        held=[]
+        for (key_scope,sid),st in state.items():
+            if key_scope!=scope or sid in present:continue
+            if st['seq']!=seq:st['held']+=1;st['seq']=seq
+            last=st['event'];row=rows.get(sid)
+            if (last['event_type']!='vehicle_observed' or st['held']>self.HELD_HEARTBEAT_MAX or not row
+                    or row.get('sendable') or row.get('observation')=='empty'):
+                continue
+            held.append(dict(last,event_id=str(uuid.uuid4()),observed_at=packet['observed_at'],
+                             frame_id=f"{camera_id}:{epoch}:{seq}:{packet['observed_at']}",_hold_over=st['held']))
+        return held
+
     def _offer_current(self,sent):
         now=time.monotonic()
         fresh=self._fresh_results(now)
@@ -395,6 +435,7 @@ class LiveSession:
             packet=self.packets[camera]
             scope=(camera,lot,packet['epoch'],self.revision,self.send_revision)
             events=to_events(result,dict(packet,source='live_camera'),{'A':'camera_a','B':'camera_b'}.get(lot))
+            events+=self._held_heartbeats(scope,result,packet,events)
             burning={item['space_id'] for item in events if is_vehicle_fire(item)}
             changes=[]
             heartbeats=[]
