@@ -340,3 +340,134 @@ def test_d68_accepts_exact_two_second_clock_skew(d68_runtime):
         event = frame(5)
         assert send(client, event, arrival=AT + timedelta(seconds=3)).status_code == 202
         assert read("SELECT count(*) FROM pipeline_events WHERE event_id = 'event-5'") == [(1,)]
+
+
+def test_d69_repeated_camera_observations_use_receipts_and_one_snapshot(d68_runtime):
+    clients, send, read = d68_runtime
+    with clients() as client:
+        start_unknown(client, send)
+        for index in range(3, 6):
+            assert send(client, frame(index)).status_code == 202
+        expected = read("SELECT session_id, car_id, entry_at, status FROM parking_sessions")
+        assert len(expected) == 1 and expected[0][1] == "10"
+        journal = read("SELECT count(*) FROM pipeline_events")[0][0]
+        receipts = read("SELECT count(*) FROM vision_event_receipts")[0][0]
+        pipeline = client.app.state.pipeline
+        assert len(pipeline) == len(pipeline._identity_frames) == 0
+        for index in range(1000):
+            heartbeat = frame(index + 10).model_copy(update={
+                "observed_at": AT + timedelta(seconds=6, milliseconds=index * 200)
+            })
+            assert send(client, heartbeat).status_code == 202
+        assert read("SELECT count(*) FROM pipeline_events") == [(journal,)]
+        assert read("SELECT count(*) FROM vision_event_receipts") == [(receipts + 1000,)]
+        assert read("SELECT count(*) FROM camera_space_snapshots") == [(1,)]
+        assert len(pipeline) == len(pipeline._identity_frames) == 0
+        assert read("SELECT session_id, car_id, entry_at, status FROM parking_sessions") == expected
+        print(f"D69 journal {journal}->{journal}, receipts {receipts}->{receipts+1000}, memory 0->0")
+
+    with clients() as client:
+        assert client.get("/api/v1/vehicles/10/location").json()["session_id"] == expected[0][0]
+        assert send(client, frame(0, None)).status_code == 200
+        assert send(client, frame(0, "11")).status_code == 409
+        assert send(client, frame(0, None), arrival=AT + timedelta(seconds=900)).status_code == 202
+        assert send(client, frame(0, None)).status_code == 200
+        assert read("SELECT count(*) FROM vision_event_receipts") == [(1,)]
+        assert read("SELECT count(*) FROM pipeline_events") == [(journal,)]
+        assert read("SELECT session_id, car_id, entry_at, status FROM parking_sessions") == expected
+        assert client.get("/api/v1/vehicles/10/location").status_code == 404  # stale, not an exit
+        bay = client.get("/api/v1/parking-lots/A/spaces").json()["items"][0]
+        assert datetime.fromisoformat(bay["observed_at"]) == heartbeat.observed_at
+
+        # A fresh payload reusing an expired ID must have its own journal row.
+        for index in range(1, 5):
+            empty = frame(index, None, event_type="space_empty_observed").model_copy(
+                update={"observed_at": AT + timedelta(seconds=900 + index)}
+            )
+            assert send(client, empty).status_code == 202
+        old = read("SELECT session_id, status FROM parking_sessions")
+        assert old == [(expected[0][0], "closed")]
+        for index in range(905, 908):
+            assert send(client, frame(index)).status_code == 202
+        sessions = read("SELECT session_id, status FROM parking_sessions ORDER BY entry_at")
+        assert sessions[0] == old[0] and len(sessions) == 2 and sessions[1][1] == "active"
+        assert client.get(f"/api/v1/sessions/{old[0][0]}/fee").status_code == 200
+
+
+def test_d69_failed_snapshot_rolls_back_receipt_and_in_memory_state(d68_runtime, monkeypatch):
+    import sqlite3
+
+    clients, send, read = d68_runtime
+    with clients() as client:
+        start_unknown(client, send)
+        for index in range(3, 6):
+            assert send(client, frame(index)).status_code == 202
+        store = client.app.state.pipeline
+        assert send(client, frame(6)).status_code == 202
+        snapshot = read("SELECT * FROM camera_space_snapshots")
+        heartbeat = frame(7)
+
+        class FailedSnapshot(sqlite3.Connection):
+            def execute(self, sql, parameters=()):
+                if sql.lstrip().startswith("INSERT INTO camera_space_snapshots"):
+                    raise sqlite3.OperationalError("synthetic snapshot failure")
+                return super().execute(sql, parameters)
+
+        def connection():
+            conn = sqlite3.connect(store.database, factory=FailedSnapshot, check_same_thread=False)
+            conn.row_factory = sqlite3.Row
+            return conn
+
+        with monkeypatch.context() as patch:
+            patch.setattr(store, "connection", connection)
+            with pytest.raises(sqlite3.OperationalError, match="synthetic snapshot failure"):
+                send(client, heartbeat)
+        assert read("SELECT count(*) FROM vision_event_receipts WHERE event_id='event-7'") == [(0,)]
+        assert read("SELECT * FROM camera_space_snapshots") == snapshot
+        assert store.spaces("A", as_of=heartbeat.observed_at)[0]["observed_at"] == frame(6).observed_at
+        assert send(client, heartbeat).status_code == 202
+        assert read("SELECT count(*) FROM camera_space_snapshots") == [(1,)]
+
+
+def test_d69_pending_exit_recovers_after_existing_camera_snapshot(d68_runtime, monkeypatch):
+    import sqlite3
+
+    clients, send, read = d68_runtime
+    with clients() as client:
+        start_unknown(client, send)
+        for index in range(3, 7):
+            assert send(client, frame(index)).status_code == 202
+        assert read("SELECT count(*) FROM camera_space_snapshots") == [(1,)]
+        session_id = read("SELECT session_id FROM parking_sessions")[0][0]
+        for index in range(7, 10):
+            assert send(client, frame(index, None, event_type="space_empty_observed")).status_code == 202
+        store = client.app.state.pipeline
+        last = frame(10, None, event_type="space_empty_observed")
+
+        class FailedApplyFlag(sqlite3.Connection):
+            def execute(self, sql, parameters=()):
+                if sql.startswith("UPDATE pipeline_events SET applied=1"):
+                    raise sqlite3.OperationalError("synthetic applied flag failure")
+                return super().execute(sql, parameters)
+
+        def connection():
+            conn = sqlite3.connect(store.database, factory=FailedApplyFlag, check_same_thread=False)
+            conn.row_factory = sqlite3.Row
+            return conn
+
+        with monkeypatch.context() as patch:
+            patch.setattr(store, "connection", connection)
+            with pytest.raises(sqlite3.OperationalError, match="synthetic applied flag failure"):
+                send(client, last)
+        closed = read("SELECT session_id, status, exit_at FROM parking_sessions")
+        assert closed == [(session_id, "closed", last.observed_at.isoformat())]
+        assert read("SELECT journal_key FROM vision_event_receipts WHERE event_id='event-10'") == [
+            ("event-10",)
+        ]
+
+    with clients() as client:
+        assert read("SELECT session_id, status, exit_at FROM parking_sessions") == closed
+        assert read("SELECT applied FROM pipeline_events WHERE event_id='event-10'") == [(1,)]
+        assert read("SELECT journal_key FROM vision_event_receipts WHERE event_id='event-10'") == [(None,)]
+        assert send(client, last).status_code == 200
+        assert client.get("/api/v1/parking-lots/A/spaces").json()["items"][0]["status"] == "empty"

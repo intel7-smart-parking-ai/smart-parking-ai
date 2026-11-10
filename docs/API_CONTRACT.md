@@ -225,11 +225,13 @@ LLM_PROVIDER=none. 원격 카메라를 받을 때 API_HOST=0.0.0.0, 같은 VISIO
 | HTTP | 뜻 |
 | :-: | --- |
 | 202 | 접수 `{"event_id", "disposition": "accepted"}` |
-| 200 | 같은 `event_id`·같은 내용 재전송 (중복) |
-| 409 | `EVENT_ID_CONFLICT` |
+| 200 | 최초 서버 접수 후 10분 이내에 같은 `event_id`·같은 내용 재전송 |
+| 409 | 최초 서버 접수 후 10분 이내에 같은 `event_id`·다른 내용 (`EVENT_ID_CONFLICT`) |
 | 422 | 형식 오류, 도면에 없는 칸 |
 | 403 | 토큰 없음·불일치 |
 | 503 | `EXPERIMENT_STORE_FULL` |
+
+접수 후 10분이 지난 ID는 새 관측으로 접수할 수 있습니다. 관측 시각이 최신 상태보다 오래되면 점유·세션 상태에 반영하지 않습니다.
 
 ### 전송 조건 (점유 엔진 설정: 시연 서버)
 
