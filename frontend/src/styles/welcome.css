@@ -211,3 +211,153 @@
 .kiosk-help-icon{color:#087f8c;background:#e9f5f5;border:0}.kiosk-help-icon:hover{color:#087f8c;background:#dcefee}
 
 .kiosk-help-icon,.kiosk-help-icon:hover,.kiosk-help-icon:active{background:transparent;border:0;box-shadow:none;color:#087f8c}
+.kiosk-welcome .kiosk-help {
+  width: min(440px, calc(100% - 24px));
+  padding: clamp(20px, 6vw, 30px);
+}
+.kiosk-welcome .kiosk-help li {
+  white-space: pre-line;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  line-height: 1.75;
+}
+.kiosk-welcome[data-mobile-start] {
+  width: min(100%, 520px);
+  margin-inline: auto;
+  box-shadow: 0 0 80px #182c1c15;
+}
+.kiosk-welcome[data-mobile-start] .kiosk-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  width: 100%;
+  align-items: center;
+  gap: 8px 4px;
+}
+.kiosk-welcome[data-mobile-start] .kiosk-intro { display: contents; }
+.kiosk-welcome[data-mobile-start] .kiosk-help > h2 { font-weight: 700; }
+.kiosk-welcome[data-mobile-start] .kiosk-help > form {
+  display: flex;
+  justify-content: flex-end;
+  text-align: right;
+}
+.kiosk-welcome[data-mobile-start] .kiosk-brand {
+  grid-area: 1 / 1;
+  margin-bottom: 0;
+}
+.kiosk-welcome[data-mobile-start] .kiosk-languages {
+  grid-area: 1 / 2;
+  justify-content: flex-end;
+  gap: 0;
+  transform: none;
+}
+.kiosk-welcome[data-mobile-start] .kiosk-languages button {
+  padding-inline: clamp(4px, 1.2vw, 9px);
+  font-size: 11px;
+}
+.kiosk-welcome[data-mobile-start] .kiosk-service-title {
+  grid-area: 2 / 1 / 3 / -1;
+  position: relative;
+  top: 8px;
+}
+.kiosk-welcome[data-mobile-start]:not([data-preview]) .kiosk-content {
+  width: calc(100% - 28px);
+  margin-inline: 12px auto;
+  padding-block: 14px;
+}
+.kiosk-welcome[data-mobile-start]:not([data-preview]) .kiosk-header {
+  min-height: 0;
+  margin-bottom: 8px;
+}
+.kiosk-welcome[data-mobile-start]:not([data-preview]) .kiosk-service-title {
+  position: static;
+  margin: 16px 0 4px;
+  font-size: clamp(1.75rem, 7vw, 2.375rem);
+  font-weight: 750;
+  line-height: 1.15;
+  letter-spacing: -.045em;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+.kiosk-welcome[data-mobile-start]:not([data-preview]) .kiosk-services {
+  grid-template-columns: minmax(0, 1.16fr) minmax(0, 1fr);
+  grid-template-rows: repeat(3, minmax(64px, auto));
+  gap: 8px;
+}
+.kiosk-welcome[data-mobile-start]:not([data-preview]) .kiosk-payment {
+  grid-row: span 3;
+  min-height: 0;
+  padding: 16px 12px 48px;
+}
+.kiosk-welcome[data-mobile-start] .kiosk-payment > .icon {
+  width: 28px;
+  height: 28px;
+  margin-bottom: 5px;
+}
+.kiosk-welcome[data-mobile-start]:not([data-preview]) .kiosk-payment-title {
+  max-width: 100%;
+  margin-top: 10px;
+  font-size: clamp(1.125rem, 4.5vw, 1.75rem);
+}
+.kiosk-welcome[data-mobile-start] .kiosk-payment-title > span {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.kiosk-welcome[data-mobile-start] .kiosk-payment-note {
+  margin-top: 8px;
+  padding-right: 0;
+}
+.kiosk-welcome[data-mobile-start] .kiosk-payment-arrow {
+  right: 12px;
+  bottom: 12px;
+  width: 32px;
+  height: 32px;
+}
+.kiosk-welcome[data-mobile-start]:not([data-preview]) .kiosk-secondary {
+  min-height: 44px;
+  gap: 6px;
+  padding: 6px 8px;
+}
+.kiosk-welcome[data-mobile-start]:not([data-preview]) .kiosk-secondary > span {
+  min-width: 0;
+  font-size: clamp(.8125rem, 3vw, 1rem);
+  overflow-wrap: anywhere;
+}
+.kiosk-welcome[data-mobile-start] .kiosk-secondary > b { flex-shrink: 0; font-size: 1rem; }
+.kiosk-welcome[data-mobile-start] .kiosk-secondary > .welcome-service-icon {
+  flex-basis: 28px;
+  width: 28px;
+  height: 28px;
+}
+.kiosk-welcome[data-mobile-start] .kiosk-secondary > .welcome-service-icon > .icon { width: 24px; height: 24px; }
+.kiosk-welcome[data-mobile-start] .kiosk-secondary > .welcome-service-icon > .welcome-charge-glyph { width: 28px; height: 28px; }
+.kiosk-welcome[data-mobile-start] .welcome-find-label { white-space: nowrap; }
+.kiosk-welcome[data-mobile-start] .kiosk-mobile { margin-top: 8px; }
+.kiosk-welcome:not([data-preview]):not([data-mobile-start]) .kiosk-service-title {
+  position: relative;
+  top: 8px;
+}
+@media (max-width: 380px) {
+  .kiosk-welcome[data-mobile-start] .parkon-brand-lockup { gap: 5px; }
+  .kiosk-welcome[data-mobile-start] .parkon-brand-car { width: 20px; flex-basis: 20px; }
+  .kiosk-welcome[data-mobile-start] .parkon-wordmark { width: 96px; flex-basis: 96px; }
+}
+
+.kiosk-help {
+  width: min(420px, calc(100% - 2rem));
+  padding: clamp(1.125rem, 5vw, 1.75rem);
+  box-shadow: 0 18px 55px #12264c33;
+}
+.kiosk-help h2 { font-weight: 750; }
+.kiosk-help ol {
+  display: grid;
+  gap: .625rem;
+  margin: 0;
+  padding: .875rem .875rem .875rem 2.25rem;
+  border: 1px solid #dce7f7;
+  border-radius: 12px;
+  background: #f3f7ff;
+}
+.kiosk-help li { margin: 0; }
+.kiosk-help li::marker { color: #164cba; font-weight: 750; }
+.kiosk-help form { display: flex; justify-content: flex-end; margin-top: 1rem; }
+.kiosk-help button { min-height: 44px; font-weight: 700; }

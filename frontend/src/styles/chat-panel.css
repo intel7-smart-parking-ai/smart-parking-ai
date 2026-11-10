@@ -149,3 +149,21 @@ html .chat-panel--app .chat-form > .button.chat-voice-button {
 .chat-payment-summary dt { font-size: 12px; color: #59687c; }
 .chat-payment-summary dd { margin: 0; overflow-wrap: anywhere; font-size: 14px; }
 .chat-payment-summary .chat-payment-amount { font-size: 24px; line-height: 1.2; font-weight: 750; font-variant-numeric: tabular-nums; }
+
+.chat-panel .chat-waiting .chat-waiting-dots { display: inline-flex; align-items: center; gap: 5px; min-height: 36px; }
+.chat-waiting-dots i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: chat-waiting-pulse 1.15s ease-in-out infinite;
+}
+.chat-waiting-dots i:nth-child(2) { animation-delay: .14s; }
+.chat-waiting-dots i:nth-child(3) { animation-delay: .28s; }
+@keyframes chat-waiting-pulse {
+  0%, 65%, 100% { opacity: .42; transform: translateY(0); }
+  32% { opacity: 1; transform: translateY(-3px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .chat-waiting-dots i { animation: none; }
+}

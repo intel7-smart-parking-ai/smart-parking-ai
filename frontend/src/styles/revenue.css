@@ -29,3 +29,100 @@ html[data-theme='light'] .revenue-workspace{--rev-line:#d8e2cf;--rev-soft:#f5f8f
 .revenue-heatmap-scroll{overflow-x:auto}
 .revenue-heatmap table{width:100%;min-width:380px;border-spacing:2px;table-layout:fixed;text-align:center;font-size:10px}
 .revenue-heatmap td{height:13px;border-radius:2px;background:var(--line)}
+
+html[data-theme='light'] .revenue-workspace .revenue-controls {
+  --rev-line: #dce5f2;
+  --rev-selected: #edf3ff;
+  --revenue-control-ink: #27374d;
+  --revenue-control-accent: #1748b5;
+  background: #f7f8fa;
+  border-color: var(--rev-line);
+}
+html[data-theme='dark'] .revenue-workspace .revenue-controls {
+  --rev-line: #40525b;
+  --rev-selected: #d4ee37;
+  --revenue-control-ink: #bed0d7;
+  --revenue-control-accent: #bed0d7;
+  background: #1b252c;
+  border-color: #30404b;
+}
+html[data-theme='dark'] .revenue-controls :is(.revenue-view, .revenue-month > button) {
+  background: #26343c;
+}
+html[data-theme='dark'] .revenue-controls .revenue-view .active {
+  color: #202817;
+}
+html[data-theme] .revenue-controls :is(.revenue-month label, .revenue-view button, .revenue-month input) {
+  color: var(--revenue-control-ink);
+}
+html[data-theme] .revenue-controls :is(.revenue-view .active, .revenue-month > button, .button) {
+  color: var(--revenue-control-accent);
+}
+html[data-theme] .revenue-controls :is(.revenue-month input, .revenue-view) {
+  border-color: var(--rev-line);
+}
+html[data-theme] .revenue-controls button:focus-visible,
+html[data-theme] .revenue-controls input:focus-visible {
+  outline: 2px solid var(--revenue-control-accent);
+  outline-offset: 2px;
+}
+
+html[data-theme='light'] .revenue-lot-table :is(th, td) { border-color: #dce5f2; }
+html[data-theme='light'] .revenue-lot-table thead th { background: #f7f8fa; color: #53657d; }
+html[data-theme='light'] .revenue-lot-table tbody tr:nth-child(even) > td { background: #f7f8fa; }
+html[data-theme='light'] .revenue-lot-table tbody td:first-child { color: #27374d; font-weight: 650; }
+
+html[data-theme='light'] .revenue-controls :is(.revenue-view, .revenue-month input, .revenue-month > button) { background: #fff; }
+html[data-theme='light'] .revenue-controls .revenue-view .active { box-shadow: inset 0 0 0 1px #9bb8ef; }
+
+.revenue-workspace .revenue-controls { display: grid; gap: 0; padding: 0; }
+.revenue-controls-row { display: flex; flex-wrap: wrap; align-items: end; gap: 12px 16px; min-width: 0; padding: 16px; }
+.revenue-controls-row .revenue-month { width: auto; flex: 0 1 auto; align-items: flex-end; }
+.revenue-controls-row .revenue-month > button { height: 38px; line-height: 1; }
+.revenue-controls-row .revenue-month label { gap: 6px; font-size: 12px; font-weight: 650; }
+.revenue-controls-row .revenue-month input { height: 38px; }
+.revenue-controls-row .revenue-view { position: relative; flex: 0 1 auto; min-width: 0; min-height: 38px; margin: 22px 0 0; flex-wrap: wrap; justify-content: flex-start; }
+.revenue-controls-row .revenue-view::before {
+  content: attr(aria-label);
+  position: absolute;
+  inset-inline-start: 0;
+  bottom: calc(100% + 6px);
+  color: var(--revenue-control-ink);
+  font-size: 12px;
+  font-weight: 650;
+}
+.revenue-controls-row .revenue-view button { min-height: 28px; padding-block: 5px; }
+.revenue-controls-options { border-top: 1px solid var(--rev-line); }
+.revenue-controls-options > .button {
+  margin-inline-start: 0;
+  min-height: 38px;
+  border: 1px solid var(--rev-line);
+  border-radius: 8px;
+}
+@media (max-width: 520px) {
+  .revenue-controls-options > .button { margin-inline-start: 0; }
+}
+
+.revenue-filter-heading { margin: 0; padding: 16px 16px 0; align-items: center; }
+.revenue-filter-heading h2 { font-size: 16px; font-weight: 750; color: var(--revenue-control-ink); }
+.revenue-filter-heading .badge { font-size: 10px; }
+.revenue-filter-heading + .revenue-controls-row { padding-top: 12px; }
+.revenue-plot-connected { position: relative; }
+.revenue-plot-connected .revenue-bar { position: relative; z-index: 1; }
+.revenue-connecting-line { position: absolute; inset: 0 0 auto; z-index: 2; width: 100%; height: 150px; overflow: visible; pointer-events: none; }
+.revenue-connecting-line polyline { fill: none; stroke: #2f62d1; stroke-width: 2.5; vector-effect: non-scaling-stroke; }
+.revenue-connecting-line .revenue-connecting-underlay { stroke: #fff; stroke-width: 5; }
+.revenue-connecting-line circle { fill: #fff; stroke: #2f62d1; stroke-width: 2.5; vector-effect: non-scaling-stroke; }
+.revenue-workspace .revenue-filter-heading { margin: 0 16px; padding: 16px 0 12px; border-bottom: 1px solid var(--rev-line); }
+
+.revenue-main:has(+ .revenue-lot-table) {
+  border-end-start-radius: 0;
+  border-end-end-radius: 0;
+  border-bottom-color: var(--rev-line);
+}
+.revenue-main + .revenue-lot-table {
+  margin-block-start: 0;
+  border-start-start-radius: 0;
+  border-start-end-radius: 0;
+  border-top: 0;
+}

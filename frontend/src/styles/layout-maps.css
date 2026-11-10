@@ -50,3 +50,17 @@ html[data-theme=dark] .mall-wing-department { color: #e0beff; }
 .reserved-parking-marker circle { fill: #a33218; stroke: white; stroke-width: 2; }
 .reserved-parking-marker text { fill: white; font-size: 16px; font-weight: 800; }
 .pdf-map-heading > .pdf-zoom-button { margin-inline-start: auto; }
+
+.layout-mall .pdf-map-svg .pdf-bay.empty.recommended .pdf-bay-shape,
+html[data-theme=dark] .layout-mall .pdf-map-svg .pdf-bay.empty.recommended .pdf-bay-shape {
+  fill: #d62436;
+  stroke: #fff;
+  stroke-width: 5;
+}
+html .layout-mall .pdf-map-svg .pdf-bay.empty.recommended .pdf-bay-label {
+  fill: #fff;
+  font-weight: 900;
+  paint-order: stroke;
+  stroke: #8c1827;
+  stroke-width: 3;
+}

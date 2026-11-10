@@ -39,3 +39,29 @@ html[data-theme] .space-column.right .car-plate{transform:translate(-50%,-50%) r
  html[data-theme] .parking-workspace .right-column{grid-template-columns:minmax(0,1fr);gap:14px}
  html[data-theme] .parking-workspace .right-column>section,html[data-theme] .parking-workspace .right-column>article{padding:20px}
 }
+
+html[data-theme='light'] .parking-workspace.admin-parking-workspace .right-column > :is(section, article) {
+  background: #f7f8fa;
+  border-color: #d5e0f3;
+}
+html[data-theme='light'] .admin-parking-workspace .right-column .button.danger {
+  background: #fef0f0;
+  border-color: #efb8b8;
+  color: #a12626;
+}
+html[data-theme='light'] .admin-parking-workspace .right-column .button.danger:hover:not(:disabled) {
+  background: #fbdede;
+}
+
+.mobile-admin-console { width: min(100%, 560px); margin-inline: auto; min-height: 100dvh; }
+.mobile-admin-console .app-header { position: static; min-height: 0; height: auto; padding: 12px; flex-wrap: wrap; gap: 8px; }
+.mobile-admin-console .header-tools { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 6px; }
+.mobile-admin-console .rail-drawer { display: none; }
+.mobile-admin-console .main-shell { width: 100%; margin: 0; padding: 12px; box-sizing: border-box; }
+.mobile-admin-console .main-shell > main { min-width: 0; }
+.mobile-admin-console .service-nav { display: flex; flex-wrap: wrap; }
+.mobile-admin-console .service-nav > button { flex: 1 1 40%; min-height: 44px; }
+.mobile-admin-console .parking-workspace,
+.mobile-admin-console .parking-workspace .right-column { grid-template-columns: minmax(0, 1fr); }
+.mobile-admin-console .parking-workspace .right-column > * { grid-column: auto; }
+.mobile-admin-console .locations-list { grid-template-columns: minmax(0, 1fr); }

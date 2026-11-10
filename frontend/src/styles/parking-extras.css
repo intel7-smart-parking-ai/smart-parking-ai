@@ -20,3 +20,100 @@
     flex-basis: 100%;
   }
 }
+
+.admin-call-notice {
+  position: fixed;
+  z-index: 79;
+  top: 72px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px 16px;
+  width: min(760px, calc(100vw - 28px));
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: 1px solid #e9b34f;
+  border-radius: 14px;
+  background: #fffbee;
+  color: #492d08;
+  box-shadow: 0 8px 28px #172b4626;
+}
+.admin-call-brand { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; font-size: .75rem; }
+.admin-call-brand span { border-inline-start: 1px solid #e9d5aa; padding-inline-start: 8px; }
+.admin-call-message { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.admin-call-icon { display: grid; place-items: center; flex: 0 0 42px; height: 42px; background: #fff1c7; border-radius: 10px; }
+.admin-call-icon svg { width: 25px; height: 25px; }
+.admin-call-message strong { font-size: .9375rem; }
+.admin-call-message p { margin: 3px 0; overflow-wrap: anywhere; max-height: 3.2em; overflow: auto; }
+.admin-call-message small { color: #69512d; }
+.admin-call-actions { display: flex; align-items: center; gap: 8px; }
+.admin-call-actions button {
+  min-height: 40px;
+  padding: 6px 12px;
+  border: 1px solid #e9b34f;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.admin-call-actions button:first-child { background: #f4cf78; }
+.admin-call-actions button:hover { background: #ffe8ae; }
+.admin-call-actions button:focus-visible { outline: 2px solid #795417; outline-offset: 2px; }
+@media (max-width: 520px) {
+  .admin-call-notice { grid-template-columns: minmax(0, 1fr); }
+  .admin-call-actions { justify-content: flex-end; }
+}
+
+.admin-call-list { margin-bottom: 20px; scroll-margin-top: 76px; }
+.admin-call-list-heading { display: flex; align-items: center; gap: 10px; padding-bottom: 12px; }
+.admin-call-list-heading > svg { width: 24px; height: 24px; }
+.admin-call-list-heading h3 { margin: 0; font-size: 1rem; }
+.admin-call-list-heading > span { margin-inline-start: auto; font-size: .8125rem; }
+.admin-call-list ul { margin: 0; padding: 0; list-style: none; }
+.admin-call-list li {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  gap: 10px 12px;
+  align-items: start;
+  padding: 14px 0;
+  border-top: 1px solid var(--parkon-border, #40525b);
+}
+.admin-call-list-icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 9px; background: #edf1f7; color: #243e69; }
+.admin-call-list-icon svg { width: 22px; height: 22px; }
+.admin-call-list-copy strong { font-size: .8125rem; }
+.admin-call-list-copy p { margin: 3px 0 0; font-size: .875rem; line-height: 1.6; overflow-wrap: anywhere; }
+.admin-call-list-copy small { display: block; margin-top: 4px; }
+.admin-call-list-meta { display: grid; justify-items: end; gap: 5px; }
+.admin-call-list-meta time { font-size: .75rem; }
+.admin-call-list-status { padding: 3px 9px; border: 1px solid currentColor; border-radius: 6px; font-size: .75rem; }
+.admin-call-list-status[data-new] { color: #704706; background: #fff1c7; border-color: #ead094; font-weight: 700; }
+@media (max-width: 520px) {
+  .admin-call-list li { grid-template-columns: 40px minmax(0, 1fr); }
+  .admin-call-list-meta { grid-column: 2; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+}
+
+.panel.admin-call-list {
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 14px clamp(12px, 3vw, 20px) 4px;
+  container-type: inline-size;
+}
+.admin-call-list-copy, .admin-call-list-meta { min-width: 0; }
+.admin-call-list-copy :is(p, small), .admin-call-list-meta time {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+@container (max-width: 480px) {
+  .admin-call-list li { grid-template-columns: 40px minmax(0, 1fr); }
+  .admin-call-list-meta {
+    grid-column: 2;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+.admin-call-list-status[data-completed] { color: #22623d; background: #e8f5ec; border-color: #c7e6d0; font-weight: 700; }

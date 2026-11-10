@@ -1,18 +1,15 @@
 import BrandWordmark from './BrandWordmark.jsx';
+import WelcomePromo from './WelcomePromo.jsx';
 import ChargingStatus,{ChargingIcon} from './ChargingStatus.jsx';
-import {getLanguage} from './serviceLocale.js';
-import {useEffect,useRef,useState} from 'react';
+import {getLanguage,translate} from './serviceLocale.js';
+import {useRef,useState} from 'react';
 import {welcomeLanguages,welcomeText,welcomeHubText} from './welcomeLocales.js';
 import {Icon,ChatbotIcon} from './components.jsx';
 import './styles/welcome.css';
 import './styles/kiosk-preview.css';
-import './styles/welcome-promo.css';
 const areas=['A','B','C','D'];
-const promoDismissedKey='parkon-welcome-promo-hidden-until';
-export default function ParkingWelcome({onStart}){
+export default function ParkingWelcome({onStart,showPromo=false}){
  const helpDialog=useRef(null);
- const promoDialog=useRef(null);
- const hidePromoToday=useRef(null);
  const [charging,setCharging]=useState(false);
  const preview=new URLSearchParams(window.location.search).get('preview');
  const kioskPreview=preview==='kiosk-a'||preview==='kiosk-b';
@@ -20,20 +17,8 @@ export default function ParkingWelcome({onStart}){
  const [selected,setSelected]=useState(()=>{const id=new URLSearchParams(window.location.search).get('lot');return areas.includes(id)?id:'A'});
  const [language,setLanguage]=useState(getLanguage);
  const t={...welcomeText[language],...welcomeHubText[language]};
- useEffect(()=>{
-  const dialog=promoDialog.current;
-  if(!dialog)return;
-  try{if(Number(localStorage.getItem(promoDismissedKey))>Date.now())return}catch{/* Storage is optional. */}
-  if(!dialog.open)dialog.showModal();
- },[]);
- function dismissPromo(){
-  if(!hidePromoToday.current?.checked)return;
-  const midnight=new Date();
-  midnight.setHours(24,0,0,0);
-  try{localStorage.setItem(promoDismissedKey,String(midnight.getTime()))}catch{/* Closing works without storage. */}
- }
  function changeLanguage(value){setLanguage(value);try{localStorage.setItem('parkon-welcome-language',value)}catch{/* Switching also works without storage. */}}
- return <main className="kiosk-welcome" data-preview={preview} lang={language}>
+ return <main className="kiosk-welcome" data-preview={preview} data-mobile-start={showPromo||undefined} lang={language}>
   {kioskPreview ? <section className="kiosk-preview">
    <header className="kiosk-preview-header">
     <a className="kiosk-brand" href="/" aria-label={t.home}><BrandWordmark/></a>
@@ -48,35 +33,20 @@ export default function ParkingWelcome({onStart}){
     </div>
     <button type="button" className="kiosk-preview-help" onClick={()=>helpDialog.current.showModal()}>{t.help}</button>
    </div>
-  </section> : <><section className="kiosk-content"><header className="kiosk-header"><div className="kiosk-intro"><a className="kiosk-brand" href="/" aria-label={t.home}><BrandWordmark/></a><h1 className="kiosk-service-title" aria-live="polite">{t.title}</h1></div><nav className="kiosk-languages" aria-label={t.language}>{welcomeLanguages.map(([id,label])=><button type="button" key={id} lang={id} aria-pressed={language===id} onClick={()=>changeLanguage(id)}>{label}</button>)}</nav></header>
+  </section> : <><section className="kiosk-content"><header className="kiosk-header"><div className="kiosk-intro">{showPromo&&!preview?<WelcomePromo className="kiosk-brand" autoOpen previewOnce={new URLSearchParams(window.location.search).get("promo")==="preview"}/>:<a className="kiosk-brand" href="/" aria-label={t.home}><BrandWordmark/></a>}<h1 className="kiosk-service-title" aria-live="polite">{t.title}</h1></div><nav className="kiosk-languages" aria-label={t.language}>{welcomeLanguages.map(([id,label])=><button type="button" key={id} lang={id} aria-pressed={language===id} onClick={()=>changeLanguage(id)}>{label}</button>)}</nav></header>
 
    {showLotChoice&&<div className="kiosk-lot-choice"><label htmlFor="welcome-lot"><Icon name="pin"/>{t.lot}</label><select id="welcome-lot" value={selected} onChange={e=>setSelected(e.target.value)}>{areas.map((id,i)=><option key={id} value={id}>{t.lots[i]}</option>)}</select></div>}
    <div className="kiosk-help-toolbar"><button type="button" className="kiosk-help-icon" aria-label={t.help} title={t.help} onClick={()=>helpDialog.current.showModal()}><Icon name="info"/></button></div>
-   <div className="kiosk-services"><button className="kiosk-payment" onClick={()=>onStart(selected,'fee',language)}><Icon name="wallet"/><span className="kiosk-payment-title">{t.payment.map(line=><span key={line}>{line}</span>)}</span><span className="kiosk-payment-note">{t.paymentNote}</span><span className="kiosk-payment-arrow" aria-hidden="true">→</span></button><button className="kiosk-secondary" onClick={()=>onStart(selected,'find',language)}><span className="welcome-service-icon welcome-car-icon"><Icon name="car"/></span><span>{t.find}</span><b aria-hidden="true">›</b></button><button className="kiosk-secondary" onClick={()=>onStart(selected,'chat',language)}><span className="welcome-service-icon welcome-chat-icon"><ChatbotIcon/></span><span>{t.chat}</span><b aria-hidden="true">›</b></button><button className="kiosk-secondary" onClick={()=>setCharging(true)}><ChargingIcon/><span>{({ko:"충전 현황",en:"EV charging", "zh-CN":"充电状态",ja:"充電状況"})[language]}</span><b aria-hidden="true">›</b></button></div>
-   <a className="kiosk-mobile" href={`/?app=1&screen=map&lot=${selected}&lang=${language}`}>{t.mobile}<span aria-hidden="true"> ↗</span></a>
+   <div className="kiosk-services"><button className="kiosk-payment" onClick={()=>onStart(selected,'fee',language)}><Icon name="wallet"/><span className="kiosk-payment-title">{t.payment.map(line=><span key={line}>{line}</span>)}</span><span className="kiosk-payment-note">{t.paymentNote}</span><span className="kiosk-payment-arrow" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12h17m-6-6 6 6-6 6"/></svg></span></button><button className="kiosk-secondary" onClick={()=>onStart(selected,'find',language)}><span className="welcome-service-icon welcome-car-icon"><Icon name="car"/></span><span>{showPromo&&language==="ko"?<span className="welcome-find-label">내 차 찾기</span>:t.find}</span><b aria-hidden="true">›</b></button><button className="kiosk-secondary" onClick={()=>onStart(selected,'chat',language)}><span className="welcome-service-icon welcome-chat-icon"><ChatbotIcon/></span><span>{t.chat}</span><b aria-hidden="true">›</b></button><button className="kiosk-secondary" onClick={()=>setCharging(true)}><span className="welcome-service-icon"><ChargingIcon className="icon welcome-charge-glyph" viewBox="6.5 5.5 32 32"/></span><span>{({ko:"충전 현황",en:"EV charging", "zh-CN":"充电状态",ja:"充電状況"})[language]}</span><b aria-hidden="true">›</b></button></div>
+   <a className="kiosk-mobile" href={showPromo?`/?app=0&lang=${language}`:`/?app=1&lang=${language}&promo=1`}>
+    {showPromo?translate(language,'웹 화면으로 보기'):t.mobile}<span aria-hidden="true"> ↗</span>
+   </a>
   </section></>}
-  {charging&&<ChargingStatus language={language} initialLot={selected} onClose={()=>setCharging(false)}/>}
-  {!preview&&<dialog className="welcome-promo" ref={promoDialog} onClose={dismissPromo} aria-labelledby="welcome-promo-title">
-   <div className="welcome-promo-poster" lang="ko">
-    <div className="welcome-promo-brand"><BrandWordmark showCar={false}/></div>
-    <h2 id="welcome-promo-title">첫 결제부터<br/><strong>적립 혜택까지!</strong></h2>
-    <p>빈자리 확인부터 내 차 찾기, 주차요금 결제까지 한 곳에서.</p>
-    <details className="welcome-promo-benefits">
-     <summary className="welcome-promo-badge">첫 결제 혜택 · 적립 안내</summary>
-     <dl>
-      <dt>첫 결제 혜택</dt>
-      <dd>주차요금 메뉴에서 차량을 조회하고 첫 결제 절차를 체험할 수 있어요.</dd>
-      <dt>포인트 적립</dt>
-      <dd>현재는 데모 운영 중이라 실제 결제, 할인 및 포인트 적립은 제공되지 않아요.</dd>
-     </dl>
-    </details>
-    <div className="welcome-promo-mark" aria-hidden="true">P</div>
-   </div>
-   <form method="dialog">
-    <label lang="ko"><input type="checkbox" ref={hidePromoToday}/>오늘 하루동안 보지 않기</label>
-    <button autoFocus>{t.close}</button>
-   </form>
-  </dialog>}
-  <dialog className="kiosk-help" ref={helpDialog} aria-labelledby="welcome-help-title"><h2 id="welcome-help-title">{t.help}</h2><ol>{(showLotChoice?t.helpSteps:t.helpSteps.slice(1)).map(step=><li key={step}>{step}</li>)}</ol><p>{t.demo}</p><form method="dialog"><button>{t.close}</button></form></dialog>
+  {charging&&<ChargingStatus language={language} initialLot={showLotChoice?selected:undefined} onClose={()=>setCharging(false)}/>}
+  <dialog className="kiosk-help" ref={helpDialog} aria-labelledby="welcome-help-title">
+   <h2 id="welcome-help-title">{t.help}</h2>
+   <ol>{(showLotChoice?t.helpSteps:t.helpSteps.slice(1)).map(step=><li key={step}>{step}</li>)}</ol>
+   <form method="dialog"><button autoFocus>{t.close}</button></form>
+  </dialog>
  </main>
 }

@@ -52,10 +52,11 @@ function MiniCar({x, y, number, rotation = 0}) {
   const badgeWidth = Math.max(64, label.length * 20 + 16);
   return <g transform={`translate(${x} ${y})`} aria-hidden="true"><g transform={`rotate(${rotation}) scale(1.2)`}><g className="pdf-car-wheels"><rect x="-30" y="-19" width="15" height="9" rx="3"/><rect x="16" y="-19" width="15" height="9" rx="3"/><rect x="-30" y="10" width="15" height="9" rx="3"/><rect x="16" y="10" width="15" height="9" rx="3"/></g><rect className="pdf-car-body" x="-42" y="-15" width="84" height="30" rx="12"/><rect className="pdf-car-window" x="-23" y="-12" width="46" height="24" rx="5"/></g><rect className="pdf-car-plate" x={-badgeWidth / 2} y="-22" width={badgeWidth} height="44" rx="8"/><text className="pdf-car-number" style={{fontSize:label.length > 2 ? 28 : 34}} textAnchor="middle" dominantBaseline="central" y="0">{label}</text></g>;
 }
-function Bay({space, points, x, y, vertical, labelY, carY, carX, carRotation, stopPath, filter, alerts, found, route, lot, onSpace, fees, admin,t}) {
+function Bay({space, points, x, y, vertical, labelY, carY, carX, carRotation, stopPath, filter, alerts, found, route, lot, onSpace, fees, admin,t,recommendedSpaceId}) {
   const parkingStatus = admin ? reservedParkingStatus(space) : null;
   const geometry = bayGeometry(points);
-  const dim = filter !== 'all' && !(filter === 'empty' ? space.status === 'empty' : filter.startsWith('source:')?space.source===filter.slice(7):space.space_type === filter);
+  const recommended = space.status === 'empty' && space.space_id === recommendedSpaceId;
+  const dim = !recommended && filter !== 'all' && !(filter === 'empty' ? space.status === 'empty' : filter.startsWith('source:')?space.source===filter.slice(7):space.space_type === filter);
   const warned = alerts.some(a => a.lot_id === lot.lot_id && (!a.space_id || a.space_id === space.space_id) && a.status !== 'resolved');
   const selected = (found?.lot_id === lot.lot_id && found.space_id === space.space_id)
     || (route?.lot_id === lot.lot_id && route.alternatives?.includes(space.space_id));
@@ -67,8 +68,8 @@ function Bay({space, points, x, y, vertical, labelY, carY, carX, carRotation, st
   const cardTop=geometry.labelY+(compact?16:18);
   const plateSize=compact?10:22;
 
-  const label = `${space.space_id} ${t(typeLabels[space.space_type])} ${t(statusLabels[space.status])}${admin&&(space.car_id||number) ? ' 차량 ' + (lot.type === 'real' ? space.car_id : space.plate_number || number) : ''}`;
-  return <g className={`pdf-bay ${space.status} ${space.space_type} ${dim ? 'dim' : ''} ${selected ? 'found' : ''} ${warned ? 'warned' : ''}`} role="button" tabIndex={0} aria-label={parkingStatus ? label+' · '+parkingStatus : label} onClick={() => onSpace(space)} onKeyDown={e => {if (e.key === 'Enter' || e.key === ' ') {e.preventDefault(); onSpace(space);}}}>
+  const label = `${space.space_id} ${t(typeLabels[space.space_type])} ${t(statusLabels[space.status])}${recommended ? ' · '+t('추천 빈자리') : ''}${admin&&(space.car_id||number) ? ' 차량 ' + (lot.type === 'real' ? space.car_id : space.plate_number || number) : ''}`;
+  return <g className={`pdf-bay ${space.status} ${space.space_type} ${dim ? 'dim' : ''} ${selected ? 'found' : ''} ${warned ? 'warned' : ''} ${recommended ? 'recommended' : ''}`} role="button" tabIndex={0} aria-label={parkingStatus ? label+' · '+parkingStatus : label} onClick={() => onSpace(space)} onKeyDown={e => {if (e.key === 'Enter' || e.key === ' ') {e.preventDefault(); onSpace(space);}}}>
     <title>{label}{parkingStatus && ' · '+parkingStatus}</title><polygon className="pdf-bay-shape" points={points}/>
     {parkingStatus && <g className="reserved-parking-marker" transform={`translate(${geometry.centerX} ${geometry.centerY+28})`}><circle r="12"/><text textAnchor="middle" y="6">{parkingStatus===t('확인 필요')?'?':'!'}</text></g>}
     {(admin || space.status !== 'occupied') && ['ev','accessible'].includes(space.space_type) && <g className="bay-floor-symbol" opacity={space.status==='occupied'?.12:.95} transform={`translate(${geometry.centerX} ${geometry.centerY+8}) skewX(${geometry.floorSymbolSkew}) scale(${lot.lot_id==='C' && space.space_type==='ev' ? .42 : geometry.floorSymbolScale})`} aria-hidden="true">
@@ -205,6 +206,6 @@ export default function ParkingLayoutMap(props) {
       </svg>
     </div>
     {!props.legendNearMap&&<div className="map-legend">{Object.entries(statusLabels).map(([id,label]) => <span key={id}><i className={`legend-dot ${id}`}/>{t(label)}</span>)}</div>}
-    <p className="pdf-layout-note"><Icon name="info"/>{kind === 'mall' ? t('신세계 백화점 주차장 B1 가상 배치 · A–D는 신세계 백화점 주차장 내부 구역입니다. 차량번호는 주차칸 확대에서 확인하세요.') : t('첨부 도면 기준 · A/B는 이 주차장 내부 구역입니다.')}<br/>{t("주차칸 선택으로 상세 조회 · 초록색 전기차 / 파란색 장애인")}</p>
+    {kind === 'mall' && !props.admin && <p className="pdf-layout-note"><Icon name="info"/>{kind === 'mall' ? t('신세계 백화점 주차장 B1 가상 배치 · A–D는 신세계 백화점 주차장 내부 구역입니다. 차량번호는 주차칸 확대에서 확인하세요.') : t('첨부 도면 기준 · A/B는 이 주차장 내부 구역입니다.')}<br/>{t("주차칸 선택으로 상세 조회 · 초록색 전기차 / 파란색 장애인")}</p>}
   </section>;
 }
