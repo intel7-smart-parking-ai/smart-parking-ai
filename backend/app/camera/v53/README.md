@@ -24,7 +24,7 @@ $env:API_BASE_URL = "http://<시연 서버 IP>"; $env:VISION_TOKEN = "<팀에서
 
 | 순서 | 할 일 | 확인 |
 | --- | --- | --- |
-| 1 | 카메라 PC를 **서버와 같은 망**에 연결 | `Test-NetConnection <서버 IP> -Port <포트>`가 True. 봇 테스트 서버·시연 PC 주소는 팀 공지에서 확인(저장소에 적지 않음). 랜 포트 없는 노트북은 USB 랜 어댑터 또는 팀 Tailscale 참여 후 시연 PC의 Tailscale 주소 사용. 휴대폰 핫스팟만으로는 내부망에 닿지 않고, 공개 도메인은 카메라 수신 경로를 막아 둔다(404) |
+| 1 | 카메라 PC를 **서버와 같은 망**에 연결 | `Test-NetConnection <서버 IP> -Port <포트>`가 True. 봇 테스트 서버·시연 PC 주소는 팀 공지에서 확인(저장소에 적지 않음). 랜 포트 없는 노트북은 USB 랜 어댑터 또는 팀 Tailscale 참여 후 시연 PC의 Tailscale 주소 사용. 휴대폰 핫스팟만으로는 내부망에 닿지 않는다. 외부망에서는 `API_BASE_URL=https://<공개 도메인>`(HTTPS·토큰 필수)만 바꾸면 되지만, 11/10 현재 공개 도메인 앞단에서 카메라 수신 경로가 404로 막혀 있어 PM·서버 담당 확인 후 사용한다. 새 포트·터널은 PM 승인 없이 열지 않는다 |
 | 2 | 시간 확인 | 서버는 2초 넘게 미래인 관측을 거부한다. `w32tm /query /status`로 동기화 원본 확인. 어긋나면 관리자 PowerShell에서 `w32tm /resync` 또는 Windows 설정 > 시간 및 언어 > 날짜 및 시간 > 지금 동기화 |
 | 3 | 실행 창에서 `API_BASE_URL`·`VISION_TOKEN`(DM으로 받은 값)·필요 시 `V53_UNATTENDED_SEND=1` 설정 후 `run_windows.bat --start-camera` | 토큰은 파일·채널·커밋에 남기지 않는다 |
 | 4 | `http://127.0.0.1:8011`에서 두 도면의 칸 이름이 실제 칸과 맞는지 보고 승인 → **전송 켜기** | 화면 상단 "인식 중 · 관측 전송 켜짐" |
