@@ -80,3 +80,27 @@ cd backend/app/chatbot/parking-chatbot
 | 모델이 없을 때 "이해하지 못했어요" | `chatbot/parser.py` (규칙 대체 답) |
 
 고친 질문은 `tests/test_v33_review_loop.py`처럼 회귀 테스트로 남긴다.
+
+## 4. 로컬 기록으로 트레이스처럼 추적 (11/10, Langfuse 무료 한도 소진 대안)
+
+Langfuse 없이도 실패 원인을 호출 단위로 본다. 기록을 켠 서버에서만 동작하고 기본은 꺼짐이다.
+
+| Langfuse에서 보던 것 | 로컬 기록 |
+|---|---|
+| 트레이스 단계 | 경로 기록(`route`)과 단계별 이유(`why`) |
+| 모델 호출별 시간·결과 | `agent.calls`: 도구 고르기/답 쓰기, ms, 제한 초, 결과, 요청한 도구 |
+| 근거 검사에서 버려진 출력 | `agent.drafts`: 탈락 이유와 초안 원문(`MONITOR_CAPTURE_TEXT=0`이면 글자 수만) |
+| 토큰·비용 | `input_tokens`·`output_tokens`, 리포트에서 단가를 주면 비용 |
+| 프롬프트 버전 비교 | `prompts.conversation`별 AI 답 비율 |
+
+```powershell
+# 서버(봇 PC·시연 PC): 루트 .env에 MONITOR_BACKEND=local → api 재생성. 끝나면 기록을 꺼낸다(Git에 올리지 않음)
+docker compose cp api:/data/monitor/turns.jsonl ./turns.jsonl
+# 리포트와 실패 질문지
+python tools/trace_report.py turns.jsonl --sheet .monitoring/failed_sheet.json --price-in 0.1 --price-out 0.4
+# 고친 뒤 같은 질문으로 다시(앞 대화 2턴까지 재현)
+python tools/run_dialogs.py .monitoring/failed_sheet.json --env-file <키 파일> --label 실패재현_수정후 --save
+```
+
+로컬에서 질문지를 돌릴 때도 `MONITOR_LOCAL_PATH=<경로>`를 주면 같은 기록이 남아 리포트로 볼 수 있다.
+첫 사용(11/10)에서 '스크래치 났어' AI 초안이 앞 대화의 '17가1724'를 말했다가 근거 검사에 탈락한 것과, gemma가 본문에 '[관리자 호출]'을 쓴 것을 찾아 고쳤다.

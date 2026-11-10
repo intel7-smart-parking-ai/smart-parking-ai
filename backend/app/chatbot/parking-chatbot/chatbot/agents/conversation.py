@@ -330,10 +330,19 @@ async def _arun_conversation(text, history, state, tools, model=None, *, options
                     metadata["model_calls"] += 1
                     with _stats_lock:
                         _active_models += 1
+                    call_started = time.monotonic()
+                    # 호출별 기록: 도구 고르기(select)·답 쓰기(answer), 걸린 시간, 제한, 결과, 요청한 도구
+                    call = {"kind": "answer" if observations else "select", "limit_s": round(timeout, 2)}
+                    metadata.setdefault("calls", []).append(call)
                     try:
                         response = await asyncio.wait_for(handler(request), timeout)
+                        call.update(ms=round((time.monotonic() - call_started) * 1000), status="ok")
+                        asked = [c.get("name") for m in getattr(response, "result", []) for c in (getattr(m, "tool_calls", None) or [])]
+                        if asked:
+                            call["tools"] = asked
                         break
                     except Exception as exc:
+                        call.update(ms=round((time.monotonic() - call_started) * 1000), status=type(exc).__name__)
                         # 제공자가 느려 제한 시간 안에 한 글자도 못 받은 경우(11/09·10 실측 P02): 예산이 남아 있으면 한 번만 다시 부른다.
                         timed_out = isinstance(exc, (TimeoutError, asyncio.TimeoutError)) or type(exc).__name__ in ("APITimeoutError", "ReadTimeout")
                         if (not timed_out or attempts >= 2 or metadata["model_calls"] >= options.max_model_calls
@@ -428,6 +437,8 @@ async def _arun_conversation(text, history, state, tools, model=None, *, options
                                  for row in observations):
             return finish("clarify", clarification)
         problem = problem_of(answer)
+        if problem:
+            metadata.setdefault("drafts", []).append({"reason": problem, "text": (answer or "")[:600]})
         # 조회 없이 운영 사실·추천을 말했거나 빈 답이면, 조회하라는 메모와 함께 한 번 다시 쓰게 한다
         # ('여행 가는데 어디가 좋아?' → 공항 주차장 조회). 다시 써도 실패하면 확인된 대체 답으로 넘어간다.
         if problem and repair_enabled \
@@ -447,6 +458,9 @@ async def _arun_conversation(text, history, state, tools, model=None, *, options
                     {"messages": list(output["messages"]) + [{"role": "user", "content": note}]}, run_config), time_left())
                 repaired = _message_text(retry["messages"][-1])
                 problem = problem_of(repaired)
+                if problem and problem != "repeated":
+                    metadata.setdefault("drafts", []).append({"reason": problem, "text": (repaired or "")[:600],
+                                                              "repair": True})
                 if problem == "repeated":
                     problem = None   # 같은 사실을 다시 말하는 것은 안전 문제가 아니다.
                     metadata["repeated"] = True

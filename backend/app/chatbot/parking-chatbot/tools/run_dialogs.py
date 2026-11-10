@@ -42,7 +42,8 @@ def main(argv=None):
         key = dotenv_values(args.env_file).get("OPENROUTER_API_KEY")
         if key:
             os.environ.setdefault("OPENROUTER_API_KEY", key)
-    log = Path(tempfile.gettempdir()) / f"dialog_turns_{os.getpid()}.jsonl"
+    # 턴 기록: MONITOR_LOCAL_PATH를 주면 그 파일에 남긴다(tools/trace_report.py로 분석). 없으면 임시 파일.
+    log = Path(os.environ.get("MONITOR_LOCAL_PATH") or Path(tempfile.gettempdir()) / f"dialog_turns_{os.getpid()}.jsonl")
     os.environ.update(DATA_SOURCE="mock", MONITOR_BACKEND="local", MONITOR_LOCAL_PATH=str(log),
                       LLM_ENGINE=os.environ.get("LLM_ENGINE", "langchain"), LLM_MAX_PER_SESSION_MIN="60")
     os.environ.setdefault("LLM_PROVIDER", "openrouter" if os.environ.get("OPENROUTER_API_KEY") else "none")

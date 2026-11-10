@@ -54,6 +54,16 @@ _OWN_ZONE = {"ev": "ev", "accessible": "accessible"}
 _CROWD = re.compile(r"꽉|찼|가득|붐비|붐벼|한산|널널|만차|여유")
 
 
+_FAKE_BUTTON = re.compile(r"[ \t]*\[(?=[^\]\n]*(?:관리자|결제|호출|충전|빈자리|안내|요금|취소|조회|위치|버튼))[^\]\n]{1,20}\][ \t]*")
+
+
+def _strip_fake_buttons(text):
+    """본문의 '[결제하기] [관리자 호출]' 같은 버튼 흉내. 실제 버튼은 화면이 칩으로 따로 붙인다."""
+    cleaned = _FAKE_BUTTON.sub(" ", text or "")
+    cleaned = re.sub(r"[ \t]+\n", "\n", re.sub(r"[ \t]{2,}", " ", cleaned))
+    return re.sub(r"\n{3,}", "\n\n", cleaned).strip() or text
+
+
 def _prefetch(text, session, toolbox, target, notice=None):
     """확실한 조회를 코드가 먼저 실행한다 → [{"tool", "args", "result"}].
 
@@ -279,7 +289,10 @@ def reply_to(text, session, adapter, alert, vehicle, refresh_alert, admin_status
                                  if k in {"model_calls", "tool_calls", "input_tokens", "output_tokens", "latency_ms",
                                           "grounding_error", "repair_reason", "repair_failed", "repaired",
                                           "repeated", "smalltalk", "missing_goal", "prefetched",
-                                          "retried_timeout"}} | {"status": result.status})
+                                          "retried_timeout", "calls"}}
+                          | {"status": result.status,
+                             "drafts": [{**d, "text": monitoring.capture(d.get("text"))}
+                                        for d in result.metadata.get("drafts") or []] or None})
     if result and (result.status in {"ok", "clarify"} or result.metadata.get("model_calls")) and refresh_alert().get("level", 0) >= 2:
         route.mark("agent", "dropped", why="답하는 동안 Lv2 경보 발생")
         return None
@@ -310,7 +323,7 @@ def reply_to(text, session, adapter, alert, vehicle, refresh_alert, admin_status
         meta = dict(reply.meta) if reply else {}
         if evidence:
             meta["source_evidence"] = next((r["source"] for r in evidence if r["source"].get("is_mock")), evidence[0]["source"])
-        answer = plain_text(result.text)
+        answer = _strip_fake_buttons(plain_text(result.text))
         if any((r["data"].get("fee") or {}).get("payment_blocked") is True for r in evidence):
             if not meta.get("payment_blocked"):
                 answer += "\n서버가 모의 결제를 차단했어요. 대피 안내를 먼저 확인해 주세요."

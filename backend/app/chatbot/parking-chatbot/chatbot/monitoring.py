@@ -75,6 +75,11 @@ def _text(value):
     return {"chars": len(value)}
 
 
+def capture(value):
+    """기록에 남길 문장. MONITOR_CAPTURE_TEXT=0이면 글자 수만."""
+    return _text(value)
+
+
 def _prompt_versions():
     """역할별 지시문 버전(내용 해시). 답이 달라진 때를 지시문 변경과 맞춰 보기 위해 기록한다."""
     try:
