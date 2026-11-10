@@ -30,7 +30,9 @@ from backend.app.api.billing_router import billing_router, get_session_fee, crea
 from backend.app.api.session_queries import router as session_router
 from backend.app.billing.db import get_db_conn, get_db_path, init_schema, seed_defaults
 from backend.app.billing.schemas import PaymentCreateRequest
-from backend.app.database.parking_sessions import enter, exit_session, identify, SessionError
+from backend.app.database.parking_sessions import (
+    enter, exit_session, identify, init_session_moves, move_sessions, SessionError,
+)
 from backend.app.alerts.router import (
     router as alert_router,
     init_alerts_schema,
@@ -138,7 +140,7 @@ class EventPipeline(OccupancyExperiment):
 
     def _save_camera_snapshot(self, conn, row):
         state = dict(row)
-        for key in ("identity_match", "identity_evidence", "identity_observation"):
+        for key in ("identity_match", "identity_evidence", "identity_observation", "move_evidence"):
             state.pop(key, None)
         state["observed_at"] = row["observed_at"].isoformat()
         signature, first = row["candidate"]
@@ -184,7 +186,8 @@ class EventPipeline(OccupancyExperiment):
         row = previous.copy()
         self._apply_observation(row, event)
         if (row["version"] != previous["version"] and
-                (row["status"] in ("occupied", "empty") or row.get("identity_match") is not None)):
+                (row["status"] in ("occupied", "empty") or row.get("identity_match") is not None
+                 or len(row.get("move_evidence", (None, ()))[1]) == 3)):
             self.sync_session(row, event.observed_at)
         self._spaces[key] = row
 
@@ -351,6 +354,132 @@ class EventPipeline(OccupancyExperiment):
             self._finish_event(conn, event, journal_key)
             return Receipt.ACCEPTED
 
+    def _apply_observation(self, row, event):
+        version = row["version"]
+        super()._apply_observation(row, event)
+        if row["version"] == version:
+            return
+        at = event.observed_at
+        if (not self._collect_identity_evidence or not event.car_id
+                or event.event_type != "vehicle_observed" or self._identity_frame(event) is None
+                or event.confidence < 0.8 or not 0 <= (self._identity_clock() - at).total_seconds() <= 2):
+            row.pop("move_evidence", None)
+            return
+        car, frames = row.get("move_evidence", (None, ()))
+        if car != event.car_id or (frames and (at - frames[-1]).total_seconds() > 2):
+            frames = ()
+        # D-70 uses the latest three consecutive frames. D-68 keeps its own 10-second window.
+        row["move_evidence"] = (event.car_id, (*frames[-2:], at))
+
+    def _apply_camera_move(self, conn, row, active):
+        if row["lot_id"] not in ("A", "B") or row["source"] != "vision":
+            return False
+        lot = row["lot_id"]
+        bay = row["space_id"]
+        rows = {space: state for (lot_id, space), state in self._spaces.items() if lot_id == lot}
+        rows[bay] = row
+        now = self._identity_clock()
+        candidate = row.get("move_evidence")
+        source = None
+        if candidate and candidate[0] and (active is None or active["car_id"] is not None):
+            source = conn.execute(
+                "SELECT * FROM parking_sessions WHERE car_id=? AND status='active'",
+                (candidate[0],),
+            ).fetchone()
+            if source and source["lot_id"] != lot:
+                raise HTTPException(409, "다른 주차장의 활성 차량은 이동할 수 없습니다.")
+            if source and source["space_id"] == bay:
+                source = None
+        if source is None and (row["status"] != "empty" or active is None or active["car_id"] is None):
+            return False
+
+        def fresh(at):
+            return at is not None and 0 <= (now - at).total_seconds() <= 2
+
+        active_rows = conn.execute(
+            "SELECT * FROM parking_sessions WHERE lot_id=? AND status='active'", (lot,)
+        ).fetchall()
+        by_car = {session["car_id"]: session for session in active_rows if session["car_id"] is not None}
+        occupied = {session["space_id"] for session in active_rows}
+        if len(occupied) != len(active_rows):
+            raise HTTPException(409, "같은 칸에 활성 세션이 중복되어 이동할 수 없습니다.")
+
+        claims = {}
+        tentative = set()
+        for target, state in rows.items():
+            proof = state.get("move_evidence")
+            if not proof or not fresh(proof[1][-1]):
+                continue
+            car, frames = proof
+            first = frames[0]
+            session = by_car.get(car)
+            if (session is None or session["space_id"] not in rows
+                    or session["space_id"] == target
+                    or first < datetime.fromisoformat(session["entry_at"])):
+                continue
+            tentative.add(session["space_id"])
+            if len(frames) == 3:
+                claims.setdefault(session["space_id"], []).append(target)
+        edges = {origin: targets[0] for origin, targets in claims.items() if len(targets) == 1}
+        component = {bay}
+        for _ in edges:
+            component |= {space for origin, target in edges.items() for space in (origin, target)
+                          if origin in component or target in component}
+        selected = {origin: target for origin, target in edges.items() if origin in component}
+        destinations = set(selected.values())
+        vacated = set(selected) - destinations
+
+        def confirmed_empty(state):
+            candidate = state["candidate"]
+            return (
+                candidate is not None and candidate[0][:3] == ("empty", None, "vision")
+                and fresh(state["observed_at"])
+                and (state["observed_at"] - candidate[1]).total_seconds() >= self.policy.empty_seconds
+            )
+
+        if (selected and len(destinations) == len(selected)
+                and not (destinations & occupied - set(selected))
+                and all(confirmed_empty(rows[origin]) for origin in vacated)):
+            by_space = {session["space_id"]: session for session in active_rows}
+            effective = max(rows[space]["observed_at"] for space in component)
+            updates = {}
+            moves = []
+            for origin, target in selected.items():
+                session = by_space[origin]
+                moves.append((session["session_id"], origin, target))
+                updates[target] = dict(
+                    rows[target], status="occupied", car_id=session["car_id"],
+                    session_id=session["session_id"], session_car_id=session["car_id"],
+                    entry_at=session["entry_at"], observed_at=effective,
+                    vehicle_type=rows[target]["candidate"][0][3],
+                )
+            for origin in vacated:
+                updates[origin] = dict(rows[origin], status="empty", car_id=None,
+                                       vehicle_type=None, observed_at=effective)
+                for key in ("session_id", "session_car_id", "entry_at"):
+                    updates[origin].pop(key, None)
+
+            def save_snapshots():
+                for state in updates.values():
+                    self._save_camera_snapshot(conn, state)
+
+            move_sessions(conn, lot_id=lot, moves=moves, observed_at=effective,
+                          save_snapshots=save_snapshots)
+            for space, state in updates.items():
+                for key in ("identity_evidence", "identity_match", "move_evidence"):
+                    state.pop(key, None)
+                if space == bay:
+                    row.clear()
+                    row.update(state)
+                else:
+                    self._spaces[(lot, space)] = state
+            return True
+
+        if source is not None or bay in tentative:
+            row.update(status="uncertain", car_id=None, vehicle_type=None)
+            return True
+        return False
+
     def sync_session(self, row, observed_at):
         # Applied observations can carry their existing link through replay.
         if self.recovering:
@@ -396,6 +525,8 @@ class EventPipeline(OccupancyExperiment):
                     if row["status"] == "occupied":
                         row["car_id"] = linked.car_id
                     row.pop("identity_evidence", None)
+                    return
+                if self._apply_camera_move(conn, row, active):
                     return
                 if row["status"] == "occupied":
                     if active:
@@ -949,6 +1080,7 @@ def create_runtime_app(
         with closing(store.connection()) as conn:
             conn.execute("PRAGMA journal_mode=WAL")
             init_schema(conn)
+            init_session_moves(conn)
             # Legacy databases acquire and backfill status in init_schema.
             conn.execute(
                 "CREATE INDEX IF NOT EXISTS ix_parking_sessions_active_space "
