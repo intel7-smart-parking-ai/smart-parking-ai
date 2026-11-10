@@ -8,10 +8,11 @@ import './styles/welcome.css';
 import './styles/kiosk-preview.css';
 import './styles/welcome-promo.css';
 const areas=['A','B','C','D'];
-const promoDismissedKey='parkon-welcome-promo-blue-dismissed';
+const promoDismissedKey='parkon-welcome-promo-hidden-until';
 export default function ParkingWelcome({onStart}){
  const helpDialog=useRef(null);
  const promoDialog=useRef(null);
+ const hidePromoToday=useRef(null);
  const [charging,setCharging]=useState(false);
  const preview=new URLSearchParams(window.location.search).get('preview');
  const kioskPreview=preview==='kiosk-a'||preview==='kiosk-b';
@@ -22,11 +23,14 @@ export default function ParkingWelcome({onStart}){
  useEffect(()=>{
   const dialog=promoDialog.current;
   if(!dialog)return;
-  try{if(sessionStorage.getItem(promoDismissedKey))return}catch{/* Storage is optional. */}
+  try{if(Number(localStorage.getItem(promoDismissedKey))>Date.now())return}catch{/* Storage is optional. */}
   if(!dialog.open)dialog.showModal();
  },[]);
  function dismissPromo(){
-  try{sessionStorage.setItem(promoDismissedKey,'1')}catch{/* Closing works without storage. */}
+  if(!hidePromoToday.current?.checked)return;
+  const midnight=new Date();
+  midnight.setHours(24,0,0,0);
+  try{localStorage.setItem(promoDismissedKey,String(midnight.getTime()))}catch{/* Closing works without storage. */}
  }
  function changeLanguage(value){setLanguage(value);try{localStorage.setItem('parkon-welcome-language',value)}catch{/* Switching also works without storage. */}}
  return <main className="kiosk-welcome" data-preview={preview} lang={language}>
@@ -49,18 +53,29 @@ export default function ParkingWelcome({onStart}){
    {showLotChoice&&<div className="kiosk-lot-choice"><label htmlFor="welcome-lot"><Icon name="pin"/>{t.lot}</label><select id="welcome-lot" value={selected} onChange={e=>setSelected(e.target.value)}>{areas.map((id,i)=><option key={id} value={id}>{t.lots[i]}</option>)}</select></div>}
    <div className="kiosk-help-toolbar"><button type="button" className="kiosk-help-icon" aria-label={t.help} title={t.help} onClick={()=>helpDialog.current.showModal()}><Icon name="info"/></button></div>
    <div className="kiosk-services"><button className="kiosk-payment" onClick={()=>onStart(selected,'fee',language)}><Icon name="wallet"/><span className="kiosk-payment-title">{t.payment.map(line=><span key={line}>{line}</span>)}</span><span className="kiosk-payment-note">{t.paymentNote}</span><span className="kiosk-payment-arrow" aria-hidden="true">→</span></button><button className="kiosk-secondary" onClick={()=>onStart(selected,'find',language)}><span className="welcome-service-icon welcome-car-icon"><Icon name="car"/></span><span>{t.find}</span><b aria-hidden="true">›</b></button><button className="kiosk-secondary" onClick={()=>onStart(selected,'chat',language)}><span className="welcome-service-icon welcome-chat-icon"><ChatbotIcon/></span><span>{t.chat}</span><b aria-hidden="true">›</b></button><button className="kiosk-secondary" onClick={()=>setCharging(true)}><ChargingIcon/><span>{({ko:"충전 현황",en:"EV charging", "zh-CN":"充电状态",ja:"充電状況"})[language]}</span><b aria-hidden="true">›</b></button></div>
-   <a className="kiosk-mobile" href={`/?app=1&lang=${language}`}>{t.mobile}<span aria-hidden="true"> ↗</span></a>
+   <a className="kiosk-mobile" href={`/?app=1&screen=map&lot=${selected}&lang=${language}`}>{t.mobile}<span aria-hidden="true"> ↗</span></a>
   </section></>}
   {charging&&<ChargingStatus language={language} initialLot={selected} onClose={()=>setCharging(false)}/>}
   {!preview&&<dialog className="welcome-promo" ref={promoDialog} onClose={dismissPromo} aria-labelledby="welcome-promo-title">
    <div className="welcome-promo-poster" lang="ko">
-    <span className="welcome-promo-brand">PARK:ON</span>
+    <div className="welcome-promo-brand"><BrandWordmark showCar={false}/></div>
     <h2 id="welcome-promo-title">첫 결제부터<br/><strong>적립 혜택까지!</strong></h2>
     <p>빈자리 확인부터 내 차 찾기, 주차요금 결제까지 한 곳에서.</p>
-    <span className="welcome-promo-badge">첫 결제 혜택 · 적립 안내</span>
+    <details className="welcome-promo-benefits">
+     <summary className="welcome-promo-badge">첫 결제 혜택 · 적립 안내</summary>
+     <dl>
+      <dt>첫 결제 혜택</dt>
+      <dd>주차요금 메뉴에서 차량을 조회하고 첫 결제 절차를 체험할 수 있어요.</dd>
+      <dt>포인트 적립</dt>
+      <dd>현재는 데모 운영 중이라 실제 결제, 할인 및 포인트 적립은 제공되지 않아요.</dd>
+     </dl>
+    </details>
     <div className="welcome-promo-mark" aria-hidden="true">P</div>
    </div>
-   <form method="dialog"><button autoFocus>{t.close}</button></form>
+   <form method="dialog">
+    <label lang="ko"><input type="checkbox" ref={hidePromoToday}/>오늘 하루동안 보지 않기</label>
+    <button autoFocus>{t.close}</button>
+   </form>
   </dialog>}
   <dialog className="kiosk-help" ref={helpDialog} aria-labelledby="welcome-help-title"><h2 id="welcome-help-title">{t.help}</h2><ol>{(showLotChoice?t.helpSteps:t.helpSteps.slice(1)).map(step=><li key={step}>{step}</li>)}</ol><p>{t.demo}</p><form method="dialog"><button>{t.close}</button></form></dialog>
  </main>
