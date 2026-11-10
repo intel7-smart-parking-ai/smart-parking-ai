@@ -1,7 +1,7 @@
 import {t as defaultT} from './serviceLocale.js';
 import {useEffect,useRef,useState} from 'react';
 import {reservedParkingStatus} from './uiState.js';
-import {request} from './api.js';
+import {useSessionFees} from './sessionFees.js';
 import {Icon, ParkingMap as FallbackMap, typeLabels, statusLabels} from './components.jsx';
 import './styles/layout-maps.css';
 import MallParkingMap from './MallParkingMap.jsx';
@@ -108,21 +108,8 @@ export default function ParkingLayoutMap(props) {
   const [zoomed, setZoomed] = useState(false);
   const [preview,setPreview]=useState(null);
   useEffect(()=>setPreview(null),[lot.lot_id]);
-  const [fees,setFees]=useState({});
   const sessions=props.admin ? lot.spaces.filter(space=>space.status==='occupied'&&space.session_id).map(space=>space.session_id).sort().join(',') : '';
-  useEffect(()=>{
-    if (!props.admin) return;
-    let alive=true;
-    async function refreshFees(){
-      const values=await Promise.all(sessions.split(',').filter(Boolean).map(async id=>{
-        try{return [id,await request('/sessions/'+encodeURIComponent(id)+'/fee')]}catch{return [id,null]}
-      }));
-      if(alive)setFees(Object.fromEntries(values));
-    }
-    refreshFees();
-    const timer=setInterval(refreshFees,15000);
-    return()=>{alive=false;clearInterval(timer)};
-  },[sessions, props.admin]);
+  const fees=useSessionFees(sessions,{enabled:Boolean(props.admin)});
 
   const kind = lot.lot_id==='C' ? 'airport' : lot.layout_type;
   if (!names[kind]) return <FallbackMap {...props}/>;

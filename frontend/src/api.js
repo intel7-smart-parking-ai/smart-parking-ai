@@ -53,13 +53,24 @@ export async function api(path, options) {
   if (/^\/sessions\/[^/]+\/fee$/.test(path)) return feeView(result);
   return result;
 }
-export async function loadLots(source = dataSource, {keepSimulationActive = true} = {}) {
+// 11/10 부하 점검: 화면이 2.5초마다 4개 주차장 칸을 모두 조회하던 것을, 보고 있는 주차장(focusLotId)만
+// 매번 조회하고 나머지는 30초마다 갱신한다. 주차장 목록(빈자리 수 등)은 매번 최신으로 받는다.
+export const OTHER_LOT_REFRESH_MS = 30000;
+const lotSpacesCache = new Map();
+export function clearLotCache() {lotSpacesCache.clear();}
+export async function loadLots(source = dataSource, {keepSimulationActive = true, focusLotId = null} = {}) {
   const visibleDemo = keepSimulationActive && source === 'team' && typeof document !== 'undefined' && !document.hidden;
   const result = await request(visibleDemo ? '/parking-lots?visible_demo=1' : '/parking-lots', {}, source);
   if (source === 'demo') return listItems(result).map(lot=>normalizeLot(lot,lot.spaces||[],result.as_of));
+  const now = Date.now();
   return Promise.all(listItems(result).map(async lot => {
+    const key = source + ':' + lot.lot_id, cached = lotSpacesCache.get(key);
+    if (focusLotId && lot.lot_id !== focusLotId && cached && now - cached.at < OTHER_LOT_REFRESH_MS)
+      return normalizeLot(lot, cached.spaces, cached.asOf);
     const response = await request(`/parking-lots/${encodeURIComponent(lot.lot_id)}/spaces`, {}, source);
-    return normalizeLot(lot,listItems(response),response.as_of);
+    const spaces = listItems(response);
+    lotSpacesCache.set(key, {at: now, spaces, asOf: response.as_of});
+    return normalizeLot(lot,spaces,response.as_of);
   }));
 }
 export async function lookupVehicle(value, kind = 'sticker', source = dataSource) {
