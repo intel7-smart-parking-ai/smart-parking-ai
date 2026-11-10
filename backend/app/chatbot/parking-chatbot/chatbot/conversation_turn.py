@@ -55,26 +55,7 @@ _CROWD = re.compile(r"꽉|찼|가득|붐비|붐벼|한산|널널|만차|여유")
 
 
 _FAKE_BUTTON = re.compile(r"[ \t]*\[(?=[^\]\n]*(?:관리자|결제|호출|충전|빈자리|안내|요금|취소|조회|위치|버튼|출차|출구|입차|차단|하기))[^\]\n]{1,20}\][ \t]*")
-_PAID_SAID = re.compile(r"이미\s*(?:결제|정산)|결제(?:가|는)?\s*(?:완료|끝|됐|되었|하셨|했)|정산(?:이|은)?\s*(?:완료|끝|됐)")
 
-
-def _fix_facts(answer, evidence):
-    """모델이 지시문을 어겨도 사실은 맞게: 결제 완료 차량은 결제했다고 먼저 말하고(봇 점검 🟠1),
-    일부 주차장에만 없는 안내 자료는 '자료 없음'을 붙인다(🟡4)."""
-    lead, tail = [], []
-    for row in evidence:
-        fee = (row.get("data") or {}).get("fee") if row.get("tool") == "vehicle_info" else None
-        if (isinstance(fee, dict) and fee.get("paid") is True and not _PAID_SAID.search(answer)
-                and re.search(r"\d[\d,]*\s*원|요금|금액|정산", answer)):
-            amount = f"(결제 금액 {fee['fee']:,}원)" if type(fee.get("fee")) is int else ""
-            lead.append(f"{fee.get('car_id')}번 차는 이미 결제했어요{amount}. 출구에서는 현장 안내를 따라 주세요.")
-            answer = re.sub(r"현재\s*요금(은|이)", r"결제한 요금\1", answer)
-        if row.get("tool") == "search_knowledge":
-            for label, names in ((row.get("data") or {}).get("missing_by_lot") or {}).items():
-                names = [n for n in names if n not in answer]
-                if names:
-                    tail.append(f"{'·'.join(names)}은 {label} 자료가 아직 없어요.")
-    return "\n".join(dict.fromkeys(lead + [answer] + tail))
 
 
 def _strip_fake_buttons(text):
@@ -343,7 +324,7 @@ def reply_to(text, session, adapter, alert, vehicle, refresh_alert, admin_status
         meta = dict(reply.meta) if reply else {}
         if evidence:
             meta["source_evidence"] = next((r["source"] for r in evidence if r["source"].get("is_mock")), evidence[0]["source"])
-        answer = _fix_facts(_strip_fake_buttons(plain_text(result.text)), evidence)
+        answer = _strip_fake_buttons(plain_text(result.text))
         if any((r["data"].get("fee") or {}).get("payment_blocked") is True for r in evidence):
             if not meta.get("payment_blocked"):
                 answer += "\n서버가 모의 결제를 차단했어요. 대피 안내를 먼저 확인해 주세요."

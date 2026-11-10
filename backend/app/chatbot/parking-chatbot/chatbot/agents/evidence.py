@@ -29,7 +29,8 @@ _DONE_WORD = re.compile(
 )
 _NOT_DONE = re.compile(r"안\s*(?:됐|되|했)|못\s*(?:했|됐)|않았|않아|아직|전이에요|전입니다|아니에요|아닙니다|없어요|없습니다"
                        r"|하시면|하려면|원하시면|할\s*수|해야|할까요|드릴까요|드릴게요|해\s*드릴|되면|되지|하지\s*(?:마|않)|확인되지")
-_AGENCY = re.compile(r"드렸|제가|저희가|챗봇이|해\s*줬|해\s*주었")
+# '제가·저희가'는 낱말일 때만('결제가 완료됐어요'의 '제가'를 챗봇의 실행 주장으로 읽던 버그, 11/10)
+_AGENCY = re.compile(r"드렸|(?<![가-힣])(?:제가|저희가)|챗봇이|해\s*줬|해\s*주었")
 _PROMISE = re.compile(
     r"(?:관리자|직원|담당자|소방|119|구급|경찰).{0,15}"
     r"(?:갈|올|오실|가실|도착|출동|방문|연락\s*(?:드릴|할|줄|해\s*줄|올)).{0,6}"
@@ -165,7 +166,11 @@ _OFFER = re.compile(r"(?:확인|조회|안내|알려|도와|찾아)\S*\s*(?:드�
 
 
 # '아래 버튼을 누르면 출차를 진행할 수 있어요', '차단기를 열어 드릴게요' — 챗봇에 없는 기능(봇 점검 11/10 🟠2)
-_EXIT_CLAIM = re.compile(r"출차(?:를|가)?\s*(?:진행|처리|도와|해\s*드|시켜|완료)|차단기.{0,8}(?:열|올리|올려)|출구(?:를)?\s*(?:열어|개방해)|\[\s*출차")
+_EXIT_CLAIM = re.compile(r"(?:버튼|아래|여기서|제가|챗봇).{0,15}출차(?:를|가)?\s*(?:진행|처리|할\s*수|하실\s*수)|"
+                         r"출차(?:를)?\s*(?:도와|처리해|진행해|해)\s*드|차단기.{0,8}(?:열어|올려)\s*드|출구(?:를)?\s*(?:열어|개방해)\s*드|\[\s*출차")
+# 결제가 끝난 차량을 아직 낼 돈이 있는 것처럼 말함(봇 점검 11/10 🟠1: '현재 요금은 3,500원이에요')
+_UNPAID_TALK = re.compile(r"현재\s*요금|지금\s*나가면|지금까지\s*요금|내셔야|내야\s*(?:할|해|하는)|결제하(?:시면|셔야)|결제할\s*금액|미결제")
+_PAID_SAID = re.compile(r"이미\s*(?:결제|정산)|결제(?:가|는|를)?\s*(?:완료|끝|마치|됐|되었|하셨|했)|정산(?:이|은)?\s*(?:완료|끝|됐)")
 # 장소의 위치·방향 주장('영화관 방향 표시는 몰 쪽 A·C구역', '영화관은 2층')
 _PLACE_CLAIM = re.compile(r"구역|쪽|방향|층|근처|가까|위치|옆|앞|건너|표시")
 
@@ -197,6 +202,7 @@ REPAIR_HINTS = {
     "missing_goal": "질문에서 요청한 정보 중 일부를 조회하지 않았습니다.",
     "no_evidence": "조회 없이 빈자리·요금·추천 같은 운영 정보를 말했습니다. 목적에 맞는 주차장(주차장 성격 참고)을 parking_status나 compare_lots로 먼저 조회한 뒤 그 값으로 답하세요. 인사나 범위 밖 질문이면 운영 정보 없이 짧게 답하세요.",
     "empty_answer": "답이 비어 있습니다. 질문에 맞는 조회를 한 뒤 사용자에게 보일 답을 쓰세요.",
+    "paid_not_said": "이 차량은 이미 결제가 끝났습니다(vehicle_info의 fee.paid). '이미 결제했어요'와 결제 금액을 말하고, '현재 요금'·'지금 나가면' 같은 미결제 표현은 쓰지 마세요.",
     "unsupported_exit": "출차·차단기 개방·입출차 처리는 챗봇이 할 수 없습니다. 결제가 끝났으면 '출구에서 현장 안내를 따라 주세요'라고 하고, 버튼 이름을 본문에 쓰지 마세요.",
     "unsupported_place": "안내 자료에 없는 장소(not_in_guide)의 위치·방향·가까운 구역을 말했습니다. 그 장소는 '안내 자료에 없어요'라고만 하고, 조회한 빈자리나 자료에 있는 시설(엘리베이터 등)로 도우세요.",
 }
@@ -237,6 +243,10 @@ def check_answer(answer, request, observations):
     for sentence in re.split(r"(?<=[.!?。])\s+|\n+", answer):
         if _EXIT_CLAIM.search(sentence) and not re.search(r"수\s*없|못\s*해|못합|어려|불가|않", sentence):
             return "unsupported_exit"
+    paid_cars = [data["fee"] for data in reads if isinstance(data.get("fee"), dict) and data["fee"].get("paid") is True]
+    unpaid_cars = [data["fee"] for data in reads if isinstance(data.get("fee"), dict) and data["fee"].get("paid") is False]
+    if paid_cars and not unpaid_cars and _UNPAID_TALK.search(answer) and not _PAID_SAID.search(answer):
+        return "paid_not_said"
     missing_places = {place for observation in observations
                       if observation["tool"] == "search_knowledge" and readable(observation)
                       for place in observation["result"]["data"].get("not_in_guide") or []}
