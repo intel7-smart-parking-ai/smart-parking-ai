@@ -133,6 +133,12 @@
         ]
       ],
       [
+        "/api/v1/chat/feedback",
+        [
+          "POST"
+        ]
+      ],
+      [
         "/api/v1/chat/incidents",
         [
           "GET"

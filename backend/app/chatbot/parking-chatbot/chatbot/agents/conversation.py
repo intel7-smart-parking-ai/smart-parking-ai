@@ -37,10 +37,19 @@ class AgentOptions:
     # 도구 선택 2~3회 + 답 작성 1회 + 고쳐 쓰기 1회
     max_model_calls: int = 5
     max_tool_calls: int = 10
-    max_output_tokens: int = 800
+    max_output_tokens: int | None = None   # None이면 config.LLM_MAX_OUTPUT_TOKENS(기본 600)
     max_total_tokens: int | None = None   # None이면 LLM_TURN_TOKEN_LIMIT
     max_history_messages: int = 12
     repair: bool | None = None            # None이면 LLM_REPAIR
+
+
+# 고쳐 쓰기에 필요한 최소 남은 시간(config.LLM_REPAIR_MIN_SEC). 모자라면 기다리지 않고 확인된 규칙 답으로 넘긴다.
+def _repair_min_sec():
+    return config.LLM_REPAIR_MIN_SEC
+
+
+def _output_tokens(options):
+    return options.max_output_tokens or config.LLM_MAX_OUTPUT_TOKENS
 
 
 class _Stopped(Exception):
@@ -117,7 +126,7 @@ def _provider_model(options: AgentOptions):
         raise _Stopped("missing_key")
     timeout = request_timeout(config.LLM_TIMEOUT_SEC)
     kwargs = {"model": config.LLM_MODEL, "api_key": key, "temperature": 0,
-              "max_tokens": options.max_output_tokens, "timeout": timeout, "max_retries": 0}
+              "max_tokens": _output_tokens(options), "timeout": timeout, "max_retries": 0}
     if provider == "anthropic":
         from langchain_anthropic import ChatAnthropic
         return ChatAnthropic(**kwargs)
@@ -238,7 +247,7 @@ async def _arun_conversation(text, history, state, tools, model=None, *, options
     callbacks = callbacks if callbacks is not None else extras.get("callbacks")
     token_limit = options.max_total_tokens if options.max_total_tokens is not None else config.LLM_TURN_TOKEN_LIMIT
     repair_enabled = config.LLM_REPAIR if options.repair is None else options.repair
-    if (min(options.max_model_calls, options.max_tool_calls, options.max_output_tokens,
+    if (min(options.max_model_calls, options.max_tool_calls, _output_tokens(options),
             token_limit) <= 0 or options.max_history_messages < 0):
         return finish("invalid_options")
     # 호출 상한은 질문(턴) 단위다. 한 턴 안의 도구 선택·답 작성·고쳐 쓰기는 따로 세지 않는다.
@@ -286,7 +295,7 @@ async def _arun_conversation(text, history, state, tools, model=None, *, options
         return finish("invalid_tools")
     allowed = {"parking_status", "vehicle_info", "fee_policies", "compare_lots", "estimate_fee",
                "alert_summary", "violations", "call_status", "search_knowledge",
-               "propose_action", "ask_clarification"}
+               "propose_action", "ask_clarification", "service_notice"}   # service_notice: 읽기 전용 확정 안내
     if not tool_names <= allowed:
         return finish("unsafe_tools")
 
@@ -392,10 +401,9 @@ async def _arun_conversation(text, history, state, tools, model=None, *, options
                                  for row in observations):
             return finish("clarify", clarification)
         problem = problem_of(answer)
-        if problem == "no_evidence" and not observations:
-            # 조회 없이 운영 사실을 말한 답은 고쳐 쓰지 않고 바로 확인된 경로로 넘긴다.
-            return finish("ungrounded")
-        if problem and repair_enabled and problem != "empty_answer" \
+        # 조회 없이 운영 사실·추천을 말했거나 빈 답이면, 조회하라는 메모와 함께 한 번 다시 쓰게 한다
+        # ('여행 가는데 어디가 좋아?' → 공항 주차장 조회). 다시 써도 실패하면 확인된 대체 답으로 넘어간다.
+        if problem and repair_enabled \
                 and metadata["model_calls"] < options.max_model_calls:
             # 이유를 알려 주고 한 번만 다시 쓰게 한다. 실패하면 처음 판정으로 대체 경로를 탄다.
             first_problem = problem
@@ -406,7 +414,7 @@ async def _arun_conversation(text, history, state, tools, model=None, *, options
             note = ("[답변 검사 메모 · 사용자 발화 아님] 방금 답은 화면에 나가지 않았습니다. " + hint +
                     " 필요한 조회를 한 뒤, 사용자에게 보일 최종 답만 다시 쓰세요.")
             try:
-                if time_left() < 1.0:
+                if time_left() < _repair_min_sec():
                     raise _Stopped("timeout")
                 retry = await asyncio.wait_for(agent.ainvoke(
                     {"messages": list(output["messages"]) + [{"role": "user", "content": note}]}, run_config), time_left())

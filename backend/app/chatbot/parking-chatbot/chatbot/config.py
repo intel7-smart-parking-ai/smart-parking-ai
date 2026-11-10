@@ -114,7 +114,9 @@ ASSIGNED_CAR_IDS = catalog.settings.get("assigned_car_ids")
 DESTINATION_TTL_SEC = _number("DESTINATION_TTL_SEC", "1800", float)
 QUERY_CONTEXT_TTL_SEC = _number("QUERY_CONTEXT_TTL_SEC", "300", float)
 ALERT_SHARE_SEC = _number("ALERT_SHARE_SEC", "0.2", float)
-REQUEST_BUDGET_SEC = _number("REQUEST_BUDGET_SEC", "6", float)
+# 질문 하나의 처리 시간 상한(초). 화면은 챗봇 응답을 20초까지 기다린다. 대화 AI(호출 2번, 입력 약 1.3만 토큰)가
+# 6초 안에서는 22%가 시간 초과로 규칙 답이 됐고 8초에서는 사진 사례가 모두 AI 답이었다(11/09 실측).
+REQUEST_BUDGET_SEC = _number("REQUEST_BUDGET_SEC", "8", float)
 # 같은 세션·차량·사건의 관리자 호출을 하나로 합치는 시간(초). 반복 호출 접수에 적용
 CALL_MERGE_SEC = _number("CALL_MERGE_SEC", "600", float)
 ADMIN_TOKEN = getenv("ADMIN_TOKEN", "")
@@ -196,7 +198,11 @@ FALLBACK_HINTS = getenv("FALLBACK_HINTS", "0") == "1"
 LLM_MAX_INFLIGHT = _number("LLM_MAX_INFLIGHT", "4", int)
 LLM_SLOT_WAIT_SEC = _number("LLM_SLOT_WAIT_SEC", "1", float)
 # 조회 결과를 받은 뒤 답을 쓰는 모델 호출의 제한 시간(초). 도구 선택 호출은 LLM_TIMEOUT_SEC
-LLM_ANSWER_TIMEOUT_SEC = _number("LLM_ANSWER_TIMEOUT_SEC", "4", float)
+LLM_ANSWER_TIMEOUT_SEC = _number("LLM_ANSWER_TIMEOUT_SEC", "5", float)
+# 대화 AI 답의 출력 토큰 상한. 너무 낮으면 추천·비교 답이 잘리고, 너무 높으면 긴 목록 답으로 시간 초과가 잦다.
+LLM_MAX_OUTPUT_TOKENS = _number("LLM_MAX_OUTPUT_TOKENS", "600", int)
+# 근거 검사에 걸린 답을 고쳐 쓰려면 남아 있어야 하는 최소 시간(초). 고쳐 쓰기는 조회를 다시 해 답을 살리는 경로다.
+LLM_REPAIR_MIN_SEC = _number("LLM_REPAIR_MIN_SEC", "1.5", float)
 # 한 턴의 입력+출력 토큰 상한. 도구 설명·지시문이 매 호출에 다시 들어가므로 호출 수 × 약 5천을 잡는다.
 LLM_TURN_TOKEN_LIMIT = _number("LLM_TURN_TOKEN_LIMIT", "40000", int)
 # 근거 검사에 걸린 답을 이유와 함께 한 번 고쳐 쓰게 한다(0이면 바로 대체 답).

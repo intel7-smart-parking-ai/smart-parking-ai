@@ -45,9 +45,10 @@ _NOW = re.compile(r"지금|현재|방금")
 
 # 주차장 이름이 없을 때 문맥으로 짐작하는 단서 → 그 단어를 별칭으로 가진 주차장.
 _LOT_HINTS: tuple[tuple[str, re.Pattern], ...] = (
-    ("공항", re.compile(r"비행기|항공|출국|입국|탑승|국제선|국내선|청사")),
+    ("공항", re.compile(r"비행기|항공|출국|입국|탑승|국제선|국내선|청사|여행|해외|여권|면세|휴가")),
     ("백화점", re.compile(r"쇼핑|백화점")),
-    ("부산역", re.compile(r"기차|열차|KTX|SRT|ktx|srt")),
+    # 단독으로 쓴 '역'은 목적이 아니라 부산역의 별명이다(plan.NICKNAMES). '전기차'의 '기차'는 제외
+    ("부산역", re.compile(r"(?<!전)기차|열차|KTX|SRT|ktx|srt")),
 )
 
 # 시설 질문인데 이미 지원하는 기능 단어가 있으면 그 기능이 먼저다(요금·결제·경보 등).
@@ -64,6 +65,20 @@ def topic(text: str):
         if pattern.search(text):
             return key, label
     return None
+
+
+def hinted_lots(text: str) -> list:
+    """문맥 단서가 가리키는 주차장 전부(문장에 나온 순서). '기차 먼저, 나중에 비행기' → ['B', 'C']."""
+    found = []
+    for alias, pattern in _LOT_HINTS:
+        m = pattern.search(text)
+        if not m:
+            continue
+        for key, row in config.catalog.lots().items():
+            names = [row.get("name", "")] + list(row.get("aliases", []))
+            if any(alias in name for name in names) and key not in [k for _, k in found]:
+                found.append((m.start(), key))
+    return [k for _, k in sorted(found)]
 
 
 def hinted_lot(text: str) -> str | None:

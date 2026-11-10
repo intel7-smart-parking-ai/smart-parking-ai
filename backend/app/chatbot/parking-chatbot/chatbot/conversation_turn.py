@@ -1,15 +1,16 @@
 """Coordinate an ordinary message without giving the model a write capability."""
 from dataclasses import dataclass
+import re
 import time
 
-from . import agents, config, dialog_context, monitoring, templates as T
+from . import agents, config, dialog_context, monitoring, plan, route, templates as T
 from .adapters import request_deadline
 from .agents.conversation import turn_extras as agent_extras
 from .agents.evidence import contradicts_restricted_policy
 from .dialog import Query, Reply, interpret, render_query
 from .dialog.query import _STOP_PAYMENT
 from .dialog.render import _parking_card, render_knowledge, render_observed_parking
-from .parser import extract_lots, extract_vehicle, guarded_intent, normalize_car_id
+from .parser import explicit_cars, extract_lots, extract_vehicle, guarded_intent, normalize_car_id
 from .tools import ReadTools
 from .workflows.views import fee_card
 
@@ -30,7 +31,23 @@ def _recent_answers(session, count=2):
     return answers[-count:]
 
 
-def _model_reply(text, session, toolbox, target, candidates, query=None):
+def plain_text(text):
+    """모델 답의 마크다운(**굵게**, 목록 기호, 제목)을 화면용 일반 문장으로 바꾼다. 팀 화면은 글자를 그대로 보여 준다."""
+    if not isinstance(text, str):
+        return text
+    text = re.sub(r"\*\*(.+?)\*\*|__(.+?)__", lambda m: m.group(1) or m.group(2), text)
+    text = re.sub(r"(?m)^\s{0,3}#{1,6}\s*", "", text)
+    text = re.sub(r"(?m)^\s*[-*•]\s+", "· ", text)
+    text = text.replace("**", "")
+    return re.sub(r"\n{3,}", "\n\n", text).strip()
+
+
+def readings(text):
+    """대화 AI에 넘기는 참고 정보 = 이번 질문의 계획표(plan.Plan.hints). 결정권은 없고 반드시 도구로 조회한다."""
+    return plan.for_text(text).hints()
+
+
+def _model_reply(text, session, toolbox, target, candidates, query=None, notice=None):
     if config.LLM_PROVIDER == "none" or config.LLM_ENGINE != "langchain" or not config.api_key(config.LLM_PROVIDER):
         return None
     try:
@@ -43,6 +60,9 @@ def _model_reply(text, session, toolbox, target, candidates, query=None):
         "focus_lot": dialog_context.focus(session),
         "offered_lots": dialog_context.offered(session),
         "lots": {k: config.catalog.name(k) for k in config.catalog.ids()},
+        "readings": readings(text),
+        "user_vehicle_type": getattr(session, "vehicle_type", None),
+        "service_notice_topic": (notice or {}).get("topic"),
     }
     # Give the model part of the shared turn budget and reserve time for verified fallback.
     deadline = request_deadline.get()
@@ -54,7 +74,12 @@ def _model_reply(text, session, toolbox, target, candidates, query=None):
         # 확인된 대체 답을 만들 시간만 남기고(최대 0.7초) 나머지는 모델 답(고쳐 쓰기 포함)에 쓴다.
         token = request_deadline.set(deadline - min(0.7, remaining / 4))
     turn_monitor = monitoring.current()
-    extra = {"coverage": (lambda observations: _missing(query, _observed_rows(observations))) if query else None,
+    def coverage(observations):
+        missing = _missing(query, _observed_rows(observations)) if query else ""
+        if notice and not any(row["tool"] == "service_notice" and row["result"].get("ok") for row in observations):
+            missing = ", ".join(x for x in (missing, "확정 안내(service_notice)") if x)
+        return missing
+    extra = {"coverage": coverage if (query or notice) else None,
              "avoid": _recent_answers(session),
              "callbacks": turn_monitor.callbacks() if turn_monitor else None}
     extras_token = agent_extras.set(extra)
@@ -129,28 +154,44 @@ def _observation_card(evidence, toolbox):
     return None
 
 
-def reply_to(text, session, adapter, alert, vehicle, refresh_alert, admin_status=None):
+def reply_to(text, session, adapter, alert, vehicle, refresh_alert, admin_status=None, notice=None):
     query = interpret(text, session)
     explicit, only = extract_vehicle(text)
     previous = session.pending
     resumed = bool(only and previous and previous.intent in {"dialog_read", "dialog_agent"})
     if only and not resumed:
+        route.mark("agent", "skip", why="차량 번호만 입력(업무 흐름)")
         return None
+    if query and query.clarification and explicit == "ambiguous" and len(explicit_cars(text)) > 1:
+        query = None   # '23번이랑 41번 비교' — 되묻지 않고 대화 AI가 두 차를 각각 조회
     if query and query.clarification:
+        route.mark("plan", "clarify", why=query.clarification)
         return Turn(Reply(query.clarification, meta={"intent": "clarify"}), query)
     single_vehicle = query and (query.wants_location != query.wants_fee) and not query.wants_payment
     if query and query.needs_vehicle:
         if single_vehicle:
+            route.mark("agent", "skip", why="차량 번호가 필요한 단일 조회(규칙 처리)")
             return None
+        route.mark("plan", "ask_vehicle", why="위치·요금을 함께 물었지만 차량 번호 없음")
         return Turn(Reply(T.ASK_VEHICLE, meta={"intent": "ask_vehicle"}), query, ask_vehicle=True)
 
-    target = query.car_id if query and query.car_id else normalize_car_id(explicit) or session.car_id
+    cars = explicit_cars(text)
+    target = query.car_id if query and query.car_id else normalize_car_id(explicit) or (cars[0] if len(cars) > 1 else None)         or session.car_id
     candidates = query.candidates if query else extract_lots(text + " 빈자리")
     if session.selected_candidate and target == session.car_id:
         target = None
     toolbox = ReadTools(adapter, alert, vehicle_provider=vehicle, allowed_car_id=target,
-                        allowed_lots=candidates or None, admin_status_provider=admin_status)
-    result = _model_reply(text, session, toolbox, target, candidates, query)
+                        allowed_lots=candidates or None, admin_status_provider=admin_status, notice=notice,
+                        extra_car_ids=cars[1:] if len(cars) > 1 else ())
+    result = _model_reply(text, session, toolbox, target, candidates, query, notice)
+    if result is None:
+        route.mark("agent", "off", why="모델 꺼짐·호출 한도·남은 시간 부족")
+    else:
+        meta = result.metadata
+        route.mark("agent", result.status, calls=meta.get("model_calls"),
+                   tools=[row["tool"] for row in result.tool_results] or None,
+                   problem=meta.get("grounding_error") or meta.get("repair_failed"),
+                   repaired=meta.get("repair_reason") if meta.get("repaired") else None)
     turn_monitor = monitoring.current()
     if turn_monitor and result is not None:
         turn_monitor.note(tools=[row["tool"] for row in result.tool_results],
@@ -159,6 +200,7 @@ def reply_to(text, session, adapter, alert, vehicle, refresh_alert, admin_status
                                           "grounding_error", "repair_reason", "repair_failed", "repaired",
                                           "repeated", "smalltalk", "missing_goal"}} | {"status": result.status})
     if result and (result.status in {"ok", "clarify"} or result.metadata.get("model_calls")) and refresh_alert().get("level", 0) >= 2:
+        route.mark("agent", "dropped", why="답하는 동안 Lv2 경보 발생")
         return None
 
     if (result is None or result.status not in {"ok", "clarify"}) and single_vehicle and not resumed:
@@ -166,7 +208,7 @@ def reply_to(text, session, adapter, alert, vehicle, refresh_alert, admin_status
     if result and result.status == "clarify" and not query:
         clarification = next((row["result"]["data"].get("topic") for row in result.tool_results
                               if row["tool"] == "ask_clarification" and row["result"].get("ok")), None)
-        return Turn(Reply(result.text, meta={"source": "llm", "intent": "clarify"}), None,
+        return Turn(Reply(plain_text(result.text), meta={"source": "llm", "intent": "clarify"}), None,
                     ask_vehicle=clarification == "vehicle")
 
     reply = render_query(query, toolbox) if query else None
@@ -187,7 +229,7 @@ def reply_to(text, session, adapter, alert, vehicle, refresh_alert, admin_status
         meta = dict(reply.meta) if reply else {}
         if evidence:
             meta["source_evidence"] = next((r["source"] for r in evidence if r["source"].get("is_mock")), evidence[0]["source"])
-        answer = result.text
+        answer = plain_text(result.text)
         if any((r["data"].get("fee") or {}).get("payment_blocked") is True for r in evidence):
             if not meta.get("payment_blocked"):
                 answer += "\n서버가 모의 결제를 차단했어요. 대피 안내를 먼저 확인해 주세요."
@@ -197,7 +239,11 @@ def reply_to(text, session, adapter, alert, vehicle, refresh_alert, admin_status
                       updated_at=reply.updated_at if reply else meta.get("source_evidence", {}).get("updated_at"),
                       meta={**meta, "source": "llm"})
     if reply is None:
+        if result is not None:
+            route.mark("agent", "dropped", why="검사 통과 답 없음 → 규칙 답")
         return None
+    route.mark("agent", "answer", source="llm" if reply.meta.get("source") == "llm" else "rule_render",
+               policy="D-05로 대체" if policy_conflict else None)
     if result:
         reply.meta.update(agent_status=result.status, model_calls=result.metadata.get("model_calls", 0))
         for key in ("repaired", "repeated", "smalltalk", "grounding_error", "repair_reason"):

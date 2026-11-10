@@ -43,6 +43,9 @@ def remember(s, lot=None, offered_lots=None):
     now = time.monotonic()
     if lot and lot in config.catalog.ids():
         s.focus_lot, s.focus_at = lot, now
+        if offered_lots is None:
+            # 한 곳으로 좁혀졌으면 앞서 고르라고 보여 준 후보는 끝난 것('거기'는 이 주차장)
+            s.offered_lots, s.offered_at = (), 0
     if offered_lots is not None:
         s.offered_lots, s.offered_at = tuple(offered_lots), (now if offered_lots else 0)
 

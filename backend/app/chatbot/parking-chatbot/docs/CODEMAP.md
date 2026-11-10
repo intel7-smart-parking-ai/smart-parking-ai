@@ -10,6 +10,8 @@
 
 HTTP → 세션 예약과 경보 확인 → 칩·승인 업무 또는 일반 대화 → 내부 조회 도구 → 검증된 응답·카드.
 
+구조(총괄·계획표·역할별 지시문)와 경로 기록(`meta.route`) 읽는 법은 [structure.md](structure.md)를 본다.
+
 일반 대화는 `conversation_turn.py`가 현재 차량, 비교 범위, 최근 대화를 에이전트에 연결한다. 에이전트는 `tools/`에 정의된 조회만 실행한다. `dialog/`는 모델 미사용·실패 상황에서 지원되는 복합 질문을 같은 자료로 답한다. 부작용이 있는 기능은 `workflows/`와 엔진의 확인 상태가 맡는다.
 
 | 바꿀 대상 | 파일과 경계 |
@@ -24,6 +26,8 @@ HTTP → 세션 예약과 경보 확인 → 칩·승인 업무 또는 일반 대
 | 빈자리·목적지 | `navigation.py`의 조회·카드·목적지 상태 감시 |
 | 요금·견적·결제 | `engine.h_pay_fee`와 `_execute_payment`, `contracts.PAYMENT_ERROR_STATUS`, `adapters.build_payment_body` |
 | 경보·위반·현장 정보 | `adapters.get_alert`, `engine.current_alert`, `incidents.py`, `briefing.py` |
+| 총괄·경로·계획표 | `engine._handle_message`(단계 순서), `route.py`(경로 기록), `plan.py`(문장 해석 모음), `turn_guard.py`(안전 확인) |
+| 지시문 | `prompts/`: 역할마다 파일 하나(`conversation.md`, `translate_question.md`, `translate_answer.md`, `intent_classifier.md`), 버전은 모니터링에 기록 |
 | 대화 모델 | `agents/conversation.py`의 도구 호출, 턴 예산(질문 단위 상한·동시 자리·답 작성 제한 시간), 근거 검사 후 1회 고쳐 쓰기. `agents/evidence.py`에서 출력의 수치·비교값·요금 짝·범위·실행 주장·약속을 검증. `prompts/conversation.md` 지시문 |
 | 내부 자료 | `tools/read.py`의 읽기 도구 10개(빈자리·차량·요금 정책·비교·예상 요금·경보 요약·위반·문의 상태·규칙 안내·작업 제안)와 턴 내 스냅샷. 차이·경과 시간·시각 표현은 코드가 계산해 도구 결과에 넣는다. `knowledge/`의 승인된 정책·설정 안내(주제 단위) |
 | 모니터링(선택) | `monitoring.py`: 턴 단위 Langfuse trace 또는 로컬 JSON 줄. 기본 꺼짐, 실패해도 답에 영향 없음. `engine.handle`이 감싸고 `conversation_turn`이 콜백·도구 목록을 넘김 |

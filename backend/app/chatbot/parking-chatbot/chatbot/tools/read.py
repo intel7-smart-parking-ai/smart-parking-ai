@@ -113,15 +113,28 @@ class ReadTools:
                   "alert_summary", "violations", "call_status", "search_knowledge", "propose_action")
 
     def __init__(self, adapter, alert_provider, occupancy_provider=None, vehicle_provider=None,
-                 *, allowed_car_id=None, allowed_lots=None, admin_status_provider=None):
+                 *, allowed_car_id=None, allowed_lots=None, admin_status_provider=None, notice=None,
+                 extra_car_ids=()):
         self.adapter = adapter
         self._occupancy = occupancy_provider or adapter.get_empty_spots
         self._vehicle = vehicle_provider or adapter.find_car
         self._alert = alert_provider
         self._admin_status = admin_status_provider
         self._car = normalize_car_id(allowed_car_id)
+        # 사용자가 이번 문장에 직접 쓴 다른 차량 번호(두 차 비교). 위치·요금 조회만 허용하고 결제 제안 등은 기준 차량만.
+        self._extra_cars = tuple(c for c in (normalize_car_id(x) for x in extra_car_ids or ()) if c and c != self._car)
         self._lots = None if allowed_lots is None else tuple(dict.fromkeys(allowed_lots))
         self._snapshot = {}
+        self._notice = notice if isinstance(notice, dict) and notice.get("text") else None
+
+    def service_notice(self) -> dict:
+        """This turn's approved service notice (fixed policy/guidance the service already decided, e.g. no reservations,
+        how to find a forgotten car number, a space that does not exist). Read it first and keep its meaning;
+        combine it with other reads (vacancy, fees) and the conversation to answer naturally."""
+        if not self._notice:
+            return self._finish("service_notice", {}, kind="internal_knowledge", error="이번 질문에는 확정 안내가 없습니다.")
+        row = {"topic": self._notice.get("topic"), "text": self._notice["text"]}
+        return self._finish("service_notice", {"rows": [row]}, kind="internal_knowledge")
 
     def _read_once(self, key, read):
         if key not in self._snapshot:
@@ -206,7 +219,7 @@ class ReadTools:
 
     def vehicle_info(self, car_id: str, include_fee: bool = True) -> dict:
         """Read the selected two-digit vehicle's location and optionally its fee. Use only the vehicle ID provided by the user/current session."""
-        if not self._car or car_id != self._car or type(include_fee) is not bool:
+        if car_id not in ((self._car,) if self._car else ()) + self._extra_cars or type(include_fee) is not bool:
             return self._finish("vehicle_info", {}, error="차량번호를 확인해 주세요.")
         errors = {}
         def read_part(key, lookup, fields):
@@ -494,4 +507,5 @@ class ReadTools:
             async def invoke(*args, **kwargs):
                 return fn(*args, **kwargs)
             return StructuredTool.from_function(func=fn, coroutine=invoke, name=fn.__name__)
-        return [bind(getattr(self, name)) for name in self.TOOL_NAMES]
+        names = self.TOOL_NAMES + (("service_notice",) if self._notice else ())
+        return [bind(getattr(self, name)) for name in names]
