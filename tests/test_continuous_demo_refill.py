@@ -65,7 +65,8 @@ def test_restart_refills_virtual_lots_instead_of_restoring(monkeypatch, tmp_path
         assert not seeded & set(before)
         assert seeded
         # 예전 차는 서버 관측으로 출차, 새 차는 서버 확정으로 입차.
-        assert _wait(lambda: set(_active(conn, "C")) == seeded)
+        # 대기 중에도 시뮬레이터가 대상 칸을 바꿀 수 있어, 그 시점의 대상 칸과 비교한다.
+        assert _wait(lambda: set(_active(conn, "C")) == _seeded(conn, "C"))
         old = conn.execute(
             "SELECT status, exit_at FROM parking_sessions WHERE session_id IN (%s)"
             % ",".join("?" * len(before)), tuple(before.values())).fetchall()
