@@ -181,6 +181,60 @@ def test_new_event_recovers_pending_exit_after_temporary_db_failure(tmp_path, mo
             ).fetchone()[0] == 0
 
 
+def test_permanent_replay_conflict_is_quarantined_without_blocking_new_events(tmp_path, monkeypatch):
+    now = [datetime(2026, 11, 10, tzinfo=timezone.utc)]
+    start = now[0]
+    database = tmp_path / "pending-conflict.sqlite3"
+
+    def app():
+        return create_runtime_app(token=TOKEN, database=database, mode="real", clock=lambda: now[0])
+
+    def send(client, event):
+        return client.post("/api/v1/internal/vision-events", headers=HEADERS, json=event)
+
+    with TestClient(app()) as client:
+        store = client.app.state.pipeline
+        for index in range(5):
+            now[0] = start + timedelta(seconds=index)
+            space = "A-01" if index < 3 else "A-02"
+            assert send(client, observation(now[0], index, space=space)).status_code == 202
+        sid = client.get("/api/v1/vehicles/10/location").json()["session_id"]
+
+        def fail_entry(*args, **kwargs):
+            raise sqlite3.OperationalError("synthetic temporary entry failure")
+
+        now[0] = start + timedelta(seconds=5)
+        pending = observation(now[0], 5, space="A-02")
+        with monkeypatch.context() as patch:
+            patch.setattr(store, "session_enter", fail_entry)
+            assert send(client, pending).status_code == 503
+
+        # Retrying the pending entry now conflicts with the existing session in A-01.
+        now[0] = start + timedelta(seconds=6)
+        new_event = observation(now[0], 6, space="A-02", kind="space_empty_observed")
+        assert send(client, new_event).status_code == 202
+        with closing(store.connection()) as conn:
+            assert conn.execute("SELECT count(*) FROM pipeline_events WHERE applied=0").fetchone()[0] == 0
+            assert conn.execute(
+                "SELECT applied FROM pipeline_events WHERE event_id=?", (pending["event_id"],)
+            ).fetchone()[0] == -1
+            rejection = conn.execute(
+                "SELECT status_code, detail FROM pipeline_event_rejections WHERE journal_key=?",
+                (pending["event_id"],),
+            ).fetchone()
+            assert rejection["status_code"] == 409
+            assert "ACTIVE_SESSION_EXISTS" in rejection["detail"]
+
+    with TestClient(app()) as client:
+        assert client.get("/api/v1/vehicles/10/location").json()["session_id"] == sid
+        assert len(client.get("/api/v1/sessions?status=active").json()["items"]) == 1
+        assert send(client, pending).status_code == 200
+        assert send(client, pending | {"car_id": "11"}).status_code == 409
+        now[0] = start + timedelta(seconds=606)
+        assert send(client, pending).status_code == 202
+        assert len(client.get("/api/v1/sessions?status=active").json()["items"]) == 1
+
+
 def test_confirming_event_recovers_after_side_effect_before_applied_flag(tmp_path,monkeypatch):
     import sqlite3
     import pytest
