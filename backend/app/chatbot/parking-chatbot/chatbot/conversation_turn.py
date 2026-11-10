@@ -54,6 +54,16 @@ _OWN_ZONE = {"ev": "ev", "accessible": "accessible"}
 _CROWD = re.compile(r"꽉|찼|가득|붐비|붐벼|한산|널널|만차|여유")
 
 
+def _said_lots(text, p):
+    """이 문장이 가리키는 주차장: 이름·별명으로 말한 곳 + 목적으로 말한 곳(기차→부산역, 여행→공항, 쇼핑→백화점).
+    이름으로 말한 곳이 있어도 목적으로 말한 다른 곳을 빼지 않는다('백화점 갔다가 저녁에 기차 타야 해' → 신세계·부산역)."""
+    return list(dict.fromkeys([*p.lots, *p.purpose_lots, *info_gaps.hinted_lots(text)]))
+
+
+# 주차할 곳을 묻는 말('어디 세우면 돼?', '어디가 편해?', '세울 데 있어?')과 이미 세운 차를 찾는 말('내 차 어디 있어?', '위치', '찾아줘')
+_PARK_WHERE = re.compile(r"어디(?:에|에다|가|로|다)?\s*(?:세우|세울|세워야|대(?:면|야|는|도)|댈|주차\s*(?:해|하|할)|파킹|편해|편하|좋아|좋을|나아|낫|가야)|"
+                         r"(?:세우|세울|댈|주차할)\s*(?:곳|데|만한)")
+_FIND_CAR = re.compile(r"(?:내|제|우리)\s*차|차(?:량)?\s*(?:가\s*)?(?:어디\s*)?(?:있|위치)|찾아|세워\s*(?:뒀|놨|둔)|주차\s*(?:했|해\s*(?:뒀|놨))|댔")
 _FAKE_BUTTON = re.compile(r"[ \t]*\[(?=[^\]\n]*(?:관리자|결제|호출|충전|빈자리|안내|요금|취소|조회|위치|버튼|출차|출구|입차|차단|하기))[^\]\n]{1,20}\][ \t]*")
 
 
@@ -88,7 +98,7 @@ def _prefetch(text, session, toolbox, target, notice=None):
     else:
         focus = dialog_context.focus(session)
         short_follow_up = bool(focus and (_FOLLOW_UP.search(text) or (len(text.strip()) <= 12 and (wants or p.minutes))))
-        lots = list(p.lots) or list(p.purpose_lots) or ([focus] if short_follow_up else [])
+        lots = _said_lots(text, p) or ([focus] if short_follow_up else [])
         # 시설·이용 규칙 질문('몇 시까지 해?', '실외 주차장은?')은 안내 자료를 먼저 찾아 넘긴다
         gap = info_gaps.classify(text)
         facility = bool(gap and gap[0] == "facility")
@@ -257,6 +267,10 @@ def reply_to(text, session, adapter, alert, vehicle, refresh_alert, admin_status
         route.mark("plan", "clarify", why=query.clarification)
         return Turn(Reply(query.clarification, meta={"intent": "clarify"}), query)
     single_vehicle = query and (query.wants_location != query.wants_fee) and not query.wants_payment
+    if query and query.needs_vehicle and single_vehicle and _PARK_WHERE.search(text) and not _FIND_CAR.search(text):
+        # '아버지가 장애인 차량이야. 어디 세우는 게 나아?'는 내 차 찾기가 아니라 주차할 곳 질문 → 대화 AI(실모델 확인 11/10)
+        route.mark("plan", "park_where", why="'차량·어디'지만 주차할 곳을 묻는 문장 → 대화 AI")
+        query = None
     if query and query.needs_vehicle:
         if single_vehicle:
             route.mark("agent", "skip", why="차량 번호가 필요한 단일 조회(규칙 처리)")
@@ -270,7 +284,7 @@ def reply_to(text, session, adapter, alert, vehicle, refresh_alert, admin_status
     if session.selected_candidate and target == session.car_id:
         target = None
     turn_plan = plan.for_text(text)
-    allowed = tuple(dict.fromkeys([*candidates, *turn_plan.lots, *turn_plan.purpose_lots])) if candidates else ()
+    allowed = tuple(dict.fromkeys([*candidates, *_said_lots(text, turn_plan)])) if candidates else ()
     toolbox = ReadTools(adapter, alert, vehicle_provider=vehicle, allowed_car_id=target,
                         allowed_lots=allowed or None, admin_status_provider=admin_status, notice=notice,
                         extra_car_ids=cars[1:] if len(cars) > 1 else ())
