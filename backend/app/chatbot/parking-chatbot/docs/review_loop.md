@@ -1,5 +1,7 @@
 # 답 검토 고리 (Langfuse 피드백 → 수정 → 회귀 테스트)
 
+> 버전별 실행 기록과 문제 추적표는 [eval/EVAL_LOG.md](eval/EVAL_LOG.md). 실행은 `tools/run_dialogs.py --save`, 비교는 `tools/compare_runs.py`.
+
 챗봇이 잘못 답한 턴을 모아서 고치는 순서. 모델·프롬프트를 바꿀 때마다 같은 질문으로 다시 확인한다.
 
 ```

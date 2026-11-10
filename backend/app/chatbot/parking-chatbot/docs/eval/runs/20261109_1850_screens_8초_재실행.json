@@ -1,0 +1,305 @@
+{
+ "meta": {
+  "label": "20261109_1850_screens_8초_재실행",
+  "at": "20261109T1850",
+  "commit": "9b39230~",
+  "model": "미기록(Haiku 추정)",
+  "provider": "openrouter",
+  "question_file": "screens_real_8s.json",
+  "settings": {
+   "REQUEST_BUDGET_SEC": 8
+  },
+  "note": "6초에서 시간 초과 났던 4대화만 8초로 재실행",
+  "imported_from": "screens_real_8s.json"
+ },
+ "summary": {
+  "turns": 6,
+  "ai_answers": 6,
+  "ai_ratio_excluding_rule": 1.0,
+  "grades": {
+   "ai": 6
+  },
+  "avg_sec": 5.3,
+  "max_sec": 7.0
+ },
+ "rows": [
+  {
+   "id": "P02",
+   "kind": "실외",
+   "q": "실외 주차장은 어디야?",
+   "a": "실외·실내 여부는 아직 안내 자료에 없어서 정확히 말씀드리기 어려워요. 대신 네 곳의 지금 빈자리를 함께 보여 드릴 수 있어요. 어느 쪽에 가실 예정인지 알려 주시면 그 주차장 위주로 확인해 드릴게요.",
+   "route": "guard:pass > plan:vacancy > boundary:pass > agent:ok > agent:answer",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "vacancy",
+     "why": "wants=vacancy"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ok",
+     "calls": 2,
+     "tools": [
+      "search_knowledge"
+     ]
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer",
+     "source": "llm"
+    }
+   ],
+   "agent": {
+    "model_calls": 2,
+    "tool_calls": 1,
+    "input_tokens": 13110,
+    "output_tokens": 372,
+    "latency_ms": 4628.5,
+    "status": "ok"
+   },
+   "sec": 5.2,
+   "expect": "실내·실외 자료 없음 + 대신 도울 수 있는 것(미등록 주차장 아님)",
+   "grade": "ai"
+  },
+  {
+   "id": "P06",
+   "kind": "장애인 일행",
+   "q": "일행중에 장애인 주차구역증을 가진 사람이 있는데 이사람이 주차할만한곳은.",
+   "a": "장애인 전용 구역은 김해공항 주차장이 가장 여유 있어요. 빈자리가 16자리로 가장 많아요. 요금을 아끼려면 개발원주차장이 좋아요. 처음 30분 1,000원으로 가장 저렴하고 빈자리는 1자리예요.\n\n· 김해공항 주차장: 빈자리 16자리, 처음 30분 3,000원\n· 신세계백화점주차장: 빈자리 8자리, 처음 30분 4,000원\n· 개발원주차장: 빈자리 1자리, 처음 30분 1,000원\n· 부산역주차장: 전용 구역이 만차예요\n\n출차 시간이 정해지면 요금 예상도 다시 계산해 드릴게요.",
+   "route": "guard:pass > plan:vacancy > boundary:pass > agent:ok > agent:answer",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "vacancy",
+     "why": "wants=vacancy zone=accessible"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ok",
+     "calls": 3,
+     "tools": [
+      "compare_lots",
+      "compare_lots"
+     ]
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer",
+     "source": "llm"
+    }
+   ],
+   "agent": {
+    "model_calls": 3,
+    "tool_calls": 2,
+    "input_tokens": 21200,
+    "output_tokens": 884,
+    "latency_ms": 6484.0,
+    "status": "ok"
+   },
+   "sec": 6.5,
+   "expect": "장애인 칸 여유 기준 추천",
+   "grade": "ai"
+  },
+  {
+   "id": "P10",
+   "kind": "전기차 맥락",
+   "q": "나 전기차야",
+   "a": "전기차 충전 구역은 지금 4곳 중 3곳에 자리가 있어요.\n\n· 신세계백화점주차장: 8자리 비어 있고, 처음 30분 4,000원이에요.\n· 김해공항 주차장: 6자리 비어 있고, 처음 30분 3,000원이에요.\n· 개발원주차장: 2자리 비어 있고, 처음 30분 1,000원으로 가장 저렴해요.\n· 부산역주차장: 충전 구역이 만차예요.\n\n자리 여유를 보면 신세계백화점주차장, 요금을 보면 개발원주차장이 좋아요. 목적이 있으면 말씀해 주세요. 그에 맞춰 골라 드릴게요.",
+   "route": "guard:pass > plan:vacancy > boundary:pass > agent:ok > agent:answer",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "vacancy",
+     "why": "wants=vacancy zone=ev my_vehicle=ev"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ok",
+     "calls": 2,
+     "tools": [
+      "compare_lots"
+     ]
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer",
+     "source": "llm"
+    }
+   ],
+   "agent": {
+    "model_calls": 2,
+    "tool_calls": 1,
+    "input_tokens": 14006,
+    "output_tokens": 486,
+    "latency_ms": 3852.4,
+    "status": "ok"
+   },
+   "sec": 3.9,
+   "expect": "전기차 기억 → 충전 구역 기준 추천",
+   "grade": "ai"
+  },
+  {
+   "id": "P10",
+   "kind": "전기차 맥락",
+   "q": "어디 대면 돼?",
+   "a": "충전 구역 안의 정확한 위치는 아직 안내 자료에 없어요. 대신 빈자리가 있는 곳으로 가시면 돼요. 신세계백화점주차장은 충전 구역 8자리, 김해공항 주차장은 6자리, 개발원주차장은 2자리가 비어 있어요. 자리 여유는 신세계백화점주차장이 가장 넉넉하고, 요금은 개발원주차장이 가장 저렴해요. 어느 곳으로 갈지 정하시면 그곳 입구에서 충전 구역 빈자리를 찾아 주차하시면 돼요.",
+   "route": "guard:pass > plan:none > boundary:pass > agent:ok > agent:answer",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "none",
+     "why": "wants=-"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ok",
+     "calls": 3,
+     "tools": [
+      "compare_lots",
+      "search_knowledge"
+     ]
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer",
+     "source": "llm"
+    }
+   ],
+   "agent": {
+    "model_calls": 3,
+    "tool_calls": 2,
+    "input_tokens": 22637,
+    "output_tokens": 909,
+    "latency_ms": 7010.3,
+    "status": "ok"
+   },
+   "sec": 7.0,
+   "expect": "전기차 기억 → 충전 구역 기준 추천",
+   "grade": "ai"
+  },
+  {
+   "id": "P14",
+   "kind": "맥락 추천",
+   "q": "나 장애인 차량이야",
+   "a": "장애인 차량이시군요. 지금 장애인 전용 칸은 김해공항 주차장에 16자리, 신세계백화점주차장에 8자리가 비어 있어요. 개발원주차장은 1자리 남아 있고, 부산역주차장은 전용 칸이 모두 찼어요.\n\n여유를 보면 김해공항 주차장이 가장 넉넉해요. 가까운 곳에 가시려면 신세계백화점주차장이나 개발원주차장도 괜찮아요. 목적지를 알려 주시면 더 맞는 곳을 골라 드릴게요.",
+   "route": "guard:pass > plan:none > boundary:pass > agent:ok > agent:answer",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "none",
+     "why": "wants=- zone=accessible my_vehicle=accessible"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ok",
+     "calls": 2,
+     "tools": [
+      "parking_status"
+     ]
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer",
+     "source": "llm"
+    }
+   ],
+   "agent": {
+    "model_calls": 2,
+    "tool_calls": 1,
+    "input_tokens": 13426,
+    "output_tokens": 466,
+    "latency_ms": 4176.9,
+    "status": "ok"
+   },
+   "sec": 4.2,
+   "expect": "공항 장애인 칸 기준 추천",
+   "grade": "ai"
+  },
+  {
+   "id": "P14",
+   "kind": "맥락 추천",
+   "q": "여행 가는데 어디가 좋아?",
+   "a": "여행이시면 김해공항 주차장을 먼저 권해 드려요. 장애인 전용 칸이 16자리 비어 있어서 자리 걱정이 가장 적어요.\n\n· 김해공항 주차장: 전용 칸 16자리 빈자리, 처음 30분 3,000원\n· 신세계백화점주차장: 전용 칸 8자리, 처음 30분 4,000원\n· 개발원주차장: 전용 칸 1자리, 처음 30분 1,000원\n· 부산역주차장: 전용 칸 만차\n\n요금만 보면 개발원주차장이 가장 싸고, 자리 여유는 김해공항 주차장이 가장 넉넉해요. 여행은 오래 세울 수 있으니 출발 전에 자리를 한 번 더 확인해 보세요. 예상 요금이 궁금하시면 대략 몇 시간 세우실지 알려 주세요.",
+   "route": "guard:pass > plan:compare > boundary:pass > agent:ok > agent:answer",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "compare",
+     "why": "wants=compare purpose=C"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ok",
+     "calls": 2,
+     "tools": [
+      "compare_lots"
+     ]
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer",
+     "source": "llm"
+    }
+   ],
+   "agent": {
+    "model_calls": 2,
+    "tool_calls": 1,
+    "input_tokens": 14449,
+    "output_tokens": 614,
+    "latency_ms": 5042.3,
+    "status": "ok"
+   },
+   "sec": 5.1,
+   "expect": "공항 장애인 칸 기준 추천",
+   "grade": "ai"
+  }
+ ]
+}

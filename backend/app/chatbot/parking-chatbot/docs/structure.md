@@ -92,7 +92,7 @@ guard:emergency
 | 느림 | `agent:timeout`, `latency_ms` | `config.REQUEST_BUDGET_SEC`, 모델 호출 수 |
 | 번역이 이상함 | `translate_in:kept_original`(질문 번역 실패·숫자 바뀜), `translate_out:en` | `prompts/translate_*.md`, `response_locale.py` |
 
-다시 볼 턴을 모으는 방법은 [review_loop.md](review_loop.md).
+다시 볼 턴을 모으는 방법은 [review_loop.md](review_loop.md), 버전별 실행 기록·비교·문제 추적표는 [eval/EVAL_LOG.md](eval/EVAL_LOG.md).
 
 ## 6. 구조 점검 (11/09 밤)
 

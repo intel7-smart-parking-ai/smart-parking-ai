@@ -148,7 +148,7 @@ def _wants(text, zone=None):
         ("fee", bool(_FEE.search(text)) and (money or not _VACANCY_AMOUNT.search(text))),
         ("location", bool(_LOCATION.search(text)) and _car_talk(text)),
         ("payment", bool(_PAYMENT.search(text))),
-        ("rates", bool(re.search(r"요금\s*(?:기준|표|체계|정책)|기본\s*요금|시간당|최대\s*요금|싸|저렴|비싸", text))),
+        ("rates", bool(re.search(r"요금\s*(?:기준|표|체계|정책)|기본\s*요금|시간당|최대\s*요금|싸|싼|저렴|비싸", text))),
         ("policy", bool(_POLICY.search(text))),
         ("alert", bool(_ALERT.search(text)) or bool(LIGHT.search(text))),
         ("compare", bool(_CHOICE.search(text))),

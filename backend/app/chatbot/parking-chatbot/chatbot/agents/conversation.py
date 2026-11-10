@@ -321,15 +321,26 @@ async def _arun_conversation(text, history, state, tools, model=None, *, options
             if not await _acquire_slot(slots, min(config.LLM_SLOT_WAIT_SEC, max(0.0, time_left() - 0.5))):
                 raise _Stopped("busy")
             try:
-                timeout = min(time_left(), limit)
-                metadata["model_calls"] += 1
-                with _stats_lock:
-                    _active_models += 1
-                try:
-                    response = await asyncio.wait_for(handler(request), timeout)
-                finally:
+                attempts = 0
+                while True:
+                    attempts += 1
+                    timeout = min(time_left(), limit)
+                    metadata["model_calls"] += 1
                     with _stats_lock:
-                        _active_models -= 1
+                        _active_models += 1
+                    try:
+                        response = await asyncio.wait_for(handler(request), timeout)
+                        break
+                    except Exception as exc:
+                        # 제공자가 느려 제한 시간 안에 한 글자도 못 받은 경우(11/09·10 실측 P02): 예산이 남아 있으면 한 번만 다시 부른다.
+                        timed_out = isinstance(exc, (TimeoutError, asyncio.TimeoutError)) or type(exc).__name__ in ("APITimeoutError", "ReadTimeout")
+                        if (not timed_out or attempts >= 2 or metadata["model_calls"] >= options.max_model_calls
+                                or time_left() < limit * 0.8 + 0.5):
+                            raise
+                        metadata["retried_timeout"] = metadata.get("retried_timeout", 0) + 1
+                    finally:
+                        with _stats_lock:
+                            _active_models -= 1
                 for message in getattr(response, "result", []):
                     usage = getattr(message, "usage_metadata", None) or {}
                     for key in ("input_tokens", "output_tokens"):

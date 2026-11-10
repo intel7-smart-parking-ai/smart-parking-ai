@@ -75,7 +75,7 @@ def _model_reply(text, session, toolbox, target, candidates, query=None, notice=
         token = request_deadline.set(deadline - min(0.7, remaining / 4))
     turn_monitor = monitoring.current()
     def coverage(observations):
-        missing = _missing(query, _observed_rows(observations)) if query else ""
+        missing = _missing(query, _observed_rows(observations), _accept_zones(session)) if query else ""
         if notice and not any(row["tool"] == "service_notice" and row["result"].get("ok") for row in observations):
             missing = ", ".join(x for x in (missing, "확정 안내(service_notice)") if x)
         return missing
@@ -100,10 +100,14 @@ def _observed_rows(tool_results):
             if row["result"].get("ok") and row["tool"] not in {"ask_clarification", "propose_action"}]
 
 
-def _missing(query, evidence):
-    """질문에서 요청했는데 이번 턴에 조회하지 못한 항목(사람이 읽는 이름). 모두 있으면 빈 문자열."""
+def _missing(query, evidence, accept_zones=()):
+    """질문에서 요청했는데 이번 턴에 조회하지 못한 항목(사람이 읽는 이름). 모두 있으면 빈 문자열.
+
+    accept_zones: 구역을 말하지 않은 빈자리 질문에서 '전체' 대신 인정할 구역(일반, 사용자가 말한 차 종류의 구역).
+    """
     if not query:
         return ""
+    ok_zones = {query.zone} if query.zone else {None, "general", *accept_zones}
     by_tool = {}
     for row in evidence:
         by_tool.setdefault(row["tool"], []).append(row["data"])
@@ -127,7 +131,7 @@ def _missing(query, evidence):
             rows = [r for data in by_tool.get(tool, []) for r in data.get("rows", [])]
             rows += [r for r in compared if tool == "parking_status" or "base_fee" in r]
             if tool == "parking_status":
-                rows = [r for r in rows if r.get("zone") == query.zone]
+                rows = [r for r in rows if r.get("zone") in ok_zones]
             if not rows or set(query.candidates) - {r["lot_id"] for r in rows}:
                 names = "·".join(config.catalog.name(c) for c in query.candidates) or "후보 주차장"
                 missing.append(f"{names} {label}" + (f", 구역 {query.zone}" if tool == "parking_status" and query.zone else ""))
@@ -136,8 +140,12 @@ def _missing(query, evidence):
     return ", ".join(missing)
 
 
-def _covers(query, evidence):
-    return not _missing(query, evidence)
+def _accept_zones(session):
+    return {"ev": ("ev",), "accessible": ("accessible",)}.get(getattr(session, "vehicle_type", None), ())
+
+
+def _covers(query, evidence, session=None):
+    return not _missing(query, evidence, _accept_zones(session))
 
 
 def _observation_card(evidence, toolbox):
@@ -225,7 +233,7 @@ def reply_to(text, session, adapter, alert, vehicle, refresh_alert, admin_status
             knowledge = next((r for r in evidence if r["tool"] == "search_knowledge"), None)
             if knowledge:
                 reply = Reply(render_knowledge(knowledge), meta={"intent": "policy"})
-    if result and result.status == "ok" and not policy_conflict and _covers(query, evidence):
+    if result and result.status == "ok" and not policy_conflict and _covers(query, evidence, session):
         meta = dict(reply.meta) if reply else {}
         if evidence:
             meta["source_evidence"] = next((r["source"] for r in evidence if r["source"].get("is_mock")), evidence[0]["source"])

@@ -55,6 +55,7 @@ _POLICY = re.compile(r"이용\s*(?:자격|조건|규칙)|규정|일반차.{0,20}
 _EXCLUDE = re.compile(r"말고|빼고|제외(?:하고)?|빼줘")
 _ALERT = re.compile(r"대피|피난|경보|화재|불났|연기")
 _CAR = re.compile(r"내\s*차|차량|차(?:를|가)?\s*(?:못\s*)?찾|차가\s*어디|차\s*위치")
+_SPACE_WORDS = re.compile(r"자리|빈\s*칸|빈칸|비어|비었|남은|남았|만차|여유|댈\s*수|세울\s*수")
 _NEGATE_READ = re.compile(r"(?:위치|요금|자리)(?:는|은|를)?\s*(?:말고|빼고|필요\s*없|알려\s*주지\s*마)")
 
 
@@ -156,6 +157,9 @@ def interpret(text: str, session) -> Query | None:
     future = bool(_FUTURE.search(text)) and bool(_PARKING.search(text) or zone)
     prefer_low = bool(_CHEAP.search(text))
     compare = bool(len(selected) > 1 and (_CHOICE.search(text) or prefer_low or _FEE.search(text)))
+    if not selected and not excluded and prefer_low and _SPACE_WORDS.search(text):
+        # '제일 싼 데 어디야, 근데 자리도 있어야 돼' → 전 주차장의 빈자리·기본요금을 함께 비교(요금만 보는 답 금지)
+        selected, compare = tuple(config.catalog.ids()), True
     follow_zone = bool(followup and zone and selected)
     corrected_zone = bool(_EXCLUDE.search(text) and zone and _PARKING.search(text))
     if not (future or compare or follow_zone or corrected_zone or (excluded and _PARKING.search(text)) or policy):

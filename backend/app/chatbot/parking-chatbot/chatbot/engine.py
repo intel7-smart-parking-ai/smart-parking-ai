@@ -24,6 +24,9 @@ from . import config, incidents, monitoring, navigation as N, templates as T
 from . import dialog_context as DC
 from . import boundaries
 from . import route
+from . import forecast_chat
+from .charging_intent import wants_status as _wants_charging
+from .turn_guard import guard as _turn_guard
 from . import plan
 from .contracts import LOCATION_PENDING, timestamp, alerts_source
 from .adapters import ApiAdapter, request_gets, request_lot, DataUnavailable, build_adapter, iso, now, request_deadline, request_timeout
@@ -424,6 +427,9 @@ def h_get_empty_spots(s, p):
         lead = f"{said}시군요. 이 대화에서는 {said} 기준으로 안내할게요.\n"
         if p["profile_ack"] == "general":
             lead += "일반 차량은 전기차·장애인 전용 칸에 주차할 수 없어요.\n"
+        result = (lead + result[0],) + tuple(result[1:])
+    if p.get("facility_missing") and isinstance(result, tuple) and isinstance(result[0], str):
+        lead = f"{p['facility_missing']}는 아직 안내 자료에 없어요. 대신 지금 빈자리를 알려 드릴게요.\n"
         result = (lead + result[0],) + tuple(result[1:])
     if p.get("purpose_hint") and lot in _PURPOSE_LABEL and isinstance(result, tuple) and isinstance(result[0], str):
         # '여행 가는데 어디가 좋아?' → 목적에 맞는 주차장을 고른 이유를 앞에 붙인다(사실은 그대로).
@@ -967,6 +973,10 @@ def _notice_turn(s, session_id, text, notice):
     return _respond(s, notice["text"], chip_set=notice.get("chips", "default"), meta=meta)
 
 
+_SPACE_TALK = re.compile(r"자리|빈\s*칸|빈칸|비어|비었|남은|남았|만차|여유")
+_FACILITY_LABEL = {"지하 여부": "실내·실외(지하) 여부"}
+
+
 def _plausible_reading(s, r, text):
     """모델 없이 규칙으로 답할 때, 첫 해석이 문장과 안 맞으면 계획표(plan)를 보고 더 맞는 해석으로 바꾼다.
 
@@ -1012,6 +1022,11 @@ def _plausible_reading(s, r, text):
         if r.intent == "unknown" and _OUT_OF_SCOPE.search(text):
             return ParseResult("unknown", {"out_of_scope": True}, "rule")
         return r
+    # '제일 싼 데, 근데 자리도 있어야 돼' → 요금 기준만 보는 답 대신 전 주차장의 빈자리·기본요금 비교
+    if "rates" in p.wants and _SPACE_TALK.search(text) and not p.lots and r.intent in ("fee_rule", "get_empty_spots", "unknown") \
+            and not r.params.get("lots"):
+        return ParseResult("get_empty_spots", {"rank": "compare", "lots": list(config.catalog.ids()),
+                                               **({"zone": p.zone or own_zone} if (p.zone or own_zone) else {})}, "rule")
     # 목적이 여럿('기차 먼저, 나중에 비행기') → 그 주차장들 비교
     if len(p.purpose_lots) >= 2 and r.intent in ("unknown", "get_empty_spots") and not r.params.get("lot_id"):
         return ParseResult("get_empty_spots", {"rank": "compare", "lots": list(p.purpose_lots),
@@ -1028,6 +1043,14 @@ def _plausible_reading(s, r, text):
     if needs_car and not p.talk.get("car") and not p.talk.get("money"):
         return ParseResult("get_empty_spots", params, "rule")
     if r.intent == "unknown":
+        # '실외 주차장은 어디야?'처럼 등록되지 않은 시설 정보를 물었으면, 없다고 밝힌 뒤 빈자리를 안내
+        from .knowledge import search as _knowledge_search
+        try:
+            _, unregistered = _knowledge_search(text, list(config.catalog.ids()), None)
+        except Exception:
+            unregistered = []
+        if unregistered:
+            params["facility_missing"] = "·".join(_FACILITY_LABEL.get(u, u) for u in unregistered)
         return ParseResult("get_empty_spots", params, "rule")
     if r.intent == "get_empty_spots" and hint and not r.params.get("lot_id") and not r.params.get("rank"):
         return ParseResult("get_empty_spots", {**r.params, "lot_id": hint, "purpose_hint": True,
@@ -1075,7 +1098,6 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
         text = (text or "").strip()[:200]
         s.history.append(("user", text))
         # 안전 신고·허용 여부·없는 칸·자기소개처럼 짧게 확정되는 질문(turn_guard). Lv2 경보 중에는 대피 안내가 우선이라 건너뛴다.
-        from .turn_guard import guard as _turn_guard
         alert_now = current_alert()
         _reply, _meta = _turn_guard(s, text, alert_now)
         notice = None
@@ -1099,7 +1121,6 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
             s.car_id = turn_plan.own_car               # '23번이 내 차야' → 이후 '얼마 나왔어?'의 대상
         route.mark("plan", "+".join(turn_plan.wants) or "none", why=turn_plan.summary())
         # 충전 현황 질문은 화면의 충전 현황 카드(칸별 충전 상태·남은 시간)로 연결한다 (김채린 charging_intent 이식).
-        from .charging_intent import wants_status as _wants_charging
         if notice is None and _wants_charging(text):
             route.mark("rule", "charging_status", why="충전 현황 질문 → 충전 현황 카드")
             from .parser import extract_lots
@@ -1114,7 +1135,6 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
                 card={"type": "charging_status", "data": {"lot_id": _lot}},
                 meta={"intent": "charging_status", "source": "rule"})
         # 혼잡도 예측(C+안): 미래 시점의 혼잡 질문 → 서버 예측 조회 결과만으로 답한다.
-        from . import forecast_chat
         from .parser import extract_lots as _extract_lots
         _forecast = None if notice is not None else forecast_chat.answer(sys.modules[__name__], s, text, _extract_lots(text + " 주차"))
         if _forecast is not None:

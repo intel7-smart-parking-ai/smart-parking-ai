@@ -112,7 +112,7 @@ class AgentGraphTests(unittest.IsolatedAsyncioTestCase):
             finally:
                 cancelled.set()
         with patch.object(config, "LLM_TIMEOUT_SEC", .03):
-            result = await self.run_turn(ScriptedModel([slow]))
+            result = await self.run_turn(ScriptedModel([slow, slow]))   # 예산이 남으면 한 번 재시도하므로 두 번 모두 느리게
         self.assertEqual(result.status, "timeout")
         self.assertTrue(cancelled.is_set())
 

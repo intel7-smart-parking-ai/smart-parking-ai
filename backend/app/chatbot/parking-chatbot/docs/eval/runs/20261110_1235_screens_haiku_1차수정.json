@@ -1,0 +1,220 @@
+{
+ "meta": {
+  "label": "screens_haiku_1차수정",
+  "at": "2026-11-10T12:35:20+0900",
+  "commit": "a34b51b+",
+  "model": "anthropic/claude-haiku-5.5",
+  "provider": "openrouter",
+  "question_file": "model_compare_1110.json",
+  "settings": {
+   "REQUEST_BUDGET_SEC": 8.0,
+   "LLM_ANSWER_TIMEOUT_SEC": 5.0,
+   "LLM_MAX_OUTPUT_TOKENS": 600,
+   "LLM_REPAIR_MIN_SEC": 1.5,
+   "DATA_SOURCE": "mock"
+  }
+ },
+ "summary": {
+  "turns": 4,
+  "ai_answers": 3,
+  "ai_ratio_excluding_rule": 0.75,
+  "grades": {
+   "ai": 3,
+   "fallback_timeout": 1
+  },
+  "avg_sec": 5.2,
+  "max_sec": 7.3
+ },
+ "rows": [
+  {
+   "id": "P02",
+   "kind": "실외",
+   "q": "실외 주차장은 어디야?",
+   "a": "전체 주차장 빈자리는 총 129자리예요.\n개발원주차장 5자리 · 부산역주차장 만차 · 김해공항 주차장 62자리 · 신세계백화점주차장 62자리\n어느 주차장을 안내해 드릴까요?",
+   "route": "guard:pass > plan:vacancy > boundary:pass > agent:timeout > agent:dropped > fallback:get_empty_spots",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "vacancy",
+     "why": "wants=vacancy"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "timeout",
+     "calls": 3,
+     "tools": [
+      "compare_lots",
+      "search_knowledge"
+     ]
+    },
+    {
+     "stage": "agent",
+     "outcome": "dropped",
+     "why": "검사 통과 답 없음 → 규칙 답"
+    },
+    {
+     "stage": "fallback",
+     "outcome": "get_empty_spots",
+     "why": "첫 해석 unknown → 문장에 맞게 변경"
+    }
+   ],
+   "agent": {
+    "model_calls": 3,
+    "tool_calls": 2,
+    "input_tokens": 14282,
+    "output_tokens": 452,
+    "latency_ms": 6724.8,
+    "status": "timeout"
+   },
+   "sec": 7.3,
+   "expect": "실내·실외 자료 없음 + 대신 도울 수 있는 것(미등록 주차장 아님)",
+   "grade": "fallback_timeout"
+  },
+  {
+   "id": "P06",
+   "kind": "장애인 일행",
+   "q": "일행중에 장애인 주차구역증을 가진 사람이 있는데 이사람이 주차할만한곳은.",
+   "a": "장애인 전용 구역 기준으로는 김해공항 주차장을 가장 추천해요. 전용 칸이 16자리로 가장 많이 비어 있어요.\n\n· 김해공항 주차장: 빈자리 16자리\n· 신세계백화점주차장: 빈자리 8자리\n· 개발원주차장: 빈자리 1자리, 기본요금이 가장 저렴해요\n· 부산역주차장: 전용 칸이 만차예요\n\n요금도 알려 드릴까요?",
+   "route": "guard:pass > plan:vacancy > boundary:pass > agent:ok > agent:answer",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "vacancy",
+     "why": "wants=vacancy zone=accessible"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ok",
+     "calls": 2,
+     "tools": [
+      "compare_lots"
+     ]
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer",
+     "source": "llm"
+    }
+   ],
+   "agent": {
+    "model_calls": 2,
+    "tool_calls": 1,
+    "input_tokens": 14397,
+    "output_tokens": 645,
+    "latency_ms": 4809.6,
+    "status": "ok"
+   },
+   "sec": 4.8,
+   "expect": "장애인 칸 여유 기준 추천",
+   "grade": "ai"
+  },
+  {
+   "id": "P10",
+   "kind": "전기차 맥락",
+   "q": "나 전기차야",
+   "a": "알겠어요, 전기차 충전 구역 기준으로 보면 지금 3곳에 자리가 있어요.\n· 신세계백화점주차장: 8자리 비어 있어요.\n· 김해공항 주차장: 6자리 비어 있어요.\n· 개발원주차장: 2자리 비어 있어요.\n부산역주차장 충전 구역은 만차예요.\n\n자리 여유는 신세계백화점주차장이 가장 넉넉하고, 기본요금은 개발원주차장이 가장 저렴해요. 요금도 알려 드릴까요?",
+   "route": "guard:pass > plan:vacancy > boundary:pass > agent:ok > agent:answer",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "vacancy",
+     "why": "wants=vacancy zone=ev my_vehicle=ev"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ok",
+     "calls": 2,
+     "tools": [
+      "compare_lots"
+     ]
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer",
+     "source": "llm"
+    }
+   ],
+   "agent": {
+    "model_calls": 2,
+    "tool_calls": 1,
+    "input_tokens": 14352,
+    "output_tokens": 425,
+    "latency_ms": 3763.0,
+    "status": "ok"
+   },
+   "sec": 3.8,
+   "expect": "전기차 기억 → 충전 구역 기준 추천",
+   "grade": "ai"
+  },
+  {
+   "id": "P10",
+   "kind": "전기차 맥락",
+   "q": "어디 대면 돼?",
+   "a": "전기차 충전 구역에서는 신세계백화점주차장이 8자리로 가장 여유 있어요. 요금을 아끼고 싶다면 개발원주차장이 처음 30분 1,000원으로 가장 저렴하지만 2자리만 남아 있어요. 쇼핑이나 센텀 방문이면 신세계백화점주차장, 개발원 방문이면 개발원주차장이 맞아요.",
+   "route": "guard:pass > plan:none > boundary:pass > agent:ok > agent:answer",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "none",
+     "why": "wants=-"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ok",
+     "calls": 2,
+     "tools": [
+      "compare_lots"
+     ]
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer",
+     "source": "llm"
+    }
+   ],
+   "agent": {
+    "model_calls": 2,
+    "tool_calls": 1,
+    "input_tokens": 14708,
+    "output_tokens": 661,
+    "latency_ms": 4905.4,
+    "status": "ok"
+   },
+   "sec": 4.9,
+   "expect": "전기차 기억 → 충전 구역 기준 추천",
+   "grade": "ai"
+  }
+ ]
+}
