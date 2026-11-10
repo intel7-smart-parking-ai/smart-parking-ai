@@ -34,14 +34,14 @@ function ParkingApp() {
  useEffect(()=>{document.documentElement.lang=getLanguage()},[]);
  const params = new URLSearchParams(window.location.search);
  const [started, setStarted] = useState(() => params.get('screen') === 'map');
- const [showWelcome, setShowWelcome] = useState(false);
  const admin = window.location.pathname.startsWith('/admin/');
  const mode = params.get('app');
- const phone = /Android.*Mobile|iPhone|iPod|Windows Phone/i.test(navigator.userAgent) ||
-  navigator.userAgentData?.mobile === true;
+ const mobileDevice = /Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent) ||
+  navigator.userAgentData?.mobile === true || window.matchMedia('(max-width: 1024px) and (pointer: coarse)').matches;
  const standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
- const appMode = mode === '1' || mode === 'user' || (mode !== '0' && (standalone || (started && phone)));
- const sessionActive = !admin && !showWelcome && (started || appMode);
+ const appMode = mode === '1' || mode === 'user' || (mode !== '0' && (standalone || mobileDevice));
+ const preview = ['kiosk-a','kiosk-b','list','cards'].includes(params.get('preview'));
+ const sessionActive = !admin && appMode && started;
 
  useEffect(() => {
   if (!sessionActive) return;
@@ -55,7 +55,6 @@ function ParkingApp() {
    url.hash = '';
    window.history.replaceState(null, '', url);
    setStarted(false);
-   setShowWelcome(true);
    window.scrollTo(0, 0);
   }
 
@@ -92,10 +91,11 @@ function ParkingApp() {
 
  if (admin) return <Dashboard admin/>;
  if (sessionActive && appMode) {
-  const initialTab = started && params.get('page') === 'chat' ? 'chat' : started && ['find', 'fee'].includes(params.get('page')) ? 'search' : 'home';
+  const page = params.get('page');
+  const initialTab = page === 'chat' ? 'chat' : ['find', 'fee'].includes(page) ? 'search' : 'home';
   return <MobileParkingApp initialLotId={params.get('lot') || 'A'} initialTab={initialTab}/>;
  }
- if (sessionActive) return <Dashboard/>;
+ if (!appMode && (!preview || started)) return <Dashboard/>;
  return <ParkingWelcome onStart={(lot, page, language) => {
   const url = new URL(window.location.href);
   url.searchParams.set('lot', lot);
