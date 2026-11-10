@@ -165,6 +165,70 @@ class LitCarPairingTests(unittest.TestCase):
                          [('A-01', occupancy[0]['frame_id'])])
 
 
+class ShiftedSearchApprovalTests(unittest.TestCase):
+    """Field 11/10: a shifted full-search pose erased the A approval for the rest of the run."""
+
+    def model(self):
+        import numpy as np
+        from unittest.mock import Mock
+        from web_live.pipeline import ParkingPipeline
+        image = np.zeros((1080, 1920, 3), np.uint8)
+        outline = np.float32([[100, 100], [900, 100], [900, 700], [100, 700]])
+        m = ParkingPipeline.__new__(ParkingPipeline)
+        m.confirmed = {'2': (7, 'A', outline, image.shape)}
+        m.fixed_views = {'2': (7, {'ref': True})}
+        m.interrupted_views = {}
+        m.baselines = {}
+        m.registry = Mock()
+        return m, image, outline
+
+    def test_shifted_search_suspends_and_only_original_pose_restores(self):
+        m, image, outline = self.model()
+        self.assertTrue(m._suspend_mismatched_approval('2', 7, image.shape, '2026-11-10T00:00:00+00:00'))
+        approval, ref, deadline, previous = m.interrupted_views['2']
+        self.assertEqual((approval[1], ref, previous), ('A', {'ref': True}, None))
+        m.confirmed.clear(); m.fixed_views.clear()
+        same = {'lot_id': 'A', 'outline': outline.copy()}
+        m.registry.verify_fixed_view.side_effect = [same, same]
+        m._recheck_interrupted(image, '2', 7, 11, 'A', True)
+        self.assertNotIn('2', m.confirmed)
+        m._recheck_interrupted(image, '2', 7, 12, 'A', True)
+        self.assertEqual(m.confirmed['2'][1], 'A')
+        self.assertEqual(m.fixed_views['2'], (7, {'ref': True}))
+
+    def test_moved_pose_never_restores(self):
+        m, image, outline = self.model()
+        m._suspend_mismatched_approval('2', 7, image.shape, '2026-11-10T00:00:00+00:00')
+        m.confirmed.clear(); m.fixed_views.clear()
+        moved = {'lot_id': 'A', 'outline': outline + 40}
+        m.registry.verify_fixed_view.side_effect = [moved, moved, None, None]
+        for seq in (11, 12, 13, 14):
+            m._recheck_interrupted(image, '2', 7, seq, 'A', True)
+        self.assertNotIn('2', m.confirmed)
+
+    def test_no_suspension_without_live_review_on_this_connection(self):
+        m, image, _ = self.model()
+        self.assertFalse(m._suspend_mismatched_approval('2', 8, image.shape, '2026-11-10T00:00:00+00:00'))
+        self.assertFalse(m._suspend_mismatched_approval('2', 7, image.shape, None))
+        m.fixed_views.clear()
+        self.assertFalse(m._suspend_mismatched_approval('2', 7, image.shape, '2026-11-10T00:00:00+00:00'))
+        self.assertEqual(m.interrupted_views, {})
+
+
+class RedBodyTests(unittest.TestCase):
+    """Field 11/10 values: red car 33 (no LED) vs real lit roofs 42/23/11."""
+
+    def test_red_paint_box_is_rejected_and_real_leds_kept(self):
+        from web_live.pipeline import probable_red_body
+        light = dict(method='red_emission')
+        self.assertTrue(probable_red_body(dict(light, bay_area_fraction=.171, confidence=.850)))
+        self.assertTrue(probable_red_body(dict(light, bay_area_fraction=.171, confidence=.860)))
+        for frac, conf in ((.155, .947), (.117, .958), (.0142, .948), (.041, .918), (.083, .918), (.032, .894),
+                           (.056, .874), (.013, .916), (.021, .97)):
+            self.assertFalse(probable_red_body(dict(light, bay_area_fraction=frac, confidence=conf)), (frac, conf))
+        self.assertFalse(probable_red_body(dict(method='lens_brightening', bay_area_fraction=.2, confidence=.85)))
+
+
 class RejectionCodeTests(unittest.TestCase):
     def test_exit_review_and_store_full_are_kept(self):
         from web_live.transport import KNOWN_REJECTION_CODES
