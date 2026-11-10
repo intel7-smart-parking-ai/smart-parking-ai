@@ -33,10 +33,14 @@ class ExperimentPolicy:
 
 
 class OccupancyExperiment(InMemoryEventStore):
-    def __init__(self, *, layout: dict, policy: ExperimentPolicy, max_events: int = 1000, on_confirmed=None):
+    def __init__(self, *, layout: dict, policy: ExperimentPolicy, max_events: int = 1000, on_confirmed=None,
+                 identity_clock=None):
         super().__init__(max_events=max_events)
         self.policy = policy
         self._on_confirmed = on_confirmed
+        self._identity_clock = identity_clock
+        self._collect_identity_evidence = True
+        self._identity_frames = set()
         self._state_lock = RLock()
         self._spaces = {}
         for lot in layout['lots']:
@@ -56,15 +60,66 @@ class OccupancyExperiment(InMemoryEventStore):
             def apply():
                 previous = self._spaces[key]
                 row = previous.copy()
+                frame = self._identity_frame(event)
+                if frame in self._identity_frames:
+                    return
                 self._apply_observation(row, event)
+                identity = row.get('identity_match')
+                session_ready = row['status'] in ('occupied', 'empty') or identity is not None
                 if (self._on_confirmed is not None and row['version'] != previous['version']
-                        and row['status'] in ('occupied', 'empty')):
+                        and session_ready):
                     self._on_confirmed(row, event.observed_at)
                 self._spaces[key] = row
+                if frame is not None:
+                    self._identity_frames.add(frame)
 
             return super().receive(event, before_record=apply)
 
+    def _identity_frame(self, event):
+        if (self._identity_clock is not None and event.source == 'vision'
+                and event.lot_id in ('A', 'B')
+                and event.camera_id == f'camera_{event.lot_id.lower()}'
+                and event.frame_id is not None
+                and event.event_type in ('vehicle_observed', 'space_empty_observed')):
+            return (event.lot_id, event.space_id, event.camera_id, event.frame_id)
+        return None
+
+    def _update_identity_evidence(self, row, event):
+        row.pop('identity_match', None)
+        frame = self._identity_frame(event)
+        row['identity_observation'] = (
+            event.source == 'vision' and event.lot_id in ('A', 'B')
+            and event.event_type == 'vehicle_observed'
+        )
+        if frame is not None and (self._identity_clock() - event.observed_at).total_seconds() > 10:
+            return
+        if event.event_type == 'space_empty_observed' or frame is None or event.confidence < 0.8:
+            row.pop('identity_evidence', None)
+            return
+        if not self._collect_identity_evidence:
+            return
+        at = event.observed_at
+        car, first, last, count = row.get('identity_evidence', (None, at, at, 0))
+        if ((at - last).total_seconds() > 2 or (at - first).total_seconds() > 10
+                or (event.car_id is not None and event.car_id != car)):
+            car, first, count = event.car_id, at, 0
+        if event.car_id is not None:
+            count = min(count + 1, 3)
+        row['identity_evidence'] = (car, first, at, count)
+        if event.car_id is not None and count == 3:
+            row['identity_match'] = (car, first)
+
+    def _is_camera_observation(self, event):
+        return (
+            self._identity_clock is not None and event.source == 'vision'
+            and event.lot_id in ('A', 'B')
+            and event.event_type in ('vehicle_observed', 'space_empty_observed')
+        )
+
     def _apply_observation(self, row, event):
+        # Previously journaled observations may still be ahead of the clock at startup.
+        if self._is_camera_observation(event) and event.observed_at > self._identity_clock():
+            return
         last = row['observed_at']
         # 지연/동시각 이벤트는 접수만 기록하고 최신 상태를 덮어쓰지 않는다.
         if last is not None and event.observed_at <= last:
@@ -72,6 +127,8 @@ class OccupancyExperiment(InMemoryEventStore):
         # 번호/LED 관측은 점유 관측이 아니므로 안정화·최신 점유 시각을 갱신하지 않는다.
         if event.event_type not in ('vehicle_observed', 'space_empty_observed'):
             return
+        if self._identity_clock is not None:
+            self._update_identity_evidence(row, event)
         candidate = row['candidate']
         gap = (event.observed_at - last).total_seconds() if last else None
         row.update(observed_at=event.observed_at, source=event.source,
@@ -109,6 +166,8 @@ class OccupancyExperiment(InMemoryEventStore):
             raise HTTPException(404, '주차장이 없습니다.')
         for row in rows:
             row.pop('candidate')
+            for key in ('identity_evidence', 'identity_match', 'identity_observation'):
+                row.pop(key, None)
             timestamp = row['observed_at']
             if timestamp is not None and (as_of - timestamp).total_seconds() > self.policy.stale_seconds:
                 row.update(status='uncertain', car_id=None, vehicle_type=None)

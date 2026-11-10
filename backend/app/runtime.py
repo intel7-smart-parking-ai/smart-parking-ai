@@ -13,7 +13,7 @@ import logging
 import sqlite3
 from contextlib import asynccontextmanager, closing
 from copy import copy
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from random import choice, randint, random
 from threading import RLock
@@ -30,7 +30,7 @@ from backend.app.api.billing_router import billing_router, get_session_fee, crea
 from backend.app.api.session_queries import router as session_router
 from backend.app.billing.db import get_db_conn, get_db_path, init_schema, seed_defaults
 from backend.app.billing.schemas import PaymentCreateRequest
-from backend.app.database.parking_sessions import enter, exit_session, SessionError
+from backend.app.database.parking_sessions import enter, exit_session, identify, SessionError
 from backend.app.alerts.router import (
     router as alert_router,
     init_alerts_schema,
@@ -78,6 +78,7 @@ class EventPipeline(OccupancyExperiment):
     def recover(self):
         with self.gate, closing(self.connection()) as conn:
             self.recovering = True
+            self._collect_identity_evidence = False
             try:
                 for row in conn.execute(
                     "SELECT payload,applied FROM pipeline_events ORDER BY sequence"
@@ -97,6 +98,7 @@ class EventPipeline(OccupancyExperiment):
                         conn.commit()
             finally:
                 self.recovering = False
+                self._collect_identity_evidence = True
 
     def _simulation_heartbeat(self, event):
         """C·D 시뮬레이터의 반복 관측(상태 변화 없음)이면 True.
@@ -147,10 +149,11 @@ class EventPipeline(OccupancyExperiment):
                     return self._apply_unrecorded(event)
         with self.gate, closing(self.connection()) as conn:
             old = conn.execute(
-                "SELECT canonical,applied FROM pipeline_events WHERE event_id=?", (event.event_id,)
+                "SELECT canonical,applied,payload FROM pipeline_events WHERE event_id=?", (event.event_id,)
             ).fetchone()
+            canonical = canonical_payload(event)
             if old:
-                if old["canonical"] != canonical_payload(event):
+                if old["canonical"] != canonical:
                     return Receipt.CONFLICT
                 if old["applied"]:
                     return Receipt.DUPLICATE
@@ -162,6 +165,12 @@ class EventPipeline(OccupancyExperiment):
             # Journal evidence before session/alert side effects. Pending records are
             # retried idempotently or recovered after process interruption.
             if not old:
+                if self._is_camera_observation(event):
+                    now = self._identity_clock()
+                    if event.observed_at > now + timedelta(seconds=2):
+                        raise HTTPException(422, "관측 시각이 서버보다 2초 넘게 미래입니다.")
+                    if event.observed_at > now:
+                        event = event.model_copy(update={"observed_at": now})
                 if (
                     event.event_type == "mock_fire_led_observed"
                     and event.space_id is not None
@@ -177,9 +186,12 @@ class EventPipeline(OccupancyExperiment):
                     raise HTTPException(422, "도면에 없는 주차칸입니다.")
                 conn.execute(
                     "INSERT INTO pipeline_events(event_id,payload,canonical) VALUES(?,?,?)",
-                    (event.event_id, event.model_dump_json(), canonical_payload(event)),
+                    (event.event_id, event.model_dump_json(), canonical),
                 )
                 conn.commit()
+            else:
+                # Replay and retry must use the same effective timestamp as the first receipt.
+                event = VisionEvent.model_validate_json(old["payload"])
             try:
                 if event.event_type == "mock_fire_led_observed":
                     result = InMemoryEventStore.receive(self, event)
@@ -225,6 +237,8 @@ class EventPipeline(OccupancyExperiment):
                     (row["lot_id"], row["space_id"], stamp, stamp),
                 ).fetchone()
                 if row["status"] == "occupied" and active:
+                    if row.get("identity_observation"):
+                        row["car_id"] = active["car_id"]
                     row.update(
                         session_id=active["session_id"],
                         session_car_id=active["car_id"],
@@ -236,8 +250,22 @@ class EventPipeline(OccupancyExperiment):
                 (row["lot_id"], row["space_id"]),
             ).fetchone()
             try:
+                evidence = row.get("identity_match")
+                if (
+                    active and active["car_id"] is None and evidence
+                    and evidence[1] >= datetime.fromisoformat(active["entry_at"])
+                ):
+                    linked = identify(conn, session_id=active["session_id"], car_id=evidence[0])
+                    row.update(session_id=linked.session_id, session_car_id=linked.car_id,
+                               entry_at=linked.entry_at)
+                    if row["status"] == "occupied":
+                        row["car_id"] = linked.car_id
+                    row.pop("identity_evidence", None)
+                    return
                 if row["status"] == "occupied":
                     if active:
+                        if active["car_id"] is None and row.get("identity_observation"):
+                            row["car_id"] = None
                         if active["car_id"] != row["car_id"]:
                             raise HTTPException(
                                 409, "활성 세션의 차량 식별 변경은 확인이 필요합니다."
@@ -327,7 +355,8 @@ def create_runtime_app(
         # Use the exact demo engine and callback; journal adds recovery, not a second state path.
         kwargs["on_confirmed"] = lambda row, at: store_ref["store"].sync_session(row, at)
         store = EventPipeline(
-            database=database, session_enter=session_enter, session_exit=session_exit, **kwargs
+            database=database, session_enter=session_enter, session_exit=session_exit,
+            identity_clock=clock, **kwargs
         )
         store_ref["store"] = store
         return store

@@ -94,6 +94,26 @@ def enter(
         return ParkingSession(session_id, lot_id, space_id, car_id, timestamp, None, "active")
 
 
+def identify(conn: sqlite3.Connection, *, session_id: str, car_id: str) -> ParkingSession:
+    """Bind a confirmed identity to an active unidentified session exactly once."""
+    if not isinstance(car_id, str) or re.fullmatch(r"[1-9][0-9]", car_id) is None:
+        raise SessionError(422, "INVALID_CAR_ID", "차량 ID는 10~99 문자열이어야 합니다.")
+    with _write(conn):
+        existing = _find(conn, session_id)
+        if existing is None or existing.status != 'active':
+            raise SessionError(409, "SESSION_NOT_ACTIVE", "활성 세션만 차량 번호를 연결할 수 있습니다.")
+        if existing.car_id == car_id:
+            return existing
+        if existing.car_id is not None:
+            raise SessionError(409, "SESSION_IDENTITY_CONFLICT", "이미 확인된 차량 번호는 자동 변경하지 않습니다.")
+        if conn.execute("SELECT 1 FROM parking_sessions WHERE car_id = ? AND status = 'active' AND session_id <> ?",
+                        (car_id, session_id)).fetchone():
+            raise SessionError(409, "ACTIVE_SESSION_EXISTS", "차량에 활성 세션이 이미 있습니다.")
+        conn.execute("UPDATE parking_sessions SET car_id = ? WHERE session_id = ? AND car_id IS NULL AND status = 'active'",
+                     (car_id, session_id))
+        return _find(conn, session_id)
+
+
 def exit_session(conn: sqlite3.Connection, *, session_id: str, exit_at: datetime) -> ParkingSession:
     """Close a confirmed session by ID, including unidentified vehicles."""
     timestamp = _timestamp(exit_at)
