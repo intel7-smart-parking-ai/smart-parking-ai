@@ -232,6 +232,7 @@ class EventPipeline(OccupancyExperiment):
         if exc.status_code == 409 and exc.detail in (
             "활성 세션의 차량 식별 변경은 확인이 필요합니다.",
             "다른 주차장의 활성 차량은 이동할 수 없습니다.",
+            "같은 칸에 활성 세션이 중복되어 이동할 수 없습니다.",
         ):
             return True
         cause = exc.__cause__
@@ -239,6 +240,7 @@ class EventPipeline(OccupancyExperiment):
             "ACTIVE_SESSION_EXISTS", "SESSION_ID_CONFLICT", "SESSION_IDENTITY_CONFLICT",
             "SESSION_ALREADY_CLOSED", "INVALID_SESSION_TIME", "INVALID_SESSION_ID",
             "INVALID_LOT_ID", "INVALID_CAR_ID",
+            "SESSION_MOVE_CONFLICT", "SESSION_NOT_ACTIVE", "SESSION_NOT_FOUND",
         }
 
     def recover(self):
