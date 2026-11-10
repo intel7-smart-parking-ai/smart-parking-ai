@@ -25,7 +25,7 @@ from pydantic import BaseModel, Field
 from backend.app.api.occupancy_query_demo import create_demo_app
 from backend.app.api.occupancy_prototype import OccupancyExperiment, SIMULATION_MAX_GAP_SECONDS
 from backend.app.api.vision_event_schema import VisionEvent
-from backend.app.api.vision_event_store import Receipt, canonical_payload, InMemoryEventStore
+from backend.app.api.vision_event_store import Receipt, canonical_payload
 from backend.app.api.billing_router import billing_router, get_session_fee, create_mock_payment
 from backend.app.api.session_queries import router as session_router
 from backend.app.billing.db import get_db_conn, get_db_path, init_schema, seed_defaults
@@ -75,146 +75,281 @@ class EventPipeline(OccupancyExperiment):
         conn.row_factory = sqlite3.Row
         return conn
 
-    def recover(self):
-        with self.gate, closing(self.connection()) as conn:
-            self.recovering = True
-            self._collect_identity_evidence = False
-            try:
-                for row in conn.execute(
-                    "SELECT payload,applied FROM pipeline_events ORDER BY sequence"
-                ).fetchall():
-                    self.recovering = bool(row["applied"])
+    def init_vision_retention(self, conn):
+        """Bootstrap the receipt window once. Legacy rows have only observation time."""
+        now = self._identity_clock()
+        cutoff = now.timestamp() - 600
+        conn.execute("BEGIN IMMEDIATE")
+        try:
+            legacy = conn.execute(
+                "SELECT 1 FROM sqlite_master WHERE name='vision_event_receipts'"
+            ).fetchone() is None
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS vision_event_receipts (
+                    event_id TEXT PRIMARY KEY, canonical BLOB NOT NULL, received_at REAL NOT NULL,
+                    journal_key TEXT, frame_key TEXT
+                )
+            """)
+            conn.execute("""
+                CREATE INDEX IF NOT EXISTS ix_vision_receipts_expiry
+                ON vision_event_receipts(received_at) WHERE journal_key IS NULL
+            """)
+            conn.execute("""
+                CREATE INDEX IF NOT EXISTS ix_vision_receipts_frame
+                ON vision_event_receipts(frame_key) WHERE journal_key IS NULL
+            """)
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS camera_space_snapshots (
+                    lot_id TEXT NOT NULL, space_id TEXT NOT NULL,
+                    through_sequence INTEGER NOT NULL, state TEXT NOT NULL,
+                    PRIMARY KEY(lot_id, space_id)
+                )
+            """)
+            if legacy:
+                for row in conn.execute("""
+                    SELECT event_id, payload, canonical, applied FROM pipeline_events
+                    WHERE applied=0 OR julianday(json_extract(payload, '$.observed_at')) >= julianday(?)
+                """, ((now - timedelta(seconds=600)).isoformat(),)):
                     event = VisionEvent.model_validate_json(row["payload"])
-                    if event.event_type == "mock_fire_led_observed":
-                        InMemoryEventStore.receive(self, event)
-                        if not row["applied"]:
-                            ingest_led_fire_event(conn, LedFireEvent(**event.model_dump()))
-                    else:
-                        super().receive(event)
-                    if not row["applied"]:
-                        conn.execute(
-                            "UPDATE pipeline_events SET applied=1 WHERE event_id=?", (event.event_id,)
-                        )
-                        conn.commit()
+                    self._save_receipt(conn, event, row["canonical"],
+                                       min(now, event.observed_at).timestamp(),
+                                       None if row["applied"] else row["event_id"])
+            self._expire_receipts(conn, cutoff)
+            conn.commit()
+        except BaseException:
+            conn.rollback()
+            raise
+
+    def _frame_key(self, event):
+        frame = self._identity_frame(event)
+        return None if frame is None else json.dumps(frame, ensure_ascii=False)
+
+    def _save_receipt(self, conn, event, canonical, received_at, journal_key=None):
+        conn.execute(
+            "INSERT INTO vision_event_receipts VALUES (?, ?, ?, ?, ?)",
+            (event.event_id, canonical, received_at, journal_key, self._frame_key(event)),
+        )
+
+    def _expire_receipts(self, conn, cutoff):
+        conn.execute(
+            "DELETE FROM vision_event_receipts WHERE journal_key IS NULL AND received_at <= ?",
+            (cutoff,),
+        )
+
+    def _save_camera_snapshot(self, conn, row):
+        state = dict(row)
+        for key in ("identity_match", "identity_evidence", "identity_observation"):
+            state.pop(key, None)
+        state["observed_at"] = row["observed_at"].isoformat()
+        signature, first = row["candidate"]
+        state["candidate"] = (signature, first.isoformat())
+        conn.execute("""
+            INSERT INTO camera_space_snapshots
+            VALUES (?, ?, (SELECT COALESCE(MAX(sequence), 0) FROM pipeline_events), ?)
+            ON CONFLICT(lot_id, space_id) DO UPDATE SET
+                through_sequence=excluded.through_sequence, state=excluded.state
+        """, (row["lot_id"], row["space_id"], json.dumps(state)))
+
+    def _restore_camera_snapshots(self, conn):
+        checkpoints = {}
+        for saved in conn.execute("SELECT * FROM camera_space_snapshots"):
+            key = (saved["lot_id"], saved["space_id"])
+            if key not in self._spaces:
+                continue
+            row = json.loads(saved["state"])
+            row["observed_at"] = datetime.fromisoformat(row["observed_at"])
+            if row["observed_at"] > self._identity_clock():
+                continue
+            signature, first = row["candidate"]
+            row["candidate"] = (tuple(signature), datetime.fromisoformat(first))
+            self._spaces[key] = row
+            checkpoints[key] = saved["through_sequence"]
+        return checkpoints
+
+    def _finish_event(self, conn, event, journal_key):
+        conn.execute("UPDATE pipeline_events SET applied=1 WHERE event_id=?", (journal_key,))
+        conn.execute(
+            "UPDATE vision_event_receipts SET journal_key=NULL WHERE event_id=? AND journal_key=?",
+            (event.event_id, journal_key),
+        )
+        conn.commit()
+
+    def _apply_journal_event(self, conn, event, *, already_applied):
+        if event.event_type == "mock_fire_led_observed":
+            if not already_applied:
+                ingest_led_fire_event(conn, LedFireEvent(**event.model_dump()))
+            return
+        key = (event.lot_id, event.space_id)
+        previous = self._spaces[key]
+        row = previous.copy()
+        self._apply_observation(row, event)
+        if (row["version"] != previous["version"] and
+                (row["status"] in ("occupied", "empty") or row.get("identity_match") is not None)):
+            self.sync_session(row, event.observed_at)
+        self._spaces[key] = row
+
+    def recover(self):
+        with self.gate, self._state_lock, closing(self.connection()) as conn:
+            self._collect_identity_evidence = False
+            # Disk-backed scratch keys preserve legacy frame dedup without a growing Python set.
+            conn.execute("PRAGMA temp_store=FILE")
+            conn.execute("CREATE TEMP TABLE replay_frames (frame_key TEXT PRIMARY KEY)")
+            try:
+                checkpoints = self._restore_camera_snapshots(conn)
+                self.recovering = True
+                for record in conn.execute(
+                    "SELECT sequence,payload FROM pipeline_events WHERE applied=1 ORDER BY sequence"
+                ):
+                    event = VisionEvent.model_validate_json(record["payload"])
+                    key = (event.lot_id, event.space_id)
+                    if record["sequence"] <= checkpoints.get(key, 0):
+                        continue
+                    frame = self._frame_key(event)
+                    if frame is None or conn.execute(
+                        "INSERT OR IGNORE INTO replay_frames VALUES (?)", (frame,)
+                    ).rowcount:
+                        self._apply_journal_event(conn, event, already_applied=True)
+                conn.commit()
+                self.recovering = False
+                pending = conn.execute(
+                    "SELECT event_id,payload FROM pipeline_events WHERE applied=0 ORDER BY sequence"
+                ).fetchall()
+                for record in pending:
+                    event = VisionEvent.model_validate_json(record["payload"])
+                    self._apply_journal_event(conn, event, already_applied=False)
+                    self._finish_event(conn, event, record["event_id"])
             finally:
                 self.recovering = False
                 self._collect_identity_evidence = True
 
-    def _simulation_heartbeat(self, event):
-        """C·D 시뮬레이터의 반복 관측(상태 변화 없음)이면 True.
+    def _stable_camera_repeat(self, previous, row):
+        return (
+            row["status"] in ("occupied", "empty") and row["candidate"] == previous["candidate"]
+            and all(row[key] == previous[key] for key in ("status", "car_id", "vehicle_type", "source"))
+            and (row["status"] == "empty" or (
+                row.get("session_id") is not None and row.get("session_car_id") == row["car_id"]
+                and (row["car_id"] is not None or row.get("identity_match") is None)
+            ))
+        )
 
-        시뮬레이터는 1초마다 C·D 전 칸에 관측을 다시 보낸다. 이미 같은 상태로 확정된 칸의
-        반복 관측까지 journal·접수함에 쌓으면 PARKING_MAX_EVENTS(기본 100만)에 도달해
-        카메라 관측까지 503이 되고, 재시작 복구도 점점 느려진다. 상태를 바꾸는 관측
-        (후보 시작·확정·간격 초과 리셋)은 그대로 기록한다. C·D는 재시작 때 새로 채운다(D-63).
-        """
+    def _simulation_heartbeat(self, event):
+        """C·D stable simulation observations can be omitted from recovery (D-63)."""
         if event.source != "simulation" or event.lot_id not in ("C", "D") or event.event_type not in (
             "vehicle_observed", "space_empty_observed"
         ):
             return False
         target = "occupied" if event.event_type == "vehicle_observed" else "empty"
-        with self._state_lock:
-            row = self._spaces.get((event.lot_id, event.space_id))
-            if row is None or row["observed_at"] is None or row["status"] != target or row["source"] != "simulation":
-                return False
-            gap = (event.observed_at - row["observed_at"]).total_seconds()
-            return (
-                0 < gap <= SIMULATION_MAX_GAP_SECONDS
-                and event.car_id is None
-                and event.confidence >= self.policy.min_confidence
-                and row["vehicle_type"] == (event.vehicle_type if target == "occupied" else None)
-            )
+        row = self._spaces[(event.lot_id, event.space_id)]
+        if row["observed_at"] is None or row["status"] != target or row["source"] != "simulation":
+            return False
+        gap = (event.observed_at - row["observed_at"]).total_seconds()
+        return (
+            0 < gap <= SIMULATION_MAX_GAP_SECONDS
+            and event.car_id is None
+            and event.confidence >= self.policy.min_confidence
+            and row["vehicle_type"] == (event.vehicle_type if target == "occupied" else None)
+        )
 
-    def _apply_unrecorded(self, event):
-        # OccupancyExperiment.receive와 같은 상태 반영이지만 event_id를 접수함에 남기지 않는다.
-        key = (event.lot_id, event.space_id)
-        with self._state_lock:
-            previous = self._spaces[key]
-            row = previous.copy()
-            self._apply_observation(row, event)
-            if (self._on_confirmed is not None and row["version"] != previous["version"]
-                    and row["status"] in ("occupied", "empty")):
-                self._on_confirmed(row, event.observed_at)
-            self._spaces[key] = row
-        return Receipt.ACCEPTED
+    def receive_simulation_heartbeats(self, events):
+        """Apply a small batch only when every event is a stable C/D refresh."""
+        keys = {(event.lot_id, event.space_id) for event in events}
+        ids = {event.event_id for event in events}
+        if len(keys) != len(events) or len(ids) != len(events):
+            return False
+        with self.gate, self._state_lock, closing(self.connection()) as conn:
+            if not all(self._simulation_heartbeat(event) for event in events):
+                return False
+            if conn.execute("SELECT 1 FROM pipeline_events WHERE applied=0 LIMIT 1").fetchone():
+                return False
+            now = self._identity_clock().timestamp()
+            self._expire_receipts(conn, now - 600)
+            rows = {}
+            for event in events:
+                if conn.execute(
+                    "SELECT 1 FROM vision_event_receipts WHERE event_id=?", (event.event_id,)
+                ).fetchone():
+                    return False
+                key = (event.lot_id, event.space_id)
+                row = self._spaces[key].copy()
+                self._apply_observation(row, event)
+                rows[key] = row
+                self._save_receipt(conn, event, canonical_payload(event), now)
+            conn.commit()
+            self._spaces.update(rows)
+        return True
 
     def receive(self, event):
-        with self.gate:
-            if self._simulation_heartbeat(event):
-                with closing(self.connection()) as conn:
-                    pending = conn.execute(
-                        "SELECT 1 FROM pipeline_events WHERE applied=0 LIMIT 1"
-                    ).fetchone()
-                if not pending:
-                    return self._apply_unrecorded(event)
-        with self.gate, closing(self.connection()) as conn:
-            old = conn.execute(
-                "SELECT canonical,applied,payload FROM pipeline_events WHERE event_id=?", (event.event_id,)
-            ).fetchone()
+        with self.gate, self._state_lock, closing(self.connection()) as conn:
+            now = self._identity_clock()
+            self._expire_receipts(conn, now.timestamp() - 600)
             canonical = canonical_payload(event)
-            if old:
-                if old["canonical"] != canonical:
-                    return Receipt.CONFLICT
-                if old["applied"]:
-                    return Receipt.DUPLICATE
-            pending = conn.execute(
-                "SELECT event_id FROM pipeline_events WHERE applied=0 ORDER BY sequence LIMIT 1"
+            receipt = conn.execute(
+                "SELECT canonical,journal_key FROM vision_event_receipts WHERE event_id=?",
+                (event.event_id,),
             ).fetchone()
-            if pending and pending["event_id"] != event.event_id:
+            if receipt:
+                if receipt["canonical"] != canonical:
+                    return Receipt.CONFLICT
+                if receipt["journal_key"] is None:
+                    return Receipt.DUPLICATE
+            journal_key = receipt["journal_key"] if receipt else None
+            pending = conn.execute(
+                "SELECT event_id,payload FROM pipeline_events WHERE applied=0 ORDER BY sequence LIMIT 1"
+            ).fetchone()
+            if pending and pending["event_id"] != journal_key:
                 raise HTTPException(503, "미완료 이벤트를 같은 event_id로 먼저 재시도하세요.")
-            # Journal evidence before session/alert side effects. Pending records are
-            # retried idempotently or recovered after process interruption.
-            if not old:
-                if self._is_camera_observation(event):
-                    now = self._identity_clock()
+            if journal_key is None:
+                camera = self._is_camera_observation(event)
+                if camera:
                     if event.observed_at > now + timedelta(seconds=2):
                         raise HTTPException(422, "관측 시각이 서버보다 2초 넘게 미래입니다.")
                     if event.observed_at > now:
                         event = event.model_copy(update={"observed_at": now})
-                if (
-                    event.event_type == "mock_fire_led_observed"
-                    and event.space_id is not None
-                    and not any(
-                        s.lot_id == event.lot_id and s.space_id == event.space_id for s in SPACES
-                    )
-                ):
+                key = (event.lot_id, event.space_id)
+                fire = event.event_type == "mock_fire_led_observed"
+                if key not in self._spaces and not (fire and event.space_id is None):
                     raise HTTPException(422, "도면에 없는 주차칸입니다.")
-                if (
-                    event.event_type != "mock_fire_led_observed"
-                    and (event.lot_id, event.space_id) not in self._spaces
-                ):
-                    raise HTTPException(422, "도면에 없는 주차칸입니다.")
+                if camera or self._simulation_heartbeat(event):
+                    previous = self._spaces[key]
+                    row = previous.copy()
+                    frame = self._frame_key(event)
+                    if frame is None or not conn.execute(
+                        "SELECT 1 FROM vision_event_receipts WHERE frame_key=? AND journal_key IS NULL",
+                        (frame,),
+                    ).fetchone():
+                        self._apply_observation(row, event)
+                    if row == previous or not camera or self._stable_camera_repeat(previous, row):
+                        self._save_receipt(conn, event, canonical, now.timestamp())
+                        if camera and row != previous:
+                            self._save_camera_snapshot(conn, row)
+                        conn.commit()
+                        self._spaces[key] = row
+                        return Receipt.ACCEPTED
+
+                # Reused client IDs retain their separate historical journal rows.
+                journal_key = event.event_id
+                if conn.execute(
+                    "SELECT 1 FROM pipeline_events WHERE event_id=?", (journal_key,)
+                ).fetchone():
+                    journal_key = f"receipt-{uuid4()}"
                 conn.execute(
                     "INSERT INTO pipeline_events(event_id,payload,canonical) VALUES(?,?,?)",
-                    (event.event_id, event.model_dump_json(), canonical),
+                    (journal_key, event.model_dump_json(), canonical),
                 )
-                conn.commit()
+                self._save_receipt(conn, event, canonical, now.timestamp(), journal_key)
             else:
-                # Replay and retry must use the same effective timestamp as the first receipt.
-                event = VisionEvent.model_validate_json(old["payload"])
+                event = VisionEvent.model_validate_json(pending["payload"])
+            conn.commit()
             try:
-                if event.event_type == "mock_fire_led_observed":
-                    result = InMemoryEventStore.receive(self, event)
-                else:
-                    result = super().receive(event)
+                self._apply_journal_event(conn, event, already_applied=False)
             except HTTPException as exc:
-                # Permanent semantic rejections must not poison startup recovery.
-                # Transient writes remain pending and block overtaking observations.
                 if exc.status_code < 500:
-                    conn.execute("DELETE FROM pipeline_events WHERE event_id=?", (event.event_id,))
+                    conn.execute("DELETE FROM pipeline_events WHERE event_id=?", (journal_key,))
+                    conn.execute("DELETE FROM vision_event_receipts WHERE event_id=?", (event.event_id,))
                     conn.commit()
                 raise
-            if result in (Receipt.ACCEPTED, Receipt.DUPLICATE):
-                if event.event_type == "mock_fire_led_observed":
-                    ingest_led_fire_event(conn, LedFireEvent(**event.model_dump()))
-                conn.execute(
-                    "UPDATE pipeline_events SET applied=1 WHERE event_id=?", (event.event_id,)
-                )
-                conn.commit()
-            elif not old:
-                conn.execute("DELETE FROM pipeline_events WHERE event_id=?", (event.event_id,))
-                conn.commit()
-            return result
+            self._finish_event(conn, event, journal_key)
+            return Receipt.ACCEPTED
 
     def sync_session(self, row, observed_at):
         # Applied observations can carry their existing link through replay.
@@ -721,6 +856,7 @@ def create_runtime_app(
                 for r in store.spaces(lot, as_of=clock())
                 if r["observed_at"] is not None and r["source"] == "simulation"
             }
+            events = []
             for target in targets:
                 if (
                     not target["occupied"]
@@ -740,12 +876,22 @@ def create_runtime_app(
                     bbox_xyxy=None,
                     observed_at=clock(),
                 )
+                events.append(event)
+            # Keep writer lock duration bounded so A/B observations can interleave.
+            for offset in range(0, len(events), 32):
+                batch = events[offset:offset + 32]
                 try:
-                    await send_event(event)
-                except httpx.HTTPError:
-                    logging.exception(
-                        "Simulation observation rejected for %s/%s", event.lot_id, event.space_id
-                    )
+                    if await asyncio.to_thread(store.receive_simulation_heartbeats, batch):
+                        continue
+                except sqlite3.Error:
+                    logging.exception("Simulation heartbeat batch failed")
+                for event in batch:
+                    try:
+                        await send_event(event)
+                    except httpx.HTTPError:
+                        logging.exception(
+                            "Simulation observation rejected for %s/%s", event.lot_id, event.space_id
+                        )
             with closing(store.connection()) as conn:
                 controls = [
                     dict(r)
@@ -853,6 +999,7 @@ def create_runtime_app(
                          AND json_extract(p.payload,'$.space_id')=json_extract(pipeline_events.payload,'$.space_id'))"""
             )
             conn.commit()
+            store.init_vision_retention(conn)
         store.recover()
         if continuous_demo:
             with closing(store.connection()) as conn:
