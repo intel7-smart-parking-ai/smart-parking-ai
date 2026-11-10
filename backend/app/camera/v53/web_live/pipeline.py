@@ -170,6 +170,19 @@ def same_pose(a,b,shape):
     return a is not None and b is not None and float(np.max(np.linalg.norm(a-b,axis=1)))<=max(shape[:2])*.008
 
 
+def probable_red_body(light):
+    """A weak red-emission box spread over a large part of the bay is red car paint, not an LED.
+
+    Field 11/10 (lights on, LEDs off/on): car 33 at A/B-01 (red body, white sticker)
+    produced a 81x81 px box covering 17% of the bay at 0.850-0.860, enough to confirm a
+    mock fire and raise a level-2 alert. Real lit roofs measured 1.3-15.5% at 0.874-0.978,
+    and >=0.94 whenever they covered 11% or more. Body colour is never fire evidence.
+    """
+    if light.get('method')!='red_emission':
+        return False
+    return light.get('bay_area_fraction',0)>=.12 and light.get('confidence',1)<.88
+
+
 def probable_paint_glint(light, row):
     """Small high-scoring paint highlights seen beside the white fleet stickers."""
     if not row or row.get('sticker_color')!='white' or row.get('observation')!='occupied':
@@ -395,6 +408,24 @@ class ParkingPipeline:
             return result
         finally:self.photo_lock.release()
 
+    def _suspend_mismatched_approval(self,camera,epoch,shape,observed_at):
+        """A full search that lands off the reviewed pose suspends, not erases, the review.
+
+        Field 11/10: the A board's full search is unreliable. One frame where the
+        fixed landmarks missed and the search returned a shifted outline erased an
+        approval for the rest of the run. Keep the reviewed fixed view for the
+        normal 12 s window; only two consecutive newer frames that verify the
+        original pose restore it, and a real move never verifies.
+        """
+        approved=self.confirmed.get(camera)
+        fixed=getattr(self,'fixed_views',{}).get(camera)
+        views=getattr(self,'interrupted_views',None)
+        if (views is None or not observed_at or camera in views or not isinstance(approved,tuple) or len(approved)!=4
+                or approved[0]!=epoch or tuple(approved[3])!=tuple(shape) or not fixed or fixed[0]!=epoch or fixed[1] is None):
+            return False
+        views[camera]=(approved,fixed[1],time.monotonic()+12,None)
+        return True
+
     def _recheck_interrupted(self,frame,camera,epoch,sequence,lot_hint,inspect):
         """Revalidate an operator-reviewed pose after a brief obstruction on the same stream."""
         views=getattr(self,'interrupted_views',{})
@@ -406,6 +437,9 @@ class ParkingPipeline:
             views.pop(camera,None)
             return None
         pose=self.registry.verify_fixed_view(frame,ref) if inspect else None
+        if (pose is not None and pose.get('outline') is not None
+                and not same_pose(approval[2],pose['outline'],frame.shape)):
+            pose=None
         if pose is not None and previous is not None and sequence>previous:
             self.confirmed[camera]=approval
             self.fixed_views[camera]=(epoch,ref)
@@ -508,6 +542,7 @@ class ParkingPipeline:
                 'method':registration.get('method','team_reference')},note='도면 위치 확인 필요 · 화면의 칸 이름과 실제 칸을 대조하세요.')
             approved=self.confirmed.get(camera)
             if approved and (approved[0]!=epoch or approved[1]!=lot or not same_pose(approved[2],outline,frame.shape)):
+                self._suspend_mismatched_approval(camera,epoch,frame.shape,observed_at)
                 if self.fire_watch:self.fire_watch.clear(camera)
                 getattr(self,'fixed_views',{}).pop(camera,None)
                 self.confirmed.pop(camera,None);self.baselines.pop(camera,None);approved=None
@@ -836,7 +871,8 @@ class ParkingPipeline:
                             fire={'state':'unverified'}
                     row['fire_led']=fire
             rows_by_id={s['space_id']:s for s in result['spaces']}
-            lights[:]=[light for light in lights if not probable_paint_glint(light,rows_by_id.get(light.get('space_id')))]
+            lights[:]=[light for light in lights if not probable_paint_glint(light,rows_by_id.get(light.get('space_id')))
+                       and not probable_red_body(light)]
             for light in lights:
                 if light['space_id']:
                     row=next(s for s in result['spaces'] if s['space_id']==light['space_id'])
