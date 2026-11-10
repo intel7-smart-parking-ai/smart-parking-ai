@@ -1,10 +1,12 @@
 # V53 36차 · 두 카메라 실시간 주차 관제
 
+> **시연은 이 폴더(`backend/app/camera/v53`)만 사용한다.** `backend/app/camera/v51`은 수집 코드 원형 보관용이며 실행하지 않는다. 원격의 옛 브랜치 `feature/KAN-52-geti-unified`(서버 수정·"차량 화재" 표기 포함 첫 업로드)는 PR·병합 대상이 아니다.
+
 Intel D435 두 대로 개발원 A 12칸과 부산역 B 16칸을 읽는다. 차량의 스티커에서 번호와 차종을 판독하고, 차량 지붕의 붉은 LED 위치를 도면에 대응시킨다. 일반칸은 세 종류 모두 정상이고 전기차·장애인 전용칸은 해당 종류만 정상이다. 번호가 불분명하면 빈 값으로 보낸다. 가림이나 연결 단절로 바닥을 확인할 수 없으면 빈칸 전송을 멈춘다.
 
 ## 카메라 PC 설치 5줄 (시연 PC 재설치용)
 
-`backend/app/camera/v53` 폴더에서 PowerShell로 실행한다. 모델·도면·빈 바닥 기준은 팀 보관 자료에서 복원해 `assets.local.json`에 경로를 적는다(Git에 없음).
+`backend/app/camera/v53` 폴더에서 PowerShell로 실행한다. 모델·도면·빈 바닥 기준은 팀 드라이브 `데이터셋/camera_v53_assets_<날짜>` 묶음(최신 `20261110`)에서 복원해 `assets.local.json`에 경로를 적는다(Git에 없음). 묶음 안 `RESTORE.md`에 복원 위치, `SHA256SUMS.txt`에 해시가 있고, 세 모델 해시는 [모델 명세](MODEL_MANIFEST_V53.json)와 같아야 한다. 드라이브 링크는 저장소에 적지 않는다.
 
 ```powershell
 py -3.13 -m venv .venv
@@ -22,8 +24,8 @@ $env:API_BASE_URL = "http://<시연 서버 IP>"; $env:VISION_TOKEN = "<팀에서
 
 | 순서 | 할 일 | 확인 |
 | --- | --- | --- |
-| 1 | 카메라 PC를 **유선 내부망**에 연결 | `Test-NetConnection <서버 IP> -Port <포트>`가 True. 봇 테스트 서버·시연 PC 주소는 팀 공지에서 확인(저장소에 적지 않음) |
-| 2 | 시간 확인 | 서버는 2초 넘게 미래인 관측을 거부한다. `w32tm /query /status`로 동기화 원본 확인, 어긋나면 Windows 설정 > 시간 > 지금 동기화 |
+| 1 | 카메라 PC를 **서버와 같은 망**에 연결 | `Test-NetConnection <서버 IP> -Port <포트>`가 True. 봇 테스트 서버·시연 PC 주소는 팀 공지에서 확인(저장소에 적지 않음). 랜 포트 없는 노트북은 USB 랜 어댑터 또는 팀 Tailscale 참여 후 시연 PC의 Tailscale 주소 사용. 휴대폰 핫스팟만으로는 내부망에 닿지 않는다. 외부망에서는 `API_BASE_URL=https://<공개 도메인>`(HTTPS·토큰 필수)만 바꾸면 되지만, 11/10 현재 공개 도메인 앞단에서 카메라 수신 경로가 404로 막혀 있어 PM·서버 담당 확인 후 사용한다. 새 포트·터널은 PM 승인 없이 열지 않는다 |
+| 2 | 시간 확인 | 서버는 2초 넘게 미래인 관측을 거부한다. `w32tm /query /status`로 동기화 원본 확인. 어긋나면 관리자 PowerShell에서 `w32tm /resync` 또는 Windows 설정 > 시간 및 언어 > 날짜 및 시간 > 지금 동기화 |
 | 3 | 실행 창에서 `API_BASE_URL`·`VISION_TOKEN`(DM으로 받은 값)·필요 시 `V53_UNATTENDED_SEND=1` 설정 후 `run_windows.bat --start-camera` | 토큰은 파일·채널·커밋에 남기지 않는다 |
 | 4 | `http://127.0.0.1:8011`에서 두 도면의 칸 이름이 실제 칸과 맞는지 보고 승인 → **전송 켜기** | 화면 상단 "인식 중 · 관측 전송 켜짐" |
 | 5 | 사이트 지도 A 12칸·B 16칸, 관리자 입차 세션 번호, 차 한 대 빼기 → 빈칸 | 칸이 노란 점선(uncertain)으로 깜빡이지 않는지 1~2분 관찰 |
@@ -43,7 +45,7 @@ python -m venv .venv
 Copy-Item assets.example.json assets.local.json
 ```
 
-최초 설정 때 팀 보관 자료에서 Geti IR의 XML·BIN 쌍, 점유·번호 분류 모델, 도면, 인쇄번호 표본, LED 특징 모델과 빈 바닥 기준을 복원한다. `assets.local.json`에 이 PC의 자료 경로를 지정한다. 기존 설정 파일은 계속 사용할 수 있다. 모델 종류와 해시는 [모델 명세](MODEL_MANIFEST_V53.json)에 있다. 선택 OCR 작업자는 [전용 의존성](requirements-ocr.txt)과 `ocr_python`, `ocr_models` 설정을 사용한다.
+최초 설정 때 팀 드라이브 `데이터셋/camera_v53_assets_<날짜>` 묶음에서 Geti IR의 XML·BIN 쌍, 점유·번호 분류 모델, 도면, 인쇄번호 표본, LED 특징 모델과 빈 바닥 기준을 복원한다. `assets.local.json`에 이 PC의 자료 경로를 지정한다. 기존 설정 파일은 계속 사용할 수 있다. 모델 종류와 해시는 [모델 명세](MODEL_MANIFEST_V53.json)에 있다. 선택 OCR 작업자는 [전용 의존성](requirements-ocr.txt)과 `ocr_python`, `ocr_models` 설정을 사용한다.
 
 ```powershell
 .\run_windows.bat --start-camera
