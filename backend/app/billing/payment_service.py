@@ -28,11 +28,11 @@ def quote_ttl_seconds() -> int:
     return int(os.getenv("FEE_QUOTE_TTL_SECONDS", DEFAULT_QUOTE_TTL_SECONDS))
   except ValueError:
     return DEFAULT_QUOTE_TTL_SECONDS
-
+REUSE_MIN_REMAINING_SECONDS = 150
 def create_fee_quote(conn: sqlite3.Connection, session_id: str, amount_krw: int, calculated_at: str) -> dict[str, str]:
   """요금 조회 결과를 견적으로 저장한다. 결제는 이 금액으로만 처리된다."""
   now = datetime.datetime.now(KST)
-  floor = (now + datetime.timedelta(seconds=REUSE_MIN_REMAINING_SECONDS = 150)).isoformat(timespec="seconds")
+  floor = (now + datetime.timedelta(seconds=REUSE_MIN_REMAINING_SECONDS)).isoformat(timespec="seconds")
   row = conn.execute(
       "SELECT quote_id, expires_at FROM fee_quotes WHERE session_id = ? AND amount_krw = ? AND expires_at > ? "
       "ORDER BY expires_at DESC LIMIT 1", (session_id, int(amount_krw), floor)).fetchone()
