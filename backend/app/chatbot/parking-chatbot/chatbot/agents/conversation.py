@@ -124,7 +124,9 @@ def _provider_model(options: AgentOptions):
     key = config.api_key(provider)
     if not key or not config.LLM_MODEL:
         raise _Stopped("missing_key")
-    timeout = request_timeout(config.LLM_TIMEOUT_SEC)
+    # HTTP 연결 제한은 두 호출 중 긴 쪽(답 쓰기 LLM_ANSWER_TIMEOUT_SEC)으로 둔다. 호출마다의 제한(도구 선택 3초 / 답 쓰기 5초)은
+    # TurnLimits가 따로 건다. 예전에는 연결 자체가 LLM_TIMEOUT_SEC(3초)에서 끊겨 답 쓰기 5초가 적용되지 않았다(봇 점검 11/10, gemma 3.1초 끊김).
+    timeout = request_timeout(max(config.LLM_TIMEOUT_SEC, config.LLM_ANSWER_TIMEOUT_SEC))
     kwargs = {"model": config.LLM_MODEL, "api_key": key, "temperature": 0,
               "max_tokens": _output_tokens(options), "timeout": timeout, "max_retries": 0}
     if provider == "anthropic":

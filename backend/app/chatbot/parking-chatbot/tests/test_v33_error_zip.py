@@ -251,5 +251,31 @@ class DamageAndHoursTests(Base):
         self.assertEqual(check_answer(claim, q, obs), "unsupported_lot")
 
 
+class GemmaTimeoutTests(Base):
+    """봇 점검(11/10, gemma): '김해공항 3일 얼마?'가 3.1초에서 끊김 — 모델 연결 자체가 LLM_TIMEOUT_SEC(3초)라
+    답 쓰기 제한(LLM_ANSWER_TIMEOUT_SEC 5초)이 적용되지 않았다."""
+
+    def test_client_timeout_covers_answer_limit(self):
+        import importlib.util
+        if importlib.util.find_spec("langchain_openai") is None:
+            self.skipTest("langchain_openai 없음")
+        from chatbot.agents import conversation
+        with patch.object(config, "LLM_PROVIDER", "openrouter"), patch.object(config, "LLM_TIMEOUT_SEC", 3.0), \
+                patch.object(config, "LLM_ANSWER_TIMEOUT_SEC", 5.0), patch.object(config, "api_key", return_value="test-only"), \
+                patch.object(config, "LLM_MODEL", "google/gemma-4-26b-a4b-it"):
+            model = conversation._provider_model(conversation.AgentOptions())
+        self.assertGreaterEqual(float(model.request_timeout), 5.0)
+
+    def test_three_days_price_is_duration(self):
+        from chatbot import plan
+        self.assertEqual(plan.make("김해공항 3일 얼마?").minutes, 4320)
+        self.assertIsNone(plan.make("11월 3일에 가면 자리 있어?").minutes)
+
+    def test_vacancy_where_is_not_find_my_car(self):
+        r = self.ask("장애인 주차 어디가 비었어?", sid="acc")
+        self.assertIn("장애인", r["text"])
+        self.assertNotIn("차량 번호를 알려주세요", r["text"])
+
+
 if __name__ == "__main__":
     unittest.main()

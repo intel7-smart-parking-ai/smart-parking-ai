@@ -1036,6 +1036,10 @@ def _plausible_reading(s, r, text):
         return r
     from .parser import ParseResult
     p = plan.for_text(text)
+    if (r.intent == "find_my_car" and not r.params.get("car_id")
+            and re.search(r"비었|비어|빈\s*(?:자리|칸|곳)|자리\s*(?:있|남)|칸\s*(?:있|남)", text)):
+        # '장애인 주차 어디가 비었어?'는 내 차 찾기가 아니라 빈자리(봇 점검 11/10, AI 시간 초과 뒤 규칙 답)
+        return ParseResult("get_empty_spots", {k: v for k, v in r.params.items() if k in ("zone", "lot_id")}, "rule")
     own_zone = {"ev": "ev", "accessible": "accessible"}.get(s.vehicle_type)
     focus_lot = DC.focus(s)
     from .turn_guard import LEAVING
