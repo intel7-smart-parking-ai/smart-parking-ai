@@ -72,7 +72,9 @@ def _restore(text, masked, replacements):
         raise ValueError("Translation added a number")
     restored = _TOKEN.sub(lambda match: replacements[match.group()], text)
     # 개수 자리표시는 단위까지 넣어 돌려주는데 번역이 단위를 또 붙이는 경우(봇 점검 11/10)
-    restored = re.sub(r"(\d[\d,]* spaces?)\s+(?:(?:available|empty|free|open|parking)\s+)*spaces?\b", r"\1", restored)
+    # 'N spaces vacant spaces' → 'N vacant spaces', 'N spaces spaces' → 'N spaces'(봇 점검 11/10 15:55)
+    restored = re.sub(r"(\d[\d,]*) spaces?\s+((?:(?:available|empty|free|open|parking|vacant|unoccupied|remaining)\s+)*)spaces?\b",
+                      lambda m: f"{m[1]} {m[2]}spaces", restored)
     restored = re.sub(r"(\d[\d,]*个车位)\s*个?(?:空)?车位", r"\1", restored)
     restored = re.sub(r"(\d[\d,]*台)\s*(?:分)?台", r"\1", restored)
     return restored
