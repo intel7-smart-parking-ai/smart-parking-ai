@@ -124,5 +124,69 @@ class MovedCarPinTests(unittest.TestCase):
         self.assertEqual(moved, {'A-01': '88', 'A-02': '10', 'A-03': '49'})
 
 
+class SteadyNewNumberTests(unittest.TestCase):
+    """Old car unreadable elsewhere (LED glare at Busan A-04/A-06): a steady new read still wins."""
+
+    def frame(self, pins, streaks, car, space='A-02'):
+        from web_live.policy import apply_bay_pins
+        from web_live.tests.test_contract import fixture
+        from web_live.tests.test_round36 import occupied
+        result, _ = fixture('A')
+        occupied(result, space, car)
+        apply_bay_pins(result, pins, (), None, streaks)
+        return next(r for r in result['spaces'] if r['space_id'] == space)['car_id']
+
+    def test_eight_steady_frames_release_the_pin(self):
+        from web_live.policy import PIN_RELEASE_FRAMES
+        pins, streaks = {}, {}
+        self.assertEqual(self.frame(pins, streaks, '11'), '11')
+        seen = [self.frame(pins, streaks, '88') for _ in range(PIN_RELEASE_FRAMES)]
+        self.assertEqual(seen[:-1], [None] * (PIN_RELEASE_FRAMES - 1))
+        self.assertEqual(seen[-1], '88')
+        self.assertEqual(pins[('A', 'A-02')], '88')
+
+    def test_interrupted_streak_restarts(self):
+        from web_live.policy import PIN_RELEASE_FRAMES
+        pins, streaks = {}, {}
+        self.frame(pins, streaks, '11')
+        for _ in range(PIN_RELEASE_FRAMES - 1):
+            self.frame(pins, streaks, '88')
+        self.frame(pins, streaks, '11')  # the pinned car read again: not a move
+        self.assertIsNone(self.frame(pins, streaks, '88'))
+        self.assertEqual(pins[('A', 'A-02')], '11')
+
+    def test_without_streaks_old_behaviour(self):
+        pins = {}
+        self.frame(pins, None, '11')
+        for _ in range(20):
+            self.assertIsNone(self.frame(pins, None, '88'))
+
+
+class PinnedIdentityFireTests(unittest.TestCase):
+    def result(self, car, reason='', candidate=None):
+        return {'lot_id': 'A', 'spaces': [dict(space_id='A-03', car_id=car, observation='occupied',
+                                               number_reason=reason, number_candidate=candidate,
+                                               fire_led=dict(light(.91, .15, 'A-03')))],
+                'fire_lights': [light(.91, .15, 'A-03')], 'filtered_lights': []}
+
+    def test_null_number_uses_pinned_non_led_car(self):
+        from web_live.policy import drop_non_led_fire
+        r = drop_non_led_fire(self.result(None), {('A', 'A-03'): '21'}, LED)
+        self.assertEqual(r['fire_lights'], [])
+        self.assertEqual(r['filtered_lights'][0]['reason'], 'not_led_car_pinned')
+        self.assertEqual(r['spaces'][0]['fire_led'], {'state': 'unverified'})
+
+    def test_pin_held_led_candidate_keeps_its_light(self):
+        from web_live.policy import drop_non_led_fire
+        r = drop_non_led_fire(self.result(None, '칸 번호 고정(21) 중 다른 번호 판독', '11'), {('A', 'A-03'): '21'}, LED)
+        self.assertEqual(len(r['fire_lights']), 1)
+
+    def test_unknown_bay_or_led_pin_or_no_list_keeps_light(self):
+        from web_live.policy import drop_non_led_fire
+        self.assertEqual(len(drop_non_led_fire(self.result(None), {}, LED)['fire_lights']), 1)
+        self.assertEqual(len(drop_non_led_fire(self.result(None), {('A', 'A-03'): '42'}, LED)['fire_lights']), 1)
+        self.assertEqual(len(drop_non_led_fire(self.result(None), {('A', 'A-03'): '21'}, frozenset())['fire_lights']), 1)
+
+
 if __name__ == '__main__':
     unittest.main()
