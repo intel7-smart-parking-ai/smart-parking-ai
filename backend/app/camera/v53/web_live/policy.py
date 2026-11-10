@@ -80,17 +80,45 @@ def duplicate_identities(results):
     return duplicates | {number for number, count in counts.items() if count > 1}
 
 
-def apply_bay_pins(result, pins, duplicates=()):
+def pin_reads(result, duplicates=()):
+    """{car: {(lot, bay)}} for numbers currently read on occupied bays (including pin-held reads)."""
+    reads = {}
+    lot = result.get('lot_id')
+    for row in result.get('spaces', ()):
+        car = row.get('car_id')
+        if car is None and str(row.get('number_reason', '')).startswith('칸 번호 고정'):
+            car = row.get('number_candidate')
+        if row.get('sendable') and row.get('observation') == 'occupied' and car in CATALOG and car not in duplicates:
+            reads.setdefault(car, set()).add((lot, row.get('space_id')))
+    return reads
+
+
+def apply_bay_pins(result, pins, duplicates=(), elsewhere=None):
     """Keep one car number per occupied bay until that bay is confirmed empty.
 
     pins maps (lot_id, space_id) to the first confirmed number. A different
     number read while the bay stays occupied is sent as null, so an active
     server session never sees its number flip (409). The pinned number is never
     sent without a current reading; an unreadable number stays null.
+
+    A pin is also released when its car is being read in another bay right now
+    (this frame or the other camera's current frame): that car has left. 11/10
+    classroom: cars swapped without a visible empty frame stayed null for good.
     """
     lot = result.get('lot_id')
     if lot not in ('A', 'B') or not result.get('registration_ok') or not result.get('roi_confirmed'):
         return result
+    reads = pin_reads(result, duplicates)
+    for car, bays in (elsewhere or {}).items():
+        reads.setdefault(car, set()).update(bays)
+    for row in result.get('spaces', ()):
+        key = (lot, row.get('space_id'))
+        pinned = pins.get(key)
+        car = row.get('car_id')
+        if (pinned is not None and car in CATALOG and car != pinned and car not in duplicates
+                and row.get('sendable') and row.get('observation') == 'occupied'
+                and reads.get(pinned, set()) - {key}):
+            pins[key] = car
     for row in result.get('spaces', ()):
         key = (lot, row.get('space_id'))
         if not row.get('sendable'):

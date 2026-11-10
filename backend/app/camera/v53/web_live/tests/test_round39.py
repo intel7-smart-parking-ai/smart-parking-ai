@@ -1,0 +1,128 @@
+"""Round 39 (11/10 classroom): red paint on non-LED cars never becomes a mock fire, wherever parked."""
+import unittest
+
+from web_live.pipeline import (mock_fire_car_list, not_led_car, probable_red_body, repeat_lights,
+                               split_filtered_lights)
+
+LED = frozenset({'11', '23', '42'})
+
+
+def row(car, observation='occupied', sticker='white'):
+    return dict(space_id='B-01', car_id=car, observation=observation, sticker_color=sticker)
+
+
+def light(score=.93, area=.01, bay='B-01', location='space'):
+    return dict(method='red_emission', confidence=score, bay_area_fraction=area, space_id=bay,
+                location=location, bbox_xyxy=[10, 10, 20, 20], state='confirmed')
+
+
+class LedCarListTests(unittest.TestCase):
+    def test_config_parsing(self):
+        self.assertEqual(mock_fire_car_list(['11', '23', '42']), LED)
+        self.assertEqual(mock_fire_car_list(None), frozenset())
+        self.assertEqual(mock_fire_car_list([]), frozenset())
+        for bad in ('11', [11], ['1'], ['abc'], [None]):
+            with self.assertRaises(ValueError):
+                mock_fire_car_list(bad)
+
+    def test_field_false_lights_on_read_non_led_cars_are_filtered_in_any_bay(self):
+        # 11/10 collection.db false runs: 33 (0.945-0.968, 0.9%), 22 orange (0.913-0.931),
+        # 88 (0.850-0.864, 1.7%), 30 (0.891-0.980, 0.8%), 21 (0.856, 0.6%).
+        for car, score, area, bay in (('33', .968, .009, 'B-01'), ('22', .931, 0., 'B-02'),
+                                      ('88', .862, .017, 'B-02'), ('30', .98, .008, 'A-05'),
+                                      ('21', .856, .006, 'B-01'), ('21', .884, .254, 'B-04')):
+            kept, filtered = split_filtered_lights([light(score, area, bay)], {bay: dict(row(car), space_id=bay)}, LED)
+            self.assertEqual(kept, [], (car, bay))
+            self.assertEqual(filtered[0]['reason'], 'not_led_car')
+
+    def test_led_cars_keep_their_lights_including_large_roofs(self):
+        # 11/10 classroom with LEDs on: 11 at A-02 0.878-0.975, 42 at B-03 0.878-0.912 / 11.94%, 23 0.946-0.958.
+        for car, score, area in (('11', .878, .1419), ('42', .878, .125), ('23', .946, .016)):
+            kept, filtered = split_filtered_lights([light(score, area)], {'B-01': row(car, sticker='green')}, LED)
+            self.assertEqual(len(kept), 1, car)
+            self.assertEqual(filtered, [])
+        # Without a list the old red-body guess still applies to a large weak box.
+        self.assertTrue(probable_red_body(light(.878, .125)))
+
+    def test_unread_number_empty_bay_and_aisle_keep_optical_rules(self):
+        self.assertFalse(not_led_car(light(), row(None), LED))
+        self.assertFalse(not_led_car(light(), row('33', observation='empty'), LED))
+        self.assertFalse(not_led_car(light(location='aisle'), row('33'), LED))
+        self.assertFalse(not_led_car(light(), row('33'), frozenset()))
+        kept, _ = split_filtered_lights([light(.95, .01)], {'B-01': row(None)}, LED)
+        self.assertEqual(len(kept), 1)
+
+    def test_no_list_keeps_previous_behaviour(self):
+        kept, filtered = split_filtered_lights([light(.93, .01)], {'B-01': row('33')})
+        self.assertEqual(len(kept), 1)
+        self.assertEqual(filtered, [])
+
+
+class WeakLightRepeatTests(unittest.TestCase):
+    def run_frames(self, score, area=.01, frames=3):
+        previous = []
+        states = []
+        for _ in range(frames):
+            current = [light(score, area)]
+            repeat_lights(current, previous)
+            states.append(current[0]['state'])
+            previous = current
+        return states
+
+    def test_weak_red_emission_needs_three_frames(self):
+        self.assertEqual(self.run_frames(.856), ['candidate', 'candidate', 'confirmed'])
+
+    def test_strong_red_emission_still_confirms_on_second_frame(self):
+        self.assertEqual(self.run_frames(.93), ['candidate', 'confirmed', 'confirmed'])
+
+    def test_single_frame_paint_glint_never_confirms(self):
+        current = [light(.856)]
+        repeat_lights(current, [])
+        later = [light(.856, bay='B-02')]  # different bay next frame: no repeat
+        repeat_lights(later, current)
+        self.assertEqual(later[0]['state'], 'candidate')
+
+
+class MovedCarPinTests(unittest.TestCase):
+    """11/10 classroom: swapped cars (10<->49, 88->A-05, 33<->40) stayed null without an empty frame."""
+
+    def frame(self, pins, cars, lot='A', elsewhere=None):
+        from web_live.policy import apply_bay_pins
+        from web_live.tests.test_contract import fixture
+        from web_live.tests.test_round36 import occupied
+        result, _ = fixture(lot)
+        for space, car in cars.items():
+            occupied(result, space, car)
+        apply_bay_pins(result, pins, (), elsewhere)
+        return {r['space_id']: r['car_id'] for r in result['spaces'] if r['space_id'] in cars}
+
+    def test_swap_in_one_frame_releases_both_pins(self):
+        pins = {}
+        self.assertEqual(self.frame(pins, {'A-01': '10', 'A-05': '49'}), {'A-01': '10', 'A-05': '49'})
+        self.assertEqual(self.frame(pins, {'A-01': '49', 'A-05': '10'}), {'A-01': '49', 'A-05': '10'})
+        self.assertEqual(pins[('A', 'A-01')], '49')
+
+    def test_pinned_car_seen_on_other_camera_releases(self):
+        from web_live.policy import pin_reads
+        pins = {}
+        self.frame(pins, {'A-01': '40'})
+        # 40 now read at the other lot's B-06 (other camera's current frame).
+        self.assertEqual(self.frame(pins, {'A-01': '33'}, elsewhere={'40': {('B', 'B-06')}}), {'A-01': '33'})
+        self.assertTrue(pin_reads({'lot_id': 'B', 'spaces': []}) == {})
+
+    def test_new_car_without_old_car_seen_elsewhere_stays_null(self):
+        pins = {}
+        self.frame(pins, {'A-01': '40'})
+        self.assertEqual(self.frame(pins, {'A-01': '33'}), {'A-01': None})
+        self.assertEqual(pins[('A', 'A-01')], '40')
+
+    def test_pin_held_read_counts_as_seen(self):
+        # Three-way rotation: every bay is pin-held in the first frame after the move.
+        pins = {}
+        self.frame(pins, {'A-01': '10', 'A-02': '49', 'A-03': '88'})
+        moved = self.frame(pins, {'A-01': '88', 'A-02': '10', 'A-03': '49'})
+        self.assertEqual(moved, {'A-01': '88', 'A-02': '10', 'A-03': '49'})
+
+
+if __name__ == '__main__':
+    unittest.main()

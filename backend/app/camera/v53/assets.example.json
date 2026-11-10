@@ -7,5 +7,6 @@
   "empty_bays": "models/empty_bays.npz",
   "empty_bays_lit": "models/empty_bays_lit.npz",
   "ocr_python": "",
-  "ocr_models": ""
+  "ocr_models": "",
+  "mock_fire_cars": []
 }
