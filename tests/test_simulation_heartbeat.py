@@ -79,3 +79,66 @@ def test_restart_prunes_old_simulation_journal_but_keeps_camera_events(tmp_path)
         kept = _sim_rows(conn, "A-09")
         assert 1 <= kept <= 12, kept  # 마지막 10초 구간만
         assert conn.execute("SELECT count(*) FROM pipeline_events WHERE event_id='camera-keep-1'").fetchone()[0] == 1
+
+
+def test_batched_heartbeats_preserve_receipts_and_roll_back_together(tmp_path, monkeypatch):
+    import sqlite3
+
+    import pytest
+
+    at = [datetime.now(timezone.utc)]
+    app = create_runtime_app(token=TOKEN, database=tmp_path / "batch.db",
+                             mode="real", clock=lambda: at[0])
+    store = app.state.pipeline
+
+    def round_events():
+        return [VisionEvent(event_id=uuid4().hex, event_type="space_empty_observed",
+                            source="simulation", lot_id="C", camera_id=None, space_id=bay,
+                            car_id=None, confidence=.99, bbox_xyxy=None, observed_at=at[0])
+                for bay in BAYS]
+
+    with TestClient(app) as client, closing(store.connection()) as conn:
+        for _ in range(4):
+            for event in round_events():
+                assert store.receive(event).value == "accepted"
+            at[0] += timedelta(seconds=1)
+        previous = store.spaces("C", as_of=at[0])
+        journal = conn.execute("SELECT count(*) FROM pipeline_events").fetchone()[0]
+        receipts = conn.execute("SELECT count(*) FROM vision_event_receipts").fetchone()[0]
+        batch = round_events()
+        save = store._save_receipt
+
+        def fail_second(connection, event, *args):
+            if event.event_id == batch[1].event_id:
+                raise sqlite3.OperationalError("synthetic batch failure")
+            save(connection, event, *args)
+
+        with monkeypatch.context() as patch:
+            patch.setattr(store, "_save_receipt", fail_second)
+            with pytest.raises(sqlite3.OperationalError, match="synthetic batch failure"):
+                store.receive_simulation_heartbeats(batch)
+        assert store.spaces("C", as_of=at[0]) == previous
+        assert conn.execute("SELECT count(*) FROM vision_event_receipts").fetchone()[0] == receipts
+
+        assert store.receive_simulation_heartbeats(batch)
+        assert conn.execute("SELECT count(*) FROM pipeline_events").fetchone()[0] == journal
+        assert conn.execute("SELECT count(*) FROM vision_event_receipts").fetchone()[0] == receipts + len(batch)
+        assert all(row["observed_at"] == at[0] for row in store.spaces("C", as_of=at[0])
+                   if row["space_id"] in BAYS)
+
+        url = "/api/v1/internal/vision-events"
+        headers = {"Authorization": f"Bearer {TOKEN}"}
+        for event in batch:
+            assert client.post(url, headers=headers, json=event.model_dump(mode="json")).status_code == 200
+            conflicting = event.model_copy(update={"confidence": .98})
+            assert client.post(url, headers=headers,
+                               json=conflicting.model_dump(mode="json")).status_code == 409
+
+        at[0] += timedelta(seconds=1)
+        fresh = round_events()
+        with conn:
+            pending = fresh[0]
+            conn.execute("INSERT INTO pipeline_events(event_id,payload,canonical) VALUES(?,?,?)",
+                         (pending.event_id, pending.model_dump_json(), canonical_payload(pending)))
+        assert not store.receive_simulation_heartbeats(fresh)
+        assert conn.execute("SELECT count(*) FROM vision_event_receipts").fetchone()[0] == receipts + len(batch)

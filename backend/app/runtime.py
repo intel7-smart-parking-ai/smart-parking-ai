@@ -250,6 +250,34 @@ class EventPipeline(OccupancyExperiment):
             and row["vehicle_type"] == (event.vehicle_type if target == "occupied" else None)
         )
 
+    def receive_simulation_heartbeats(self, events):
+        """Apply a small batch only when every event is a stable C/D refresh."""
+        keys = {(event.lot_id, event.space_id) for event in events}
+        ids = {event.event_id for event in events}
+        if len(keys) != len(events) or len(ids) != len(events):
+            return False
+        with self.gate, self._state_lock, closing(self.connection()) as conn:
+            if not all(self._simulation_heartbeat(event) for event in events):
+                return False
+            if conn.execute("SELECT 1 FROM pipeline_events WHERE applied=0 LIMIT 1").fetchone():
+                return False
+            now = self._identity_clock().timestamp()
+            self._expire_receipts(conn, now - 600)
+            rows = {}
+            for event in events:
+                if conn.execute(
+                    "SELECT 1 FROM vision_event_receipts WHERE event_id=?", (event.event_id,)
+                ).fetchone():
+                    return False
+                key = (event.lot_id, event.space_id)
+                row = self._spaces[key].copy()
+                self._apply_observation(row, event)
+                rows[key] = row
+                self._save_receipt(conn, event, canonical_payload(event), now)
+            conn.commit()
+            self._spaces.update(rows)
+        return True
+
     def receive(self, event):
         with self.gate, self._state_lock, closing(self.connection()) as conn:
             now = self._identity_clock()
@@ -828,6 +856,7 @@ def create_runtime_app(
                 for r in store.spaces(lot, as_of=clock())
                 if r["observed_at"] is not None and r["source"] == "simulation"
             }
+            events = []
             for target in targets:
                 if (
                     not target["occupied"]
@@ -847,12 +876,22 @@ def create_runtime_app(
                     bbox_xyxy=None,
                     observed_at=clock(),
                 )
+                events.append(event)
+            # Keep writer lock duration bounded so A/B observations can interleave.
+            for offset in range(0, len(events), 32):
+                batch = events[offset:offset + 32]
                 try:
-                    await send_event(event)
-                except httpx.HTTPError:
-                    logging.exception(
-                        "Simulation observation rejected for %s/%s", event.lot_id, event.space_id
-                    )
+                    if await asyncio.to_thread(store.receive_simulation_heartbeats, batch):
+                        continue
+                except sqlite3.Error:
+                    logging.exception("Simulation heartbeat batch failed")
+                for event in batch:
+                    try:
+                        await send_event(event)
+                    except httpx.HTTPError:
+                        logging.exception(
+                            "Simulation observation rejected for %s/%s", event.lot_id, event.space_id
+                        )
             with closing(store.connection()) as conn:
                 controls = [
                     dict(r)
