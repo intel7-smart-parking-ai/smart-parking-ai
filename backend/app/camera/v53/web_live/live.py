@@ -25,9 +25,22 @@ class FramePerf:
     capture->ready age show whether delay is in the camera PC or after delivery.
     """
     every=60.0
+    gap_warn=1.5   # the receiver's max_gap_seconds is 2; warn with 0.5s to spare
 
     def __init__(self):
-        self.lock=threading.Lock();self.samples={};self.last_log=None;self.summary={}
+        self.lock=threading.Lock();self.samples={};self.last_log=None;self.summary={};self.gaps={};self.offers={}
+
+    def record_offer(self,lot,space_id,now):
+        """Interval between two offers of the same bay's occupancy (heartbeat interval).
+
+        Gaps over 10 s are a stopped or restarted camera, not a slow heartbeat.
+        """
+        with self.lock:
+            key=(lot,space_id)
+            last=self.offers.get(key);self.offers[key]=now
+            if last is None:return
+            gap=now-last
+            if gap<=10 and gap>self.gaps.get(key,0):self.gaps[key]=gap
 
     def record(self,camera,result,age_ms,now):
         with self.lock:
@@ -55,18 +68,32 @@ class FramePerf:
                     detector_ms_median=self._pct([s[2] for s in recent],.5),
                     capture_to_ready_ms_median=self._pct([s[3] for s in recent],.5),
                     capture_to_ready_ms_max=self._pct([s[3] for s in recent],1.0))
+            gaps,self.gaps=self.gaps,{}
+            if gaps:
+                worst=max(gaps,key=gaps.get)
+                summary['heartbeat']=dict(max_gap_s=round(gaps[worst],2),bay=f'{worst[0]}/{worst[1]}',
+                                          bays_over_warn=sum(g>self.gap_warn for g in gaps.values()))
             self.summary=summary
-        recent=None
+        recent=reasons=None
         if transport_snapshot:
-            try:recent=transport_snapshot().get('recent_counts')
+            try:
+                snapshot=transport_snapshot()
+                recent,reasons=snapshot.get('recent_counts'),snapshot.get('recent_reasons')
             except Exception:recent=None
-        for camera,row in sorted(summary.items()):
+        beat=summary.get('heartbeat')
+        if beat:
+            log=logging.getLogger(__name__)
+            (log.warning if beat['max_gap_s']>self.gap_warn else log.info)(
+                'heartbeat max gap %.2fs at %s (bays over %.1fs: %d; server uncertain after 2s)',
+                beat['max_gap_s'],beat['bay'],self.gap_warn,beat['bays_over_warn'])
+        for camera,row in sorted((k,v) for k,v in summary.items() if k!='heartbeat'):
             logging.getLogger(__name__).info(
                 'frame perf camera=%s frames=%d fps=%.2f total_ms median=%s p95=%s detector_ms median=%s capture_to_ready_ms median=%s max=%s',
                 camera,row['frames'],row['fps'],row['total_ms_median'],row['total_ms_p95'],row['detector_ms_median'],
                 row['capture_to_ready_ms_median'],row['capture_to_ready_ms_max'])
         if recent is not None:
-            logging.getLogger(__name__).info('delivery last 60s %s',recent)
+            # Outcomes (accepted/duplicate/HTTP_409/HTTP_422/...) and safe error codes only, never bodies.
+            logging.getLogger(__name__).info('delivery last 60s %s reasons %s',recent,reasons or {})
         return summary
 
 
@@ -403,6 +430,9 @@ class LiveSession:
                     heartbeats.append(event)
                 else:
                     changes.append(event)
+                if not key[2]:
+                    # Server resets a bay to uncertain after a 2s gap; record the real offer interval.
+                    self._frame_perf().record_offer(lot,event['space_id'],now)
                 sent[key]=(seq,signature,tick,packet['received'])
             # Occupancy and LED heartbeats run on separate 1s timers. Sending a
             # lit car's occupancy alone lets a newer frame hide its older LED on

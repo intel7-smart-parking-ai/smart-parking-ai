@@ -33,7 +33,15 @@ $env:API_BASE_URL = "http://<시연 서버 IP>"; $env:VISION_TOKEN = "<팀에서
 
 카메라 높이·각도는 도면 기준(`runtime/board_landmarks/`)을 만든 위치 그대로 둔다. 카메라를 옮기면 첫 도면 정합이 늦거나 실패할 수 있다(A 도면은 시작 때 저장되는 고정점에 의존). 문제가 생기면 Esc로 정지 → F5로 다시 시작 → 4번부터 반복한다.
 
-**칸이 늦게 바뀔 때**: 실행 창에 1분마다 `frame perf camera=… fps=… total_ms median=… p95=… detector_ms median=… capture_to_ready_ms median=… max=…`와 `delivery last 60s {...}`가 찍힌다(`/live/state?images=false`의 `frame_perf`에도 있음). 두 카메라는 한 스레드에서 번갈아 판독하므로 한쪽 `total_ms`가 길면 다른 쪽도 늦어진다. 11/10 기준 채널당 약 300ms(만차 B 약 440ms)·1.2~1.6fps. 여기서 정상인데 화면이 늦으면 수신 서버 쪽을 본다.
+**칸이 늦게 바뀌거나 깜빡일 때**: 실행 창에 1분마다 `frame perf camera=… fps=… total_ms median=… p95=…`, `heartbeat max gap …s at <칸>`, `delivery last 60s {...} reasons {...}`가 찍힌다(`/live/state?images=false`의 `frame_perf`에도 있음). 두 카메라는 한 스레드에서 번갈아 판독하므로 한쪽 `total_ms`가 길면 다른 쪽도 늦어진다. 수신 서버는 칸마다 2초 넘게 관측이 끊기면 그 칸을 uncertain(노란 점선)으로 바꾸므로, 하트비트 간격이 1.5초를 넘으면 WARNING이 찍힌다. 11/10 노트북 만차 기준 1.0~1.2fps(B 판독 약 480ms)에서 한 칸이 한 프레임만 판독 보류돼도 그 칸 간격이 약 2.6초가 됐다.
+
+| 증상 | 로그·응답 | 대응 |
+| --- | --- | --- |
+| 전송이 422로 거부 | `delivery … HTTP_422`, `reasons … VALIDATION_ERROR` | 시계가 서버보다 2초 넘게 빠름 → `w32tm /resync` 후 재시작. 실행기 시작 때 시간차 표시 |
+| 전송이 401·403 | `HTTP_401`·`HTTP_403` | `VISION_TOKEN` 틀림·빈 값 → 실행 창에서 다시 입력(파일에 저장하지 않음) |
+| 409 증가 | `HTTP_409`, `reasons … SESSION_*` | 활성 세션 번호와 다른 번호 → 칸별 번호 고정으로 null 전송됨, 서버 담당(박해준)에게 세션 확인 요청 |
+| 연결 실패 | `network_error`·`delivery_unconfirmed` | 같은 내부망인지 `Test-NetConnection <서버 IP> -Port <포트>` |
+| 칸 깜빡임 | `heartbeat max gap` WARNING | fps·`total_ms` 확인, USB 3 포트·다른 프로그램 부하 점검. 계속되면 서버 허용 간격 조정은 PM 결정 |
 
 **LED가 경보에 안 뜰 때**: 빨간 차체를 LED로 오인하지 않도록 칸의 12% 이상을 덮으면서 점수 0.88 미만인 붉은 발광 후보는 제외한다(11/10 실험실 조명 기준). 제외된 상자는 `http://127.0.0.1:8011/live/state?images=false`의 결과마다 `filtered_lights`(칸·이유·점수·칸 면적 비율·상자)에 남고, 실행 창 로그에도 `LED candidate excluded camera=… bay=… reason=…`가 칸·이유별 1분에 한 번 찍힌다. 진짜 LED가 여기에 보이면 시연 조명에서 기준을 다시 잡아야 한다. 여기에도 없으면 LED 발광 모델이 그 위치를 못 잡는 것이다(11/10 부산역 A-06 42번 사례).
 

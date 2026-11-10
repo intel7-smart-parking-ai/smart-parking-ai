@@ -280,6 +280,25 @@ class FramePerfTests(unittest.TestCase):
         self.assertTrue(any('frame perf camera=1 frames=10' in line for line in logs.output))
         self.assertTrue(any("delivery last 60s {'accepted': 12}" in line for line in logs.output))
 
+    def test_heartbeat_gap_and_delivery_reasons(self):
+        from web_live.live import FramePerf
+        perf = FramePerf()
+        perf.maybe_log(0.0)
+        for t in (1.0, 2.0, 3.0, 4.7):          # 1.7 s gap on A/A-05
+            perf.record_offer('A', 'A-05', t)
+        for t in (1.0, 2.1, 3.1):
+            perf.record_offer('B', 'A-01', t)
+        perf.record_offer('B', 'A-01', 30.0)   # restart-sized gap is ignored
+        with self.assertLogs('web_live.live', level='INFO') as logs:
+            summary = perf.maybe_log(60.0, lambda: {'recent_counts': {'HTTP_422': 2}, 'recent_reasons': {'HTTP_422/VALIDATION_ERROR': 2}})
+        self.assertEqual(summary['heartbeat'], {'max_gap_s': 1.7, 'bay': 'A/A-05', 'bays_over_warn': 1})
+        self.assertTrue(any('WARNING' in line and 'heartbeat max gap 1.70s at A/A-05' in line for line in logs.output))
+        self.assertTrue(any("reasons {'HTTP_422/VALIDATION_ERROR': 2}" in line for line in logs.output))
+        # Next minute: a 56 s gap is a stopped camera, not a heartbeat; the window resets.
+        perf.record_offer('A', 'A-05', 61.0)
+        self.assertEqual(perf.maybe_log(121.0), {})
+        self.assertNotIn('heartbeat', perf.summary)
+
     def test_live_session_exposes_summary_without_constructor_field(self):
         from web_live.live import LiveSession, FramePerf
         live = LiveSession.__new__(LiveSession)
