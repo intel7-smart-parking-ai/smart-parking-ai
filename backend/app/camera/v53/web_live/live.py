@@ -300,7 +300,7 @@ class LiveSession:
                                             elsewhere.setdefault(car,set()).update(bays)
                                     apply_bay_pins(result,self.bay_pins,duplicates,elsewhere,
                                                    self.__dict__.setdefault('pin_streaks',{}))
-                                    drop_non_led_fire(result,self.bay_pins,getattr(self.pipeline,'mock_fire_cars',frozenset()))
+                                    drop_non_led_fire(result,self.bay_pins,getattr(self.pipeline,'mock_fire_cars',frozenset()),elsewhere)
                                     self._track_approval(camera,result)
                                     self.results[camera]=result;self.packets[camera]=packet;self.errors.pop(camera,None)
                                     self._remember_review(camera, result, packet)

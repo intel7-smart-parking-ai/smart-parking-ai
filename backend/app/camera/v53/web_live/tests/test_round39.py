@@ -220,6 +220,14 @@ class PinnedIdentityFireTests(unittest.TestCase):
         r = drop_non_led_fire(self.result(None, '칸 번호 고정(21) 중 다른 번호 판독', '11'), {('A', 'A-03'): '21'}, LED)
         self.assertEqual(len(r['fire_lights']), 1)
 
+    def test_pinned_car_seen_elsewhere_is_not_used(self):
+        # Unreadable LED car 42 replaced 87 at Busan A-04 while 87 is now read at B-05.
+        from web_live.policy import drop_non_led_fire
+        r = drop_non_led_fire(self.result(None), {('A', 'A-03'): '87'}, LED, {'87': {('B', 'B-05')}})
+        self.assertEqual(len(r['fire_lights']), 1)
+        r = drop_non_led_fire(self.result(None), {('A', 'A-03'): '87'}, LED, {})
+        self.assertEqual(r['fire_lights'], [])
+
     def test_unknown_bay_or_led_pin_or_no_list_keeps_light(self):
         from web_live.policy import drop_non_led_fire
         self.assertEqual(len(drop_non_led_fire(self.result(None), {}, LED)['fire_lights']), 1)

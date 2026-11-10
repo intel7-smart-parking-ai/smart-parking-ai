@@ -153,17 +153,22 @@ def apply_bay_pins(result, pins, duplicates=(), elsewhere=None, streaks=None):
     return result
 
 
-def drop_non_led_fire(result, pins, led_cars):
+def drop_non_led_fire(result, pins, led_cars, elsewhere=None):
     """Bay identity for the LED-car list when this frame's number is unread.
 
     The pipeline filters red lights on a read non-LED car. When the number is momentarily
     null (OCR wait, glare, pin hold), fall back to the pin-held read, then to the bay's pinned
     number. 11/10 19:00: car 21 (red) at Gaebalwon A-03 confirmed a light for 3 null frames.
     A listed LED car moved into a pinned bay is read as the pin-held candidate, so it keeps its light.
+    A pinned car that is being read in another bay right now has left; its pin is not used
+    (an unreadable LED car that replaced it keeps its light).
     """
     if not led_cars:
         return result
     lot = result.get('lot_id')
+    reads = pin_reads(result)
+    for car, bays in (elsewhere or {}).items():
+        reads.setdefault(car, set()).update(bays)
     rows = {row.get('space_id'): row for row in result.get('spaces', ())}
     kept = []
     for light in result.get('fire_lights') or []:
@@ -174,7 +179,9 @@ def drop_non_led_fire(result, pins, led_cars):
             if identity is None and str(row.get('number_reason', '')).startswith('칸 번호 고정'):
                 identity = row.get('number_candidate')
             if identity is None:
-                identity = pins.get((lot, row.get('space_id')))
+                pinned = pins.get((lot, row.get('space_id')))
+                if pinned and not (reads.get(pinned, set()) - {(lot, row.get('space_id'))}):
+                    identity = pinned
         if identity and identity not in led_cars:
             result.setdefault('filtered_lights', []).append(dict(
                 reason='not_led_car_pinned', space_id=light.get('space_id'), location=light.get('location'),
