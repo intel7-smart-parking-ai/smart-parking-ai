@@ -83,6 +83,45 @@ class WeakLightRepeatTests(unittest.TestCase):
         self.assertEqual(later[0]['state'], 'candidate')
 
 
+class MissedFrameLedTests(unittest.TestCase):
+    """Busan A-02 car 23: one missed frame must not drop the mock fire for two more frames."""
+
+    def step(self, history, seen):
+        from web_live.pipeline import carry_missed_lights, repeat_lights
+        current = [light(.94, .03, 'A-02')] if seen else []
+        previous = history['lights'] + history['carried']
+        repeat_lights(current, previous)
+        history.update(lights=current, carried=carry_missed_lights(current, previous))
+        return current[0]['state'] if current else None
+
+    def test_one_missed_frame_continues_confirmed(self):
+        h = {'lights': [], 'carried': []}
+        self.assertEqual([self.step(h, s) for s in (1, 1, 0, 1, 1)],
+                         ['candidate', 'confirmed', None, 'confirmed', 'confirmed'])
+
+    def test_three_missed_frames_continue_four_start_over(self):
+        from web_live.pipeline import LED_MISSED_FRAMES
+        self.assertEqual(LED_MISSED_FRAMES, 3)
+        h = {'lights': [], 'carried': []}
+        self.assertEqual([self.step(h, s) for s in (1, 1, 0, 0, 0, 1)],
+                         ['candidate', 'confirmed', None, None, None, 'confirmed'])
+        h = {'lights': [], 'carried': []}
+        self.assertEqual([self.step(h, s) for s in (1, 1, 0, 0, 0, 0, 1, 1)],
+                         ['candidate', 'confirmed', None, None, None, None, 'candidate', 'confirmed'])
+
+    def test_unseen_frames_report_nothing(self):
+        h = {'lights': [], 'carried': []}
+        for s in (1, 1):
+            self.step(h, s)
+        self.step(h, 0)
+        self.assertEqual(h['lights'], [])  # nothing reported or sent while unseen
+        self.assertEqual(len(h['carried']), 1)
+
+    def test_unconfirmed_candidate_is_not_remembered(self):
+        h = {'lights': [], 'carried': []}
+        self.assertEqual([self.step(h, s) for s in (1, 0, 1)], ['candidate', None, 'candidate'])
+
+
 class MovedCarPinTests(unittest.TestCase):
     """11/10 classroom: swapped cars (10<->49, 88->A-05, 33<->40) stayed null without an empty frame."""
 

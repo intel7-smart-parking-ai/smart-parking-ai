@@ -247,16 +247,37 @@ def probable_paint_glint(light, row):
     return light['confidence']<.99
 
 
+def same_emitter(light,old):
+    """The same optical source: same bay/location and a nearby box centre."""
+    x,y,u,v=light['bbox_xyxy']
+    a,b,c,d=old['bbox_xyxy']
+    dx=(a+c-x-u)/2;dy=(b+d-y-v)/2
+    return (light['space_id']==old['space_id'] and light['location']==old['location']
+            and np.hypot(dx,dy)<=max(4,.55*min(u-x,v-y,c-a,d-b)))
+
+
+# Frames a confirmed LED may be missing and still continue as confirmed when it reappears.
+LED_MISSED_FRAMES = 3
+
+
+def carry_missed_lights(current,previous):
+    """Remember a confirmed emitter that is missing from this frame, for up to LED_MISSED_FRAMES frames.
+
+    11/10 classroom, Busan A-02 (car 23): the LED scored 0.93-0.95 whenever seen but vanished
+    for 1-3 frames at a time; each miss reset the repeat count, so the next sighting was only a
+    candidate and the mock fire stopped for 2-6 s (51 gaps over 2 s in 10 min). The remembered
+    box is never reported or sent (no fire while unseen); it only lets the same emitter seen
+    again continue as confirmed. A longer absence starts over.
+    """
+    return [dict(old,_missed=old.get('_missed',0)+1) for old in previous
+            if old.get('state')=='confirmed' and old.get('_missed',0)<LED_MISSED_FRAMES
+            and not any(same_emitter(light,old) for light in current)]
+
+
 def repeat_lights(current,previous):
     """Only count repeated optical evidence at the same position and location."""
     for light in current:
-        x,y,u,v=light['bbox_xyxy']
-        def same_emitter(old):
-            a,b,c,d=old['bbox_xyxy']
-            dx=(a+c-x-u)/2;dy=(b+d-y-v)/2
-            return (light['space_id']==old['space_id'] and light['location']==old['location']
-                    and np.hypot(dx,dy)<=max(4,.55*min(u-x,v-y,c-a,d-b)))
-        prior=max((old.get('consecutive_frames',1) for old in previous if same_emitter(old)),default=0)
+        prior=max((old.get('consecutive_frames',1) for old in previous if same_emitter(light,old)),default=0)
         light['consecutive_frames']=min(3,prior+1)
         # Broad, short-lived highlights on car paint can recur in two frames. Weak red
         # emission (<0.88; real LEDs p5 0.879, paint median 0.863 on 11/10) needs a third.
@@ -651,11 +672,14 @@ class ParkingPipeline:
             if history is not None and observed_at:
                 prior=history.pop(camera,None)
                 now=time.monotonic()
+                carried=[]
                 if approved:
                     continuous=(prior and prior[0]==epoch and prior[1]==lot and sequence>prior[2]
                                 and now-prior[3]<=4 and same_pose(prior[4],outline,frame.shape))
-                    repeat_lights(lights,prior[5] if continuous else ())
-                history[camera]=(epoch,lot,sequence,now,outline,lights)
+                    previous=list(prior[5])+list(prior[6] if len(prior)>6 else ()) if continuous else []
+                    repeat_lights(lights,previous)
+                    carried=carry_missed_lights(lights,previous)
+                history[camera]=(epoch,lot,sequence,now,outline,lights,carried)
             # Weak detector hits can locate an ink patch; keep their original
             # scores. Only independent, high-quality printed digits and measured
             # paper color are eligible to corroborate such a location.
