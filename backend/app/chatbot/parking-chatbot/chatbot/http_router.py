@@ -147,8 +147,10 @@ async def chat(body: ChatIn):
     # language가 없어도 한글 없이 영어 문장·가나·한자만 있으면 그 언어로 본다(봇 점검 11/10 🟠4)
     language = (resolve_language(body.language, body.text) if body.language
                 else _guess_language(body.text))
+    requested = time.monotonic()   # 줄 선 시간까지 포함해 화면 제한(20초) 안에 끝낸다
+
     def work():
-        started = time.monotonic()
+        started = requested
         # 외국어 질문은 한국어로 바꿔 엔진에 넣고, 답은 아래 localize_response가 다시 그 언어로 옮긴다.
         # 화면의 챗봇 응답 제한은 20초(API_CONTRACT 8장, frontend api.js). 질문 번역 ≤3초 + 대화 처리 ≤6초 + 답 번역 ≤8초.
         # (11/10 이전에는 질문 번역 시간까지 4초에 넣어 대화 AI가 거의 항상 시간 초과 → 규칙 답이었다)
@@ -190,7 +192,11 @@ async def chat(body: ChatIn):
     try:
         admission.acquire_nowait()
     except anyio.WouldBlock:
-        return _team_chat_response(_service(engine.busy_response, body.runtime_id))
+        # 바로 거절하지 않고 잠깐 줄을 선다(화면은 20초까지 기다린다). 그래도 자리가 없으면 '바쁨'.
+        with anyio.move_on_after(config.CHAT_QUEUE_WAIT_SEC) as queued:
+            await admission.acquire()
+        if queued.cancelled_caught or config.CHAT_QUEUE_WAIT_SEC <= 0:
+            return _team_chat_response(_service(engine.busy_response, body.runtime_id))
     try:
         return _team_chat_response(await anyio.to_thread.run_sync(work, limiter=workers))
     finally:

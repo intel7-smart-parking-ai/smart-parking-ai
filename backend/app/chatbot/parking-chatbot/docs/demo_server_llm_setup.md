@@ -23,7 +23,7 @@ docker compose -f compose.yaml -f backend/app/chatbot/parking-chatbot/compose.ag
 
 compose 파일의 `environment`에 **없는 변수는 `.env`에 적어도 컨테이너에 전달되지 않는다.** 지금 전달되는 챗봇 변수: `LLM_PROVIDER`, `LLM_ENGINE`, `LLM_MODEL`, `LLM_TIMEOUT_SEC`, `BACKEND_TIMEOUT_SEC`, `REQUEST_BUDGET_SEC`, `OPENROUTER_API_KEY`(compose.yaml) + `LLM_ANSWER_TIMEOUT_SEC`, `MONITOR_*`, `LANGFUSE_*`(오버레이).
 
-전달되지 않는 것(필요하면 오버레이에 추가): `LLM_MAX_PER_SESSION_MIN`(한 대화 1분 5질문, 넘으면 규칙 답), `LLM_MAX_PER_MIN`(서버 전체 1분 30질문), `MAX_SESSIONS`(200), `LLM_PREFETCH`.
+11/10 저녁부터 오버레이가 함께 전달: `LLM_MAX_PER_SESSION_MIN`(한 대화 1분 12질문, 넘으면 규칙 답), `LLM_MAX_PER_MIN`(서버 전체 1분 60질문), `LLM_MAX_INFLIGHT`(동시 모델 호출 8), `CHAT_MAX_CONCURRENT`(동시 대화 12), `LLM_PREFETCH`. 아직 전달되지 않는 것: `MAX_SESSIONS`(200), `LLM_MAX_PER_DAY`(하루 1000질문 — 리허설을 많이 하는 날은 서버 재시작으로 초기화).
 
 ## 3. 켜졌는지 확인
 

@@ -11,6 +11,12 @@ services:
       # 대화 AI가 자연스러운 답을 끝낼 시간(팀 compose 기본 6초 → 챗봇 오버레이 8초). 화면은 20초까지 기다린다
       REQUEST_BUDGET_SEC: ${REQUEST_BUDGET_SEC:-8}
       LLM_ANSWER_TIMEOUT_SEC: ${LLM_ANSWER_TIMEOUT_SEC:-5}
+      # 동시 처리·질문 수 한도(11/10 부하 실험). 비워 두면 코드 기본값: 12 / 60 / 8 / 12
+      LLM_MAX_PER_SESSION_MIN: ${LLM_MAX_PER_SESSION_MIN:-12}
+      LLM_MAX_PER_MIN: ${LLM_MAX_PER_MIN:-60}
+      LLM_MAX_INFLIGHT: ${LLM_MAX_INFLIGHT:-8}
+      CHAT_MAX_CONCURRENT: ${CHAT_MAX_CONCURRENT:-12}
+      LLM_PREFETCH: ${LLM_PREFETCH:-1}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:?Set OPENROUTER_API_KEY privately before starting the chatbot agent}
       # 선택: Langfuse 모니터링. 기본 off. 켜려면 루트 .env에 MONITOR_BACKEND=langfuse와 키를 넣고 INSTALL_MONITORING=1로 빌드
       MONITOR_BACKEND: ${MONITOR_BACKEND:-off}

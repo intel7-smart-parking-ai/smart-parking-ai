@@ -320,7 +320,8 @@ async def _arun_conversation(text, history, state, tools, model=None, *, options
             # 조회 결과를 읽고 답을 쓰는 호출은 조금 더 길게 기다린다.
             limit = config.LLM_ANSWER_TIMEOUT_SEC if observations else config.LLM_TIMEOUT_SEC
             slots = _slots()
-            if not await _acquire_slot(slots, min(config.LLM_SLOT_WAIT_SEC, max(0.0, time_left() - 0.5))):
+            # 자리를 기다리되 모델 호출에 쓸 시간(3초)은 남긴다. 그보다 모자라면 바로 포기 → 규칙 답.
+            if not await _acquire_slot(slots, min(config.LLM_SLOT_WAIT_SEC, max(0.0, time_left() - 3.0))):
                 raise _Stopped("busy")
             try:
                 attempts = 0

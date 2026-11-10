@@ -257,9 +257,13 @@ def check_answer(answer, request, observations):
 
     lot_entries = [row for row in entries if row.get("lot_id")]
     # 자료 없음만 말하는 문장(숫자·상태 주장 없음)의 주차장 이름은 조회 대상이 아니어도 된다(봇 점검 11/10: 운영 시간)
-    claimed = "\n".join(s for s in re.split(r"(?<=[.!?。])\s+|\n+", answer)
-                        if not (_REFUSAL.search(s) and not _NUMBER.search(s) and not _STATE_CLAIM.search(_REFUSAL.sub(" ", s))))
-    mentions = _mentions(claimed)
+    # 위치 기반 검사(만차·숫자를 '바로 앞 주차장'에 묶음)와 어긋나지 않게, 지우지 않고 같은 길이의 공백으로 가린다.
+    claimed = list(answer)
+    for sentence in re.finditer(r"[^.!?。\n]+[.!?。]*", answer):
+        s = sentence[0]
+        if _REFUSAL.search(s) and not _NUMBER.search(s) and not _STATE_CLAIM.search(_REFUSAL.sub(" ", s)):
+            claimed[sentence.start():sentence.end()] = " " * len(s)
+    mentions = _mentions("".join(claimed))
     if lot_entries:
         lot_ids = {row["lot_id"] for row in lot_entries} | _asked_lots(request)
         if any(lot not in lot_ids for _, lot in mentions):
