@@ -1,0 +1,2 @@
+# Web integration runtime. Keep these out of the backend server requirements.
+-r requirements-web.txt

@@ -1,0 +1,6 @@
+# Optional separate environment (or an existing local EasyOCR environment).
+easyocr==1.7.2
+torch
+torchvision
+opencv-python-headless>=4.13,<5
+numpy>=2,<3
