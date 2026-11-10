@@ -7,7 +7,8 @@ from functools import wraps
 import math
 
 from .. import config, navigation
-from ..adapters import DataUnavailable, MockAdapter, default_policy, fee_details, request_lot, request_timeout
+from ..adapters import (DataUnavailable, FeeCalculatorUnavailable, MockAdapter, default_policy, fee_details,
+                        request_lot, request_timeout)
 from ..contracts import timestamp
 from ..knowledge import TOPIC_KEYS, search
 from ..parser import normalize_car_id
@@ -362,8 +363,8 @@ class ReadTools:
                 "source": source}
 
     def estimate_fee(self, minutes: int, car_id: str | None = None, lot_id: str | None = None) -> dict:
-        """Code-computed fee estimate. With car_id: the selected car's fee if it leaves `minutes` from now.
-        With lot_id only: the fee for parking `minutes` in total at that lot. Always an estimate, never a quote or payment."""
+        """Fee estimate. With car_id: the server-calculated fee if the selected car leaves `minutes` from now.
+        With lot_id only: billing's fee for parking `minutes` in total at that lot. Always an estimate, never a quote or payment."""
         if type(minutes) is not int or not 1 <= minutes <= 4320 or (car_id is None) == (lot_id is None):
             return self._finish("estimate_fee", {}, error="예상 시간(분)과 차량 또는 주차장 하나를 확인해 주세요.")
         try:
@@ -379,7 +380,12 @@ class ReadTools:
             policy = policies.get(lots[0])
             if not _valid_policy(policy):
                 return self._finish("estimate_fee", {}, lots=lots, error="해당 주차장의 요금 정책을 확인할 수 없습니다.")
-            amount = fee_details(minutes, policy)[0]
+            try:
+                amount = fee_details(minutes, policy)[0]   # billing 계산 함수 결과 그대로
+            except FeeCalculatorUnavailable:
+                return self._finish("estimate_fee", {"lot_id": lots[0], "name": config.catalog.name(lots[0]),
+                                                     "policy_text": policy_text(policy)}, lots=lots,
+                                    error="예상 금액은 계산할 수 없습니다. 요금 기준만 안내하세요.")
             data = {"lot_id": lots[0], "name": config.catalog.name(lots[0]), "total_minutes": minutes,
                     "total_time_text": duration_text(minutes), "estimated_fee": amount,
                     "policy_text": policy_text(policy), "estimate": True}
@@ -390,17 +396,18 @@ class ReadTools:
             return self._finish("estimate_fee", {}, error="현재 요금을 확인할 수 없어 예상 요금을 계산하지 못했습니다.")
         if fee.get("paid"):
             return self._finish("estimate_fee", {}, error="이미 결제된 주차 기록이라 예상 요금을 계산하지 않습니다.")
+        # 차량 예상 요금은 서버가 계산한다(GET fee?now=미래 시각). 챗봇은 금액을 만들지 않는다(규칙 4).
+        try:
+            request_timeout(config.REQUEST_BUDGET_SEC)
+            future = self._read_once(("fee_at", car_id, minutes), lambda: self.adapter.fee_at(car_id, minutes))
+        except (*_READ_FAILURES, AttributeError):
+            future = None
+        if not isinstance(future, dict) or type(future.get("fee")) is not int or type(future.get("minutes")) is not int:
+            return self._finish("estimate_fee", {}, error="서버에서 예상 요금을 받지 못했습니다.")
         raw = self._snapshot.get(("fee", car_id))
         policy = (raw or {}).get("rate_policy") if isinstance(raw, dict) else None
         policy = policy if _valid_policy(policy) else policies.get(fee.get("lot_id"))
-        current = _elapsed_minutes(None, fee)
-        if not _valid_policy(policy) or current is None:
-            return self._finish("estimate_fee", {}, error="요금 정책을 확인할 수 없어 예상 요금을 계산하지 못했습니다.")
-        if fee_details(max(1, current), policy)[0] != fee["fee"]:
-            # 서버 금액과 같은 규칙인지 확인되지 않으면 예상값을 만들지 않는다(할인·감면 등).
-            return self._finish("estimate_fee", {}, error="서버 요금 규칙과 맞춰 볼 수 없어 예상 요금을 계산하지 않습니다.")
-        total = current + minutes
-        amount = fee_details(total, policy)[0]
+        total, amount = future["minutes"], future["fee"]
         data = {"car_id": car_id, "lot_id": fee.get("lot_id"), "name": config.catalog.name(fee.get("lot_id")),
                 "current_fee": fee["fee"], "after_minutes": minutes, "after_time_text": duration_text(minutes),
                 "total_minutes": total, "total_time_text": duration_text(total), "estimated_fee": amount,

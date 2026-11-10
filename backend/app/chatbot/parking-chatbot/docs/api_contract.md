@@ -30,7 +30,10 @@
 ## 요금·결제 (D-09 견적)
 - 요금 응답의 실제 키(billing_router): `session_id, lot_id, space_id, car_id, entry_at, exit_at, target_at, duration_minutes, fee_breakdown, amount_krw, is_daily_capped, payment_status, rate_policy, quote_id, quote_expires_at`.
   - `schemas.py` 설명의 `calculated_at`·`applied_policy_id`·`session_status`는 실제 응답에 없다 → 요구하지 않는다(있으면 사용).
-- 금액은 `amount_krw` 그대로. 챗봇은 재계산하지 않는다(ApiAdapter에서 calc_fee 사용 0).
+- 금액은 `amount_krw` 그대로. 챗봇은 요금 계산식을 갖지 않는다(규칙 4, PR 전 점검). 11/11 정리:
+  - 내 차 예상 요금("1시간 더 있으면?"): `GET /sessions/{id}/fee?now=<미래 시각>` — 서버가 계산(`ApiAdapter.fee_at`). 서버가 이 조회에도 견적을 저장하지만 미래 금액이므로 `quote_id`는 받지 않고 결제에 쓰지 않는다.
+  - 세션 없는 가정 질문("공항 3일 얼마?"): 서버 API가 없어 billing의 `calculate_parking_fee_pure`를 수정 없이 불러 쓴다(`adapters.billing_calculator`). 불러올 수 없으면 금액 없이 요금 기준만 안내한다.
+  - 모의 서버(`DATA_SOURCE=mock`)도 같은 billing 함수를 쓴다.
 - 결제 body는 `build_payment_body` 한 곳: `{session_id, quote_id, idempotency_key, payment_method:"MOCK_CARD"}`.
   - 요금 응답에 `quote_id`가 없으면 결제 요청을 보내지 않는다.
   - 견적 만료(`quote_expires_at`, 시계 차 5초) 또는 `QUOTE_EXPIRED`·`QUOTE_MISMATCH`·`QUOTE_NOT_FOUND` → 자동 결제 없이 요금 재조회 후 새 금액으로 재확인(새 견적·새 멱등키).

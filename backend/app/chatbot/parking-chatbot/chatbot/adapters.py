@@ -6,6 +6,7 @@ API v1이 확정되면 ApiAdapter 안의 경로·필드 이름만 고치면 된�
 """
 from __future__ import annotations
 
+import importlib.util
 import json
 import logging
 import math
@@ -19,6 +20,7 @@ from copy import deepcopy
 from contextvars import ContextVar
 from concurrent.futures import Future
 from datetime import datetime, timedelta
+from pathlib import Path
 
 from .diagnostics import logger, warn_periodically
 from .snapshots import freeze
@@ -76,16 +78,50 @@ def default_policy():
             "extra_fee": config.UNIT_FEE, "daily_cap": config.DAILY_CAP}
 
 
+class FeeCalculatorUnavailable(RuntimeError):
+    """billing 요금 계산 함수를 불러올 수 없음(챗봇 폴더만 떼어 실행한 경우). 금액을 지어내지 않는다."""
+
+
+_BILLING_CALC = None
+_FEE_EPOCH = datetime(2026, 1, 1, tzinfo=KST)
+
+
+def _load_billing_file():
+    # 저장소 안에서 챗봇 폴더를 단독 실행(8080)할 때: 같은 저장소의 billing 파일을 수정·복사 없이 그대로 읽는다.
+    path = Path(__file__).resolve().parents[5] / "backend" / "app" / "billing" / "calculator.py"
+    if not path.is_file():
+        return None
+    try:
+        spec = importlib.util.spec_from_file_location("_parking_billing_calculator", path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+    except Exception:
+        return None
+    return getattr(module, "calculate_parking_fee_pure", None)
+
+
+def billing_calculator():
+    """요금 계산은 billing(윤명수)의 calculate_parking_fee_pure 하나만 쓴다.
+    규칙 4(요금은 서버 단일 계산)와 PR 전 점검(챗봇 폴더에 요금 계산식 금지)을 지키기 위해 챗봇은 계산식을 갖지 않는다."""
+    global _BILLING_CALC
+    if _BILLING_CALC is None:
+        try:
+            from backend.app.billing.calculator import calculate_parking_fee_pure as found
+        except Exception:
+            found = _load_billing_file()
+        _BILLING_CALC = found or False
+    if not _BILLING_CALC:
+        raise FeeCalculatorUnavailable("billing 요금 계산 함수를 찾을 수 없습니다.")
+    return _BILLING_CALC
+
+
 def fee_details(minutes: int, policy: dict | None = None) -> tuple[int, bool]:
-    """목업의 일 단위 상한·부분일 요금(billing calculate_parking_fee_pure와 같은 규칙). 서버 요금 계산에는 사용하지 않는다."""
+    """(금액, 일 최대 적용 여부) — billing 계산 함수 결과 그대로. 모의 서버와 '주차장 기준 가정 질문'에만 쓴다.
+    실제 차량 요금은 서버 응답(amount_krw)을 쓰고, 미래 시각 요금도 서버에 묻는다(ApiAdapter.fee_at)."""
     p = policy or default_policy()
     minutes = max(1, math.ceil(minutes))
-    days, remaining = divmod(minutes, 1440)
-    remainder_fee = 0
-    if remaining or not days:
-        units = max(0, math.ceil((remaining - p["base_minutes"]) / p["unit_minutes"]))
-        remainder_fee = min(p["base_fee"] + units * p["extra_fee"], p["daily_cap"])
-    return days * p["daily_cap"] + remainder_fee, remainder_fee >= p["daily_cap"] or days > 0
+    result = billing_calculator()(iso(_FEE_EPOCH), iso(_FEE_EPOCH + timedelta(minutes=minutes)), p)
+    return result["amount_krw"], bool(result["is_daily_capped"])
 
 
 def build_payment_body(session_id, quote_id, idempotency_key):
@@ -229,6 +265,17 @@ class MockAdapter:
             "quote_expires_at": iso(expires),
             "updated_at": iso(now()),
         }
+
+    def fee_at(self, car_id: str, minutes_ahead: int) -> dict | None:
+        """모의 서버의 '미래 시각 요금 조회'(서버 GET fee?now= 대응). 견적은 만들지 않는다."""
+        with self.lock:
+            car = self.cars.get(car_id)
+            car = dict(car) if car else None
+        if not car or car["paid_at"]:
+            return None
+        total = max(1, math.ceil((now() - car["entry_at"]).total_seconds() / 60)) + minutes_ahead
+        policy = config.catalog.rate_policy(car["lot_id"]) or default_policy()
+        return {"car_id": car_id, "lot_id": car["lot_id"], "fee": calc_fee(total, policy), "minutes": total}
 
     def pay(self, car_id: str, *, idempotency_key=None, quote_amount=None, entry_at=None, quote_id=None) -> dict:
         with self.lock:
@@ -420,6 +467,7 @@ class ApiAdapter:
 
     @staticmethod
     def _request_group(path):
+        path = path.split("?", 1)[0]   # 미래 시각 요금 조회(?now=)도 결제·요금 묶음
         if path == config.API_PATHS["alerts"]:
             return "alerts"
         fee_prefix, _, fee_suffix = config.API_PATHS["fee"].partition("{session_id}")
@@ -778,6 +826,26 @@ class ApiAdapter:
                 **({"payment": receipt} if receipt is not None else {}),
                 **({"payment_blocked": value["payment_blocked"]} if "payment_blocked" in value else {}),
                 "updated_at": basis or iso(now()), **self._meta(headers)}
+
+    def fee_at(self, car_id, minutes_ahead):
+        """지금부터 minutes_ahead분 뒤 요금을 서버가 계산한 값 그대로(계약 6장 GET fee?now=, 지침서 '예상 요금').
+        서버는 이 조회에도 견적을 저장하지만 미래 금액이므로 견적 번호는 받지 않고 결제에 쓰지 않는다."""
+        car = self.find_car(car_id)
+        session_id = (car or {}).get("session_id") if isinstance(car, dict) else None
+        if not isinstance(session_id, str) or not session_id:
+            return None
+        target = iso(now() + timedelta(minutes=minutes_ahead))
+        path = (config.API_PATHS["fee"].format(session_id=quote(session_id, safe=""))
+                + "?now=" + quote(target, safe=""))
+        status, value, headers = self._request("GET", path)
+        if status != 200:
+            return None
+        self._require_visit(value, car)
+        amount, minutes = value.get("amount_krw"), value.get("duration_minutes")
+        if type(amount) is not int or type(minutes) is not int or value.get("exit_at"):
+            return None
+        return {"car_id": car_id, "lot_id": value.get("lot_id") or car.get("lot_id"), "fee": amount,
+                "minutes": minutes, **self._meta(headers)}
 
     def _fee_receipt(self, value, car):
         """Validate the server's optional D-49 receipt without recalculating it."""
