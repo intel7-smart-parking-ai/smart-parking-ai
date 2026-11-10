@@ -44,6 +44,26 @@ iex "$C exec -d api python -m backend.app.simulation.run_parking_demo --base-url
 iex "$C exec -T api python -c `"import urllib.request as u;[u.urlopen(u.Request('http://127.0.0.1:8000/api/v1/simulation/'+l+'/entry',b'{}',{'Content-Type':'application/json'},method='POST')) for l in 'CDCDCD']`""
 ```
 
+## 3-1. 개발 모드 (코드 고치면 바로 반영)
+
+Docker 없이 PC에서 직접 띄운다. 챗봇·백엔드 코드를 저장하면 서버가 다시 시작되고, 화면 코드는 새로고침 없이 반영된다. 팀 nginx는 `/api/v1/chat/updates`(경보·알림 폴링)를 막지만 개발 모드는 통과시키므로, 알림 말풍선은 이 모드에서만 보인다.
+
+터미널 1 (저장소 루트, 백엔드 + 챗봇, 루트 `.env`를 읽음):
+
+```powershell
+.\.venv\Scripts\python.exe -m uvicorn backend.app.main:app --env-file .env --reload --reload-dir backend
+```
+
+터미널 2 (화면, http://127.0.0.1:5173):
+
+```powershell
+cd frontend; npm install; $env:DEMO_API_PROXY_TARGET="http://127.0.0.1:8000"; npm run dev
+```
+
+챗봇 코드를 고쳤는데 답이 그대로면 터미널 1을 Ctrl+C로 끄고 다시 실행한다(Windows에서 자동 재시작이 안 잡힐 때가 있음).
+
+`DEMO_API_PROXY_TARGET`이 없으면 화면이 `/demo-api`를 8003으로 보내 "API 요청을 처리하지 못했습니다"가 뜬다. DB는 `.env`의 `SMART_PARKING_DB_PATH`(기본 `data/smart_parking.db`, Git 제외). 시연 차량은 3절 명령에서 `docker compose ... exec api` 대신 `.\.venv\Scripts\python.exe`로 실행한다. 관리자 화면 로그인은 Docker의 admin-auth(8090)가 떠 있어야 한다.
+
 ## 4. 확인
 
 - 챗봇 패널에 "지금 빈자리 있어?", "2003 차량 어디 있어?"(가상 차량 뒤 4자리), "Where is car 2008?"(영어 → 자동 번역)

@@ -43,13 +43,19 @@ def _lot_names():
     return "·".join(config.catalog.name(k) for k in config.catalog.ids())
 
 
+# 등록되지 않은 '시설 이름'으로 볼 끝말. '실외', '역에', '야외'처럼 성격·조사로 끝나는 말은 대화 에이전트가 판단한다.
+_FACILITY = re.compile(r"[가-힣A-Za-z0-9]+(?:백화점|아울렛|마트|몰|쇼핑센터|시장|공항|역|터미널|병원|의료원|대학교|대학|학교|"
+                       r"시청|구청|군청|도청|청사|호텔|리조트|타워|빌딩|센터|플라자|공원|해수욕장|경기장|운동장|아파트|"
+                       r"교회|성당|사찰|박물관|미술관|도서관|월드|랜드|스퀘어|파크)$")
+
+
 def unknown_lot(text: str):
-    """'롯데백화점 주차장'처럼 등록되지 않은 주차장 이름. 등록된 주차장을 함께 말했으면 None."""
+    """'롯데백화점 주차장'처럼 등록되지 않은 시설 이름의 주차장. 등록된 주차장을 함께 말했으면 None."""
     if extract_lots(text):
         return None
     for match in _LOT_WORD.finditer(text):
         word = match.group(1)
-        if not _GENERIC_LOT.match(word):
+        if not _GENERIC_LOT.match(word) and _FACILITY.match(word):
             return word + " 주차장"
     return None
 

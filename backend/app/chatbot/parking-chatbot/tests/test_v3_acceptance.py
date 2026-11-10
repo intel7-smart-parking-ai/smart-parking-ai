@@ -26,7 +26,8 @@ class ConversationAcceptanceTests(unittest.TestCase):
     @unittest.skipUnless(HAS_LANGCHAIN, "optional LangChain not installed")
     def test_rejects_model_contradictions_of_team_policy_and_live_status(self):
         scenarios = [
-            ("일반차도 전기차 전용 칸에 주차할 수 있어?",
+            # 허용 여부를 직접 묻는 문장은 turn_guard가 D-05로 먼저 답하므로, 모델 경로를 타는 규칙 질문으로 검사한다.
+            ("일반차의 전기차 전용 칸 이용 규칙 알려줘",
              tool_call("search_knowledge", {"query": "전기차 전용 칸"}), "일반차도 주차할 수 있어요.",
              "일반 차량은 전기차·장애인 전용 칸에 주차할 수 없습니다.", "ok"),
             ("공항에 몇 자리 있어?", tool_call("parking_status", {"lot_ids": ["C"]}),

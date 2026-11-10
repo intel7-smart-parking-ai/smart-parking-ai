@@ -28,7 +28,7 @@
 | `safety` | 객체 또는 null | Lv2 경보 시 "사람 먼저" 안내(선택, 있으면 크게 표시 권장) |
 | `vehicle_context` | `{car_id, state, ...}` | 지금 대화 중인 차량. state: `unselected`·`parked`·`not_found`·`pending`(입차 확인 중)·`unavailable` |
 
-그 밖의 필드(`meta`, `runtime_id`, `state_version`, `alert_version`, `updated_at`, `destination`, `catalog`)는 화면에서 무시해도 된다.
+`meta.route`는 응답이 거친 처리 단계(예: `guard:pass > plan:vacancy > agent:ok > agent:answer`)로, 원인 분석용이다([structure.md](structure.md)). 그 밖의 필드(`meta`, `runtime_id`, `state_version`, `alert_version`, `updated_at`, `destination`, `catalog`)는 화면에서 무시해도 된다.
 
 ## 3. 화면 연결
 

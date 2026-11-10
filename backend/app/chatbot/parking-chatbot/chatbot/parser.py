@@ -349,10 +349,14 @@ _FEE_RANK = re.compile(r"(?:제일|가장|젤|최고로)\s*(?:싼|싸|저렴|비
 _RANK = re.compile(r"(?:제일|가장|젤|최고로)\s*(?:널널|한산|여유|비어|비었|빈|많이?\s*(?:남|비)|많은|많아|많이)|(?:덜|안)\s*붐비|"
                    r"(?:빈\s*자리|자리|빈\s*칸|칸)\s*(?:가|이)?\s*(?:제일|가장|젤|더)\s*많|"
                    r"어디가\s*(?:더\s*|제일\s*|가장\s*)?(?:널널|한산|여유|나아|낫|좋|비었|비어|많|덜)|어디로\s*가(?:야|면|는\s*게)|"
-                   r"(?:주차장|주차\s*할\s*(?:곳|데)|빈\s*자리)\s*(?:좀\s*|하나\s*)?추천")
+                   r"(?:주차장|주차\s*할\s*(?:곳|데)|빈\s*자리)\s*(?:을|를)?\s*(?:좀\s*|하나\s*)?추천|"
+                   r"(?:어떤|어느|무슨)\s*주차장\S*\s*(?:\S+\s*){0,3}(?:좋을까|좋아|좋은|나을까|나아|추천|괜찮)")
+# 목적만 말한 추천 질문('여행 가는데 어디 대?'). 목적이 한 주차장을 가리키면 그곳 빈자리로 답한다.
+_PURPOSE_ASK = re.compile(r"어디\s*(?:에\s*)?(?:대|세우|주차|가)|(?:추천|좋을까|좋아\?|나을까|괜찮을까)")
 _COMPARE = re.compile(r"중에|중\s|(?:이)?랑|하고|비교|vs|어디가|어느\s*(?:곳|쪽|주차장)|더\s*(?:많|여유|널널|한산|비)", re.I)
 _OCCUPANCY = re.compile(r"얼마나\s*(?:찼|차\s*있|차있|들어\s*차|붐비|사람)|몇\s*(?:퍼센트|%|프로)|점유율|이용률|혼잡도|"
                         r"꽉\s*(?:찼|차\s*있)|몇\s*대\s*(?:있|주차|들어|세워)")
+_VACANCY_AMOUNT = re.compile(r"얼마나\s*(?:\S+\s*){0,2}?(?:여유|남|비어|비었|빈|있|넉넉|한산|많)|(?:자리|칸|공간)\S*\s*얼마나")
 _SAFETY = re.compile(r"경보|화재|불\s*났|연기|대피|피난|비상|관리자|직원|호출|결제|정산")
 
 
@@ -369,8 +373,17 @@ def _with_analytics(text: str, result: ParseResult) -> ParseResult:
     occupancy = bool(_OCCUPANCY.search(text)) and params.get("lot_id") != "ambiguous"
     if result.intent in ("get_fee", "fee_rule"):
         # '얼마나 찼어'의 '얼마'는 요금이 아니다. 돈 관련 단어가 없을 때만 점유율로 본다.
-        if result.intent == "get_fee" and occupancy and not re.search(r"요금|비용|주차비|돈|금액|\d\s*원", text):
+        money = re.search(r"요금|비용|주차비|돈|금액|\d\s*원", text)
+        if result.intent == "get_fee" and occupancy and not money:
             return ParseResult("get_empty_spots", {**params, "occupancy": True}, "rule")
+        # '자리가 얼마나 여유가 있어?', '얼마나 남았어?'의 '얼마'도 요금이 아니라 빈자리 질문이다.
+        if result.intent == "get_fee" and not money and _VACANCY_AMOUNT.search(text):
+            if not lots and not params.get("lot_id"):
+                from .info_gaps import hinted_lot
+                hint = hinted_lot(text)
+                if hint:
+                    return ParseResult("get_empty_spots", {**params, "lot_id": hint, "purpose_hint": True}, "rule")
+            return ParseResult("get_empty_spots", params, "rule")
         return result
     section = extract_section(text)
     if section:
@@ -378,6 +391,11 @@ def _with_analytics(text: str, result: ParseResult) -> ParseResult:
     if len(lots) >= 2 and (_COMPARE.search(text) or _RANK.search(text)):
         params.pop("lot_id", None)
         return ParseResult("get_empty_spots", {**params, "rank": "compare", "lots": lots}, "rule")
+    if not lots and not params.get("lot_id") and (_RANK.search(text) or _PURPOSE_ASK.search(text)):
+        from .info_gaps import hinted_lot
+        hint = hinted_lot(text)
+        if hint:
+            return ParseResult("get_empty_spots", {**params, "lot_id": hint, "purpose_hint": True}, "rule")
     if _RANK.search(text):
         return ParseResult("get_empty_spots", {**params, "rank": "most"}, "rule")
     if occupancy:
