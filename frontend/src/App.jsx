@@ -41,7 +41,7 @@ function ParkingApp() {
   navigator.userAgentData?.mobile === true;
  const standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
  const appMode = mode === '1' || mode === 'user' || (mode !== '0' && (standalone || (started && phone)));
- const sessionActive = !admin && !showWelcome && (started || appMode);
+ const sessionActive = !admin && !showWelcome && started;
 
  useEffect(() => {
   if (!sessionActive) return;
@@ -96,8 +96,9 @@ function ParkingApp() {
   return <MobileParkingApp initialLotId={params.get('lot') || 'A'} initialTab={initialTab}/>;
  }
  if (sessionActive) return <Dashboard/>;
- return <ParkingWelcome onStart={(lot, page, language) => {
+ return <ParkingWelcome showPromo={appMode || (mode !== '0' && phone)} onStart={(lot, page, language) => {
   const url = new URL(window.location.href);
+  url.searchParams.delete('promo');
   url.searchParams.set('lot', lot);
   url.searchParams.set('screen', 'map');
   url.searchParams.set('page', page || 'parking');
@@ -217,7 +218,7 @@ function Dashboard({admin=false}){
  {page==='parking'&&mode==='admin'&&(lot.simulation_enabled||lot.capabilities?.simulation)&&lot.type==='virtual'&&<SimulationPanel key={lot.lot_id} lot={lot} onRefresh={refresh}/>}
  {page==='parking'&&<ParkingExtras lot={lot} lots={data.lots} alerts={data.alerts} onSelect={setLotId} syncStatus={<span className="report-scope">{isDemo?t('시연 데이터'):t('팀 API')} · {pollInterval/1000}{t("초 갱신 · 관측 시각")} {time(lot.updated_at)}</span>}/>}
 
- {page==='parking'&&<div className="parking-workspace"><ParkingLayoutMap admin={admin} hidePreviewControls key={lot.lot_id} lot={lot} filter={filter} setFilter={setFilter} alerts={data.alerts} found={invoice} onSpace={setSpace}/><aside className="right-column"><section className="occupancy-panel"><div className="section-kicker">PARKING STATUS<span>{t("현황")}</span></div><div className="occupancy-ring" style={{'--percent':`${occupied/lot.spaces.length*100}%`}}><div><strong>{Math.round(occupied/lot.spaces.length*100)}<small>%</small></strong><span>{t("현재 점유율")} · {occupied}/{lot.spaces.length}면</span></div></div><div className="status-numbers">{[['empty',t('빈자리')],['occupied',t('주차 중')],['uncertain',t('확인 필요')],['unavailable',t('확인 불가')]].map(([id,label])=><div key={id}><i className={`legend-dot ${id}`}/><span>{label}</span><b>{lot.spaces.filter(s=>s.status===id).length}</b></div>)}</div></section><article className="panel quick-find"><div className="card-heading"><h3>{t("내 차 찾기")}</h3><Icon name="search"/></div><p>{t("차량에 맞는 조회 방식을 선택해 주세요.")}</p>{search}{found}<button className="button white full quick-fee-link" onClick={()=>navigate('fee')}>{t("주차요금 확인")}</button></article>{mode==='admin'&&<article className="panel"><h3>LED 화재 경보</h3><p className="muted">실제 카메라 연결 전 시연입니다.</p><button className="button danger full" disabled={busy} onClick={fire}>LED 경보 시연</button></article>}</aside></div>}
+ {page==='parking'&&<div className={admin ? "parking-workspace admin-parking-workspace" : "parking-workspace"}><ParkingLayoutMap admin={admin} hidePreviewControls key={lot.lot_id} lot={lot} filter={filter} setFilter={setFilter} alerts={data.alerts} found={invoice} onSpace={setSpace}/><aside className="right-column"><section className="occupancy-panel"><div className="section-kicker">PARKING STATUS<span>{t("현황")}</span></div><div className="occupancy-ring" style={{'--percent':`${occupied/lot.spaces.length*100}%`}}><div><strong>{Math.round(occupied/lot.spaces.length*100)}<small>%</small></strong><span>{t("현재 점유율")} · {occupied}/{lot.spaces.length}면</span></div></div><div className="status-numbers">{[['empty',t('빈자리')],['occupied',t('주차 중')],['uncertain',t('확인 필요')],['unavailable',t('확인 불가')]].map(([id,label])=><div key={id}><i className={`legend-dot ${id}`}/><span>{label}</span><b>{lot.spaces.filter(s=>s.status===id).length}</b></div>)}</div></section><article className="panel quick-find"><div className="card-heading"><h3>{t("내 차 찾기")}</h3><Icon name="search"/></div><p>{t("차량에 맞는 조회 방식을 선택해 주세요.")}</p>{search}{found}<button className="button white full quick-fee-link" onClick={()=>navigate('fee')}>{t("주차요금 확인")}</button></article>{mode==='admin'&&<article className="panel"><h3>LED 화재 경보</h3><p className="muted">실제 카메라 연결 전 시연입니다.</p><button className="button danger full" disabled={busy} onClick={fire}>LED 경보 시연</button></article>}</aside></div>}
 
  {page==='chat'&&<ChatPanel lots={data.lots} alerts={data.alerts} voiceInput appAppearance connected={!loading&&!error}/>}
  {page==='find'&&<section className="search-page"><article className="panel search-large"><span className="large-symbol"><Icon name="car"/></span><h2>{t("주차장에 맞는 번호로 내 차 찾기")}</h2><p>{t("실물 1·2번은 스티커 번호, 가상 3·4번은 차량번호 뒤 4자리로 조회하세요.")}</p>{search}{found}{invoice&&<button className="button primary full quick-fee-link" onClick={()=>navigate('fee')}>{t("요금 확인하기")}</button>}</article></section>}
