@@ -157,6 +157,9 @@ def build(rows, top=20, price_in=None, price_out=None):
             out.append(f"- 미리 조회: {', '.join(agent['prefetched'])}")
         for d in agent.get("drafts") or []:
             out.append(f"- 버려진 초안({d.get('reason')}{', 고쳐 쓰기' if d.get('repair') else ''}): {short(text_of(d.get('text')), 200)}")
+        if r.get("notice_dropped"):
+            dropped = r["notice_dropped"]
+            out.append(f"- 확정 안내({dropped.get('topic')})를 못 지켜 버려진 AI 답: {short(text_of(dropped.get('text')), 200)}")
         out.append(f"- 최종 답: {short(text_of((r.get('output') or {}).get('text')), 200)}")
         out.append("")
         if isinstance(question, str) and question != "-" and not question.startswith("("):

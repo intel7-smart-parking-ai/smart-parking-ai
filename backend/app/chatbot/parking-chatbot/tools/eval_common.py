@@ -58,7 +58,7 @@ def grade(row: dict) -> str:
         if "agent:ungrounded" in steps or "agent:dropped" in steps and agent.get("status") == "ungrounded":
             return "fallback_ungrounded"
         return "fallback_other"
-    if last.startswith("rule:") and any(s.startswith("agent:") for s in steps):
+    if last.startswith("rule:") and any(s.startswith("agent:") and s != "agent:skip" for s in steps):
         return "fallback_notice"   # 확정 안내 질문에서 AI 답이 안내를 안 지켜 정해진 문장으로
     return "rule"
 

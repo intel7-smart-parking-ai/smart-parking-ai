@@ -1,0 +1,1173 @@
+{
+ "meta": {
+  "label": "error_zip_haiku_현재",
+  "at": "2026-11-10T17:22:40+0900",
+  "commit": "b753724+",
+  "model": "anthropic/claude-haiku-5.5",
+  "provider": "openrouter",
+  "question_file": "error_zip_1110.json",
+  "settings": {
+   "REQUEST_BUDGET_SEC": 8.0,
+   "LLM_ANSWER_TIMEOUT_SEC": 5.0,
+   "LLM_MAX_OUTPUT_TOKENS": 600,
+   "LLM_REPAIR_MIN_SEC": 1.5,
+   "DATA_SOURCE": "mock"
+  }
+ },
+ "summary": {
+  "turns": 23,
+  "ai_answers": 10,
+  "ai_ratio_excluding_rule": 0.71,
+  "grades": {
+   "ai": 9,
+   "ai_notice": 1,
+   "rule": 9,
+   "clarify_no_lookup": 1,
+   "fallback_notice": 3
+  },
+  "avg_sec": 1.5,
+  "max_sec": 5.5
+ },
+ "rows": [
+  {
+   "id": "E01",
+   "kind": "요금 안내(목적지 아님)",
+   "q": "개발원 주차장 주차요금 안내해줘",
+   "a": "개발원주차장의 요금은 처음 30분 1,000원이고, 이후 10분마다 500원씩 추가돼요. 하루 최대 요금은 10,000원이에요.\n\n참고로 지금 빈자리는 12자리 중 5자리예요. 실제 금액은 출차하실 때 서버가 정하니, 몇 시간 세우실 계획이면 그 시간을 말씀해 주세요. 예상 금액을 계산해 드릴게요.",
+   "route": "guard:pass > plan:vacancy+fee > boundary:pass > agent:ok > agent:answer",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "vacancy+fee",
+     "why": "wants=vacancy+fee lots=A"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ok",
+     "calls": 2,
+     "prefetched": [
+      "parking_status"
+     ],
+     "tools": [
+      "parking_status",
+      "fee_policies"
+     ]
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer",
+     "source": "llm"
+    }
+   ],
+   "agent": {
+    "model_calls": 2,
+    "tool_calls": 1,
+    "input_tokens": 15345,
+    "output_tokens": 240,
+    "prefetched": [
+     "parking_status"
+    ],
+    "calls": [
+     {
+      "kind": "answer",
+      "limit_s": 5.0,
+      "ms": 1790,
+      "status": "ok",
+      "tools": [
+       "fee_policies"
+      ]
+     },
+     {
+      "kind": "answer",
+      "limit_s": 3.9,
+      "ms": 1682,
+      "status": "ok"
+     }
+    ],
+    "latency_ms": 4518.1,
+    "status": "ok",
+    "drafts": null
+   },
+   "sec": 5.1,
+   "expect": "개발원 요금 기준. '목적지로 정했어요' 아님",
+   "grade": "ai"
+  },
+  {
+   "id": "E02",
+   "kind": "청사 가까운 곳(목적지 아님)",
+   "q": "김해공항 국내선 청사로 갈려고 하는데 가장 가까운 주차면이 어디야",
+   "a": "김해공항 주차장에는 지금 빈자리가 62자리 있어요. 다만 특정 주차면까지의 거리나 도보 시간은 자료에 없어서, 가장 가까운 자리를 정해 드리기는 어려워요.\n\n시연용 배치도에서는 P1이 국내선, P2가 국제선, P3가 여객·화물 구역으로 설정되어 있어요. 국내선 청사에 가실 때는 P1 구역을 찾아보시면 돼요. 출발 전에 다시 한번 빈자리를 확인해 보시는 것도 좋아요.",
+   "route": "guard:pass > plan:vacancy > boundary:pass > agent:ok > agent:answer",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "vacancy",
+     "why": "wants=vacancy lots=C"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ok",
+     "calls": 1,
+     "prefetched": [
+      "search_knowledge",
+      "parking_status"
+     ],
+     "tools": [
+      "search_knowledge",
+      "parking_status"
+     ]
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer",
+     "source": "llm"
+    }
+   ],
+   "agent": {
+    "model_calls": 1,
+    "tool_calls": 0,
+    "input_tokens": 8061,
+    "output_tokens": 368,
+    "prefetched": [
+     "search_knowledge",
+     "parking_status"
+    ],
+    "calls": [
+     {
+      "kind": "answer",
+      "limit_s": 5.0,
+      "ms": 2727,
+      "status": "ok"
+     }
+    ],
+    "latency_ms": 2844.9,
+    "status": "ok",
+    "drafts": null
+   },
+   "sec": 2.9,
+   "expect": "국내선 쪽(P1) 안내 + 빈자리. 목적지 설정 아님",
+   "grade": "ai"
+  },
+  {
+   "id": "E03",
+   "kind": "엘리베이터 가까운 곳",
+   "q": "신세계 백화점 주차장에서 엘리베이터가 가장 가까운 주차면이 어디야",
+   "a": "신세계백화점주차장에서 특정 주차면이 엘리베이터와 몇 m 떨어져 있는지는 자료에 없어서 정확히 짚어 드릴 수 없어요. 시연용 도면에서는 엘리베이터가 몰 A·C구역과 백화점 B·D구역에 표시되어 있어요. 지금은 전체 64면 중 62면이 비어 있어서, 가까운 구역 쪽에 자리를 고르기 쉬운 상황이에요. 입차하실 때 엘리베이터 쪽 구역 표시를 보시면 편하실 거예요.",
+   "route": "guard:pass > plan:vacancy > boundary:pass > agent:ok > agent:answer",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "vacancy",
+     "why": "wants=vacancy lots=D"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ok",
+     "calls": 1,
+     "prefetched": [
+      "search_knowledge",
+      "parking_status"
+     ],
+     "tools": [
+      "search_knowledge",
+      "parking_status"
+     ]
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer",
+     "source": "llm"
+    }
+   ],
+   "agent": {
+    "model_calls": 1,
+    "tool_calls": 0,
+    "input_tokens": 8031,
+    "output_tokens": 315,
+    "prefetched": [
+     "search_knowledge",
+     "parking_status"
+    ],
+    "calls": [
+     {
+      "kind": "answer",
+      "limit_s": 5.0,
+      "ms": 2445,
+      "status": "ok"
+     }
+    ],
+    "latency_ms": 2565.6,
+    "status": "ok",
+    "drafts": null
+   },
+   "sec": 2.6,
+   "expect": "엘리베이터 위치(몰 A·C, 백화점 B·D) 근거로 자연스럽게",
+   "grade": "ai"
+  },
+  {
+   "id": "E04",
+   "kind": "자료 없는 시설",
+   "q": "신세계 백화점 주차장에서 영화관으로 가는 가장 가까운 주차면이 어디야?",
+   "a": "영화관은 신세계백화점주차장 안내 자료에 없어서, 영화관에서 가까운 주차면은 알려 드릴 수 없어요. 대신 지금 신세계백화점주차장에는 전체 64칸 중 62칸이 비어 있어요. 어느 구역에 주차할지는 현장 안내를 함께 참고해 주세요.",
+   "route": "guard:pass > plan:vacancy > boundary:pass > agent:ok > agent:answer",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "vacancy",
+     "why": "wants=vacancy lots=D"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ok",
+     "calls": 1,
+     "prefetched": [
+      "search_knowledge",
+      "parking_status"
+     ],
+     "tools": [
+      "search_knowledge",
+      "parking_status"
+     ]
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer",
+     "source": "llm"
+    }
+   ],
+   "agent": {
+    "model_calls": 1,
+    "tool_calls": 0,
+    "input_tokens": 7893,
+    "output_tokens": 129,
+    "prefetched": [
+     "search_knowledge",
+     "parking_status"
+    ],
+    "calls": [
+     {
+      "kind": "answer",
+      "limit_s": 5.0,
+      "ms": 1880,
+      "status": "ok"
+     }
+    ],
+    "latency_ms": 1997.4,
+    "status": "ok",
+    "drafts": null
+   },
+   "sec": 2.0,
+   "expect": "영화관 정보는 없다고 먼저 밝힘 + 대신 도울 수 있는 것",
+   "grade": "ai"
+  },
+  {
+   "id": "E05",
+   "kind": "영어 질문",
+   "q": "can i get some information",
+   "a": "주차장 정보를 알려 드릴 수 있어요. 빈자리, 내 차 위치, 요금, 주차장 이용 안내 중 무엇이 궁금하신가요?\n\nI can help with parking availability, your car's location and fee, or lot information. What would you like to know?",
+   "route": "guard:pass > plan:none > boundary:pass > agent:ok > agent:answer",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "none",
+     "why": "wants=-"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ok",
+     "calls": 2,
+     "repaired": "no_evidence"
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer",
+     "source": "llm"
+    }
+   ],
+   "agent": {
+    "model_calls": 2,
+    "tool_calls": 0,
+    "input_tokens": 14864,
+    "output_tokens": 653,
+    "calls": [
+     {
+      "kind": "select",
+      "limit_s": 3.0,
+      "ms": 2530,
+      "status": "ok"
+     },
+     {
+      "kind": "select",
+      "limit_s": 3.0,
+      "ms": 2884,
+      "status": "ok"
+     }
+    ],
+    "repair_reason": "no_evidence",
+    "repaired": true,
+    "smalltalk": true,
+    "latency_ms": 5533.7,
+    "status": "ok",
+    "drafts": [
+     {
+      "reason": "no_evidence",
+      "text": "Of course! I can help with:\n\n· Available spaces in each lot (general, EV charging, or accessible)\n· Where your car is parked and its current fee\n· Estimated fees for a planned stay\n· Lot rules and facility information\n· Recommendations based on your purpose, such as travel, a station trip, shopping, or a visit to the training center\n\nWhat would you like to know?"
+     }
+    ]
+   },
+   "sec": 5.5,
+   "expect": "영어로 도울 수 있는 것 안내",
+   "grade": "clarify_no_lookup"
+  },
+  {
+   "id": "E06",
+   "kind": "충전 현황(주차장 없음)",
+   "q": "전기차 충전 현황",
+   "a": "주차장을 말씀하지 않아 김해공항부터 보여 드려요. 신세계는 ‘신세계 충전 현황’이라고 해 주세요.\n김해공항 주차장 충전 현황이에요. 아래 ‘충전 현황’ 버튼을 누르면 칸별 충전 상태와 남은 시간을 볼 수 있어요.",
+   "route": "guard:pass > plan:vacancy > rule:charging_status",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "vacancy",
+     "why": "wants=vacancy zone=ev"
+    },
+    {
+     "stage": "rule",
+     "outcome": "charging_status",
+     "why": "충전 현황 질문 → 충전 현황 카드"
+    }
+   ],
+   "agent": {},
+   "sec": 0.0,
+   "expect": "어느 주차장인지 밝히고 충전 현황 카드",
+   "grade": "rule"
+  },
+  {
+   "id": "E07",
+   "kind": "한산한 시간대",
+   "q": "김해공항 안 붐비는 시간대는?",
+   "a": "시연 혼잡 예측을 조회하지 못했어요. 잠시 후 다시 시도해 주세요.",
+   "route": "guard:pass > plan:vacancy > rule:congestion_forecast",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "vacancy",
+     "why": "wants=vacancy lots=C"
+    },
+    {
+     "stage": "rule",
+     "outcome": "congestion_forecast",
+     "why": "특정 미래 시점 혼잡 → 서버 예측 조회"
+    }
+   ],
+   "agent": {},
+   "sec": 0.0,
+   "expect": "시간대별 예측(서버) 또는 예측 불가 안내. 구역별 빈자리 아님",
+   "grade": "rule"
+  },
+  {
+   "id": "E08",
+   "kind": "되묻기 이어받기",
+   "q": "김해공항 3시에 혼잡하나?",
+   "a": "오전인지 오후인지 함께 알려주세요. 예: “내일 오후 3시”",
+   "route": "guard:pass > plan:vacancy > rule:congestion_forecast",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "vacancy",
+     "why": "wants=vacancy lots=C"
+    },
+    {
+     "stage": "rule",
+     "outcome": "congestion_forecast",
+     "why": "특정 미래 시점 혼잡 → 서버 예측 조회"
+    }
+   ],
+   "agent": {},
+   "sec": 0.0,
+   "expect": "두 번째에 오후 3시 예측(또는 예측 불가 안내). '이해하지 못했어요' 아님",
+   "grade": "rule"
+  },
+  {
+   "id": "E08",
+   "kind": "되묻기 이어받기",
+   "q": "오후",
+   "a": "시연 혼잡 예측을 조회하지 못했어요. 잠시 후 다시 시도해 주세요.",
+   "route": "guard:pass > plan:none > rule:congestion_forecast",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "none",
+     "why": "wants=-"
+    },
+    {
+     "stage": "rule",
+     "outcome": "congestion_forecast",
+     "why": "특정 미래 시점 혼잡 → 서버 예측 조회"
+    }
+   ],
+   "agent": {},
+   "sec": 0.0,
+   "expect": "두 번째에 오후 3시 예측(또는 예측 불가 안내). '이해하지 못했어요' 아님",
+   "grade": "rule"
+  },
+  {
+   "id": "E09",
+   "kind": "예약",
+   "q": "공항 주차장 예약하고 싶어",
+   "a": "자리 예약이나 자리 보장 기능은 없어요. 빈자리는 먼저 들어온 차가 쓰고, 저는 지금 기준 빈자리만 안내할 수 있어요.\n김해공항 주차장에 62자리 있어요.",
+   "route": "guard:pass > plan:vacancy > boundary:reservation > agent:ok > agent:answer > rule:reservation",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "vacancy",
+     "why": "wants=vacancy lots=C"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "reservation"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ok",
+     "calls": 1,
+     "prefetched": [
+      "service_notice",
+      "parking_status"
+     ],
+     "tools": [
+      "service_notice",
+      "parking_status"
+     ]
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer",
+     "source": "llm"
+    },
+    {
+     "stage": "rule",
+     "outcome": "reservation",
+     "why": "AI 답 없음 또는 확정 안내를 지키지 않음 → 정해진 문장"
+    }
+   ],
+   "agent": {
+    "model_calls": 1,
+    "tool_calls": 0,
+    "input_tokens": 7922,
+    "output_tokens": 129,
+    "prefetched": [
+     "service_notice",
+     "parking_status"
+    ],
+    "calls": [
+     {
+      "kind": "answer",
+      "limit_s": 5.0,
+      "ms": 1635,
+      "status": "ok"
+     }
+    ],
+    "latency_ms": 1753.2,
+    "status": "ok",
+    "drafts": null
+   },
+   "sec": 1.8,
+   "expect": "예약 기능 없음 + 지금 빈자리",
+   "grade": "fallback_notice"
+  },
+  {
+   "id": "E10",
+   "kind": "목적지(정상)",
+   "q": "개발원 주차장으로 안내해줘",
+   "a": "개발원주차장을 목적지로 정했어요.\n개발원주차장에 5자리 있어요.",
+   "route": "guard:pass > plan:vacancy > boundary:pass > workflow:set_destination > rule:set_destination",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "vacancy",
+     "why": "wants=vacancy lots=A"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "workflow",
+     "outcome": "set_destination",
+     "why": "상태를 바꾸거나 안전이 걸린 요청은 규칙이 처리"
+    },
+    {
+     "stage": "rule",
+     "outcome": "set_destination",
+     "lot": "A"
+    }
+   ],
+   "agent": {},
+   "sec": 0.0,
+   "expect": "목적지 설정",
+   "grade": "rule"
+  },
+  {
+   "id": "B01",
+   "kind": "가상 차량 N분 뒤",
+   "q": "1724 차 60분 뒤에 나가면 얼마야?",
+   "a": "17가1724 차량은 김해공항 주차장 A-07에 있어요.\n오후 4시 54분에 들어와서 29분째 주차 중이에요.\n지금까지 요금은 3,000원이에요.\n1시간 뒤에 나가면 예상 요금은 7,800원이에요. 실제 금액은 출차·결제 때 서버가 정해요.",
+   "route": "guard:pass > plan:fee+future > boundary:pass > agent:skip > rule:get_fee",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "fee+future",
+     "why": "wants=fee+future"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "skip",
+     "why": "virtual_vehicle"
+    },
+    {
+     "stage": "rule",
+     "outcome": "get_fee"
+    }
+   ],
+   "agent": {},
+   "sec": 0.0,
+   "expect": "지금 요금 + 1시간 뒤 예상 요금(billing)",
+   "grade": "fallback_notice"
+  },
+  {
+   "id": "B02",
+   "kind": "실물 차량 N분 뒤",
+   "q": "34번 차 60분 뒤 얼마?",
+   "a": "34번 차는 부산역주차장 A-05 칸에 있고, 현재까지 46분 주차해서 요금은 3,400원이에요. 60분 더 세우면 예상 요금은 7,600원이에요(총 1시간 46분 기준). 실제 금액은 출차하거나 결제할 때 서버가 정해요.",
+   "route": "guard:pass > plan:fee+future > boundary:pass > agent:ok > agent:answer",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "fee+future",
+     "why": "wants=fee+future car=34"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ok",
+     "calls": 2,
+     "prefetched": [
+      "vehicle_info"
+     ],
+     "tools": [
+      "vehicle_info",
+      "estimate_fee"
+     ]
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer",
+     "source": "llm"
+    }
+   ],
+   "agent": {
+    "model_calls": 2,
+    "tool_calls": 1,
+    "input_tokens": 15797,
+    "output_tokens": 298,
+    "prefetched": [
+     "vehicle_info"
+    ],
+    "calls": [
+     {
+      "kind": "answer",
+      "limit_s": 5.0,
+      "ms": 1232,
+      "status": "ok",
+      "tools": [
+       "estimate_fee"
+      ]
+     },
+     {
+      "kind": "answer",
+      "limit_s": 5.0,
+      "ms": 2053,
+      "status": "ok"
+     }
+    ],
+    "latency_ms": 3406.2,
+    "status": "ok",
+    "drafts": null
+   },
+   "sec": 3.4,
+   "expect": "1시간 뒤 예상 요금",
+   "grade": "ai"
+  },
+  {
+   "id": "B03",
+   "kind": "가상 차량 관리자 호출",
+   "q": "내차 1724 위치",
+   "a": "17가1724 차량은 김해공항 주차장 A-07에 있어요.\n오후 4시 54분에 들어와서 29분째 주차 중이에요.\n지금까지 요금은 3,000원이에요.",
+   "route": "guard:pass > plan:location > boundary:pass > agent:skip > rule:find_my_car",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "location",
+     "why": "wants=location"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "skip",
+     "why": "virtual_vehicle"
+    },
+    {
+     "stage": "rule",
+     "outcome": "find_my_car"
+    }
+   ],
+   "agent": {},
+   "sec": 0.0,
+   "expect": "관리자 호출 요약에 17가1724",
+   "grade": "fallback_notice"
+  },
+  {
+   "id": "B03",
+   "kind": "가상 차량 관리자 호출",
+   "q": "스크래치 났어",
+   "a": "스크래치가 나셨군요. 차량 손상이나 접촉 사고는 제가 확인하거나 판단할 수 없고, 현장 관리자가 직접 확인해야 해요. 아래 관리자 호출 버튼을 누르시면 17가1724 차량 정보와 문의 내용이 관리자 화면에 함께 전달돼요.",
+   "route": "guard:vehicle_damage > plan:none > agent:ok > agent:answer > agent:answer_with_notice",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "vehicle_damage"
+    },
+    {
+     "stage": "plan",
+     "outcome": "none",
+     "why": "wants=-"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ok",
+     "calls": 1,
+     "prefetched": [
+      "service_notice"
+     ],
+     "tools": [
+      "service_notice"
+     ]
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer",
+     "source": "llm"
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer_with_notice",
+     "topic": "vehicle_damage"
+    }
+   ],
+   "agent": {
+    "model_calls": 1,
+    "tool_calls": 0,
+    "input_tokens": 7747,
+    "output_tokens": 126,
+    "prefetched": [
+     "service_notice"
+    ],
+    "calls": [
+     {
+      "kind": "answer",
+      "limit_s": 5.0,
+      "ms": 1628,
+      "status": "ok"
+     }
+    ],
+    "latency_ms": 1743.8,
+    "status": "ok",
+    "drafts": null
+   },
+   "sec": 1.8,
+   "expect": "관리자 호출 요약에 17가1724",
+   "grade": "ai_notice"
+  },
+  {
+   "id": "B03",
+   "kind": "가상 차량 관리자 호출",
+   "q": "관리자 불러줘",
+   "a": "관리자에게 확인을 요청했어요. 차량 정보와 최근 문의를 요약해 관리자 화면에 함께 등록했어요.",
+   "route": "guard:pass > plan:none > boundary:pass > workflow:call_admin > rule:call_admin",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "none",
+     "why": "wants=-"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "workflow",
+     "outcome": "call_admin",
+     "why": "상태를 바꾸거나 안전이 걸린 요청은 규칙이 처리"
+    },
+    {
+     "stage": "rule",
+     "outcome": "call_admin"
+    }
+   ],
+   "agent": {},
+   "sec": 0.0,
+   "expect": "관리자 호출 요약에 17가1724",
+   "grade": "rule"
+  },
+  {
+   "id": "B04",
+   "kind": "별명 두 곳 비교",
+   "q": "역이랑 공항 중 어디가 싸?",
+   "a": "부산역주차장을 말씀하시는 거라면, 요금은 부산역이 더 싸요. 처음 30분 기준으로 부산역은 2,000원, 김해공항 주차장은 3,000원이라 1,000원 저렴해요. 다만 부산역주차장은 지금 만차라 들어갈 수 없고, 김해공항 주차장은 64칸 중 62칸이 비어 있어요. 지금 바로 주차하시려면 김해공항 주차장이 맞아요.",
+   "route": "guard:pass > plan:rates+compare > boundary:pass > agent:ok > agent:answer",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "rates+compare",
+     "why": "wants=rates+compare lots=C+B guessed=B(역)"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ok",
+     "calls": 1,
+     "prefetched": [
+      "compare_lots"
+     ],
+     "tools": [
+      "compare_lots"
+     ]
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer",
+     "source": "llm"
+    }
+   ],
+   "agent": {
+    "model_calls": 1,
+    "tool_calls": 0,
+    "input_tokens": 8003,
+    "output_tokens": 335,
+    "prefetched": [
+     "compare_lots"
+    ],
+    "calls": [
+     {
+      "kind": "answer",
+      "limit_s": 5.0,
+      "ms": 2555,
+      "status": "ok"
+     }
+    ],
+    "latency_ms": 2673.7,
+    "status": "ok",
+    "drafts": null
+   },
+   "sec": 2.7,
+   "expect": "부산역·김해공항만 비교",
+   "grade": "ai"
+  },
+  {
+   "id": "B05",
+   "kind": "운영 시간",
+   "q": "주차장 몇 시까지 해?",
+   "a": "시연 기준으로 김해공항 주차장은 매일 24시간 입·출차할 수 있어요. 신세계백화점주차장은 매일 10:00~22:00에 입차할 수 있고, 주차된 차량은 24시간 출차할 수 있어요.\n\n개발원주차장과 부산역주차장의 운영 시간은 안내 자료에 없어요. 어느 주차장에 가실지 알려 주시면 그곳의 빈자리를 바로 확인해 드릴게요.",
+   "route": "guard:pass > plan:vacancy > boundary:pass > agent:ok > agent:answer",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "vacancy",
+     "why": "wants=vacancy"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ok",
+     "calls": 1,
+     "prefetched": [
+      "search_knowledge"
+     ],
+     "tools": [
+      "search_knowledge"
+     ]
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer",
+     "source": "llm"
+    }
+   ],
+   "agent": {
+    "model_calls": 1,
+    "tool_calls": 0,
+    "input_tokens": 7733,
+    "output_tokens": 275,
+    "prefetched": [
+     "search_knowledge"
+    ],
+    "calls": [
+     {
+      "kind": "answer",
+      "limit_s": 5.0,
+      "ms": 2152,
+      "status": "ok"
+     }
+    ],
+    "latency_ms": 2273.7,
+    "status": "ok",
+    "drafts": null
+   },
+   "sec": 2.3,
+   "expect": "자료 있는 곳·없는 곳을 빠짐없이",
+   "grade": "ai"
+  },
+  {
+   "id": "B06",
+   "kind": "결제 완료 뒤 요금·출차",
+   "q": "44번 차 결제해줘",
+   "a": "44번 차 맞으세요?",
+   "route": "guard:pass > plan:payment > boundary:pass > workflow:pay_fee > rule:pay_fee",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "payment",
+     "why": "wants=payment car=44"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "workflow",
+     "outcome": "pay_fee",
+     "why": "상태를 바꾸거나 안전이 걸린 요청은 규칙이 처리"
+    },
+    {
+     "stage": "rule",
+     "outcome": "pay_fee"
+    }
+   ],
+   "agent": {},
+   "sec": 0.0,
+   "expect": "결제 완료 뒤 '이미 결제했어요'+결제 금액, 출차는 현장 안내(챗봇이 출차를 해 준다고 하지 않음, 가짜 버튼 없음)",
+   "grade": "rule"
+  },
+  {
+   "id": "B06",
+   "kind": "결제 완료 뒤 요금·출차",
+   "q": "넵",
+   "a": "44번 차 요금은 5,500원이에요. 이 금액으로 모의 결제할까요?",
+   "route": "guard:pass > plan:none > boundary:pass > workflow:confirm_yes > rule:confirm_yes",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "none",
+     "why": "wants=-"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "workflow",
+     "outcome": "confirm_yes",
+     "why": "상태를 바꾸거나 안전이 걸린 요청은 규칙이 처리"
+    },
+    {
+     "stage": "rule",
+     "outcome": "confirm_yes"
+    }
+   ],
+   "agent": {},
+   "sec": 0.0,
+   "expect": "결제 완료 뒤 '이미 결제했어요'+결제 금액, 출차는 현장 안내(챗봇이 출차를 해 준다고 하지 않음, 가짜 버튼 없음)",
+   "grade": "rule"
+  },
+  {
+   "id": "B06",
+   "kind": "결제 완료 뒤 요금·출차",
+   "q": "네",
+   "a": "5,500원 결제됐어요. 출구 개방 여부는 현장에서 확인해 주세요. (모의 결제)",
+   "route": "guard:pass > plan:none > boundary:pass > workflow:confirm_yes > rule:confirm_yes",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "none",
+     "why": "wants=-"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "workflow",
+     "outcome": "confirm_yes",
+     "why": "상태를 바꾸거나 안전이 걸린 요청은 규칙이 처리"
+    },
+    {
+     "stage": "rule",
+     "outcome": "confirm_yes"
+    }
+   ],
+   "agent": {},
+   "sec": 0.0,
+   "expect": "결제 완료 뒤 '이미 결제했어요'+결제 금액, 출차는 현장 안내(챗봇이 출차를 해 준다고 하지 않음, 가짜 버튼 없음)",
+   "grade": "rule"
+  },
+  {
+   "id": "B06",
+   "kind": "결제 완료 뒤 요금·출차",
+   "q": "44번 차 얼마야?",
+   "a": "44번 차는 부산역주차장 A-01 칸에 주차되어 있고, 오후 4시 12분에 입차해 1시간 11분 주차했어요.\n\n이미 결제가 끝난 상태로, 결제 금액은 5,500원이에요. 출구에서 현장 안내를 따라 주세요.",
+   "route": "guard:pass > plan:fee > boundary:pass > agent:ok > agent:answer",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "fee",
+     "why": "wants=fee car=44"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ok",
+     "calls": 2,
+     "prefetched": [
+      "vehicle_info"
+     ],
+     "tools": [
+      "vehicle_info",
+      "search_knowledge"
+     ]
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer",
+     "source": "llm"
+    }
+   ],
+   "agent": {
+    "model_calls": 2,
+    "tool_calls": 1,
+    "input_tokens": 16017,
+    "output_tokens": 166,
+    "prefetched": [
+     "vehicle_info"
+    ],
+    "calls": [
+     {
+      "kind": "answer",
+      "limit_s": 5.0,
+      "ms": 1264,
+      "status": "ok",
+      "tools": [
+       "search_knowledge"
+      ]
+     },
+     {
+      "kind": "answer",
+      "limit_s": 5.0,
+      "ms": 1356,
+      "status": "ok"
+     }
+    ],
+    "latency_ms": 2744.7,
+    "status": "ok",
+    "drafts": null
+   },
+   "sec": 2.8,
+   "expect": "결제 완료 뒤 '이미 결제했어요'+결제 금액, 출차는 현장 안내(챗봇이 출차를 해 준다고 하지 않음, 가짜 버튼 없음)",
+   "grade": "ai"
+  },
+  {
+   "id": "B06",
+   "kind": "결제 완료 뒤 요금·출차",
+   "q": "이제 나갈게",
+   "a": "44번 차는 부산역주차장 A-01 칸에 있고, 이미 결제가 끝나 있어요. 결제 금액은 5,500원이에요.\n\n출구에서 현장 안내를 따라 나가 주세요. 차단기 개방은 챗봇이 할 수 없어요.",
+   "route": "guard:pass > plan:none > boundary:pass > agent:ok > agent:answer",
+   "steps": [
+    {
+     "stage": "guard",
+     "outcome": "pass"
+    },
+    {
+     "stage": "plan",
+     "outcome": "none",
+     "why": "wants=-"
+    },
+    {
+     "stage": "boundary",
+     "outcome": "pass"
+    },
+    {
+     "stage": "agent",
+     "outcome": "ok",
+     "calls": 1,
+     "prefetched": [
+      "vehicle_info"
+     ],
+     "tools": [
+      "vehicle_info"
+     ]
+    },
+    {
+     "stage": "agent",
+     "outcome": "answer",
+     "source": "llm"
+    }
+   ],
+   "agent": {
+    "model_calls": 1,
+    "tool_calls": 0,
+    "input_tokens": 7953,
+    "output_tokens": 104,
+    "prefetched": [
+     "vehicle_info"
+    ],
+    "calls": [
+     {
+      "kind": "answer",
+      "limit_s": 5.0,
+      "ms": 1726,
+      "status": "ok"
+     }
+    ],
+    "latency_ms": 1847.2,
+    "status": "ok",
+    "drafts": null
+   },
+   "sec": 1.9,
+   "expect": "결제 완료 뒤 '이미 결제했어요'+결제 금액, 출차는 현장 안내(챗봇이 출차를 해 준다고 하지 않음, 가짜 버튼 없음)",
+   "grade": "ai"
+  }
+ ]
+}

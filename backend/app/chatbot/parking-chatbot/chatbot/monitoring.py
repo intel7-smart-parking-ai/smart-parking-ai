@@ -289,6 +289,7 @@ class Turn:
         return {"at": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "session": self.session, "input": self.input,
                 "output": self.output, "error": self.error, "latency_ms": latency,
                 "tools": self.notes.get("tools"), "agent": agent, "route": self.notes.get("route"),
+                "notice_dropped": self.notes.get("notice_dropped"),
                 "prompts": _prompt_versions()}
 
     def finish(self):
