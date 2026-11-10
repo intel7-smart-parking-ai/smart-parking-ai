@@ -136,5 +136,31 @@ class ChatQueueTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("자리", second.json()["text"])
 
 
+@unittest.skipUnless(all(importlib.util.find_spec(name) for name in ("fastapi", "httpx")), "FastAPI/httpx unavailable")
+class LanguageContractTests(unittest.TestCase):
+    """계약(API_CONTRACT '챗봇 응답 언어 선택'): language를 생략하면 한국어 응답·기존 필드 구성 유지."""
+
+    def post(self, body):
+        from fastapi import FastAPI
+        from fastapi.testclient import TestClient
+        from chatbot.http_router import router
+        app = FastAPI()
+        app.include_router(router)
+        e.reset_all()
+        with patch.object(config, "LLM_PROVIDER", "none"), TestClient(app) as client:
+            return client.post("/api/v1/chat", json=body).json()
+
+    def test_omitted_language_keeps_korean_fields(self):
+        r = self.post({"session_id": "lang-a", "text": "Is there parking at Gimhae Airport?"})
+        self.assertNotIn("language", r)
+        self.assertNotIn("translation_status", r)
+        self.assertNotIn("translate_in", r["meta"].get("route", ""))
+
+    def test_guess_is_opt_in(self):
+        with patch.object(config, "CHAT_GUESS_LANGUAGE", True):
+            r = self.post({"session_id": "lang-b", "text": "Is there parking at Gimhae Airport?"})
+        self.assertEqual(r.get("language"), "en")
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -169,6 +169,8 @@ for _key in ("ADMIN_CALL_LIMIT", "INCIDENT_LIMIT", "UNCERTAIN_PAYMENT_LIMIT"):
 CHAT_MAX_CONCURRENT = _number("CHAT_MAX_CONCURRENT", "12", int)
 if CHAT_MAX_CONCURRENT < 1:
     raise ValueError("CHAT_MAX_CONCURRENT는 양의 정수여야 합니다.")
+# language 없이 온 외국어 질문을 글자로 판별해 번역(기본 끔 — 계약은 '생략하면 한국어'. PM 승인·계약 갱신 뒤 켠다)
+CHAT_GUESS_LANGUAGE = getenv("CHAT_GUESS_LANGUAGE", "0") == "1"
 CHAT_QUEUE_WAIT_SEC = _number("CHAT_QUEUE_WAIT_SEC", "3", float)
 if not math.isfinite(CHAT_QUEUE_WAIT_SEC) or CHAT_QUEUE_WAIT_SEC < 0:
     raise ValueError("CHAT_QUEUE_WAIT_SEC는 0 이상의 유한한 값이어야 합니다.")

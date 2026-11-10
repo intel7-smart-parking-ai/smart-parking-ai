@@ -28,7 +28,9 @@
 | `safety` | 객체 또는 null | Lv2 경보 시 "사람 먼저" 안내(선택, 있으면 크게 표시 권장) |
 | `vehicle_context` | `{car_id, state, ...}` | 지금 대화 중인 차량. state: `unselected`·`parked`·`not_found`·`pending`(입차 확인 중)·`unavailable` |
 
-`meta.route`는 응답이 거친 처리 단계(예: `guard:pass > plan:vacancy > agent:ok > agent:answer`)로, 원인 분석용이다([structure.md](structure.md)). 그 밖의 필드(`meta`, `runtime_id`, `state_version`, `alert_version`, `updated_at`, `destination`, `catalog`)는 화면에서 무시해도 된다.
+관리자 호출 목록(`GET /api/v1/chat/admin/calls`) 항목에는 11/10부터 가상 차량 호출일 때 `plate_number`(전체 번호판)·`vehicle_number`(뒤 4자리)가 함께 들어온다(`car_id`는 null, D-08: 관리는 전체 번호판). 화면은 지금처럼 `summary`만 보여도 번호판이 요약에 들어 있다. 사용자 채팅의 `admin_call` 카드에는 접수 번호·상태·시각만 쓴다.
+
+`meta.prefetched`(코드가 미리 조회한 도구 이름)·`meta.model_calls`도 원인 분석용이다. `meta.route`는 응답이 거친 처리 단계(예: `guard:pass > plan:vacancy > agent:ok > agent:answer`)로, 원인 분석용이다([structure.md](structure.md)). 그 밖의 필드(`meta`, `runtime_id`, `state_version`, `alert_version`, `updated_at`, `destination`, `catalog`)는 화면에서 무시해도 된다.
 
 ## 3. 화면 연결
 

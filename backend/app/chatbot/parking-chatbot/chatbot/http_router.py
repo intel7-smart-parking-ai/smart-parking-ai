@@ -144,9 +144,10 @@ def _team_chat_response(response):
 
 @router.post("")
 async def chat(body: ChatIn):
-    # language가 없어도 한글 없이 영어 문장·가나·한자만 있으면 그 언어로 본다(봇 점검 11/10 🟠4)
+    # 계약: language를 생략하면 한국어 응답·기존 필드 구성 유지(API_CONTRACT '챗봇 응답 언어 선택').
+    # language 없이 온 외국어 질문의 자동 판별(봇 점검 11/10 🟠4)은 계약 변경이라 CHAT_GUESS_LANGUAGE=1일 때만.
     language = (resolve_language(body.language, body.text) if body.language
-                else _guess_language(body.text))
+                else _guess_language(body.text) if config.CHAT_GUESS_LANGUAGE else "ko")
     requested = time.monotonic()   # 줄 선 시간까지 포함해 화면 제한(20초) 안에 끝낸다
 
     def work():
