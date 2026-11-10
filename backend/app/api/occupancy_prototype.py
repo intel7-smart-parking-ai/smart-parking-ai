@@ -106,17 +106,16 @@ class OccupancyExperiment(InMemoryEventStore):
         if event.car_id is not None and count == 3:
             row['identity_match'] = (car, first)
 
-    def _is_future_observation(self, event):
+    def _is_camera_observation(self, event):
         return (
             self._identity_clock is not None and event.source == 'vision'
             and event.lot_id in ('A', 'B')
             and event.event_type in ('vehicle_observed', 'space_empty_observed')
-            and event.observed_at > self._identity_clock()
         )
 
     def _apply_observation(self, row, event):
         # Previously journaled observations may still be ahead of the clock at startup.
-        if self._is_future_observation(event):
+        if self._is_camera_observation(event) and event.observed_at > self._identity_clock():
             return
         last = row['observed_at']
         # 지연/동시각 이벤트는 접수만 기록하고 최신 상태를 덮어쓰지 않는다.

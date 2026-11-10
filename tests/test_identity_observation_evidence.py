@@ -290,11 +290,11 @@ def test_d68_future_frame_does_not_block_normal_observations(d68_runtime, event_
                         if row["space_id"] == "A-01")
 
         before = bay()
-        future = frame(20, "11" if event_type == "vehicle_observed" else None,
+        future = frame(6, "11" if event_type == "vehicle_observed" else None,
                        event_type=event_type)
         assert send(client, future, arrival=AT + timedelta(seconds=3)).status_code == 422
         assert bay() == before
-        assert read("SELECT event_id FROM pipeline_events WHERE event_id = 'event-20'") == []
+        assert read("SELECT event_id FROM pipeline_events WHERE event_id = 'event-6'") == []
 
         assert send(client, frame(4)).status_code == 202
         assert read("SELECT session_id,entry_at,car_id FROM parking_sessions") == original
@@ -302,3 +302,41 @@ def test_d68_future_frame_does_not_block_normal_observations(d68_runtime, event_
         assert read("SELECT session_id,entry_at,car_id FROM parking_sessions") == [
             (original[0][0], original[0][1], "10")
         ]
+
+
+def test_d68_tolerates_small_clock_skew_without_blocking_normal_frames(d68_runtime):
+    clients, send, read = d68_runtime
+    with clients() as client:
+        start_unknown(client, send)
+        future = frame(4).model_copy(update={"observed_at": AT + timedelta(seconds=4.5)})
+        arrival = AT + timedelta(seconds=3)
+        assert send(client, future, arrival=arrival).status_code == 202
+        assert send(client, future, arrival=arrival).status_code == 200
+        assert send(client, future.model_copy(update={"car_id": "11"}),
+                    arrival=arrival).status_code == 409
+        stored_time = read("SELECT json_extract(payload, '$.observed_at') FROM pipeline_events "
+                           "WHERE event_id = 'event-4'")[0][0]
+        assert datetime.fromisoformat(stored_time) == arrival
+
+        normal = frame(5).model_copy(update={"observed_at": AT + timedelta(seconds=4)})
+        assert send(client, normal).status_code == 202
+        assert read("SELECT car_id FROM parking_sessions") == [(None,)]
+        assert send(client, frame(6).model_copy(
+            update={"observed_at": AT + timedelta(seconds=5)}
+        )).status_code == 202
+        bound = read("SELECT session_id, entry_at, car_id FROM parking_sessions")
+        assert len(bound) == 1 and bound[0][2] == "10"
+        assert client.get("/api/v1/vehicles/10/location").json()["session_id"] == bound[0][0]
+    with clients() as client:
+        assert send(client, future).status_code == 200
+        assert read("SELECT session_id, entry_at, car_id FROM parking_sessions") == bound
+        assert client.get("/api/v1/vehicles/10/location").json()["session_id"] == bound[0][0]
+
+
+def test_d68_accepts_exact_two_second_clock_skew(d68_runtime):
+    clients, send, read = d68_runtime
+    with clients() as client:
+        start_unknown(client, send)
+        event = frame(5)
+        assert send(client, event, arrival=AT + timedelta(seconds=3)).status_code == 202
+        assert read("SELECT count(*) FROM pipeline_events WHERE event_id = 'event-5'") == [(1,)]

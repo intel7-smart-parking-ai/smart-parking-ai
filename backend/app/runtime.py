@@ -13,7 +13,7 @@ import logging
 import sqlite3
 from contextlib import asynccontextmanager, closing
 from copy import copy
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from random import choice, randint, random
 from threading import RLock
@@ -103,10 +103,11 @@ class EventPipeline(OccupancyExperiment):
     def receive(self, event):
         with self.gate, closing(self.connection()) as conn:
             old = conn.execute(
-                "SELECT canonical,applied FROM pipeline_events WHERE event_id=?", (event.event_id,)
+                "SELECT canonical,applied,payload FROM pipeline_events WHERE event_id=?", (event.event_id,)
             ).fetchone()
+            canonical = canonical_payload(event)
             if old:
-                if old["canonical"] != canonical_payload(event):
+                if old["canonical"] != canonical:
                     return Receipt.CONFLICT
                 if old["applied"]:
                     return Receipt.DUPLICATE
@@ -118,8 +119,12 @@ class EventPipeline(OccupancyExperiment):
             # Journal evidence before session/alert side effects. Pending records are
             # retried idempotently or recovered after process interruption.
             if not old:
-                if self._is_future_observation(event):
-                    raise HTTPException(422, "관측 시각이 서버보다 미래입니다.")
+                if self._is_camera_observation(event):
+                    now = self._identity_clock()
+                    if event.observed_at > now + timedelta(seconds=2):
+                        raise HTTPException(422, "관측 시각이 서버보다 2초 넘게 미래입니다.")
+                    if event.observed_at > now:
+                        event = event.model_copy(update={"observed_at": now})
                 if (
                     event.event_type == "mock_fire_led_observed"
                     and event.space_id is not None
@@ -135,9 +140,12 @@ class EventPipeline(OccupancyExperiment):
                     raise HTTPException(422, "도면에 없는 주차칸입니다.")
                 conn.execute(
                     "INSERT INTO pipeline_events(event_id,payload,canonical) VALUES(?,?,?)",
-                    (event.event_id, event.model_dump_json(), canonical_payload(event)),
+                    (event.event_id, event.model_dump_json(), canonical),
                 )
                 conn.commit()
+            else:
+                # Replay and retry must use the same effective timestamp as the first receipt.
+                event = VisionEvent.model_validate_json(old["payload"])
             try:
                 if event.event_type == "mock_fire_led_observed":
                     result = InMemoryEventStore.receive(self, event)
