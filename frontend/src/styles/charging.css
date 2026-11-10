@@ -39,3 +39,8 @@
  .charging-progress progress{height:6px}
  .charging-map-button{margin-top:4px;padding:4px 2px;font-size:10px}
 }
+
+/* D-67: 챗봇 충전 답 = 요약 한 줄 + 충전 현황 버튼 */
+.chat-charging{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:8px}
+.chat-charging-summary{margin:0;padding:6px 10px;border-radius:8px;background:#eef4ff;color:#233d70;font-size:13px;word-break:keep-all}
+.charger-zone{font-weight:600;color:#4c607d}

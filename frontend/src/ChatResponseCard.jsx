@@ -4,11 +4,22 @@ import {useEffect, useState} from 'react';
 import ParkingLayoutMap from './ParkingLayoutMap.jsx';
 import AirportPanel from './AirportPanel.jsx';
 import CongestionForecast from './CongestionForecast.jsx';
+import './styles/charging.css';
 
 const money=value=>value!=null&&value!==''&&Number.isFinite(Number(value))?t("{0}원",Number(value).toLocaleString('ko-KR')):null;
 const date=value=>{if(!value)return null;const d=new Date(value);return Number.isNaN(d.getTime())?null:d.toLocaleString('ko-KR',{dateStyle:'short',timeStyle:'short'})};
 const label=(key,value)=>value==null||value===''?null:<div className="chat-card-detail" key={key}><span>{key}</span><strong>{value}</strong></div>;
 function Zones({zones}){return zones&&<div className="chat-zone-grid">{[['general',t('일반')],['ev',t('전기차')],['accessible',t('장애인')]].map(([key,name])=>zones[key]&&<div key={key}><span>{name}</span><strong>{zones[key].empty??'—'}{t("자리")}</strong></div>)}</div>}
+// D-67: 충전 현황 버튼 + 요약 한 줄. 서버가 준 칸 상태·charging 값을 세기만 한다(계산·추정 없음).
+function ChargingSummary({lot}){
+ const ev=lot?.spaces?.filter(space=>space.space_type==='ev')||[];
+ if(!ev.length)return null;
+ const mock=ev.filter(space=>space.charging?.is_mock);
+ const count=status=>mock.filter(space=>space.charging.status===status).length;
+ return <p className="chat-charging-summary" role="status">{mock.length
+  ?t("충전 가능 {0} · 충전 중 {1} · 완료 {2}",count('available'),count('charging'),count('completed'))
+  :t("빈 전기차 칸 {0} / {1} · 충전기 정보 미연동",ev.filter(space=>space.status==='empty').length,ev.length)}</p>;
+}
 function VehicleMap({lot,space,alerts}){
  const [filter,setFilter]=useState('all');
  return <ParkingLayoutMap lot={lot} filter={filter} setFilter={setFilter} alerts={alerts} found={{lot_id:lot.lot_id,space_id:space.space_id}} onSpace={()=>{}}/>;
@@ -59,7 +70,7 @@ export default function ChatResponseCard({card,lots=[],alerts=[],allowMap,onOpen
  const mapT=language?translate.bind(null,language):t;
  switch(card.type){
   case 'congestion_forecast': return allowMap?<CongestionForecast data={d}/>:null;
-  case 'charging_status': return allowMap?<button type="button" className="button primary" onClick={()=>onOpenCharging?.(d.lot_id||'A')}>{t('충전 현황')}</button>:null;
+  case 'charging_status': return allowMap?<div className="chat-charging"><ChargingSummary lot={lots.find(lot=>lot.lot_id===(d.lot_id||'A'))}/><button type="button" className="button primary" onClick={()=>onOpenCharging?.(d.lot_id||'A')}>{t('충전 현황')}</button></div>:null;
   case 'parking_map': return allowMap&&Array.isArray(d.lot_ids)?<>
    {d.payment_summary&&<PaymentSummary mapT={mapT} data={d.payment_summary} lots={lots}/>}
    <AnswerMaps mapT={mapT} ids={d.lot_ids} lots={lots} alerts={alerts} filter={d.filter||'all'} spaceId={d.space_id} reservationAvailable={d.reservation_available} route={d.route}/>
