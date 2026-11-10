@@ -23,7 +23,7 @@ from fastapi import APIRouter, Depends, HTTPException, Header
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from backend.app.api.occupancy_query_demo import create_demo_app
-from backend.app.api.occupancy_prototype import OccupancyExperiment
+from backend.app.api.occupancy_prototype import OccupancyExperiment, SIMULATION_MAX_GAP_SECONDS
 from backend.app.api.vision_event_schema import VisionEvent
 from backend.app.api.vision_event_store import Receipt, canonical_payload, InMemoryEventStore
 from backend.app.api.billing_router import billing_router, get_session_fee, create_mock_payment
@@ -98,7 +98,53 @@ class EventPipeline(OccupancyExperiment):
             finally:
                 self.recovering = False
 
+    def _simulation_heartbeat(self, event):
+        """C·D 시뮬레이터의 반복 관측(상태 변화 없음)이면 True.
+
+        시뮬레이터는 1초마다 C·D 전 칸에 관측을 다시 보낸다. 이미 같은 상태로 확정된 칸의
+        반복 관측까지 journal·접수함에 쌓으면 PARKING_MAX_EVENTS(기본 100만)에 도달해
+        카메라 관측까지 503이 되고, 재시작 복구도 점점 느려진다. 상태를 바꾸는 관측
+        (후보 시작·확정·간격 초과 리셋)은 그대로 기록한다. C·D는 재시작 때 새로 채운다(D-63).
+        """
+        if event.source != "simulation" or event.lot_id not in ("C", "D") or event.event_type not in (
+            "vehicle_observed", "space_empty_observed"
+        ):
+            return False
+        target = "occupied" if event.event_type == "vehicle_observed" else "empty"
+        with self._state_lock:
+            row = self._spaces.get((event.lot_id, event.space_id))
+            if row is None or row["observed_at"] is None or row["status"] != target or row["source"] != "simulation":
+                return False
+            gap = (event.observed_at - row["observed_at"]).total_seconds()
+            return (
+                0 < gap <= SIMULATION_MAX_GAP_SECONDS
+                and event.car_id is None
+                and event.confidence >= self.policy.min_confidence
+                and row["vehicle_type"] == (event.vehicle_type if target == "occupied" else None)
+            )
+
+    def _apply_unrecorded(self, event):
+        # OccupancyExperiment.receive와 같은 상태 반영이지만 event_id를 접수함에 남기지 않는다.
+        key = (event.lot_id, event.space_id)
+        with self._state_lock:
+            previous = self._spaces[key]
+            row = previous.copy()
+            self._apply_observation(row, event)
+            if (self._on_confirmed is not None and row["version"] != previous["version"]
+                    and row["status"] in ("occupied", "empty")):
+                self._on_confirmed(row, event.observed_at)
+            self._spaces[key] = row
+        return Receipt.ACCEPTED
+
     def receive(self, event):
+        with self.gate:
+            if self._simulation_heartbeat(event):
+                with closing(self.connection()) as conn:
+                    pending = conn.execute(
+                        "SELECT 1 FROM pipeline_events WHERE applied=0 LIMIT 1"
+                    ).fetchone()
+                if not pending:
+                    return self._apply_unrecorded(event)
         with self.gate, closing(self.connection()) as conn:
             old = conn.execute(
                 "SELECT canonical,applied FROM pipeline_events WHERE event_id=?", (event.event_id,)
@@ -436,17 +482,22 @@ def create_runtime_app(
         row["observed_at"] = row["observed_at"].isoformat() if row["observed_at"] else None
         return dict(row, lookup_type="plate")
 
+    pipeline_client = {}
+
     async def send_event(event):
-        async with httpx.AsyncClient(
-            transport=httpx.ASGITransport(app=app), base_url="http://pipeline"
-        ) as client:
-            response = await client.post(
-                "/api/v1/internal/vision-events",
-                json=event.model_dump(mode="json"),
-                headers={"Authorization": "Bearer " + token},
+        # 시뮬레이터는 1초마다 C·D 전 칸을 보내므로 클라이언트를 매번 만들지 않는다.
+        client = pipeline_client.get("client")
+        if client is None:
+            client = pipeline_client["client"] = httpx.AsyncClient(
+                transport=httpx.ASGITransport(app=app), base_url="http://pipeline"
             )
-            response.raise_for_status()
-            return response
+        response = await client.post(
+            "/api/v1/internal/vision-events",
+            json=event.model_dump(mode="json"),
+            headers={"Authorization": "Bearer " + token},
+        )
+        response.raise_for_status()
+        return response
 
     @route.post("/demo/alerts")
     async def mock_alert(body: MockAlertCommand):
@@ -751,6 +802,18 @@ def create_runtime_app(
                         "INSERT OR IGNORE INTO simulation_targets(lot_id,space_id) VALUES(?,?)",
                         (lot, space.space_id),
                     )
+            # 예전 버전이 쌓아 둔 시뮬레이션 반복 관측 정리: 칸마다 마지막 관측 10초 구간만 남긴다
+            # (복구 때 확정 상태를 다시 만들 수 있을 만큼). 카메라·수동 관측은 건드리지 않는다.
+            conn.execute(
+                """DELETE FROM pipeline_events
+                   WHERE applied=1 AND json_extract(payload,'$.source')='simulation'
+                     AND julianday(json_extract(payload,'$.observed_at')) < (
+                       SELECT julianday(max(json_extract(p.payload,'$.observed_at'))) - 10.0/86400
+                       FROM pipeline_events p
+                       WHERE p.applied=1 AND json_extract(p.payload,'$.source')='simulation'
+                         AND json_extract(p.payload,'$.lot_id')=json_extract(pipeline_events.payload,'$.lot_id')
+                         AND json_extract(p.payload,'$.space_id')=json_extract(pipeline_events.payload,'$.space_id'))"""
+            )
             conn.commit()
         store.recover()
         if continuous_demo:
@@ -770,6 +833,9 @@ def create_runtime_app(
                     await background
                 except asyncio.CancelledError:
                     pass
+            client = pipeline_client.pop("client", None)
+            if client is not None:
+                await client.aclose()
             if continuous_demo:
                 with closing(store.connection()) as conn:
                     demo_history.checkpoint(conn, clock())
