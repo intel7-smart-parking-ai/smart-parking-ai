@@ -169,6 +169,9 @@ class NumberReader:
             if not json.loads(lines.get(timeout=45)).get('ready'):
                 raise RuntimeError('OCR init')
             self.status='OCR 준비 완료'
+            # A recovered worker earns its retries back; otherwise the third failure of
+            # the day turned OCR off for the rest of the run (numbers null).
+            self.restarts=0
             self.ready_event.set()
             while not self.stop_event.is_set():
                 if process.poll() is not None:raise RuntimeError('OCR process exited')

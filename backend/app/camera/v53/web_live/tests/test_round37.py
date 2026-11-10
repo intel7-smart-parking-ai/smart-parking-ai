@@ -16,7 +16,7 @@ class OcrPathTests(unittest.TestCase):
             (root / 'assets.local.json').write_text(json.dumps(data), encoding='utf-8')
             clean = {k: v for k, v in os.environ.items() if k not in ('V53_OCR_PYTHON', 'V53_OCR_MODELS')}
             with patch.object(assets, 'ROOT', root), patch.dict(os.environ, {**clean, **(env or {})}, clear=True):
-                return root.resolve(), assets.settings()
+                return root.absolute(), assets.settings()
 
     def test_relative_forward_slash_paths_become_absolute(self):
         root, cfg = self.settings_with({'ocr_python': '.venv-ocr/Scripts/python.exe', 'ocr_models': 'ocr_models'})

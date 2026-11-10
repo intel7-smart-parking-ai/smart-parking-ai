@@ -31,6 +31,8 @@ def settings():
     for key in ('ocr_python', 'ocr_models'):
         value = data.get(key, '')
         if isinstance(value, str) and value and not Path(value).is_absolute():
-            value = str((ROOT / value).resolve())
+            # abspath, not resolve(): a Linux venv python is a symlink to the base
+            # interpreter, and following it would start Python outside the venv.
+            value = os.path.abspath(ROOT / value)
         defaults[key] = os.environ.get('V53_' + key.upper(), value)
     return defaults
