@@ -774,6 +774,15 @@ def create_runtime_app(
         with closing(store.connection()) as conn:
             conn.execute("PRAGMA journal_mode=WAL")
             init_schema(conn)
+            # Legacy databases acquire and backfill status in init_schema.
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS ix_parking_sessions_active_space "
+                "ON parking_sessions(lot_id, space_id) WHERE status='active'"
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS ix_parking_sessions_active_car "
+                "ON parking_sessions(car_id) WHERE status='active'"
+            )
             seed_defaults(conn)
             conn.execute(
                 "UPDATE parking_lots SET name = ?, total_spaces = ? "

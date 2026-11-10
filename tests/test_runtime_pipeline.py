@@ -1,6 +1,11 @@
 from contextlib import closing
 from datetime import datetime, timedelta, timezone
+import sqlite3
+
+import pytest
 from fastapi.testclient import TestClient
+
+from backend.app.billing.db import SCHEMA as BILLING_SCHEMA
 from backend.app.runtime import create_runtime_app
 
 TOKEN='pipeline-test-token'
@@ -174,3 +179,60 @@ def test_rejected_identity_change_does_not_poison_restart(tmp_path):
     with TestClient(app()) as c:
         assert c.get('/api/v1/health').status_code==200
         assert len(c.get('/api/v1/sessions?status=active').json()['items'])==1
+
+
+@pytest.mark.parametrize("initial_schema", ["new", "legacy", "current"])
+def test_startup_indexes_active_sessions_without_changing_records(tmp_path, initial_schema):
+    database = tmp_path / "session-index.sqlite3"
+    active = ("active-1", "A", "A-01", "10", "2026-11-10T01:00:00+00:00", None)
+    closed = ("closed-1", "A", "A-01", "10", "2026-11-09T01:00:00+00:00",
+              "2026-11-09T02:00:00+00:00")
+    payment = ("payment-1", "closed-1", 1500, "completed")
+    if initial_schema != "new":
+        with closing(sqlite3.connect(database)) as conn, conn:
+            if initial_schema == "legacy":
+                conn.execute("""
+                    CREATE TABLE parking_sessions (
+                        session_id TEXT PRIMARY KEY, lot_id TEXT NOT NULL, space_id TEXT,
+                        car_id TEXT, entry_at TEXT NOT NULL, exit_at TEXT
+                    )
+                """)
+            conn.executescript(BILLING_SCHEMA)
+            conn.executemany("""
+                INSERT INTO parking_sessions (session_id, lot_id, space_id, car_id, entry_at, exit_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (active, closed))
+            if initial_schema == "current":
+                conn.execute("UPDATE parking_sessions SET status = CASE WHEN exit_at IS NULL "
+                             "THEN 'active' ELSE 'closed' END")
+            conn.execute("""
+                INSERT INTO mock_payments (payment_id, session_id, lot_id, car_id, amount_krw,
+                                           payment_method, status, idempotency_key, created_at)
+                VALUES ('payment-1', 'closed-1', 'A', '10', 1500,
+                        'MOCK_CARD', 'completed', 'payment-key', '2026-11-09T02:01:00+00:00')
+            """)
+
+    queries = [
+        ("SELECT * FROM parking_sessions WHERE lot_id=? AND space_id=? AND status='active'",
+         ("A", "A-01"), "ix_parking_sessions_active_space"),
+        ("SELECT 1 FROM parking_sessions WHERE car_id=? AND status='active'",
+         ("10",), "ix_parking_sessions_active_car"),
+    ]
+    for _ in range(2):
+        app = create_runtime_app(token=TOKEN, database=database, mode="real")
+        with TestClient(app), closing(sqlite3.connect(database)) as conn:
+            indexes = conn.execute("PRAGMA index_list(parking_sessions)").fetchall()
+            for query, params, index_name in queries:
+                assert [row[2:] for row in indexes if row[1] == index_name] == [(0, "c", 1)]
+                plan = conn.execute("EXPLAIN QUERY PLAN " + query, params).fetchall()
+                assert any(index_name in step[-1] for step in plan), plan
+
+            sessions = conn.execute("SELECT * FROM parking_sessions ORDER BY session_id").fetchall()
+            payments = conn.execute(
+                "SELECT payment_id, session_id, amount_krw, status FROM mock_payments"
+            ).fetchall()
+            if initial_schema == "new":
+                assert sessions == payments == []
+            else:
+                assert sessions == [active + ("active",), closed + ("closed",)]
+                assert payments == [payment]
