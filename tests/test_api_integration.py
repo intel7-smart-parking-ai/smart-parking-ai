@@ -388,3 +388,17 @@ def test_idempotent_replay_works_after_quote_expired(client, tmp_path):
     assert again.status_code == 200
     assert again.json()["payment_id"] == first["payment_id"]
     assert again.json()["idempotent_replayed"] is True
+
+def test_fee_lookup_reuses_valid_quote_with_same_amount(client, tmp_path):
+    first = _quote(client, "ses_active", now="2026-11-02T09:41:00+09:00")
+    second = _quote(client, "ses_active", now="2026-11-02T09:41:00+09:00")
+    assert first == second
+    rows = sqlite3.connect(tmp_path / "test.db").execute(
+        "SELECT count(*) FROM fee_quotes WHERE session_id='ses_active'").fetchone()[0]
+    assert rows == 1
+
+
+def test_fee_lookup_new_quote_when_amount_changes(client):
+    cheap = _quote(client, "ses_active", now="2026-11-02T09:41:00+09:00")   # 2,000원
+    later = _quote(client, "ses_active", now="2026-11-02T12:00:00+09:00")   # 더 비쌈
+    assert cheap != later

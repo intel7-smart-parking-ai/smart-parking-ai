@@ -1,6 +1,7 @@
 """Frame evidence only: registration, per-space occupancy, sticker/color and OCR."""
 import base64
 import io
+import logging
 import time
 import threading
 from concurrent.futures import ThreadPoolExecutor, wait
@@ -181,6 +182,26 @@ def probable_red_body(light):
     if light.get('method')!='red_emission':
         return False
     return light.get('bay_area_fraction',0)>=.12 and light.get('confidence',1)<.88
+
+
+def split_filtered_lights(lights, rows_by_id):
+    """Keep LED candidates; return the ones excluded as paint, with the measured values.
+
+    The exclusion thresholds were set under the 11/10 lab lighting. Recording each
+    excluded box (bay, reason, size, score) lets a rehearsal under different lighting
+    show at once whether a real LED was filtered out.
+    """
+    kept,filtered=[],[]
+    for light in lights:
+        if probable_paint_glint(light,rows_by_id.get(light.get('space_id'))):reason='paint_glint'
+        elif probable_red_body(light):reason='red_body'
+        else:
+            kept.append(light)
+            continue
+        filtered.append(dict(reason=reason,space_id=light.get('space_id'),location=light.get('location'),
+                             bbox_xyxy=light.get('bbox_xyxy'),confidence=round(float(light.get('confidence',0)),3),
+                             bay_area_fraction=round(float(light.get('bay_area_fraction',0)),4)))
+    return kept,filtered
 
 
 def probable_paint_glint(light, row):
@@ -408,6 +429,21 @@ class ParkingPipeline:
             return result
         finally:self.photo_lock.release()
 
+    def _log_filtered_lights(self,camera,filtered,*,now=None,every=60):
+        """Log each (camera, bay, reason) exclusion when first seen, then at most once a minute."""
+        seen=self.__dict__.setdefault('_filtered_logged',{})
+        now=time.monotonic() if now is None else now
+        logged=[]
+        for item in filtered:
+            key=(camera,item['space_id'],item['reason'])
+            if now-seen.get(key,-every)<every:continue
+            seen[key]=now
+            logged.append(key)
+            logging.getLogger(__name__).info(
+                'LED candidate excluded camera=%s bay=%s reason=%s confidence=%.3f bay_area=%.4f box=%s',
+                camera,item['space_id'],item['reason'],item['confidence'],item['bay_area_fraction'],item['bbox_xyxy'])
+        return logged
+
     def _suspend_mismatched_approval(self,camera,epoch,shape,observed_at):
         """A full search that lands off the reviewed pose suspends, not erases, the review.
 
@@ -510,7 +546,7 @@ class ParkingPipeline:
             'weak_sticker_count':len(weak),'ocr_status':self.numbers.status,'empty_reference':False,
             'note':'도면을 찾지 못했습니다. 판 전체와 칸 이름이 보이도록 비춰 주세요.',
             'frame_quality':quality_report,'detector_ms':detection['inference_ms'],'_outline':None,'_crops':{},
-            'fire_lights':localize(lights,None,{})}
+            'fire_lights':localize(lights,None,{}),'filtered_lights':[]}
         if registration is None:
             approved=self.confirmed.get(camera)
             if (observed_at and fixed and fixed[0]==epoch and isinstance(approved,tuple) and len(approved)==4
@@ -871,8 +907,8 @@ class ParkingPipeline:
                             fire={'state':'unverified'}
                     row['fire_led']=fire
             rows_by_id={s['space_id']:s for s in result['spaces']}
-            lights[:]=[light for light in lights if not probable_paint_glint(light,rows_by_id.get(light.get('space_id')))
-                       and not probable_red_body(light)]
+            lights[:],result['filtered_lights']=split_filtered_lights(lights,rows_by_id)
+            self._log_filtered_lights(camera,result['filtered_lights'])
             for light in lights:
                 if light['space_id']:
                     row=next(s for s in result['spaces'] if s['space_id']==light['space_id'])
