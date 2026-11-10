@@ -167,3 +167,15 @@ netsh interface portproxy delete v4tov4 listenaddress=0.0.0.0 listenport=80
 - 비공개 `.env`에 `CHATBOT_ADMIN_TOKEN=<긴 임의 문자열>` 추가 → `api`(ADMIN_TOKEN)와 `web`(nginx)에 같은 값이 들어간다
 - 값이 없으면 지금처럼 "챗봇 관리자 권한 연결이 필요합니다."가 표시된다
 - 키는 디스코드·저장소에 쓰지 않는다
+
+## 점검 화면 켜기·끄기 (D-67)
+
+사용자 화면만 "시스템 점검 중" 안내(503)로 바꾼다. API·관리자·카메라 수신은 그대로 동작한다.
+공개 화면 컨테이너 이름은 배포 방식에 따라 다르다 (11/10 시연 호스트: `parkon-demo-refill-public-web`).
+
+```powershell
+docker exec <웹 컨테이너> touch /tmp/parkon-maintenance   # 켜기
+docker exec <웹 컨테이너> rm -f /tmp/parkon-maintenance    # 끄기
+```
+
+컨테이너를 다시 만들면 자동으로 꺼진다(파일이 컨테이너 안 /tmp에만 있음).
