@@ -26,6 +26,7 @@ const detailCopy = {
 };
 const chargerStatus = {available:1,connected:2,charging:3,completed:4,not_connected:5,unknown:6};
 const parkingStatus = {empty:4,occupied:5,uncertain:6,unavailable:7};
+const koreanLotLabels = [['개발원','주차장'],['부산역','주차장'],['김해공항','주차장'],['신세계','백화점','주차장']];
 
 function elapsedTime(from, to, language) {
  const seconds = Math.floor((Date.parse(to)-Date.parse(from))/1000);
@@ -60,21 +61,20 @@ function ChargerCard({space,lotId,c,sim,detail,language,onShowMap}) {
    {Number.isFinite(charge.remaining_seconds)?<small>{detail[2]} {formatDuration(charge.remaining_seconds,language)}</small>:charging&&<small>{detail[7]}</small>}
   </div>}
   {elapsed&&<small>{sim[available ? 7 : charging ? 8 : 9]} · {elapsed}{language==='ko'?(available?' 전':' 경과'):''}</small>}
-  {charge&&<button type="button" className="button white small charging-map-button" onClick={()=>onShowMap(space.space_id)}>{detail[3]}</button>}
+  <button type="button" className="button white small charging-map-button" onClick={()=>onShowMap(space.space_id)}>{detail[3]}</button>
  </article>;
 }
 
-export function ChargingIcon(){return <svg className="charging-status-icon" width="45" height="43" viewBox="0 0 45 43" aria-hidden="true"><circle cx="22.5" cy="21.5" r="16" fill="#1796ff"/><g transform="translate(13 12) scale(.79)" fill="#caff27"><path d="m10 2-6 11h5l-2 9 10-13h-6l3-7z"/><path d="m18 3-3 6h3l-2 6 6-8h-3l2-4z"/></g></svg>}
-export default function ChargingStatus({language='ko',initialLot='A',onClose}){
+export function ChargingIcon({className='charging-status-icon',viewBox='0 0 45 43'}={}){return <svg className={className} width="45" height="43" viewBox={viewBox} aria-hidden="true"><circle cx="22.5" cy="21.5" r="16" fill="#1796ff"/><g transform="translate(13 12) scale(.79)" fill="#caff27"><path d="m10 2-6 11h5l-2 9 10-13h-6l3-7z"/><path d="m18 3-3 6h3l-2 6 6-8h-3l2-4z"/></g></svg>}
+export default function ChargingStatus({language='ko',initialLot='C',onClose}){
  const dialog=useRef(null),[lots,setLots]=useState([]),[selected,setSelected]=useState(initialLot),[busy,setBusy]=useState(true),[error,setError]=useState(false),[stamp,setStamp]=useState(null),[reload,setReload]=useState(0),[mapSpace,setMapSpace]=useState(null),[mapFilter,setMapFilter]=useState("all");
  const c=copy[language]||copy.ko,sim=simulatedCopy[language]||simulatedCopy.ko,detail=detailCopy[language]||detailCopy.ko;
  useEffect(()=>{dialog.current.showModal();const el=dialog.current;const close=()=>onClose();el.addEventListener('close',close);return()=>el.removeEventListener('close',close)},[onClose]);
  useEffect(()=>{let active=true,timer;async function update(){try{const result=await loadLots();if(active){setLots(result);setStamp(new Date());setError(false)}}catch{if(active)setError(true)}finally{if(active){setBusy(false);timer=setTimeout(update,pollInterval)}}}setBusy(true);update();return()=>{active=false;clearTimeout(timer)}},[reload]);
  const lot=lots.find(l=>l.lot_id===selected),spaces=lot?.spaces.filter(s=>s.space_type==='ev')||[],available=spaces.filter(s=>s.status==='empty').length;
  return <dialog ref={dialog} className="charging-dialog" aria-labelledby="charging-title" lang={language}>
-  <header><div><span className="charging-eyebrow">PARK : ON · EV</span><h2 id="charging-title">{c[0]}</h2></div><button className="charging-close" aria-label={c[11]} onClick={()=>dialog.current.close()}><Icon name="close"/></button></header>
-  <nav className="charging-lots" aria-label={welcomeText[language].lot}>{['A','B','C','D'].map((id,i)=><button key={id} aria-pressed={id===selected} onClick={()=>{setSelected(id);setMapSpace(null)}}>{welcomeText[language].lots[i]}</button>)}</nav>
-  {['C','D'].includes(selected)&&<p className="charging-updated">{detail[8]}</p>}
+  <header><div><BrandWordmark showCar={false}/><h2 id="charging-title">{c[0]}</h2></div><button className="charging-close" aria-label={c[11]} onClick={()=>dialog.current.close()}><Icon name="close"/></button></header>
+  <nav className="charging-lots" aria-label={welcomeText[language].lot}>{['A','B','C','D'].map((id,i)=><button key={id} aria-pressed={id===selected} aria-label={welcomeText[language].lots[i]} onClick={()=>{setSelected(id);setMapSpace(null)}}>{language==='ko'?koreanLotLabels[i].map(line=><span key={line} style={{display:'block',whiteSpace:'nowrap'}}>{line}</span>):welcomeText[language].lots[i]}</button>)}</nav>
   <div className="charging-section-title"><h3>{c[1]}</h3><button aria-label={c[10]} disabled={busy} onClick={()=>setReload(v=>v+1)}><Icon name="refresh"/></button></div>
   {error?<div role="alert" className="charging-error">{c[13]}</div>:busy&&!lots.length?<p role="status">{c[12]}</p>:<><div className="charging-summary"><ChargingIcon/><span>{c[2]} <b>{available}</b><small> / {spaces.length}</small></span><span>{c[3]} {spaces.length}</span></div>{spaces.some(s=>s.charging?.is_mock)&&<p className="charging-updated">{sim[0]}</p>}{spaces.some(s=>s.charging?.is_mock)&&<p className="charging-updated charging-counts">{sim[1]} {spaces.filter(s=>s.charging?.status==='available').length} · {detail[5]} {spaces.filter(s=>s.charging?.status==='charging').length} · {detail[6]} {spaces.filter(s=>s.charging?.status==='completed').length} · {sim[6]} {spaces.filter(s=>s.charging?.status==='unknown').length}</p>}
   {mapSpace&&lot?<div className="charging-map"><button type="button" className="button white small" onClick={()=>setMapSpace(null)}>{detail[4]}</button>
@@ -84,3 +84,4 @@ export default function ChargingStatus({language='ko',initialLot='A',onClose}){
   {stamp&&<p className="charging-updated">{c[15]} · {stamp.toLocaleTimeString(language==='ko'?'ko-KR':language,{hour:'2-digit',minute:'2-digit',second:'2-digit'})}{error?' · —':''}</p>}
  </dialog>
 }
+import BrandWordmark from './BrandWordmark.jsx';

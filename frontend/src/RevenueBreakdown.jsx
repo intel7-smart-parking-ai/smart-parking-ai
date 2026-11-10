@@ -2,9 +2,10 @@ import {money} from './components.jsx';
 
 const zero = {gross_krw:0, canceled_krw:0, net_krw:0, completed_count:0, canceled_count:0};
 
-export function RevenueBars({rows,onSelect,metric='net_krw',scale,format=money,metricLabel='순매출'}) {
+export function RevenueBars({rows,onSelect,metric='net_krw',scale,format=money,metricLabel='순매출',connect=false}) {
  const max = scale ?? Math.max(1,...rows.map(row=>row[metric]));
- return <div className="revenue-plot-scroll"><div className="revenue-plot" style={{'--bar-count':rows.length}}>
+ const connectedPoints=rows.map((row,index)=>`${(index+.5)*1000/rows.length},${150-138*Math.max(0,row[metric])/max}`).join(' ');
+ return <div className="revenue-plot-scroll"><div className={`revenue-plot${connect?' revenue-plot-connected':''}`} style={{'--bar-count':rows.length}}>
   {rows.map(row=>{
    const detail = row.label+' '+metricLabel+' '+format(row[metric]);
    const bar = <><span className="revenue-bar-track"><span style={{height:100*row[metric]/max+'%'}}/></span><small>{row.label}</small></>;
@@ -12,6 +13,7 @@ export function RevenueBars({rows,onSelect,metric='net_krw',scale,format=money,m
     ? <button key={row.key} className="revenue-bar" type="button" title={detail} aria-label={detail} onClick={()=>onSelect(row.key)}>{bar}</button>
     : <div key={row.key} className="revenue-bar" title={detail} aria-label={detail}>{bar}</div>;
   })}
+  {connect&&<svg className="revenue-connecting-line" viewBox="0 0 1000 150" preserveAspectRatio="none" aria-hidden="true"><polyline className="revenue-connecting-underlay" points={connectedPoints}/><polyline points={connectedPoints}/>{rows.map((row,index)=><circle key={row.key} cx={(index+.5)*1000/rows.length} cy={150-138*Math.max(0,row[metric])/max} r="4"/>)}</svg>}
  </div></div>;
 }
 

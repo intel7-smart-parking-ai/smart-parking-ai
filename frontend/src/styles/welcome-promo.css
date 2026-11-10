@@ -25,12 +25,6 @@
   color: #112947;
 }
 
-.welcome-promo-brand {
-  font-size: .85rem;
-  font-weight: 800;
-  letter-spacing: .13em;
-}
-
 .welcome-promo h2 {
   margin: 1.1rem 0 .8rem;
   font-size: clamp(1.9rem, 7vw, 3rem);
@@ -59,31 +53,25 @@
   transform: rotate(-12deg);
 }
 
-.welcome-promo form {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: .5rem;
-  padding: .25rem 1rem;
-  font-size: .8rem;
-}
-
-.welcome-promo form label {
-  display: flex;
-  align-items: center;
-  gap: .45rem;
-  min-height: 44px;
-  font-weight: 700;
+.welcome-promo-trigger {
+  border: 0;
+  padding: 0;
+  background: transparent;
   cursor: pointer;
 }
 
-.welcome-promo form input {
-  margin: 0;
+.welcome-promo form {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .5rem;
+  justify-content: space-between;
+  padding: .75rem 1rem;
 }
 
 .welcome-promo button {
   min-height: 44px;
-  padding: 0 .5rem;
+  padding: .45rem .65rem;
   border: 0;
   background: transparent;
   color: inherit;
@@ -93,12 +81,21 @@
   cursor: pointer;
 }
 
+.welcome-promo form label {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  min-height: 44px;
+  font-size: .8rem;
+  cursor: pointer;
+}
+
 .welcome-promo button:hover {
   background: #edf1f7;
 }
 
-.welcome-promo-badge {
-  width: fit-content;
+.welcome-promo button.welcome-promo-badge {
+  display: inline-block;
   margin-top: 1rem;
   padding: .45rem .8rem;
   border-radius: 999px;
@@ -106,26 +103,66 @@
   color: #fff;
   font-size: .85rem;
   font-weight: 800;
-  cursor: pointer;
+  text-decoration: none;
 }
 
-.welcome-promo-benefits dl {
-  margin: .75rem 0 0;
-  padding: .85rem 1rem;
+.welcome-promo button.welcome-promo-badge:hover { background: #21477a; }
+.welcome-benefits { width: min(432px, calc(100% - 32px)); }
+.welcome-benefits-content { position: relative; padding: 1.5rem 1.25rem 0; }
+.welcome-benefits-content h2 {
+  margin: 0 0 1rem;
+  padding-right: 2.25rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -.02em;
+}
+.welcome-benefits-list {
+  display: grid;
+  gap: .625rem;
+  margin: 0;
+}
+.welcome-benefits-list > div {
+  padding: .75rem 1rem;
+  border: 1px solid #dce7f7;
   border-radius: 10px;
-  background: #fff;
-  font-size: .85rem;
-  line-height: 1.5;
+  background: #f3f7ff;
 }
-
-.welcome-promo-benefits dt {
-  font-weight: 800;
+.welcome-benefits-list dt {
+  color: #344968;
+  font-size: .875rem;
+  font-weight: 700;
 }
-
-.welcome-promo-benefits dd {
-  margin: .2rem 0 0;
+.welcome-benefits-list dd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: .65rem;
+  row-gap: .125rem;
+  margin: .25rem 0 0;
+  color: #334863;
+  font-size: .875rem;
 }
-
-.welcome-promo-benefits dd + dt {
-  margin-top: .65rem;
+.welcome-benefits-list strong {
+  color: #174bb7;
+  font-size: 1.25rem;
+  line-height: 1.3;
 }
+.welcome-benefits .welcome-benefits-dismiss {
+  position: absolute;
+  top: .65rem;
+  right: .75rem;
+  width: 44px;
+  font-size: 1.25rem;
+  text-decoration: none;
+}
+.welcome-benefits form { justify-content: flex-end; padding: 1rem 1.25rem 1.25rem; }
+.welcome-benefits form button {
+  padding-inline: 1rem;
+  border-radius: 8px;
+  background: #3979f6;
+  color: #fff;
+  text-decoration: none;
+}
+.welcome-benefits form button:hover { background: #2454b8; }
+/* PM 11/10: 실제 없는 적립 기능은 '이벤트 예시'로 표시 */
+.welcome-promo-example{margin-top:8px;font-size:12px;opacity:.85;word-break:keep-all}

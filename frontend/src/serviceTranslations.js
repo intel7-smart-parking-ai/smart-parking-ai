@@ -1028,6 +1028,7 @@ export default {
     "PARK : ON首页",
     "PARK : ONホーム"
   ],
+  "웹 화면으로 보기": ["Open web view", "打开网页版", "ウェブ表示を開く"],
   "웹으로 보기": [
     "Web view",
     "网页版",
@@ -1193,7 +1194,7 @@ export default {
     "2. 查找车辆与费用",
     "2. 車と料金を確認"
   ],
-  "하단의 ‘주차요금’에서 개발원과 부산역은 스티커 번호로, 김해공항과 신세계 백화점은 차량번호 뒤 4자리로 검색하세요.": [
+  "하단의 ‘주차요금’에서 개발원과 부산역은 스티커 번호로 검색하세요.\n김해공항과 신세계 백화점은 차량번호 뒤 4자리로 검색하세요.": [
     "Under Parking fees, use a sticker number for Development Center and Busan Station, or the last 4 plate digits for Gimhae Airport and Shinsegae.",
     "在“停车费用”中，开发院和釜山站使用贴纸编号，金海机场和新世界百货使用车牌后4位。",
     "「駐車料金」で開発院と釜山駅はステッカー番号、金海空港と新世界百貨店はナンバー下4桁で検索します。"

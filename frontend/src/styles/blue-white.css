@@ -466,3 +466,46 @@ html[data-theme] .locations-list .location-meta {
   width: 23px;
   height: 23px;
 }
+
+dialog.parking-space-detail {
+  width: min(420px, calc(100% - 28px));
+  max-width: none;
+  max-height: calc(100dvh - 28px);
+  padding: clamp(20px, 5vw, 28px);
+  border-radius: 18px;
+  box-sizing: border-box;
+}
+.parking-space-detail .dialog-header { align-items: center; }
+.parking-space-detail .dialog-header button { min-width: 40px; min-height: 40px; }
+.parking-space-detail h2 { margin: 6px 0 4px; font-size: 2rem; line-height: 1.15; }
+.parking-space-detail .parking-space-lot { margin: 0; font-size: .875rem; }
+html .parking-space-detail .detail-status {
+  margin: 14px 0 0;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: .8125rem;
+  font-weight: 750;
+}
+html .parking-space-detail .detail-status.occupied { color: #9f2133; background: #fde9ed; border-color: #f4bdc7; }
+html .parking-space-detail .detail-status.empty { color: #14633e; background: #e2f5e9; border-color: #b7dfc7; }
+.parking-space-detail .parking-space-type { margin: 14px 0 0; font-size: .875rem; font-weight: 700; color: inherit; }
+.parking-space-detail .parking-space-hint {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border: 1px solid currentColor;
+  border-radius: 9px;
+  font-size: .8125rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.parking-space-detail > .button.full { margin-top: 16px; min-height: 44px; border-radius: 9px; }
+
+html[data-theme="light"] .parking-workspace .right-column > :is(.occupancy-panel, .quick-find) {
+  background: #fff;
+  border-color: var(--parkon-border, #e4e8ee);
+  color: var(--parkon-text, #202a39);
+}
+html[data-theme="light"] .parking-workspace .quick-find > p,
+html[data-theme="light"] .parking-workspace .occupancy-panel .status-numbers span {
+  color: #53657d;
+}

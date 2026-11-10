@@ -406,6 +406,13 @@ html .mobile-app-main>.chat-panel .chat-form>.chat-voice-button{width:36px;min-w
 .mobile-app-main>.pdf-map-panel>.pdf-map-scroll[data-legend-near-map]{position:relative;padding-top:28px;box-sizing:border-box}
 .mobile-app-main .pdf-map-scroll[data-legend-near-map]>.map-legend{position:absolute;top:var(--legend-top,4px);left:0;right:0;margin:0;padding:0!important;border:0;font-size:10px;z-index:1;display:flex;justify-content:center;gap:8px}
 
+.mobile-app-main > .layout-basic > .map-toolbar { margin-bottom: 0; }
+.mobile-app-main > .layout-basic > .pdf-map-scroll[data-legend-near-map] { padding-top: 0; }
+.mobile-app-main > .layout-basic > .pdf-map-scroll[data-legend-near-map] > .map-legend {
+  position: static;
+  margin-block: 14px;
+}
+
 .mobile-app-main>.app-help-card p{white-space:pre-line}
 
 .app-chat-identity{display:flex;align-items:center;justify-content:center;position:relative;min-height:52px;flex-shrink:0;margin:0 0 12px;text-align:center}

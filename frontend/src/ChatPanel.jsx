@@ -10,9 +10,21 @@ import {chatRecommendations} from './recommendationMapData.js';
 import RecommendationMap from './RecommendationMap.jsx';
 import ChatResponseCard from './ChatResponseCard.jsx';
 import ChargingStatus from './ChargingStatus.jsx';
+import ParkingLayoutMap from './ParkingLayoutMap.jsx';
+import {nearestMallRestroomSpace} from './mallParkingLayout.js';
 import './styles/chat-panel.css';
 
 const testVehicleNumbers = {C: ['1724', '1735'], D: ['7654', '7665']};
+
+function RestroomRecommendation({lot,space,alerts}) {
+ const [filter,setFilter]=useState('empty');
+ return <section className="chat-answer-map" aria-label="화장실 근처 추천 빈자리">
+  <h3>화장실 근처 추천 빈자리 · {space.space_id}</h3>
+  <p>빨간색으로 표시했습니다. 시연 도면의 직선거리 기준입니다.</p>
+  <ParkingLayoutMap lot={lot} alerts={alerts} filter={filter} setFilter={setFilter}
+   recommendedSpaceId={space.space_id} hideTitle hidePreviewControls legendNearMap onSpace={()=>{}}/>
+ </section>;
+}
 
 export default function ChatPanel({lots,alerts,voiceInput=false,appAppearance=false,connected=false}) {
  const [toolbarTarget,setToolbarTarget]=useState(null);
@@ -30,6 +42,7 @@ export default function ChatPanel({lots,alerts,voiceInput=false,appAppearance=fa
  const confirmation = view?.flow==='confirm_action';
  const unsafe = Boolean(view?.safety)||Number(view?.banner?.level)>=2;
  const [chargingLot,setChargingLot]=useState(null);
+ const mallLot=lots.find(lot=>lot.layout_type==='mall');
  useEffect(()=>{if(unsafe)setChargingLot(null);},[unsafe]);
  function stopVoice(){voiceGeneration.current++;recognition.current?.abort();recognition.current=null;setListening(false)}
  useEffect(()=>{const timer=setInterval(()=>chat.poll(),2500);return()=>{clearInterval(timer);chat.cancelPending();voiceGeneration.current++;recognition.current?.abort();};},[chat]);
@@ -87,17 +100,27 @@ export default function ChatPanel({lots,alerts,voiceInput=false,appAppearance=fa
      ['car','내 차 찾기','내 차 위치를 찾고 싶어요'],
      ['wallet','주차요금','주차요금 안내해줘'],
      ['pin','전기차 구역','충전 구역 빈자리 알려줘'],
-     ['info','장애인 구역','장애인 구역 빈자리 알려줘'],
+     ['wheelchair','장애인 구역','장애인 구역 빈자리 알려줘'],
      ['info','이용 방법','주차장 이용 방법 알려줘'],
     ].map(([icon,label,question])=><button type="button" key={label} disabled={busy||restartRequired} onClick={()=>{stopVoice();draftRevision.current++;chat.edit(t(question));chat.send();}}><Icon name={icon}/><span>{t(label)}</span></button>)}
    </nav>}
-   {rows.map((row,i)=><article className={`chat-row ${row.who==='user'?'mine':'assistant'}`} key={i}>
+   {rows.map((row,i)=>{
+    const question=rows[i-1];
+    const recommendedSpace=connected&&mallLot&&!unsafe&&row.result&&!row.result.safety&&question?.who==='user'
+     ?nearestMallRestroomSpace(mallLot,question.text,alerts):null;
+    return <article className={`chat-row ${row.who==='user'?'mine':'assistant'}`} key={i}>
    {appAppearance&&row.who!=='user'&&<span className="app-chat-avatar" aria-hidden="true"><ChatbotIcon/></span>}
    <span className="chat-speaker">{row.who==='user'?t('나'):t('주차 챗봇')}</span>
    {!(row.result?.card?.data?.payment_summary && !unsafe && !row.result.safety)&&<div className="chat-bubble">{formatLotName(row.text)}</div>}
    {row.result?.card&&<ChatResponseCard card={row.result.card} language={row.result.language} lots={lots} alerts={alerts} allowMap={!unsafe&&!row.result.safety} onOpenCharging={setChargingLot}/>}
+   {recommendedSpace&&<RestroomRecommendation lot={mallLot} space={recommendedSpace} alerts={alerts}/>}
    {!unsafe&&chatRecommendations(row.result).length>0&&<RecommendationMap recommended={chatRecommendations(row.result)}/>}
-  </article>)}</div>
+  </article>})}
+   {busy&&<div className="chat-row assistant chat-waiting" role="status" aria-label={t('응답 대기 중…')}>
+    {appAppearance&&<span className="app-chat-avatar" aria-hidden="true"><ChatbotIcon/></span>}
+    <div className="chat-bubble chat-waiting-dots" aria-hidden="true"><i/><i/><i/></div>
+   </div>}
+   </div>
   {confirmation&&!unsafe&&<p className="chat-confirm-note">{t("내용을 확인한 뒤 아래 버튼으로 진행해 주세요.")}</p>}
   {Array.isArray(view?.chips)&&view.chips.length>0&&<div className="chat-chips" aria-label={t("추천 선택지")}>{view.chips.map((chip,j)=><button type="button" key={`${actionEpoch}-${chip.id}-${j}`} disabled={busy||restartRequired||(unsafe&&(Boolean(chip.confirmation_token)||/^confirm_/.test(chip.id)))} onClick={()=>{stopVoice();chat.choose(chip,actionEpoch);}}>{formatLotName(chip.label)||chip.id}</button>)}</div>}
   {(error||voiceError)&&<p className="operation-error" role="status">{error||voiceError}</p>}
