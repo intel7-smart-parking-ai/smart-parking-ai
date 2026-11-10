@@ -82,6 +82,7 @@ class NoticeWithModelTests(unittest.TestCase):
 @unittest.skipUnless(HAS_LANGCHAIN, "optional LangChain not installed")
 class TwoCarTests(unittest.TestCase):
     def test_two_typed_cars_go_to_model_and_only_those(self):
+        self.enterContext(patch.object(config, "LLM_PREFETCH", False))   # 모델이 직접 조회하는 경로 검사
         import json
         from test_agent_runtime_v3 import ScriptedModel
         from langchain_core.messages import AIMessage, ToolMessage

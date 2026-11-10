@@ -3,7 +3,9 @@ from dataclasses import dataclass
 import re
 import time
 
-from . import agents, config, dialog_context, monitoring, plan, route, templates as T
+from . import agents, config, dialog_context, info_gaps, monitoring, plan, route, templates as T
+from .knowledge import search as knowledge_search
+from .turn_guard import LEAVING
 from .adapters import request_deadline
 from .agents.conversation import turn_extras as agent_extras
 from .agents.evidence import contradicts_restricted_policy
@@ -47,6 +49,71 @@ def readings(text):
     return plan.for_text(text).hints()
 
 
+_FOLLOW_UP = re.compile(r"그럼|그러면|거기|그\s*곳|그쪽|여기는|이곳")
+_OWN_ZONE = {"ev": "ev", "accessible": "accessible"}
+_CROWD = re.compile(r"꽉|찼|가득|붐비|붐벼|한산|널널|만차|여유")
+
+
+def _prefetch(text, session, toolbox, target, notice=None):
+    """확실한 조회를 코드가 먼저 실행한다 → [{"tool", "args", "result"}].
+
+    규칙의 '의도'로 정하지 않고 문장에서 바로 보이는 단서(말한 주차장·별명·목적, 말한 차량, 구역, 기간)로만 고른다.
+    조회가 실패하거나 단서가 약하면 아무것도 하지 않는다(그때는 예전처럼 AI가 도구를 고른다).
+    """
+    if not config.LLM_PREFETCH:
+        return []
+    p = plan.for_text(text)
+    wants = set(p.wants)
+    zone = p.zone or _OWN_ZONE.get(getattr(session, "vehicle_type", None))
+    calls = [("service_notice", {})] if notice else []
+    cars = explicit_cars(text)
+    if cars or p.own_car:
+        for car in (cars or [p.own_car])[:2]:
+            calls.append(("vehicle_info", {"car_id": car, "include_fee": True}))
+    elif target and (wants & {"fee", "location", "payment"} or LEAVING.search(text)) and not p.lots and not p.purpose_lots:
+        calls.append(("vehicle_info", {"car_id": target, "include_fee": True}))
+        if p.minutes and p.minutes > 0:
+            calls.append(("estimate_fee", {"minutes": p.minutes, "car_id": target}))
+    else:
+        focus = dialog_context.focus(session)
+        short_follow_up = bool(focus and (_FOLLOW_UP.search(text) or (len(text.strip()) <= 12 and (wants or p.minutes))))
+        lots = list(p.lots) or list(p.purpose_lots) or ([focus] if short_follow_up else [])
+        # 시설·이용 규칙 질문('몇 시까지 해?', '실외 주차장은?')은 안내 자료를 먼저 찾아 넘긴다
+        gap = info_gaps.classify(text)
+        facility = bool(gap and gap[0] == "facility")
+        try:
+            unregistered = knowledge_search(text, list(config.catalog.ids()), None)[1]
+        except Exception:
+            unregistered = []
+        if not notice and (facility or unregistered or "policy" in wants):
+            calls.append(("search_knowledge", {"query": text[:400], "lot_ids": lots or None}))
+        asks_space = not facility and bool(wants & {"vacancy", "rates", "compare"} or _CROWD.search(text)
+                                           or p.talk.get("spot") or p.self_only)
+        only_fee = bool(wants & {"fee", "rates"}) and not wants & {"vacancy", "compare"}
+        if p.minutes and p.minutes > 0 and len(lots) == 1:
+            calls.append(("estimate_fee", {"minutes": p.minutes, "lot_id": lots[0]}))
+        elif len(lots) == 1 and only_fee:
+            calls.append(("fee_policies", {"lot_ids": lots}))
+        elif lots and (len(lots) > 1 or wants & {"rates", "compare"}):
+            calls.append(("compare_lots", {"lot_ids": lots, "zone": zone}))
+        elif lots and (asks_space or "future" in wants or notice):
+            # 확정 안내 질문('거기 예약 돼?')도 그 주차장의 지금 빈자리를 함께 넘겨 자연스럽게 잇게 한다
+            calls.append(("parking_status", {"lot_ids": lots, "zone": zone}))
+        elif not lots and asks_space and "alert" not in wants:
+            calls.append(("compare_lots", {"lot_ids": None, "zone": zone}))
+        elif "alert" in wants and not lots:
+            calls.append(("alert_summary", {}))
+    done = []
+    for name, args in calls[:3]:
+        try:
+            result = getattr(toolbox, name)(**args)
+        except Exception:
+            continue
+        if isinstance(result, dict) and result.get("ok") is True:
+            done.append({"tool": name, "args": {k: v for k, v in args.items() if v is not None}, "result": result})
+    return done
+
+
 def _model_reply(text, session, toolbox, target, candidates, query=None, notice=None):
     if config.LLM_PROVIDER == "none" or config.LLM_ENGINE != "langchain" or not config.api_key(config.LLM_PROVIDER):
         return None
@@ -79,7 +146,9 @@ def _model_reply(text, session, toolbox, target, candidates, query=None, notice=
         if notice and not any(row["tool"] == "service_notice" and row["result"].get("ok") for row in observations):
             missing = ", ".join(x for x in (missing, "확정 안내(service_notice)") if x)
         return missing
+    prefetched = _prefetch(text, session, toolbox, target, notice)
     extra = {"coverage": coverage if (query or notice) else None,
+             "prefetched": prefetched,
              "avoid": _recent_answers(session),
              "callbacks": turn_monitor.callbacks() if turn_monitor else None}
     extras_token = agent_extras.set(extra)
@@ -188,15 +257,17 @@ def reply_to(text, session, adapter, alert, vehicle, refresh_alert, admin_status
     candidates = query.candidates if query else extract_lots(text + " 빈자리")
     if session.selected_candidate and target == session.car_id:
         target = None
+    turn_plan = plan.for_text(text)
+    allowed = tuple(dict.fromkeys([*candidates, *turn_plan.lots, *turn_plan.purpose_lots])) if candidates else ()
     toolbox = ReadTools(adapter, alert, vehicle_provider=vehicle, allowed_car_id=target,
-                        allowed_lots=candidates or None, admin_status_provider=admin_status, notice=notice,
+                        allowed_lots=allowed or None, admin_status_provider=admin_status, notice=notice,
                         extra_car_ids=cars[1:] if len(cars) > 1 else ())
     result = _model_reply(text, session, toolbox, target, candidates, query, notice)
     if result is None:
         route.mark("agent", "off", why="모델 꺼짐·호출 한도·남은 시간 부족")
     else:
         meta = result.metadata
-        route.mark("agent", result.status, calls=meta.get("model_calls"),
+        route.mark("agent", result.status, calls=meta.get("model_calls"), prefetched=meta.get("prefetched"),
                    tools=[row["tool"] for row in result.tool_results] or None,
                    problem=meta.get("grounding_error") or meta.get("repair_failed"),
                    repaired=meta.get("repair_reason") if meta.get("repaired") else None)
@@ -206,7 +277,8 @@ def reply_to(text, session, adapter, alert, vehicle, refresh_alert, admin_status
                           agent={k: v for k, v in result.metadata.items()
                                  if k in {"model_calls", "tool_calls", "input_tokens", "output_tokens", "latency_ms",
                                           "grounding_error", "repair_reason", "repair_failed", "repaired",
-                                          "repeated", "smalltalk", "missing_goal"}} | {"status": result.status})
+                                          "repeated", "smalltalk", "missing_goal", "prefetched",
+                                          "retried_timeout"}} | {"status": result.status})
     if result and (result.status in {"ok", "clarify"} or result.metadata.get("model_calls")) and refresh_alert().get("level", 0) >= 2:
         route.mark("agent", "dropped", why="답하는 동안 Lv2 경보 발생")
         return None

@@ -123,7 +123,8 @@ print(json.dumps(results, ensure_ascii=False))
                  "LLM_ENGINE": "langchain", "LLM_PROVIDER": "openrouter", "LLM_MODEL": "wire-test-model",
                  "OPENROUTER_API_KEY": "local-wire-test", "LLM_MAX_PER_SESSION_MIN": "10",
                  "LLM_MAX_PER_MIN": "30", "LLM_MAX_PER_DAY": "30", "PYTHONIOENCODING": "utf-8",
-                 "REQUEST_BUDGET_SEC": "6", "BACKEND_TIMEOUT_SEC": "2", "LLM_TIMEOUT_SEC": "3"},
+                 "REQUEST_BUDGET_SEC": "6", "BACKEND_TIMEOUT_SEC": "2", "LLM_TIMEOUT_SEC": "3",
+                 "LLM_PREFETCH": "0"},   # 이 검사는 모델이 직접 도구를 부르는 통신 경로를 본다(미리 조회는 test_v33_prefetch)
             capture_output=True, encoding="utf-8", errors="replace", timeout=40,
         )
         self.assertEqual(out.returncode, 0, out.stderr)

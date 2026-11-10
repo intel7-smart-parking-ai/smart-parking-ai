@@ -403,6 +403,20 @@ async def _arun_conversation(text, history, state, tools, model=None, *, options
         # Engine history often already includes the current input; avoid duplication.
         if not messages or messages[-1] != {"role": "user", "content": text}:
             messages.append({"role": "user", "content": text})
+        # 코드가 미리 실행한 조회(conversation_turn._prefetch). 모델이 방금 호출해 받은 결과와 같은 형태로 넣는다.
+        # 근거 검사도 이 결과를 이번 턴의 조회로 본다. 모델은 이것으로 바로 답하거나, 부족하면 조회를 더 한다.
+        calls = []
+        for index, item in enumerate(extras.get("prefetched") or ()):
+            if item.get("tool") in tool_names and isinstance(item.get("result"), dict):
+                call_id = f"prefetch_{index}"
+                calls.append({"name": item["tool"], "args": dict(item.get("args") or {}), "id": call_id, "type": "tool_call"})
+                observations.append({"tool": item["tool"], "call_id": call_id, "result": item["result"], "prefetched": True})
+        if calls:
+            from langchain_core.messages import AIMessage
+            messages.append(AIMessage(content="", tool_calls=calls))
+            messages.extend(ToolMessage(content=json.dumps(row["result"], ensure_ascii=False, default=str),
+                                        tool_call_id=row["call_id"], name=row["tool"]) for row in observations)
+            metadata["prefetched"] = [call["name"] for call in calls]
         output = await asyncio.wait_for(agent.ainvoke({"messages": messages}, run_config), time_left())
         answer = _message_text(output["messages"][-1])
         if metadata["input_tokens"] + metadata["output_tokens"] > token_limit:

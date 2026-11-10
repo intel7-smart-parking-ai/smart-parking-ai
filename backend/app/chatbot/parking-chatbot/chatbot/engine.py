@@ -104,7 +104,11 @@ def _evict_oldest_idle(keep):
     11/10 점검 P0-3: 예전에는 한도(200)에서 새 대화를 거절해, QR·키오스크 사용자가 쌓이면
     최대 SESSION_IDLE_SEC(2시간) 동안 모든 신규 사용자가 챗봇을 쓸 수 없었다.
     """
-    for key, old in sorted(SESSIONS.items(), key=lambda item: item[1].last_seen):
+    def order(item):
+        s = item[1]
+        busy = bool(s.pending and time.monotonic() < s.pending.expires_at) or bool(s.destination)
+        return busy, s.last_seen   # 확인(결제·차량)이나 목적지 안내가 진행 중인 대화는 맨 나중에
+    for key, old in sorted(SESSIONS.items(), key=order):
         if key == keep or _session_users[key] or not old.lock.acquire(blocking=False):
             continue
         try:

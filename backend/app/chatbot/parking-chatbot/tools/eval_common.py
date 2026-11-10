@@ -47,7 +47,7 @@ def grade(row: dict) -> str:
         rendered = any(s.get("stage") == "agent" and s.get("source") == "rule_render" for s in (row.get("steps") or []))
         if rendered or "agent:ungrounded" in steps:
             return "ai_render"
-        if agent.get("status") == "ok" and agent.get("tool_calls") == 0 and (row.get("a") or "").rstrip().endswith(("?", "？")):
+        if agent.get("status") == "ok" and not agent.get("tool_calls") and not agent.get("prefetched") and (row.get("a") or "").rstrip().endswith(("?", "？")):
             return "clarify_no_lookup"
         return "ai"
     if last == "fallback:unknown" or last == "rule:unknown":

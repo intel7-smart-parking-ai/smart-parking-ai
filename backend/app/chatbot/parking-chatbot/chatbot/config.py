@@ -203,6 +203,9 @@ LLM_ANSWER_TIMEOUT_SEC = _number("LLM_ANSWER_TIMEOUT_SEC", "5", float)
 LLM_MAX_OUTPUT_TOKENS = _number("LLM_MAX_OUTPUT_TOKENS", "600", int)
 # 근거 검사에 걸린 답을 고쳐 쓰려면 남아 있어야 하는 최소 시간(초). 고쳐 쓰기는 조회를 다시 해 답을 살리는 경로다.
 LLM_REPAIR_MIN_SEC = _number("LLM_REPAIR_MIN_SEC", "1.5", float)
+# 확실한 조회(말한 주차장의 빈자리, 말한 차량의 위치·요금 등)는 코드가 먼저 실행해 대화 AI에 넘긴다.
+# 모델 호출이 2번(도구 선택 → 답)에서 1번으로 줄어 답이 빨라진다. AI는 필요하면 조회를 더 할 수 있다. 0이면 끔.
+LLM_PREFETCH = getenv("LLM_PREFETCH", "1") == "1"
 # 한 턴의 입력+출력 토큰 상한. 도구 설명·지시문이 매 호출에 다시 들어가므로 호출 수 × 약 5천을 잡는다.
 LLM_TURN_TOKEN_LIMIT = _number("LLM_TURN_TOKEN_LIMIT", "40000", int)
 # 근거 검사에 걸린 답을 이유와 함께 한 번 고쳐 쓰게 한다(0이면 바로 대체 답).
