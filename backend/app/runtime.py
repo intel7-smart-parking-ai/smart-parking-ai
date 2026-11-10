@@ -140,7 +140,7 @@ class EventPipeline(OccupancyExperiment):
 
     def _save_camera_snapshot(self, conn, row):
         state = dict(row)
-        for key in ("identity_match", "identity_evidence", "identity_observation", "move_streak"):
+        for key in ("identity_match", "identity_evidence", "identity_observation", "move_evidence"):
             state.pop(key, None)
         state["observed_at"] = row["observed_at"].isoformat()
         signature, first = row["candidate"]
@@ -186,7 +186,8 @@ class EventPipeline(OccupancyExperiment):
         row = previous.copy()
         self._apply_observation(row, event)
         if (row["version"] != previous["version"] and
-                (row["status"] in ("occupied", "empty") or row.get("identity_match") is not None)):
+                (row["status"] in ("occupied", "empty") or row.get("identity_match") is not None
+                 or len(row.get("move_evidence", (None, ()))[1]) == 3)):
             self.sync_session(row, event.observed_at)
         self._spaces[key] = row
 
@@ -354,18 +355,21 @@ class EventPipeline(OccupancyExperiment):
             return Receipt.ACCEPTED
 
     def _apply_observation(self, row, event):
-        previous = row.get("identity_evidence")
         version = row["version"]
         super()._apply_observation(row, event)
         if row["version"] == version:
             return
-        evidence = row.get("identity_evidence")
-        if not event.car_id or not evidence or evidence[2] != event.observed_at:
-            row.pop("move_streak", None)
-        elif previous is None or evidence[:2] != previous[:2]:
-            row["move_streak"] = 1
-        else:
-            row["move_streak"] = min(3, row.get("move_streak", 0) + 1)
+        at = event.observed_at
+        if (not self._collect_identity_evidence or not event.car_id
+                or event.event_type != "vehicle_observed" or self._identity_frame(event) is None
+                or event.confidence < 0.8 or not 0 <= (self._identity_clock() - at).total_seconds() <= 2):
+            row.pop("move_evidence", None)
+            return
+        car, frames = row.get("move_evidence", (None, ()))
+        if car != event.car_id or (frames and (at - frames[-1]).total_seconds() > 2):
+            frames = ()
+        # D-70 uses the latest three consecutive frames. D-68 keeps its own 10-second window.
+        row["move_evidence"] = (event.car_id, (*frames[-2:], at))
 
     def _apply_camera_move(self, conn, row, active):
         if row["lot_id"] not in ("A", "B") or row["source"] != "vision":
@@ -375,7 +379,7 @@ class EventPipeline(OccupancyExperiment):
         rows = {space: state for (lot_id, space), state in self._spaces.items() if lot_id == lot}
         rows[bay] = row
         now = self._identity_clock()
-        candidate = row.get("identity_evidence")
+        candidate = row.get("move_evidence")
         source = None
         if candidate and candidate[0] and (active is None or active["car_id"] is not None):
             source = conn.execute(
@@ -403,17 +407,18 @@ class EventPipeline(OccupancyExperiment):
         claims = {}
         tentative = set()
         for target, state in rows.items():
-            proof = state.get("identity_evidence")
-            if not proof or not fresh(proof[2]) or (now - proof[1]).total_seconds() > 10:
+            proof = state.get("move_evidence")
+            if not proof or not fresh(proof[1][-1]):
                 continue
-            car, first, _, _ = proof
+            car, frames = proof
+            first = frames[0]
             session = by_car.get(car)
             if (session is None or session["space_id"] not in rows
                     or session["space_id"] == target
                     or first < datetime.fromisoformat(session["entry_at"])):
                 continue
             tentative.add(session["space_id"])
-            if state.get("identity_match") == (car, first) and state.get("move_streak") == 3:
+            if len(frames) == 3:
                 claims.setdefault(session["space_id"], []).append(target)
         edges = {origin: targets[0] for origin, targets in claims.items() if len(targets) == 1}
         component = {bay}
@@ -461,7 +466,7 @@ class EventPipeline(OccupancyExperiment):
             move_sessions(conn, lot_id=lot, moves=moves, observed_at=effective,
                           save_snapshots=save_snapshots)
             for space, state in updates.items():
-                for key in ("identity_evidence", "identity_match", "move_streak"):
+                for key in ("identity_evidence", "identity_match", "move_evidence"):
                     state.pop(key, None)
                 if space == bay:
                     row.clear()

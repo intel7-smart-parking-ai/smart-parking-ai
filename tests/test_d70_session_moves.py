@@ -84,6 +84,34 @@ def test_d70_preserves_quote_payment_and_restarts_with_swapped_locations(d68_run
         assert (read("SELECT * FROM fee_quotes"), read("SELECT * FROM mock_payments")) == history
 
 
+def test_d70_empty_bay_move_keeps_session_after_occlusion(d68_runtime):
+    clients, send, read = d68_runtime
+    with clients() as client:
+        assert set(observe(client, send, 0, {"A-01": "10"})) == {202}
+        sid, _, entry_at, _ = sessions(read)["10"]
+        fee = client.get(f"/api/v1/sessions/{sid}/fee")
+        assert fee.status_code == 200
+        assert client.post("/api/v1/mock-payments", json={
+            "session_id": sid, "quote_id": fee.json()["quote_id"],
+            "idempotency_key": "occluded-move-payment", "payment_method": "MOCK_CARD",
+        }).status_code == 200
+        history = read("SELECT * FROM fee_quotes"), read("SELECT * FROM mock_payments")
+
+        # The destination keeps seeing the same number while the source is occluded.
+        assert set(observe(client, send, 3, {"A-01": "10", "A-02": "10"})) == {202}
+        assert set(observe(client, send, 6, {"A-02": "10"}, seconds=5)) == {202}
+        assert set(observe(client, send, 11, {"A-01": None, "A-02": "10"})) == {202}
+        assert sessions(read) == {"10": (sid, "A-01", entry_at, "active")}
+
+        # The source confirms empty 11 seconds after the first destination observation.
+        assert observe(client, send, 14, {"A-01": None, "A-02": "10"}, seconds=1) == [202, 202]
+        assert sessions(read) == {"10": (sid, "A-02", entry_at, "active")}
+        assert read("SELECT count(*) FROM parking_sessions") == [(1,)]
+        assert read("SELECT count(*) FROM session_moves") == [(1,)]
+        assert (read("SELECT * FROM fee_quotes"), read("SELECT * FROM mock_payments")) == history
+        assert client.get(f"/api/v1/sessions/{sid}/fee").status_code == 200
+
+
 def test_d70_duplicate_and_late_observation_cannot_reverse_swap(d68_runtime):
     clients, send, read = d68_runtime
     with clients() as client:
