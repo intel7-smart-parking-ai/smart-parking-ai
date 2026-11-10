@@ -30,7 +30,7 @@ from backend.app.api.billing_router import billing_router, get_session_fee, crea
 from backend.app.api.session_queries import router as session_router
 from backend.app.billing.db import get_db_conn, get_db_path, init_schema, seed_defaults
 from backend.app.billing.schemas import PaymentCreateRequest
-from backend.app.database.parking_sessions import enter, exit_session, SessionError
+from backend.app.database.parking_sessions import enter, exit_session, identify, SessionError
 from backend.app.alerts.router import (
     router as alert_router,
     init_alerts_schema,
@@ -78,6 +78,7 @@ class EventPipeline(OccupancyExperiment):
     def recover(self):
         with self.gate, closing(self.connection()) as conn:
             self.recovering = True
+            self._collect_identity_evidence = False
             try:
                 for row in conn.execute(
                     "SELECT payload,applied FROM pipeline_events ORDER BY sequence"
@@ -97,6 +98,7 @@ class EventPipeline(OccupancyExperiment):
                         conn.commit()
             finally:
                 self.recovering = False
+                self._collect_identity_evidence = True
 
     def receive(self, event):
         with self.gate, closing(self.connection()) as conn:
@@ -116,6 +118,8 @@ class EventPipeline(OccupancyExperiment):
             # Journal evidence before session/alert side effects. Pending records are
             # retried idempotently or recovered after process interruption.
             if not old:
+                if self._is_future_observation(event):
+                    raise HTTPException(422, "관측 시각이 서버보다 미래입니다.")
                 if (
                     event.event_type == "mock_fire_led_observed"
                     and event.space_id is not None
@@ -179,6 +183,8 @@ class EventPipeline(OccupancyExperiment):
                     (row["lot_id"], row["space_id"], stamp, stamp),
                 ).fetchone()
                 if row["status"] == "occupied" and active:
+                    if row.get("identity_observation"):
+                        row["car_id"] = active["car_id"]
                     row.update(
                         session_id=active["session_id"],
                         session_car_id=active["car_id"],
@@ -190,8 +196,22 @@ class EventPipeline(OccupancyExperiment):
                 (row["lot_id"], row["space_id"]),
             ).fetchone()
             try:
+                evidence = row.get("identity_match")
+                if (
+                    active and active["car_id"] is None and evidence
+                    and evidence[1] >= datetime.fromisoformat(active["entry_at"])
+                ):
+                    linked = identify(conn, session_id=active["session_id"], car_id=evidence[0])
+                    row.update(session_id=linked.session_id, session_car_id=linked.car_id,
+                               entry_at=linked.entry_at)
+                    if row["status"] == "occupied":
+                        row["car_id"] = linked.car_id
+                    row.pop("identity_evidence", None)
+                    return
                 if row["status"] == "occupied":
                     if active:
+                        if active["car_id"] is None and row.get("identity_observation"):
+                            row["car_id"] = None
                         if active["car_id"] != row["car_id"]:
                             raise HTTPException(
                                 409, "활성 세션의 차량 식별 변경은 확인이 필요합니다."
@@ -281,7 +301,8 @@ def create_runtime_app(
         # Use the exact demo engine and callback; journal adds recovery, not a second state path.
         kwargs["on_confirmed"] = lambda row, at: store_ref["store"].sync_session(row, at)
         store = EventPipeline(
-            database=database, session_enter=session_enter, session_exit=session_exit, **kwargs
+            database=database, session_enter=session_enter, session_exit=session_exit,
+            identity_clock=clock, **kwargs
         )
         store_ref["store"] = store
         return store

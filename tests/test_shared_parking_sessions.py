@@ -1,5 +1,6 @@
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import closing
+from dataclasses import replace
 from datetime import datetime, timedelta, timezone
 from threading import Barrier
 from uuid import uuid4
@@ -10,7 +11,7 @@ from fastapi.testclient import TestClient
 
 from backend.app.api.billing_router import billing_router
 from backend.app.billing import db
-from backend.app.database.parking_sessions import SessionError, enter, exit_session
+from backend.app.database.parking_sessions import SessionError, enter, exit_session, identify
 
 ENTRY = datetime(2026, 11, 4, 9, tzinfo=timezone(timedelta(hours=9)))
 EXIT = ENTRY + timedelta(minutes=45)
@@ -132,3 +133,84 @@ def test_concurrent_requests(connect, action):
         stored = conn.execute("SELECT status, exit_at FROM parking_sessions").fetchone()
     winner = successful.pop()
     assert stored == (winner.status, winner.exit_at)
+
+
+def test_identify_preserves_session_and_billing_history(connect):
+    sid = "ses_unidentified"
+    with connect() as conn:
+        active = enter(conn, session_id=sid, lot_id="A", space_id="A-01", entry_at=ENTRY)
+
+    app = FastAPI()
+    app.include_router(billing_router)
+    with TestClient(app) as client:
+        quote = client.get(f"/api/v1/sessions/{sid}/fee")
+        assert quote.status_code == 200
+        payment = client.post("/api/v1/mock-payments", json={
+            "session_id": sid, "quote_id": quote.json()["quote_id"],
+            "idempotency_key": "before-identification", "payment_method": "MOCK_CARD",
+        })
+        assert payment.status_code == 200, payment.text
+
+        with connect() as conn:
+            quotes = conn.execute("SELECT * FROM fee_quotes WHERE session_id = ?", (sid,)).fetchall()
+            payments = conn.execute("SELECT * FROM mock_payments WHERE session_id = ?", (sid,)).fetchall()
+            assert len(quotes) == len(payments) == 1
+            identified = identify(conn, session_id=sid, car_id="10")
+            assert identified == replace(active, car_id="10")
+            assert identify(conn, session_id=sid, car_id="10") == identified
+            assert conn.execute("SELECT count(*) FROM parking_sessions").fetchone() == (1,)
+            assert conn.execute("SELECT * FROM fee_quotes WHERE session_id = ?", (sid,)).fetchall() == quotes
+            assert conn.execute("SELECT * FROM mock_payments WHERE session_id = ?", (sid,)).fetchall() == payments
+
+        fee = client.get(f"/api/v1/sessions/{sid}/fee")
+        assert fee.status_code == 200
+        assert fee.json()["car_id"] == "10"
+        assert fee.json()["session_id"] == sid
+
+
+@pytest.mark.parametrize(("state", "code"), [
+    ("known", "SESSION_IDENTITY_CONFLICT"),
+    ("closed", "SESSION_NOT_ACTIVE"),
+    ("missing", "SESSION_NOT_ACTIVE"),
+    ("duplicate", "ACTIVE_SESSION_EXISTS"),
+])
+def test_identify_conflict_leaves_rows_unchanged(connect, state, code):
+    sid = "ses_target"
+    with connect() as conn:
+        if state != "missing":
+            enter(conn, session_id=sid, lot_id="A", space_id="A-01",
+                  car_id="11" if state == "known" else None, entry_at=ENTRY)
+        if state == "closed":
+            exit_session(conn, session_id=sid, exit_at=EXIT)
+        if state == "duplicate":
+            enter(conn, session_id="ses_other", lot_id="B", space_id="B-01",
+                  car_id="10", entry_at=ENTRY)
+        before = conn.execute("SELECT * FROM parking_sessions ORDER BY session_id").fetchall()
+        with pytest.raises(SessionError) as error:
+            identify(conn, session_id=sid, car_id="10")
+        assert error.value.status_code == 409
+        assert error.value.body["error"]["code"] == code
+        assert conn.execute("SELECT * FROM parking_sessions ORDER BY session_id").fetchall() == before
+
+
+def test_concurrent_identification_allows_one_active_session_per_number(connect):
+    with connect() as conn:
+        for sid, space in (("ses_first", "A-01"), ("ses_second", "A-02")):
+            enter(conn, session_id=sid, lot_id="A", space_id=space, entry_at=ENTRY)
+    barrier = Barrier(2)
+
+    def attempt(sid):
+        with connect() as conn:
+            barrier.wait(timeout=10)
+            try:
+                return identify(conn, session_id=sid, car_id="10").session_id
+            except SessionError as error:
+                assert error.status_code == 409
+                return error.body["error"]["code"]
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        results = list(pool.map(attempt, ("ses_first", "ses_second")))
+    assert results.count("ACTIVE_SESSION_EXISTS") == 1
+    winner = next(result for result in results if result != "ACTIVE_SESSION_EXISTS")
+    with connect() as conn:
+        assert conn.execute("SELECT session_id FROM parking_sessions WHERE car_id = '10'").fetchall() == [(winner,)]
