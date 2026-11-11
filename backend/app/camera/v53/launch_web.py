@@ -48,7 +48,8 @@ if __name__=='__main__':
     setup_logging()
     # 11/11: align camera timestamps to the receiver clock (422 when the PC runs >0.5s ahead).
     clock.from_env()
-    if os.environ.get('API_BASE_URL'):clock.start_sync(os.environ['API_BASE_URL'])
+    # V53_CLOCK_SYNC=0 turns the periodic correction off (use when both PCs are time-synced).
+    if os.environ.get('API_BASE_URL') and clock.sync_enabled():clock.start_sync(os.environ['API_BASE_URL'])
     server=uvicorn.Server(uvicorn.Config(app,host='127.0.0.1',port=args.port,access_log=False))
     finished=threading.Event()
     if not args.no_browser or args.start_camera:
