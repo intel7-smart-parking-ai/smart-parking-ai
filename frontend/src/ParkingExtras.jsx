@@ -2,13 +2,9 @@ import {t} from './serviceLocale.js';
 import {useEffect, useRef, useState} from 'react';
 import {api} from './api.js';
 import './styles/parking-extras.css';
-import {evacuationRequired} from './uiState.js';
 import {ChatbotIcon, time} from './components.jsx';
 
-export function ParkingExtras({lot, lots, alerts, onSelect, syncStatus}) {
-  const full = lot.spaces.length > 0 && lot.spaces.every(space => space.status !== 'empty');
-  const alternatives = lots.filter(item => item.lot_id !== lot.lot_id &&
-    !evacuationRequired(alerts, item.lot_id) && item.spaces.some(space => space.status === 'empty'));
+export function ParkingExtras({lot, syncStatus}) {
   return <section className="panel parking-availability">
     <div className="parking-availability-summary">
     <h3>{t("구역별 빈자리")}</h3>
@@ -19,10 +15,6 @@ export function ParkingExtras({lot, lots, alerts, onSelect, syncStatus}) {
     </dl>
     {syncStatus}
     </div>
-    {full && <><h3>{t("다른 주차장 확인")}</h3>{alternatives.map(item =>
-      <button className="button white full" key={item.lot_id} onClick={() => onSelect(item.lot_id)}>
-        {item.name} · {item.spaces.filter(space => space.status === 'empty').length}{t("면")}
-      </button>)}{!alternatives.length && <p>{t("현재 안내 가능한 빈자리가 없습니다.")}</p>}</>}
   </section>;
 }
 
