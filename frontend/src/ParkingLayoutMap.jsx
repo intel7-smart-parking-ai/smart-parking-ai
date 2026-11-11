@@ -1,6 +1,6 @@
 import {t as defaultT} from './serviceLocale.js';
 import {useEffect,useRef,useState} from 'react';
-import {reservedParkingStatus} from './uiState.js';
+import {reservedParkingStatus,parkingViolation} from './uiState.js';
 import {useSessionFees} from './sessionFees.js';
 import {Icon, ParkingMap as FallbackMap, typeLabels, statusLabels} from './components.jsx';
 import './styles/layout-maps.css';
@@ -59,6 +59,7 @@ function Bay({space, points, x, y, vertical, labelY, carY, carX, carRotation, st
   const recommended = space.status === 'empty' && space.space_id === recommendedSpaceId;
   const dim = !recommended && filter !== 'all' && !(filter === 'empty' ? space.status === 'empty' : filter.startsWith('source:')?space.source===filter.slice(7):space.space_type === filter);
   const warned = alerts.some(a => a.lot_id === lot.lot_id && (!a.space_id || a.space_id === space.space_id) && a.status !== 'resolved');
+  const violation = admin && !warned && parkingViolation(space);
   const selected = (found?.lot_id === lot.lot_id && found.space_id === space.space_id)
     || (route?.lot_id === lot.lot_id && route.alternatives?.includes(space.space_id));
   const number = lot.type === 'real' ? space.car_id : space.vehicle_number;
@@ -97,8 +98,10 @@ function Bay({space, points, x, y, vertical, labelY, carY, carX, carRotation, st
   const showOccupiedSymbol = !admin && space.status === 'occupied' && !warned;
 
   const reservedIconY = geometry.centerY + (showOccupiedSymbol ? (compact ? -12 : -18) + occupiedOffset : 8);
-  const label = `${space.space_id} ${t(typeLabels[space.space_type])} ${t(statusLabels[space.status])}${recommended ? ' · '+t('추천 빈자리') : ''}${admin&&(space.car_id||number) ? ' 차량 ' + (lot.type === 'real' ? space.car_id : space.plate_number || number) : ''}`;
-  return <g className={`pdf-bay ${space.status} ${space.space_type} ${dim ? 'dim' : ''} ${selected ? 'found' : ''} ${warned ? 'warned' : ''} ${recommended ? 'recommended' : ''}`} role="button" tabIndex={0} aria-label={parkingStatus ? label+' · '+parkingStatus : label} onClick={() => onSpace(space)} onKeyDown={e => {if (e.key === 'Enter' || e.key === ' ') {e.preventDefault(); onSpace(space);}}}>
+  const label = `${space.space_id} ${t(typeLabels[space.space_type])} ${t(statusLabels[space.status])}${recommended ? ' · '+t('추천 빈자리') : ''}${admin&&(space.car_id||number) ? ' 차량 ' + (lot.type === 'real' ? space.car_id : space.plate_number || number) : ''}${violation ? ' · 오주차' : ''}`;
+  const violationWidth = compact ? 40 : 64;
+  const violationX = geometry.labelX + (compact ? 22 : 46);
+  return <g className={`pdf-bay ${space.status} ${space.space_type} ${dim ? 'dim' : ''} ${selected ? 'found' : ''} ${warned ? 'warned' : ''} ${recommended ? 'recommended' : ''} ${violation ? 'violation' : ''}`} role="button" tabIndex={0} aria-label={parkingStatus ? label+' · '+parkingStatus : label} onClick={() => onSpace(space)} onKeyDown={e => {if (e.key === 'Enter' || e.key === ' ') {e.preventDefault(); onSpace(space);}}}>
     <title>{label}{parkingStatus && ' · '+parkingStatus}</title><polygon className="pdf-bay-shape" points={points}/>
     {!warned && parkingStatus && <g className="reserved-parking-marker" transform={`translate(${geometry.centerX} ${geometry.centerY+28})`}><circle r="12"/><text textAnchor="middle" y="6">{parkingStatus===t('확인 필요')?'?':'!'}</text></g>}
     {!warned && ['ev','accessible'].includes(space.space_type) && <g className={showOccupiedSymbol ? "bay-floor-symbol occupied-reserved-symbol" : "bay-floor-symbol"} opacity={admin && space.status==='occupied'?.12:.95} transform={`translate(${showOccupiedSymbol ? centerAt(reservedIconY) : geometry.centerX} ${reservedIconY}) skewX(${geometry.floorSymbolSkew}) scale(${showOccupiedSymbol ? (space.space_type === 'accessible' ? (compact ? .19 : .36) : (compact ? .32 : .62)) : lot.lot_id==='C' && space.space_type==='ev' ? .42 : geometry.floorSymbolScale})`} aria-hidden="true">
@@ -106,6 +109,7 @@ function Bay({space, points, x, y, vertical, labelY, carY, carX, carRotation, st
     </g>}
     {!warned && stopPath && <path className="pdf-wheel-stop" d={vertical ? geometry.stopPath : stopPath} aria-hidden="true"/>}
     <text className="pdf-bay-label" x={geometry.labelX} y={geometry.labelY} style={{fontSize:geometry.labelSize}} dominantBaseline="middle" textAnchor="middle">{space.space_id}</text>
+    {violation && <g className="bay-violation-tag" aria-hidden="true"><rect x={violationX - violationWidth / 2} y={geometry.labelY - (compact ? 9 : 13)} width={violationWidth} height={compact ? 18 : 26} rx={compact ? 9 : 13}/><text x={violationX} y={geometry.labelY} dominantBaseline="middle" textAnchor="middle" fontSize={compact ? 11 : 15}>오주차</text></g>}
     {!warned && admin && space.status === 'occupied' && <g className="bay-vehicle-card" transform={`translate(${plateCenterX} ${cardTop})`}>
       <rect x={-cardWidth/2} y="0" width={cardWidth} height={compact?27:33} rx={compact?5:7} fill="#fff" stroke="#b5c5df" strokeWidth="1.5"/>
       <text x="0" y={compact?17:23} textAnchor="middle" fontSize={plateSize} fontWeight="750" fill="#1e3352">{space.plate_number||space.vehicle_number||(space.car_id?t('스티커 ')+space.car_id:t('번호 미제공'))}</text>

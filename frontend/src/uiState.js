@@ -5,6 +5,15 @@ export function normalizeSpace(space,lotId){return {...space,lot_id:lotId,zone:s
 export function normalizeLot(lot,spaces,asOf){return {...lot,name:t(formatLotName(lot.name)),layout_type:lot.layout_type||layoutForLot[lot.lot_id],updated_at:asOf||lot.updated_at,spaces:spaces.map(s=>normalizeSpace(s,lot.lot_id))}}
 export function sourceLabel(space){return space?.is_mock||['simulation','manual'].includes(space?.source)?'이벤트':space?.source==='vision'?'카메라 관측':'관측 대기'}
 export function evacuationRequired(alerts,lotId){return Array.isArray(alerts)&&alerts.some(a=>a.lot_id===lotId&&Number(a.level)>=2&&a.status!=='resolved')}
+// 오주차(11/11 PM A안): 전기차·장애인 전용 칸에 종류가 다른 차가 있으면 화면에만 표시한다.
+// 일반 칸에는 어떤 차든 정상(카메라 policy.parking_rule_status와 같은 규칙). 차 종류를 모르면 표시하지 않는다.
+const RESERVED_SPACE_TYPES=new Set(['ev','accessible']);
+const VEHICLE_TYPES=new Set(['general','ev','accessible']);
+export function parkingViolation(space){
+ return Boolean(space)&&space.status==='occupied'&&RESERVED_SPACE_TYPES.has(space.space_type)
+  &&VEHICLE_TYPES.has(space.vehicle_type)&&space.vehicle_type!==space.space_type;
+}
+export const vehicleTypeLabels={general:'일반 차량',ev:'전기차',accessible:'장애인 차량'};
 // 챗봇 서버의 대피(레벨 2) 응답을 선택한 주차장 기준으로 적용한다(11/11 PM).
 // 다른 주차장 경보라는 것이 경보 목록으로 확인될 때만 대피 화면을 안내 한 줄로 낮춘다.
 // 선택 주차장이 없거나, 목록이 아직 갱신되지 않아 활성 레벨 2를 모르면 서버 판단(안전 쪽)을 그대로 따른다.

@@ -117,3 +117,8 @@ html .layout-mall .pdf-map-svg .pdf-bay.empty.recommended .pdf-bay-label {
 }
 .pdf-map-panel .pdf-bay.warned { opacity: 1; }
 .pdf-map-panel .pdf-warning { pointer-events: none; }
+
+/* 오주차(11/11 PM A안): 관리자 지도에서만 전용 칸에 종류가 다른 차 표시 */
+.pdf-map-panel .pdf-bay.violation .pdf-bay-shape { stroke: #d97706 !important; stroke-width: 4; }
+.pdf-map-panel .bay-violation-tag rect { fill: #d97706; }
+.pdf-map-panel .bay-violation-tag text { fill: #fff; font-weight: 800; }
