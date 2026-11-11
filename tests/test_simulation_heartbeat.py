@@ -9,6 +9,8 @@ from datetime import datetime, timedelta, timezone
 from time import monotonic, sleep
 from uuid import uuid4
 
+import pytest
+
 from fastapi.testclient import TestClient
 
 from backend.app.api.vision_event_schema import VisionEvent
@@ -142,3 +144,38 @@ def test_batched_heartbeats_preserve_receipts_and_roll_back_together(tmp_path, m
                          (pending.event_id, pending.model_dump_json(), canonical_payload(pending)))
         assert not store.receive_simulation_heartbeats(fresh)
         assert conn.execute("SELECT count(*) FROM vision_event_receipts").fetchone()[0] == receipts + len(batch)
+
+
+@pytest.mark.parametrize("failures", [1, 3])
+def test_observation_task_recovers_and_cancels(tmp_path, monkeypatch, caplog, failures):
+    app = _app(tmp_path / "observation-errors.db")
+    store = app.state.pipeline
+    original_spaces = store.spaces
+    attempts = 0
+
+    def flaky_spaces(lot, **kwargs):
+        nonlocal attempts
+        if lot == "C" and attempts < failures:
+            attempts += 1
+            raise RuntimeError(f"synthetic observation failure {attempts}")
+        return original_spaces(lot, **kwargs)
+
+    monkeypatch.setattr(store, "spaces", flaky_spaces)
+    with TestClient(app), closing(store.connection()) as conn:
+        conn.execute("UPDATE simulation_targets SET occupied=1 WHERE lot_id IN ('C', 'D') AND space_id='A-01'")
+        conn.commit()
+        deadline = monotonic() + failures + 5
+        while monotonic() < deadline:
+            lots = {r[0] for r in conn.execute(
+                "SELECT DISTINCT json_extract(payload,'$.lot_id') FROM pipeline_events"
+            )}
+            if {"C", "D"} <= lots:
+                break
+            sleep(0.05)
+        assert {"C", "D"} <= lots
+        task = app.state.simulation_observation_task
+        assert not task.done()
+        assert app.state.simulation_observation_last_error == f"synthetic observation failure {failures}"
+        assert caplog.text.count("Simulation observation cycle failed") == failures
+
+    assert task.done() and task.cancelled()

@@ -1043,92 +1043,99 @@ def create_runtime_app(
             await asyncio.sleep(0.15)
         raise HTTPException(503, "관측 안정화를 기다리고 있습니다. 현황을 다시 확인해주세요.")
 
+    async def observation_cycle():
+        with closing(store.connection()) as conn:
+            targets = [dict(r) for r in conn.execute("SELECT * FROM simulation_targets")]
+        observed = {
+            (r["lot_id"], r["space_id"])
+            for lot in ("C", "D")
+            for r in store.spaces(lot, as_of=clock())
+            if r["observed_at"] is not None and r["source"] == "simulation"
+        }
+        events = []
+        for target in targets:
+            if (
+                not target["occupied"]
+                and (target["lot_id"], target["space_id"]) not in observed
+            ):
+                continue
+            event = VisionEvent(
+                event_id=uuid4().hex,
+                event_type="vehicle_observed" if target["occupied"] else "space_empty_observed",
+                source="simulation",
+                lot_id=target["lot_id"],
+                camera_id=None,
+                space_id=target["space_id"],
+                car_id=None,
+                vehicle_type=target["vehicle_type"] if target["occupied"] else None,
+                confidence=0.99,
+                bbox_xyxy=None,
+                observed_at=clock(),
+            )
+            events.append(event)
+        # Keep writer lock duration bounded so A/B observations can interleave.
+        for offset in range(0, len(events), 32):
+            batch = events[offset:offset + 32]
+            try:
+                if await asyncio.to_thread(store.receive_simulation_heartbeats, batch):
+                    continue
+            except sqlite3.Error:
+                logging.exception("Simulation heartbeat batch failed")
+            for event in batch:
+                try:
+                    await send_event(event)
+                except httpx.HTTPError:
+                    logging.exception(
+                        "Simulation observation rejected for %s/%s", event.lot_id, event.space_id
+                    )
+        with closing(store.connection()) as conn:
+            controls = [
+                dict(r)
+                for r in conn.execute(
+                    "SELECT * FROM simulation_controls WHERE running=1 AND next_tick<=? ORDER BY next_tick, lot_id LIMIT 1",
+                    (clock().timestamp(),),
+                )
+            ]
+        for control in controls:
+            try:
+                with closing(store.connection()) as conn:
+                    count = conn.execute(
+                        "SELECT count(*) FROM simulation_targets WHERE lot_id=? AND occupied=1",
+                        (control["lot_id"],),
+                    ).fetchone()[0]
+                lot = control["lot_id"]
+                goal = automatic_goals.get(lot)
+                if goal is None or count == goal:
+                    goal = choice([size for size in range(5, 61) if size != count])
+                    automatic_goals[lot] = goal
+                action = "exit" if count > goal else "entry"
+                set_target(lot, action, SimulationCommand(), automatic=True)
+                error = None
+            except Exception as exc:
+                error = str(exc)
+            interval = control["interval_seconds"]
+            next_interval = randint(5, 10) if error is None and interval == 30 and random() < 0.1 else interval
+            with closing(store.connection()) as conn:
+                conn.execute(
+                    "UPDATE simulation_controls SET next_tick=?,last_error=? WHERE lot_id=?",
+                    (
+                        max(
+                            control["next_tick"] + next_interval,
+                            clock().timestamp() + next_interval / 2,
+                        ),
+                        error,
+                        control["lot_id"],
+                    ),
+                )
+                conn.commit()
+
     async def observations():
         while True:
-            with closing(store.connection()) as conn:
-                targets = [dict(r) for r in conn.execute("SELECT * FROM simulation_targets")]
-            observed = {
-                (r["lot_id"], r["space_id"])
-                for lot in ("C", "D")
-                for r in store.spaces(lot, as_of=clock())
-                if r["observed_at"] is not None and r["source"] == "simulation"
-            }
-            events = []
-            for target in targets:
-                if (
-                    not target["occupied"]
-                    and (target["lot_id"], target["space_id"]) not in observed
-                ):
-                    continue
-                event = VisionEvent(
-                    event_id=uuid4().hex,
-                    event_type="vehicle_observed" if target["occupied"] else "space_empty_observed",
-                    source="simulation",
-                    lot_id=target["lot_id"],
-                    camera_id=None,
-                    space_id=target["space_id"],
-                    car_id=None,
-                    vehicle_type=target["vehicle_type"] if target["occupied"] else None,
-                    confidence=0.99,
-                    bbox_xyxy=None,
-                    observed_at=clock(),
-                )
-                events.append(event)
-            # Keep writer lock duration bounded so A/B observations can interleave.
-            for offset in range(0, len(events), 32):
-                batch = events[offset:offset + 32]
-                try:
-                    if await asyncio.to_thread(store.receive_simulation_heartbeats, batch):
-                        continue
-                except sqlite3.Error:
-                    logging.exception("Simulation heartbeat batch failed")
-                for event in batch:
-                    try:
-                        await send_event(event)
-                    except httpx.HTTPError:
-                        logging.exception(
-                            "Simulation observation rejected for %s/%s", event.lot_id, event.space_id
-                        )
-            with closing(store.connection()) as conn:
-                controls = [
-                    dict(r)
-                    for r in conn.execute(
-                        "SELECT * FROM simulation_controls WHERE running=1 AND next_tick<=? ORDER BY next_tick, lot_id LIMIT 1",
-                        (clock().timestamp(),),
-                    )
-                ]
-            for control in controls:
-                try:
-                    with closing(store.connection()) as conn:
-                        count = conn.execute(
-                            "SELECT count(*) FROM simulation_targets WHERE lot_id=? AND occupied=1",
-                            (control["lot_id"],),
-                        ).fetchone()[0]
-                    lot = control["lot_id"]
-                    goal = automatic_goals.get(lot)
-                    if goal is None or count == goal:
-                        goal = choice([size for size in range(5, 61) if size != count])
-                        automatic_goals[lot] = goal
-                    action = "exit" if count > goal else "entry"
-                    set_target(lot, action, SimulationCommand(), automatic=True)
-                    error = None
-                except Exception as exc:
-                    error = str(exc)
-                interval = control["interval_seconds"]
-                next_interval = randint(5, 10) if error is None and interval == 30 and random() < 0.1 else interval
-                with closing(store.connection()) as conn:
-                    conn.execute(
-                        "UPDATE simulation_controls SET next_tick=?,last_error=? WHERE lot_id=?",
-                        (
-                            max(
-                                control["next_tick"] + next_interval,
-                                clock().timestamp() + next_interval / 2,
-                            ),
-                            error,
-                            control["lot_id"],
-                        ),
-                    )
-                    conn.commit()
+            try:
+                await observation_cycle()
+            except Exception as exc:
+                app.state.simulation_observation_last_error = str(exc)
+                logging.exception("Simulation observation cycle failed")
             await asyncio.sleep(1)
 
     async def history_checkpoints():
@@ -1203,7 +1210,9 @@ def create_runtime_app(
             with closing(store.connection()) as conn:
                 demo_history.prepare(conn, clock())
                 demo_history.checkpoint(conn, clock())
+        application.state.simulation_observation_last_error = None
         task = asyncio.create_task(observations()) if mode == "demo" else None
+        application.state.simulation_observation_task = task
         history_task = asyncio.create_task(history_checkpoints()) if continuous_demo else None
         try:
             yield
