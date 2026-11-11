@@ -16,7 +16,15 @@ import urllib.request
 from datetime import datetime, timedelta, timezone
 
 MAX_OFFSET = 5.0
-RESYNC_SECONDS = 120
+# 11/11 15:12: the PC/server difference drifted 0.13 s per 2 min and stepped ~0.9 s every
+# ~17 min (Windows time service). A 2-min resync left up to 0.9 s of error for two minutes,
+# so observations looked 1.35 s old and bays flickered 'uncertain'. Resync often instead.
+RESYNC_SECONDS = 10
+MAX_RTT = .25  # a slow reply (e.g. a 1 s TCP retry) cannot locate the server time
+# The demo server runs in Docker on Windows: its clock ran ~3% slow and stepped back every
+# 10-30 s (sawtooth ~0.6-0.9 s, 11/11 15:25). Chasing one sample can land on a peak, so the
+# applied offset is the median of the last WINDOW samples, i.e. the middle of the sawtooth.
+WINDOW = 18  # 3 minutes at 10 s
 LOG = logging.getLogger(__name__)
 _lock = threading.Lock()
 _offset = 0.0
@@ -49,8 +57,11 @@ def from_env(env=None):
     return set_offset(raw) if raw else None
 
 
-def measure(base, samples=5, timeout=3, opener=None):
-    """Median of server-minus-PC offsets from /api/v1/health 'timestamp'. None if unavailable."""
+def measure(base, samples=5, timeout=3, opener=None, max_rtt=MAX_RTT):
+    """Median of server-minus-PC offsets from /api/v1/health 'timestamp'. None if unavailable.
+
+    Samples whose round trip exceeds max_rtt are dropped; at least three must remain.
+    """
     opener = opener or urllib.request.urlopen
     values = []
     for _ in range(samples):
@@ -59,6 +70,7 @@ def measure(base, samples=5, timeout=3, opener=None):
             with opener(base.rstrip('/') + '/api/v1/health', timeout=timeout) as response:
                 body = json.loads(response.read(4096).decode('utf-8'))
             t1 = time.time()
+            if t1 - t0 > max_rtt:continue
             stamp = datetime.fromisoformat(str(body['timestamp']).replace('Z', '+00:00'))
             if stamp.tzinfo is None:continue
             values.append(stamp.timestamp() - (t0 + t1) / 2)
@@ -67,16 +79,22 @@ def measure(base, samples=5, timeout=3, opener=None):
     return statistics.median(values) if len(values) >= 3 else None
 
 
+def sync_enabled(env=None):
+    return (os.environ if env is None else env).get('V53_CLOCK_SYNC', '1').strip() != '0'
+
+
 def start_sync(base, interval=RESYNC_SECONDS, stop_event=None):
     """Re-measure in the background so PC drift during a long demo stays corrected."""
     stop_event = stop_event or threading.Event()
 
     def run():
         last = None
+        recent = []
         while not stop_event.is_set():
             value = measure(base)
             if value is not None:
-                applied = set_offset(value)
+                recent = (recent + [value])[-WINDOW:]
+                applied = set_offset(statistics.median(recent))
                 if last is None or abs(applied - last) >= .1:
                     LOG.info('clock offset to server %.2fs applied to camera timestamps', applied)
                 last = applied

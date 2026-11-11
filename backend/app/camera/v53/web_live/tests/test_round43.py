@@ -42,6 +42,44 @@ class ClockOffset(unittest.TestCase):
         self.assertIsNone(clock.measure('http://x', opener=lambda *a, **k: (_ for _ in ()).throw(OSError())))
 
 
+    def test_slow_samples_dropped_and_resync_is_frequent(self):
+        class Resp(io.BytesIO):
+            def __enter__(self):return self
+            def __exit__(self, *a):return False
+        calls = {'n': 0}
+
+        def opener(url, timeout):
+            calls['n'] += 1
+            if calls['n'] in (2, 4):  # a 1 s TCP retry would put the midpoint 0.5 s off
+                import time as _t; _t.sleep(.3)
+            now = datetime.now(timezone.utc).timestamp() - .5
+            return Resp(json.dumps({'timestamp': datetime.fromtimestamp(now, timezone.utc).isoformat()}).encode())
+        value = clock.measure('http://x', opener=opener)
+        self.assertAlmostEqual(value, -.5, delta=.05)
+        self.assertLessEqual(clock.RESYNC_SECONDS, 15)
+
+    def test_sync_switch(self):
+        self.assertTrue(clock.sync_enabled({}))
+        self.assertFalse(clock.sync_enabled({'V53_CLOCK_SYNC': '0'}))
+
+
+    def test_sync_applies_median_of_recent_samples(self):
+        # Server sawtooth: slow drift then a step back (11/11 15:25).
+        samples = iter([-0.3, -0.4, -0.5, -0.6, -0.1, -0.2, -0.3])
+        applied = []
+        stop = threading.Event()
+        def fake_measure(base):
+            try:return next(samples)
+            except StopIteration:
+                stop.set();return None
+        real_set = clock.set_offset
+        with mock.patch.object(clock, 'measure', fake_measure),              mock.patch.object(clock, 'set_offset', side_effect=lambda v: applied.append(round(v, 3)) or real_set(v)):
+            clock.start_sync('http://x', interval=0, stop_event=stop).join(2)
+        self.assertEqual(applied[-1], -0.3)          # median of all seven, not the last sample
+        self.assertEqual(applied[0], -0.3)
+        self.assertTrue(all(-0.6 <= v <= -0.1 for v in applied))
+
+
 class SavedApproval(unittest.TestCase):
     def model(self):
         outline = np.float32([[100, 100], [900, 100], [900, 700], [100, 700]])
