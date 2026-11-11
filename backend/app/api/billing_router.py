@@ -156,7 +156,7 @@ def cancel_payment(
 # [API 4] GET /api/v1/reports/revenue
 @billing_router.get("/reports/revenue", summary="일별·월별·주차장별 매출 집계 리포트")
 def get_revenue_report(
-    month: str = Query("ALL", description="조회할 월 필터 (YYYY-MM 또는 ALL)"),
+    month: str = Query("ALL",pattern=r"^(ALL|\d{4}-(0[1-9]|1[0-2]))$", description="조회할 월 필터 (YYYY-MM 또는 ALL)"),
     lot_id: Optional[str] = Query(None, description="주차장 필터 (A·B·C·D, 생략 시 전체)"),
     conn: sqlite3.Connection = Depends(get_db_conn),
 ) -> JSONResponse:
