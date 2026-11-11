@@ -297,7 +297,8 @@ async def _arun_conversation(text, history, state, tools, model=None, *, options
         return finish("invalid_tools")
     allowed = {"parking_status", "vehicle_info", "fee_policies", "compare_lots", "estimate_fee",
                "alert_summary", "violations", "call_status", "search_knowledge",
-               "propose_action", "ask_clarification", "service_notice"}   # service_notice: 읽기 전용 확정 안내
+               "propose_action", "ask_clarification", "service_notice",   # service_notice: 읽기 전용 확정 안내
+               "virtual_vehicle_info"}   # 가상 주차장 차량 조회(읽기 전용, 사용자가 말한 번호만)
     if not tool_names <= allowed:
         return finish("unsafe_tools")
 

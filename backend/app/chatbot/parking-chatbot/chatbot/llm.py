@@ -109,7 +109,7 @@ def _classify_provider(provider, text):
                 body["response_format"] = {"type": "json_object"}
             url = ("https://api.openai.com/v1" if provider == "openai" else config.OPENROUTER_BASE_URL) + "/chat/completions"
             data = _post_json(url, {"Authorization": f"Bearer {config.api_key(provider)}"}, body)
-            return _extract_json(data["choices"][0]["message"]["content"])
+            return _extract_json(data["choices"][0]["message"]["content"] or "")
     except (OSError, ValueError, KeyError, TypeError, IndexError) as exc:
         logger(__name__).error("Direct LLM classify failed (%s)", type(exc).__name__)
         return None

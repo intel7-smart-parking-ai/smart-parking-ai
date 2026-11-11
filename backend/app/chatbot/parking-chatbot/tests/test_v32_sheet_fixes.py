@@ -109,7 +109,7 @@ class VirtualSearchApiTests(unittest.TestCase):
         with patch.object(api, "_request", side_effect=fake):
             loc = api.find_virtual("1724", "17가1724")
             self.assertEqual((loc["lot_id"], loc["space_id"], loc["plate_number"]), ("C", "A-07", "17가1724"))
-            self.assertEqual(api.virtual_fee(loc), {"fee": 5400, "minutes": 75, "paid": False})
+            self.assertEqual(api.virtual_fee(loc), {"fee": 5400, "minutes": 75, "paid": False, "payment_status": "unpaid"})   # 결제 취소 안내용(봇 점검 11/11 P2)
         self.assertEqual(calls[0], "/api/v1/vehicle-search?vehicle_number=1724")
         self.assertEqual(calls[1], "/api/v1/sessions/s-1/fee")
         with patch.object(api, "_request", return_value=(404, {}, {})):
@@ -174,7 +174,7 @@ class QuestionTranslationTests(unittest.TestCase):
     def test_translation_used_when_numbers_preserved(self):
         with patch.object(config, "LLM_PROVIDER", "openrouter"), \
                 patch.object(config, "api_key", return_value="test"), \
-                patch.object(response_locale, "load_json", return_value=self._reply("40번 차 요금 얼마야?")):
+                patch.object(response_locale, "load_json", return_value=self._reply("__NUMBER0__번 차 요금 얼마야?")):   # 숫자는 자리표시로 오간다(11/11)
             self.assertEqual(response_locale.question_to_korean("How much for car 40?", "en"), "40번 차 요금 얼마야?")
 
     def test_translation_rejected_when_numbers_change(self):

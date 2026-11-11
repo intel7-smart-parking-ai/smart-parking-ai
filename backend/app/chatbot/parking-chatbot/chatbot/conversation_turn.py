@@ -12,7 +12,7 @@ from .agents.evidence import contradicts_restricted_policy
 from .dialog import Query, Reply, interpret, render_query
 from .dialog.query import _STOP_PAYMENT
 from .dialog.render import _parking_card, render_knowledge, render_observed_parking
-from .parser import explicit_cars, extract_lots, extract_vehicle, guarded_intent, normalize_car_id
+from .parser import explicit_cars, extract_lots, extract_vehicle, extract_virtual, guarded_intent, normalize_car_id
 from .tools import ReadTools
 from .workflows.views import fee_card
 
@@ -87,6 +87,9 @@ def _prefetch(text, session, toolbox, target, notice=None):
     wants = set(p.wants)
     zone = p.zone or _OWN_ZONE.get(getattr(session, "vehicle_type", None))
     calls = [("service_notice", {})] if notice else []
+    virtual = virtual_number(text, session)
+    if virtual:
+        calls.append(("virtual_vehicle_info", {"vehicle_number": virtual}))
     cars = explicit_cars(text)
     if cars or p.own_car:
         for car in (cars or [p.own_car])[:2]:
@@ -260,8 +263,34 @@ def _observation_card(evidence, toolbox):
     return None
 
 
+def virtual_number(text, session=None):
+    """이번 문장의 가상 차량 번호(번호판·뒤 4자리). 없으면 이 대화에서 방금 조회한 가상 차량('그 차 요금은?')."""
+    said = extract_virtual(text) if isinstance(text, str) else None
+    if said:
+        return said.replace(" ", "")
+    remembered = getattr(session, "virtual_vehicle", None) if session is not None else None
+    if isinstance(remembered, dict) and re.search(r"그\s*차|그\s*차량|그거|걔|아까\s*(?:그|차)", text or ""):
+        return remembered.get("plate_number") or remembered.get("vehicle_number")
+    return None
+
+
+def virtual_compound(text):
+    """가상 차량 번호와 함께 다른 것도 묻는 문장인가('1724 얼마 나왔어, 근처에 충전 자리도 있어?').
+
+    위치·요금·출차·결제 여부만 묻는 문장은 규칙이 서버 값으로 바로 답한다(빠르고 항상 같다).
+    그 밖의 것을 함께 물으면 대화 AI가 가상 차량 조회 도구와 다른 조회를 엮어 답한다.
+    """
+    if not isinstance(text, str) or not extract_virtual(text):
+        return False
+    p = plan.for_text(text)
+    return bool(set(p.wants) - {"location", "fee", "payment", "future"} or p.zone or p.lots or p.purpose_lots)
+
+
 def reply_to(text, session, adapter, alert, vehicle, refresh_alert, admin_status=None, notice=None):
     query = interpret(text, session)
+    virtual = virtual_number(text, session)
+    if virtual and (virtual_compound(text) or not extract_virtual(text)):
+        query = None   # 가상 차량 + 다른 질문 → 차량 번호를 되묻지 않고 대화 AI가 조회 도구로 답한다
     explicit, only = extract_vehicle(text)
     previous = session.pending
     resumed = bool(only and previous and previous.intent in {"dialog_read", "dialog_agent"})
@@ -296,7 +325,8 @@ def reply_to(text, session, adapter, alert, vehicle, refresh_alert, admin_status
     allowed = tuple(dict.fromkeys([*candidates, *_said_lots(text, turn_plan)])) if candidates else ()
     toolbox = ReadTools(adapter, alert, vehicle_provider=vehicle, allowed_car_id=target,
                         allowed_lots=allowed or None, admin_status_provider=admin_status, notice=notice,
-                        extra_car_ids=cars[1:] if len(cars) > 1 else ())
+                        extra_car_ids=cars[1:] if len(cars) > 1 else (),
+                        virtual_numbers=(virtual,) if virtual else ())
     result = _model_reply(text, session, toolbox, target, candidates, query, notice)
     if result is None:
         route.mark("agent", "off", why="모델 꺼짐·호출 한도·남은 시간 부족")
@@ -374,6 +404,15 @@ def reply_to(text, session, adapter, alert, vehicle, refresh_alert, admin_status
                           and any(p["intent"] == "call_admin" for p in result.proposals))
     observed_car = target if any(r["tool"] == "vehicle_info" and r["data"].get("car_id") == target
                                  for r in evidence) else None
+    seen_virtual = next((r["data"] for r in evidence if r["tool"] == "virtual_vehicle_info"
+                         and isinstance(r["data"].get("location"), dict)), None)
+    if seen_virtual and result and result.status == "ok":
+        # 관리자 호출 요약·'그 차' 이어 묻기에 쓴다(규칙 답 _virtual_vehicle_reply와 같은 기록)
+        session.virtual_vehicle = {"plate_number": seen_virtual.get("plate_number"),
+                                   "vehicle_number": seen_virtual.get("vehicle_number"),
+                                   "lot_id": seen_virtual["location"].get("lot_id"),
+                                   "space_id": seen_virtual["location"].get("space_id")}
+        reply.meta["virtual_vehicle"] = True
     payment_turn = bool(query and query.wants_payment and reply.meta.get("fee_verified"))
     # 모델이 결제를 제안했으면 결제 칩만 보여 준다. 칩을 누르면 기존 견적 → 사용자 승인 절차를 그대로 탄다.
     if (result and result.status == "ok" and observed_car and not payment_turn and not proposed_admin

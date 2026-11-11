@@ -137,7 +137,7 @@ class ReadTools:
 
     def __init__(self, adapter, alert_provider, occupancy_provider=None, vehicle_provider=None,
                  *, allowed_car_id=None, allowed_lots=None, admin_status_provider=None, notice=None,
-                 extra_car_ids=()):
+                 extra_car_ids=(), virtual_numbers=()):
         self.adapter = adapter
         self._occupancy = occupancy_provider or adapter.get_empty_spots
         self._vehicle = vehicle_provider or adapter.find_car
@@ -149,6 +149,8 @@ class ReadTools:
         self._lots = None if allowed_lots is None else tuple(dict.fromkeys(allowed_lots))
         self._snapshot = {}
         self._notice = notice if isinstance(notice, dict) and notice.get("text") else None
+        # 가상 주차장 차량: 사용자가 말한(또는 이 대화에서 이미 조회한) 번호판·뒤 4자리만 조회할 수 있다
+        self._virtual = tuple(dict.fromkeys(str(x).replace(" ", "") for x in virtual_numbers or () if x))
 
     def service_notice(self) -> dict:
         """This turn's approved service notice (fixed policy/guidance the service already decided, e.g. no reservations,
@@ -287,6 +289,53 @@ class ReadTools:
         lots = tuple(dict.fromkeys(x["lot_id"] for x in available if x.get("lot_id")))
         return self._finish("vehicle_info", payload, raw=raw, lots=lots,
                             error=None if available else " ".join(dict.fromkeys(errors.values())))
+
+    def virtual_vehicle_info(self, vehicle_number: str) -> dict:
+        """Read a vehicle parked in a virtual lot (김해공항·신세계) by its license plate or the plate's last four digits:
+        where it is, when it entered, the fee so far and whether it is paid. Use only the number the user gave.
+        This assistant cannot pay for or release these vehicles; follow data.payment_guide when the user asks to pay or leave.
+        data.fee.fee is already the amount due if the vehicle leaves now: do not call estimate_fee for these vehicles."""
+        raw = str(vehicle_number or "").replace(" ", "")
+        allowed = {x[-4:] for x in self._virtual}
+        if not raw or raw[-4:] not in allowed or not raw[-4:].isdigit():
+            return self._finish("virtual_vehicle_info", {}, error="사용자가 말한 차량 번호만 조회할 수 있습니다.")
+        number = raw[-4:]
+        plate = raw if not raw.isdigit() else next((x for x in self._virtual if x[-4:] == number and not x.isdigit()), None)
+        try:
+            request_timeout(config.REQUEST_BUDGET_SEC)
+            found = self._read_once(("virtual", number, plate), lambda: self.adapter.find_virtual(number, plate))
+        except _READ_FAILURES:
+            found = {"status": "unavailable"}
+        if isinstance(found, dict) and found.get("status") == "unavailable":
+            return self._finish("virtual_vehicle_info", {}, error="가상 주차장 차량 정보를 지금 조회할 수 없습니다.")
+        if not found or not found.get("lot_id"):
+            return self._finish("virtual_vehicle_info", {"vehicle_number": number, "found": False},
+                                error="그 번호로 주차 중인 가상 주차장 차량을 찾지 못했습니다.")
+        try:
+            fee = self._read_once(("virtual_fee", number, plate), lambda: self.adapter.virtual_fee(found))
+        except _READ_FAILURES:
+            fee = None
+        location = {"lot_id": found["lot_id"], "lot_name": config.catalog.name(found["lot_id"]),
+                    "space_id": found.get("space_id"), "entry_at": found.get("entry_at")}
+        entry = clock_text(found.get("entry_at")) if found.get("entry_at") else None
+        if entry:
+            location["entry_time_text"] = entry
+        errors = {}
+        fee_view = None
+        if isinstance(fee, dict) and type(fee.get("fee")) is int:
+            fee_view = {"fee": fee["fee"], "minutes": fee.get("minutes"), "paid": bool(fee.get("paid")),
+                        "payment_status": fee.get("payment_status")}
+            if type(fee.get("minutes")) is int:
+                fee_view["elapsed_text"] = location["elapsed_text"] = duration_text(fee["minutes"])
+        else:
+            errors["fee"] = "요금을 지금 조회할 수 없습니다."
+        payload = {"vehicle_number": number, "plate_number": found.get("plate_number"), "location": location,
+                   "fee": fee_view, "errors": errors, "partial": bool(errors),
+                   "payment_guide": "가상 주차장 차량의 모의 결제는 화면의 차량번호 조회에서 한다. 챗봇은 이 차량을 결제하거나 출차시킬 수 없다.",
+                   "fee_guide": "fee.fee가 지금 출차하면 내는 금액이다. 이 차량에는 estimate_fee를 쓰지 않는다."}
+        raw_meta = {"is_mock": found.get("data_source") == "mock" or bool(found.get("is_mock")),
+                    "updated_at": found.get("updated_at"), "stale": bool(found.get("stale"))}
+        return self._finish("virtual_vehicle_info", payload, raw=raw_meta, lots=(found["lot_id"],))
 
     def fee_for_view(self, fee):
         """Recover the receipt for the UI without including it in model messages."""
@@ -548,5 +597,7 @@ class ReadTools:
             async def invoke(*args, **kwargs):
                 return fn(*args, **kwargs)
             return StructuredTool.from_function(func=fn, coroutine=invoke, name=fn.__name__)
-        names = self.TOOL_NAMES + (("service_notice",) if self._notice else ())
+        # 가상 차량 도구는 이번 턴에 가상 차량 번호가 있을 때만 보인다(다른 턴의 도구 목록·지시문은 그대로)
+        names = (self.TOOL_NAMES + (("service_notice",) if self._notice else ())
+                 + (("virtual_vehicle_info",) if self._virtual else ()))
         return [bind(getattr(self, name)) for name in names]

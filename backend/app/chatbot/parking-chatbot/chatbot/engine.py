@@ -1212,6 +1212,9 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
     else:
         text = (text or "").strip()[:200]
         s.history.append(("user", text))
+        # 흔한 오타는 여기서 한 번 고쳐, 안전 확인·계획표·규칙·대화 AI가 같은 문장을 본다(기록에는 원문을 남긴다)
+        from .parser import normalize_colloquial
+        text = normalize_colloquial(text)
         # 안전 신고·허용 여부·없는 칸·자기소개처럼 짧게 확정되는 질문(turn_guard). Lv2 경보 중에는 대피 안내가 우선이라 건너뛴다.
         alert_now = current_alert()
         _reply, _meta = _turn_guard(s, text, alert_now)
@@ -1235,6 +1238,10 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
         if turn_plan.own_car:   # OWN_CAR 정규식이 10~99만 받는다
             s.car_id = turn_plan.own_car               # '23번이 내 차야' → 이후 '얼마 나왔어?'의 대상
         route.mark("plan", "+".join(turn_plan.wants) or "none", why=turn_plan.summary())
+        if notice is None and alert_now.get("level", 0) >= 2 and _asks_exit(text):
+            # 대피 경보 중 '출차해도 돼?' — 요금·결제 안내보다 안전 안내가 먼저다(봇 점검 11/11 P0-2)
+            route.mark("rule", "exit_during_alert", why="Lv2 경보 중 출차 질문 → 안전 안내")
+            return _respond(s, "경보 중에는 현장 안전 안내를 먼저 따라 주세요.", chip_set="alert")
         # 충전 현황 질문은 화면의 충전 현황 카드(칸별 충전 상태·남은 시간)로 연결한다 (김채린 charging_intent 이식).
         if notice is None and _wants_charging(text) and route_check.keep(
                 text, "charging_status", urgent=alert_now.get("level", 0) >= 2):
@@ -1310,7 +1317,11 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
         multi_cars = raw_id == "ambiguous" and len(explicit_cars(text)) > 1
         invalid_id = raw_id and not multi_cars and (not normalize_car_id(raw_id) or
             (config.DATA_SOURCE == "mock" and config.ASSIGNED_CAR_IDS is not None and raw_id not in config.ASSIGNED_CAR_IDS))
-        skip = ("workflow" if controlled else "invalid_car_id" if invalid_id else "virtual_vehicle" if extract_virtual(text)
+        from .conversation_turn import virtual_compound
+        # 가상 차량: 위치·요금·출차만 묻는 문장은 규칙이 바로 답하고, 다른 것도 함께 물으면 대화 AI(조회 도구)로 보낸다
+        virtual_rule = bool(extract_virtual(text)) and not (_agent_usable() and virtual_compound(text))
+        skip = ("workflow" if controlled else "invalid_car_id" if invalid_id and not (extract_virtual(text) and not virtual_rule)
+                else "virtual_vehicle" if virtual_rule
                 else "alert_lv2" if current_alert().get("level", 0) >= 2 else None)
         if controlled:
             route.mark("workflow", rule.intent, why="상태를 바꾸거나 안전이 걸린 요청은 규칙이 처리")
@@ -1348,7 +1359,26 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
             resp = _respond(s, T.SUGGEST_ADMIN_CALL, chip_set=_admin_suggestion_chips(s),
                             meta={"admin_suggestion": True})
         else:
+            car_first = None
+            if (params.get("virtual_vehicle") and intent not in NEEDS_VEHICLE | {"unknown"}
+                    and current_alert().get("level", 0) < 2):
+                # '1724 어디 있고 장애인 칸은 남았어?' — 대화 AI가 답하지 못해 규칙으로 넘어온 경우에도
+                # 차량 조회를 빠뜨리지 않는다(차량 답 + 나머지 질문의 규칙 답)
+                car_first = _virtual_vehicle_reply(s, str(params["virtual_vehicle"]), "find_my_car")
             resp = _dispatch(s, session_id, intent, params, vehicle_only, confirmation_token)
+            if car_first is not None and resp.get("text") and not resp.get("confirmation_token"):
+                merged = car_first["text"] + "\n\n" + resp["text"]
+                kept = list(s.history)
+                for index in range(len(kept) - 1, -1, -1):
+                    if kept[index] == ("bot", car_first["text"]):
+                        del kept[index]
+                        break
+                if kept and kept[-1][0] == "bot":
+                    kept[-1] = ("bot", merged)
+                s.history.clear()
+                s.history.extend(kept)
+                resp["text"] = merged
+                resp["meta"]["virtual_vehicle"] = True
     except DataUnavailable:
         s.clear()
         resp = _respond(s, T.REQUEST_UNAVAILABLE, meta={"unavailable": True})
@@ -1357,6 +1387,13 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
     resp = _with_guess_note(resp, params)
     resp["meta"].update({"intent": intent, "source": source})
     return resp
+
+
+def _asks_exit(text):
+    """나가도 되는지·출차를 묻는 말인가. 질문 번역이 실패해 외국어 원문이 들어온 경우도 본다."""
+    from .turn_guard import LEAVING
+    return bool(isinstance(text, str) and (LEAVING.search(text)
+                or re.search(r"(?i)\b(?:leave|exit|go\s+out)\b|出庫|出庫して|出车|出場|离开|出去", text)))
 
 
 def _virtual_vehicle_reply(s, raw, intent):
@@ -1399,6 +1436,18 @@ def _virtual_vehicle_reply(s, raw, intent):
                          "lot_id": location["lot_id"], "space_id": location.get("space_id")}
     if intent == "pay_fee" and not (fee or {}).get("paid"):
         lines.append("가상 주차장 차량의 모의 결제는 화면의 차량번호 조회에서 진행해 주세요.")
+    from .parser import normalize_colloquial
+    asked = normalize_colloquial(s.history[-1][1] if s.history else "")
+    from .contracts import PAYMENT_CANCELED
+    canceled = bool(fee) and fee.get("payment_status") == PAYMENT_CANCELED
+    if canceled:
+        lines.append("이전 결제는 취소된 상태예요.")     # '7653 결제했어?'에 취소를 말하지 않던 문제(봇 점검 11/11 P2)
+    elif fee and not fee.get("paid") and re.search(r"결제\s*(?:했|됐|되었|완료|한\s*거)|정산\s*(?:했|됐)|(?i:\bpaid\b)", asked):
+        lines.append("아직 결제 전이에요.")
+    if fee and intent != "pay_fee" and _asks_exit(asked):
+        # '1780 출차해도 돼?' — 서버의 결제 여부만 근거로 답한다(봇 점검 11/11: '잘 이해하지 못했어요')
+        lines.append("결제가 끝난 차량이에요. 출구에서 현장 안내를 따라 출차해 주세요." if fee.get("paid")
+                     else "출차 전에 요금을 먼저 결제해 주세요. 가상 주차장 차량의 모의 결제는 화면의 차량번호 조회에서 진행해요.")
     # car_location 카드는 실물 car_id 계약이라 쓰지 않는다(가상 차량은 문장으로 안내).
     resp = _respond(s, "\n".join(lines), chip_set=["empty_all", "fee_rule", "call_admin"],
                     updated_at=location.get("updated_at"))

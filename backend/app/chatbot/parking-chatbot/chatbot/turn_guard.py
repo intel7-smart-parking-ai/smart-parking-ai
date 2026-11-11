@@ -33,7 +33,9 @@ IDENTITY = re.compile(r"(?:너|넌|당신|챗봇|봇)\s*(?:은|는|의)?\s*(?:�
 GREETING = re.compile(r"^(?:안녕(?:하세요|하십니까)?|반가워(?:요)?|하이|hello|hi|hey)[!.~?\s]*$", re.I)
 LOT_NAMES = re.compile(r"주차장\s*(?:은|는|이)?\s*(?:이름|목록|종류|어디\s*어디|몇\s*곳|몇\s*개|뭐\s*뭐|뭐\s*있)")
 # '이제 나가려고 하는데 뭐 해야 돼?', '출차하려면 어떻게 해?' — 출차 전 요금 확인·사전 정산 안내(윤명수 시제품 56번 취지)
+# '출차해도 돼?', '나가도 되나요?', '출차 가능해?'처럼 나가도 되는지 묻는 말도 출차 질문이다(봇 점검 11/11)
 LEAVING = re.compile(r"(?:이제\s*)?(?:나가려|나갈\s*(?:건데|거|려|게)|나가기\s*전|출차\s*(?:하려|할게|할래|하려면|하고\s*싶|전에?)|"
+                     r"출차\s*(?:해도|가능|돼|되)|나가도\s*(?:돼|되|괜찮)|빼도\s*(?:돼|되|괜찮)|"
                      r"집에\s*(?:가|갈)|빼\s*(?:가려|갈게|려고)|차\s*빼)")
 LEAVING_REPLY = ("출차 전에 요금을 확인하고, 미리 모의 결제(사전 정산)를 하시면 돼요. 결제는 견적을 보여 드린 뒤 승인하셔야 진행돼요.\n"
                  "차량 번호를 알려 주시면 요금부터 보여 드릴게요. 실물 주차장은 차 지붕 스티커 두 자리, 김해공항·신세계는 번호판 뒤 4자리예요.")
@@ -117,7 +119,9 @@ def guard(s, text, alert=None):
         permission = parking_permission(text)
         if permission:
             return permission, {"intent": "parking_permission"}
-    has_car = re.search(r"(?<!\d)\d{2,4}\s*(?:번|차)|\d{2,3}[가-힣]\d{4}", text) or getattr(s, "car_id", None)
+    from .parser import extract_virtual
+    has_car = (re.search(r"(?<!\d)\d{2,4}\s*(?:번|차)|\d{2,3}[가-힣]\d{4}", text) or extract_virtual(text)
+               or getattr(s, "car_id", None))
     if LEAVING.search(text) and not has_car and not getattr(s, "pending", None):
         return LEAVING_REPLY, {"intent": "exit_payment", "chips": ["fee", "find_car"]}
     if FORGOT_NUMBER.search(text):

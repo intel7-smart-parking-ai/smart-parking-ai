@@ -92,6 +92,15 @@ def _entries(data):
     if "car_id" in data and ("location" in data or "fee" in data):
         return [dict(car_id=data["car_id"], **{k: v for k, v in record.items() if k != "car_id"})
                 for record in (data.get("location"), data.get("fee")) if isinstance(record, Mapping)]
+    # 가상 주차장 차량(번호판·뒤 4자리). 실물 car_id와 섞지 않는다.
+    if "vehicle_number" in data and ("location" in data or "fee" in data):
+        identity = {k: data[k] for k in ("vehicle_number", "plate_number") if data.get(k)}
+        lot = (data.get("location") or {}).get("lot_id") if isinstance(data.get("location"), Mapping) else None
+        if lot:
+            identity["lot_id"] = lot   # 요금 기록도 그 차가 있는 주차장의 값이다(주차장별 값 대조)
+        records = [dict(identity, **record) for record in (data.get("location"), data.get("fee"))
+                   if isinstance(record, Mapping)]
+        return records or [identity]
     return [data] if data else []
 
 
