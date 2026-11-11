@@ -4,6 +4,7 @@ import re
 from datetime import datetime, timezone
 import uuid
 from collections import Counter
+from . import clock
 from .registration import expected_ids
 
 CATALOG = {n:t for t,numbers in {
@@ -232,7 +233,7 @@ def to_events(result, packet, camera_id, *, now=None):
     except (KeyError,TypeError,ValueError):return []
     if timestamp.tzinfo is None:
         return []
-    age = ((now or datetime.now(timezone.utc))-timestamp).total_seconds()
+    age = ((now or datetime.now(timezone.utc)+clock.delta())-timestamp).total_seconds()
     if not -.5<=age<=2 or result.get('observed_at') != packet['observed_at']:
         return []
     lot = result.get('lot_id')

@@ -8,6 +8,7 @@ import webbrowser
 from pathlib import Path
 import uvicorn
 from web_live.server import app
+from web_live import clock
 
 
 def setup_logging(folder=None):
@@ -45,6 +46,9 @@ if __name__=='__main__':
     parser.add_argument('--start-camera',action='store_true',help='Start local camera collection when the server opens')
     args=parser.parse_args()
     setup_logging()
+    # 11/11: align camera timestamps to the receiver clock (422 when the PC runs >0.5s ahead).
+    clock.from_env()
+    if os.environ.get('API_BASE_URL'):clock.start_sync(os.environ['API_BASE_URL'])
     server=uvicorn.Server(uvicorn.Config(app,host='127.0.0.1',port=args.port,access_log=False))
     finished=threading.Event()
     if not args.no_browser or args.start_camera:

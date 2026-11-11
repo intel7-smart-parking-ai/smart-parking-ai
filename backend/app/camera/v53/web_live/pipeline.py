@@ -177,6 +177,7 @@ def same_pose(a,b,shape):
 # so a moved camera or board never restores. 11/10 classroom: hands placing several cars
 # hid a board for 12-60 s about 20 times; at 12 s each one needed a manual re-approval.
 APPROVAL_RECHECK_SECONDS = 90
+STARTUP_APPROVAL_SECONDS = 180  # camera warm-up after an app start can take ~30 s
 
 
 def probable_red_body(light):
@@ -636,6 +637,30 @@ class ParkingPipeline:
                 'LED candidate excluded camera=%s bay=%s reason=%s confidence=%.3f bay_area=%.4f box=%s',
                 camera,item['space_id'],item['reason'],item['confidence'],item['bay_area_fraction'],item['bbox_xyxy'])
         return logged
+
+    def arm_saved_approvals(self,seconds=None):
+        """Re-verify the last operator-approved pose saved on disk after an app restart.
+
+        11/11: after a restart nobody pressed '칸 위치 맞음', so white-car LEDs (42·11) were
+        never judged and nothing was delivered for 40 minutes. The saved view is written only
+        when a person approves; two consecutive frames that verify exactly that pose restore
+        the approval (same rule as a USB reconnect). A moved camera or board never verifies.
+        """
+        seconds=STARTUP_APPROVAL_SECONDS if seconds is None else seconds
+        armed=[]
+        with self.lock:
+            views=self.__dict__.setdefault('interrupted_views',{})
+            for camera in ('1','2'):
+                load=getattr(self.registry,'load_start_view',None)
+                ref=load(camera) if load else None
+                if not ref or camera in self.confirmed or camera in views:continue
+                h,w=ref['shape']
+                views[camera]=((None,ref['pose']['lot_id'],np.float32(ref['pose']['outline']),(h,w,3)),
+                               ref,time.monotonic()+seconds,None)
+                self.__dict__.setdefault('approved_views',{})[camera]=ref
+                armed.append(camera)
+        if armed:logging.getLogger(__name__).info('Saved board approvals armed for recheck: cameras %s',','.join(armed))
+        return armed
 
     def _suspend_mismatched_approval(self,camera,epoch,shape,observed_at):
         """A full search that lands off the reviewed pose suspends, not erases, the review.

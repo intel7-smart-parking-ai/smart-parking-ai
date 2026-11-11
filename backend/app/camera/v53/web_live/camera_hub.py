@@ -6,6 +6,7 @@ import os
 import threading
 import time
 import numpy as np
+from . import clock
 
 MAX_FRAME_AGE = 1.0
 LOG = logging.getLogger(__name__)
@@ -130,7 +131,7 @@ class CameraHub:
             previous=number
             last_new=now
             packet={'image':np.asanyarray(color.get_data()).copy(),'sequence':number,'epoch':epoch,
-                    'received':now,'observed_at':datetime.now(timezone.utc).isoformat()}
+                    'received':now,'observed_at':clock.utcnow().isoformat()}
             with self.lock:
                 self.epochs[camera_id]=epoch
                 self.frames[camera_id]=packet;self.states[camera_id]='실시간 수신 중'

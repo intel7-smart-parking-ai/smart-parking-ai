@@ -11,6 +11,7 @@ import os
 import queue
 import threading
 import time
+from . import clock
 from .policy import CATALOG, valid_score, FIRE_EVENTS, is_vehicle_fire, wire_event
 
 
@@ -134,7 +135,7 @@ class EventTransport:
                 evidence_valid=validator(event)
                 with self.lock:
                     valid=generation==self.generation and not self.stop_event.is_set()
-                dispatched_at=datetime.now(timezone.utc)
+                dispatched_at=datetime.now(timezone.utc)+clock.delta()
                 age=(dispatched_at-stamp).total_seconds()
                 if not valid or not -.5<=age<=2 or not evidence_valid:
                     return 'delivery_unconfirmed' if unconfirmed else 'withheld_or_expired'
