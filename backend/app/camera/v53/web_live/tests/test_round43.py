@@ -116,6 +116,47 @@ class SavedApproval(unittest.TestCase):
         self.assertNotIn('1', m.confirmed)
 
 
+
+class SmallShiftAdoption(unittest.TestCase):
+    """11/11 15:47: moving cars nudged the Busan board 2-3 px and its approval never came back."""
+
+    def model(self):
+        outline = np.float32([[100, 100], [900, 100], [900, 700], [100, 700]])
+        image = np.zeros((1080, 1920, 3), np.uint8)
+        m = ParkingPipeline.__new__(ParkingPipeline)
+        m.confirmed = {}; m.fixed_views = {}; m.start_views = {}
+        m.interrupted_views = {'1': ((5, 'B', outline, image.shape), {'ref': 0}, 10**12, None)}
+        m.registry = mock.Mock()
+        m.registry.fixed_view.return_value = {'ref': 'new'}
+        return m, image, outline
+
+    def run_frames(self, m, image, outlines, epoch=5):
+        out = []
+        for o in outlines:
+            paused = m.interrupted_views.get('1')
+            out.append(bool(paused) and m._adopt_small_shift('1', epoch, 'B', o, {'outline': o}, image, paused))
+        return out
+
+    def test_small_steady_shift_adopted_after_five_frames(self):
+        m, image, outline = self.model()
+        shifted = outline + np.float32([[3, 20]] * 4)          # 20 px at the corners: past same_pose, under 31 px
+        self.assertEqual(self.run_frames(m, image, [shifted] * 5), [False] * 4 + [True])
+        self.assertEqual(m.confirmed['1'][:2], (5, 'B'))
+        self.assertTrue(np.allclose(m.confirmed['1'][2], shifted))
+        self.assertEqual(m.fixed_views['1'], (5, {'ref': 'new'}))
+        m.registry.save_start_view.assert_called_once()
+        self.assertNotIn('1', m.interrupted_views)
+
+    def test_big_or_unsteady_shift_not_adopted(self):
+        m, image, outline = self.model()
+        self.assertEqual(self.run_frames(m, image, [outline + 40] * 6), [False] * 6)
+        self.assertNotIn('1', m.confirmed)
+        m, image, outline = self.model()
+        wobble = [outline + d for d in (0, 15, 0, 15, 0, 15)]   # within 31 px but alternating ~21 px apart
+        self.assertEqual(self.run_frames(m, image, wobble), [False] * 6)
+        self.assertNotIn('1', m.confirmed)
+
+
 class AutoSend(unittest.TestCase):
     def live(self, sending=False, stopped=None):
         from web_live.live import LiveSession

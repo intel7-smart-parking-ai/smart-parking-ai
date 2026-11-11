@@ -177,6 +177,15 @@ def same_pose(a,b,shape):
 # so a moved camera or board never restores. 11/10 classroom: hands placing several cars
 # hid a board for 12-60 s about 20 times; at 12 s each one needed a manual re-approval.
 APPROVAL_RECHECK_SECONDS = 90
+# 11/11 15:47: moving cars nudged the Busan board 2-3 px; the full search then landed >15 px
+# off at a corner, the approval was released and the pixel-exact recheck never matched, so
+# the lot sent nothing (and white-car LEDs went unjudged) until a person re-approved. While
+# an approval is suspended, a board found again in the same lot within SHIFT_ADOPT_FACTOR of
+# the frame size (~31 px on 1920) of the reviewed pose and steady for SHIFT_ADOPT_FRAMES
+# frames is adopted as the new pose. A bay is ~100 px wide, so this cannot change which bay a
+# sticker falls in; bigger moves still need '칸 위치 맞음'.
+SHIFT_ADOPT_FACTOR = .016
+SHIFT_ADOPT_FRAMES = 5
 STARTUP_APPROVAL_SECONDS = 180  # camera warm-up after an app start can take ~30 s
 
 
@@ -334,13 +343,31 @@ def led_identity(row, memory, key, now, led_cars):
     return held[0] if held and row.get('observation')=='occupied' else None
 
 
-def led_car_glow_lights(frame, rows, polygons, lights, memory, streaks, scope, now, led_cars):
-    """Confirm after 3 consecutive frames; a frame without the glow resets the count."""
+LED_UNSEEN_SECONDS = 10
+
+
+def led_car_glow_lights(frame, rows, polygons, lights, memory, streaks, scope, now, led_cars, seen=None):
+    """Confirm after 3 consecutive frames; a frame without the glow resets the count.
+
+    seen maps each LED-list car to the last time its number was read in any bay (both
+    cameras share it). 11/11 15:55: car 11 carried to Busan B-01 with its LED already on
+    never had its number read there (the glow covers the sticker), so the bay had no LED
+    identity and the fire was missed. An occupied bay whose number is unread, with LED-range
+    pink glow, may stand for an LED car that has not been read anywhere for 10 s. A read
+    non-LED number still excludes the bay; a red body exceeds the 15% limit.
+    """
+    seen={} if seen is None else seen
+    for row in rows:
+        if row.get('car_id') in led_cars:seen[row['car_id']]=now
+    unseen=sorted(c for c in (led_cars or ()) if now-seen.get(c,float('-inf'))>LED_UNSEEN_SECONDS)
     lit={l.get('space_id') for l in lights if l.get('state')=='confirmed'}
     found=[]
     for row in rows:
         sid=row['space_id'];key=(*scope,sid)
         car=led_identity(row,memory,key,now,led_cars)
+        if (not car and unseen and row.get('observation')=='occupied' and not row.get('car_id')
+                and row.get('number_candidate') in (None,*unseen)):
+            car='unread:'+'/'.join(unseen)
         fraction,box=pink_glow(frame,polygons[sid]) if car and sid in polygons else (0.,None)
         if not car or box is None or not LED_GLOW_MIN_FRACTION<=fraction<=LED_GLOW_MAX_FRACTION:
             streaks.pop(key,None);continue
@@ -680,6 +707,30 @@ class ParkingPipeline:
         views[camera]=(approved,fixed[1],time.monotonic()+APPROVAL_RECHECK_SECONDS,None)
         return True
 
+    def _adopt_small_shift(self,camera,epoch,lot,outline,registration,frame,paused):
+        """Adopt a steady, slightly shifted pose of the same board for a suspended approval."""
+        streaks=self.__dict__.setdefault('_shift_streaks',{})
+        limit=max(frame.shape[:2])*SHIFT_ADOPT_FACTOR
+        reviewed=np.float32(paused[0][2])
+        shift=float(np.max(np.linalg.norm(reviewed-np.float32(outline),axis=1)))
+        if (shift>limit or registration.get('clipped_spaces') or tuple(frame.shape)!=tuple(paused[0][3])):
+            streaks.pop(camera,None);return False
+        prior=streaks.get(camera)
+        count=prior[0]+1 if prior and prior[1]==epoch and same_pose(prior[2],outline,frame.shape) else 1
+        streaks[camera]=(count,epoch,np.float32(outline).copy())
+        if count<SHIFT_ADOPT_FRAMES:return False
+        ref=self.registry.fixed_view(frame,registration) if hasattr(self.registry,'fixed_view') else None
+        self.confirmed[camera]=(epoch,lot,np.float32(outline).copy(),frame.shape)
+        if ref:
+            self.__dict__.setdefault('fixed_views',{})[camera]=(epoch,ref)
+            self.__dict__.setdefault('approved_views',{})[camera]=ref
+            if camera in ('1','2') and hasattr(self,'start_views') and hasattr(self.registry,'save_start_view'):
+                self.start_views[camera]=ref
+                self.registry.save_start_view(camera,ref)
+        getattr(self,'interrupted_views',{}).pop(camera,None);streaks.pop(camera,None)
+        logging.getLogger(__name__).info('Camera %s approval adopted after a small board shift (%.1f px, lot %s)',camera,shift,lot)
+        return True
+
     def _recheck_interrupted(self,frame,camera,epoch,sequence,lot_hint,inspect):
         """Revalidate an operator-reviewed pose after a brief obstruction on the same stream."""
         views=getattr(self,'interrupted_views',{})
@@ -813,6 +864,8 @@ class ParkingPipeline:
             # different board cancels the recheck; a real move never verifies and expires.
             if paused and lot!=paused[0][1]:
                 interrupted.pop(camera,None)
+            elif paused and observed_at and quality_report['state']=='inspect':
+                self._adopt_small_shift(camera,epoch,lot,outline,registration,frame,paused)
             result.update(lot_id=lot,_outline=outline,_pose=registration,registration={'inliers':registration['inliers'],
                 'residual_px':round(registration['residual_px'],3),'line_support':round(registration['line_support'],3),
                 'method':registration.get('method','team_reference')},note='도면 위치 확인 필요 · 화면의 칸 이름과 실제 칸을 대조하세요.')
@@ -1166,7 +1219,8 @@ class ParkingPipeline:
                 streaks=self.__dict__.setdefault('led_glow_streaks',{})
                 for key in [k for k in streaks if k[:3]!=glow_scope and k[0]==camera]:streaks.pop(key)
                 extra=led_car_glow_lights(frame,result['spaces'],polygons,lights,
-                    self.__dict__.setdefault('led_identity',{}),streaks,glow_scope,time.monotonic(),led_cars)
+                    self.__dict__.setdefault('led_identity',{}),streaks,glow_scope,time.monotonic(),led_cars,
+                    self.__dict__.setdefault('led_seen',{}))
                 if extra:
                     glowing={l['space_id'] for l in extra}
                     lights[:]=[l for l in lights if l.get('space_id') not in glowing]+extra

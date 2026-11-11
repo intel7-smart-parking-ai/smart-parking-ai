@@ -127,10 +127,12 @@ def row(car='11', obs='occupied', candidate=None):
 
 
 class LedCarGlow(unittest.TestCase):
-    def run_frames(self, frames, rows, led=frozenset({'11', '23', '42'})):
+    def run_frames(self, frames, rows, led=frozenset({'11', '23', '42'}), seen=None):
+        # By default every LED car is being read elsewhere, so only the bay's own identity counts.
+        seen = {c: 1e9 for c in led} if seen is None else seen
         memory, streaks, states = {}, {}, []
         for i, (frame, r) in enumerate(zip(frames, rows)):
-            found = led_car_glow_lights(frame, [r], POLY, [], memory, streaks, ('1', 1, 'B'), float(i), led)
+            found = led_car_glow_lights(frame, [r], POLY, [], memory, streaks, ('1', 1, 'B'), float(i), led, seen)
             states.append(found[0]['state'] if found else None)
         return states
 
@@ -157,6 +159,19 @@ class LedCarGlow(unittest.TestCase):
         rows = [row(), row(None), row(None), row(None, 'unknown'), row(None), row(None, candidate='42'), row(None)]
         self.assertEqual(self.run_frames([on] * 7, rows),
                          ['candidate', 'candidate', 'confirmed', None, 'candidate', None, None])
+
+    def test_unread_glowing_bay_counts_when_an_led_car_is_unseen(self):
+        # 11/11 15:55: car 11 carried lit to Busan B-01; its number was never read there.
+        on = bay_frame(400)
+        self.assertEqual(self.run_frames([on] * 4, [row(None)] * 4, seen={}),
+                         ['candidate', 'candidate', 'confirmed', 'confirmed'])
+        # All LED cars read elsewhere within 10 s: no stand-in identity.
+        recent = {'11': 0., '23': 0., '42': 0.}
+        self.assertEqual(self.run_frames([on] * 4, [row(None)] * 4, seen=recent), [None] * 4)
+        # A read non-LED number, an empty bay, or a red body never qualify.
+        self.assertEqual(self.run_frames([on] * 4, [row('30')] * 4, seen={}), [None] * 4)
+        self.assertEqual(self.run_frames([on] * 4, [row(None, 'empty')] * 4, seen={}), [None] * 4)
+        self.assertEqual(self.run_frames([bay_frame(red_body=True)] * 4, [row(None)] * 4, seen={}), [None] * 4)
 
     def test_identity_needs_own_read_and_clears(self):
         memory = {}
