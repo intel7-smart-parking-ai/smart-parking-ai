@@ -145,7 +145,6 @@ html[data-theme='light'] .payment-list-heading + .alert-list-toolbar {
   background: #fff;
   border-color: var(--parkon-border, #dce5f2);
 }
-html[data-theme='light'] .payment-list-heading + .alert-list-toolbar label { color: #53657d; }
 html[data-theme='light'] .payment-list-heading + .alert-list-toolbar > nav select {
   min-height: 32px;
   padding-inline: 8px;
@@ -160,3 +159,6 @@ html[data-theme='light'] .payment-list-heading ~ .table-scroll thead th {
   color: #53657d;
 }
 .service-nav > .safety-nav-action { margin-inline-start: auto; align-self: center; }
+
+.button.admin-list-action { min-inline-size: 64px; }
+nav .button.admin-list-action:disabled { opacity: 1; cursor: not-allowed; }

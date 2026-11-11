@@ -87,7 +87,7 @@ export function AdminCalls({showList, onOpen, onSound}) {
     </div>
   </aside>}
   {showList && <section className="panel admin-call-list" ref={list} tabIndex={-1} aria-label="고객 호출 · 문의">
-    <header className="admin-call-list-heading"><ChatbotIcon/><h3>고객 호출 · 문의</h3><span>{items.length}건</span></header>
+    <header className="admin-call-list-heading admin-card-heading"><ChatbotIcon/><h3>고객 호출 · 문의</h3><span>{items.length}건</span></header>
     {error && <p role="status">{error}</p>}
     {!error && !items.length && <p>접수된 문의가 없습니다.</p>}
     {items.length>0&&<ul>{items.map(item => {

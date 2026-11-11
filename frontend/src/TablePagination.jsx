@@ -16,15 +16,15 @@ export function TablePagination({label, pagination}) {
 
   return (
     <nav aria-label={label} style={{display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 10, padding: '10px 16px'}}>
-      <button type="button" className="button white small" disabled={page === 1} onClick={() => setPage(page - 1)}>이전</button>
+      <button type="button" className="button white small admin-list-action" disabled={page === 1} onClick={() => setPage(page - 1)}>이전</button>
       <label>
-        <select aria-label={label + ' 페이지 선택'} value={page} onChange={event => setPage(Number(event.target.value))}>
+        <select className="table-page-select" aria-label={label + ' 페이지 선택'} value={page} onChange={event => setPage(Number(event.target.value))}>
           {Array.from({length: totalPages}, (_, index) => index + 1).map(number => (
             <option key={number} value={number}>{number} / {totalPages} 페이지</option>
           ))}
         </select>
       </label>
-      <button type="button" className="button white small" disabled={page === totalPages} onClick={() => setPage(page + 1)}>다음</button>
+      <button type="button" className="button white small admin-list-action" disabled={page === totalPages} onClick={() => setPage(page + 1)}>다음</button>
     </nav>
   );
 }

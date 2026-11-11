@@ -66,11 +66,11 @@ function Bay({space, points, x, y, vertical, labelY, carY, carX, carRotation, st
   const width=Math.max(...vertices.map(point=>point[0]))-Math.min(...vertices.map(point=>point[0]));
   const compact=width<150;
   const warningSize = compact ? 38 : 72;
-  const cardWidth=compact?Math.min(66,width-9):Math.min(220,width-45);
-  const cardTop=geometry.labelY+(compact?16:18);
-  const plateSize=compact?10:22;
-  const occupiedOffset = compact ? 5 : 9;
   const angled = lot.layout_type === 'angled';
+  const cardWidth=angled?94:compact?Math.min(66,width-9):Math.min(220,width-45);
+  const cardTop = geometry.labelY + (angled ? 26 : compact ? 16 : 18);
+  const plateSize=angled?15:compact?10:22;
+  const occupiedOffset = compact ? 5 : 9;
   const badgeHeight = compact ? 22 : 34;
   const badgeWidth = angled ? 82 : compact ? 50 : 100;
   const badgeY = geometry.centerY + (compact ? 1 : 4);
@@ -86,6 +86,8 @@ function Bay({space, points, x, y, vertical, labelY, carY, carX, carRotation, st
   const skewAround = (y, degrees) =>
     degrees ? `translate(0 ${y}) skewX(${degrees}) translate(0 ${-y})` : undefined;
   const warningCenterY = geometry.centerY + (compact ? 3 : 6);
+  const plateCenterX = centerAt(cardTop + 16.5);
+  const feeOffsetX = centerAt(cardTop + 54.5) - plateCenterX;
   const badgeCenterY = badgeY + badgeHeight / 2;
   const badgeX = centerAt(badgeCenterY + occupiedOffset);
   const carYPosition = geometry.centerY - (compact ? 22 : 35);
@@ -104,11 +106,11 @@ function Bay({space, points, x, y, vertical, labelY, carY, carX, carRotation, st
     </g>}
     {!warned && stopPath && <path className="pdf-wheel-stop" d={vertical ? geometry.stopPath : stopPath} aria-hidden="true"/>}
     <text className="pdf-bay-label" x={geometry.labelX} y={geometry.labelY} style={{fontSize:geometry.labelSize}} dominantBaseline="middle" textAnchor="middle">{space.space_id}</text>
-    {!warned && admin && space.status === 'occupied' && <g className="bay-vehicle-card" transform={`translate(${geometry.centerX} ${cardTop})`}>
+    {!warned && admin && space.status === 'occupied' && <g className="bay-vehicle-card" transform={`translate(${plateCenterX} ${cardTop})`}>
       <rect x={-cardWidth/2} y="0" width={cardWidth} height={compact?27:33} rx={compact?5:7} fill="#fff" stroke="#b5c5df" strokeWidth="1.5"/>
       <text x="0" y={compact?17:23} textAnchor="middle" fontSize={plateSize} fontWeight="750" fill="#1e3352">{space.plate_number||space.vehicle_number||(space.car_id?t('스티커 ')+space.car_id:t('번호 미제공'))}</text>
-      <rect className="bay-fee-border" x={-cardWidth/2} y={compact?32:40} width={cardWidth} height={compact?20:29} rx={compact?5:7} fill="#fff" stroke="#b5c5df" strokeWidth="1.5"/>
-      <text x="0" y={compact?46:61} textAnchor="middle" fontSize={compact?8.5:20} fontWeight="700">
+      <rect className="bay-fee-border" x={feeOffsetX-cardWidth/2} y={compact?32:40} width={cardWidth} height={compact?20:29} rx={compact?5:7} fill="#fff" stroke="#b5c5df" strokeWidth="1.5"/>
+      <text x={feeOffsetX} y={compact?46:61} textAnchor="middle" fontSize={angled?13:compact?8.5:20} textLength={angled?cardWidth-10:undefined} lengthAdjust="spacingAndGlyphs" fontWeight="700">
         <tspan fill="#26384c">{fees?.[space.session_id]?.duration_minutes!=null ? fees[space.session_id].duration_minutes+t('분') : space.entry_at ? Math.max(0,Math.floor((Date.now()-Date.parse(space.entry_at))/60000))+t('분') : t('시간 미제공')}</tspan>
         <tspan fill="#929baa"> · </tspan>
         <tspan fill="#c93636" fontWeight="750">{Number.isFinite(fees?.[space.session_id]?.amount_krw)?fees[space.session_id].amount_krw.toLocaleString('ko-KR')+t('원'):t('요금 미확인')}</tspan>
