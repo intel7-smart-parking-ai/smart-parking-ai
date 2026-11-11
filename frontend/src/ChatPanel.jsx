@@ -1,7 +1,7 @@
 import {Icon,ChatbotIcon} from './components.jsx';
 import {createPortal} from 'react-dom';
 import {t,getLanguage} from './serviceLocale.js';
-import {formatLotName} from './uiState.js';
+import {formatLotName,chatSafetyScope} from './uiState.js';
 import {requestId} from './requestId.js';
 import {useEffect,useRef,useState,useSyncExternalStore} from 'react';
 import {request} from './api.js';
@@ -26,7 +26,9 @@ function RestroomRecommendation({lot,space,alerts}) {
  </section>;
 }
 
-export default function ChatPanel({lots,alerts,voiceInput=false,appAppearance=false,connected=false}) {
+const EVACUATION_CHIPS = new Set(['evacuate', 'alert_near', 'alert_where']);
+
+export default function ChatPanel({lots,alerts,lotId,voiceInput=false,appAppearance=false,connected=false}) {
  const [toolbarTarget,setToolbarTarget]=useState(null);
  useEffect(()=>{setToolbarTarget(document.getElementById('mobile-chat-tools'))},[]);
  const [chat] = useState(() => createChatSession({request, makeId:requestId, language:getLanguage()}));
@@ -40,7 +42,12 @@ export default function ChatPanel({lots,alerts,voiceInput=false,appAppearance=fa
  const recognition=useRef(null),voiceGeneration=useRef(0),draftRevision=useRef(0),transcript=useRef(null),safetyNotice=useRef(null);
  const [voiceError,setVoiceError]=useState('');
  const confirmation = view?.flow==='confirm_action';
- const unsafe = Boolean(view?.safety)||Number(view?.banner?.level)>=2;
+ // 대피 화면은 선택한 주차장에 레벨 2 경보가 있을 때만(다른 주차장 경보는 안내 한 줄, 11/11 PM)
+ const safetyScope = chatSafetyScope(view,alerts,lotId);
+ const unsafe = safetyScope.unsafe;
+ const rowSafety = result => Boolean(result?.safety) && safetyScope.relevant;
+ const lotLabel = id => formatLotName(lots.find(lot=>lot.lot_id===id)?.name||id);
+ const chips = Array.isArray(view?.chips) ? view.chips.filter(chip=>!(safetyScope.otherLotNotice&&EVACUATION_CHIPS.has(chip.id))) : [];
  const [chargingLot,setChargingLot]=useState(null);
  const mallLot=lots.find(lot=>lot.layout_type==='mall');
  useEffect(()=>{if(unsafe)setChargingLot(null);},[unsafe]);
@@ -75,8 +82,9 @@ export default function ChatPanel({lots,alerts,voiceInput=false,appAppearance=fa
  return <section className={`panel chat-panel ${appAppearance ? 'chat-panel--app' : ''}`} aria-label={t("주차 챗봇")}>
   {toolbarTarget?createPortal(<button className="button white chat-map-preview" aria-expanded={showMap} onClick={()=>setShowMap(v=>!v)}>{showMap?t('전체 지도 닫기'):t('전체 주차장 지도 미리보기')}</button>,toolbarTarget):<header className="chat-panel-heading"><button className="button white" aria-expanded={showMap} onClick={()=>setShowMap(v=>!v)}>{showMap?t('전체 지도 닫기'):t('전체 주차장 지도 미리보기')}</button></header>}
   {appAppearance&&<header className="app-chat-identity"><div><strong>Chat bot</strong><span className={connected?'online':'offline'}><i/>{connected?'Online':'Offline'}</span></div><span className="app-chat-header-icon" aria-hidden="true"><ChatbotIcon/></span></header>}
-  {view?.banner?.text&&<div ref={safetyNotice} className="chat-banner" data-level={view.banner.level} role="alert"><strong>{t("안전 안내")}</strong><span>{formatLotName(view.banner.text)}</span></div>}
-  {view?.safety&&<div className="chat-safety" role="alert"><strong>{formatLotName(view.safety.title)||t('안전 안내')}</strong><p>{formatLotName(view.safety.guidance)}</p>{view.safety.vehicle_help&&<small>{formatLotName(view.safety.vehicle_help)}</small>}</div>}
+  {view?.banner?.text&&!safetyScope.otherLotNotice&&<div ref={safetyNotice} className="chat-banner" data-level={view.banner.level} role="alert"><strong>{t("안전 안내")}</strong><span>{formatLotName(view.banner.text)}</span></div>}
+  {safetyScope.otherLotNotice&&<div className="chat-banner" data-level="1" role="status"><strong>{t("참고")}</strong><span>{safetyScope.otherLots.map(lotLabel).join(', ')} {t("모의 화재 경보 중")} · {lotLabel(lotId)} {t("정상 운영")}</span></div>}
+  {view?.safety&&!safetyScope.otherLotNotice&&<div className="chat-safety" role="alert"><strong>{formatLotName(view.safety.title)||t('안전 안내')}</strong><p>{formatLotName(view.safety.guidance)}</p>{view.safety.vehicle_help&&<small>{formatLotName(view.safety.vehicle_help)}</small>}</div>}
   {context?.car_id&&<div className="chat-context">{t("지금 대화 중:")} <strong>{context.car_id}{t("번")}</strong> · {contextState[context.state]||context.state}</div>}
   {showMap&&!unsafe&&<RecommendationMap/>}
   {!unsafe&&testLots.length>0&&<nav className="chat-chips" aria-label="시험 차량 지도">
@@ -106,13 +114,13 @@ export default function ChatPanel({lots,alerts,voiceInput=false,appAppearance=fa
    </nav>}
    {rows.map((row,i)=>{
     const question=rows[i-1];
-    const recommendedSpace=connected&&mallLot&&!unsafe&&row.result&&!row.result.safety&&question?.who==='user'
+    const recommendedSpace=connected&&mallLot&&!unsafe&&row.result&&!rowSafety(row.result)&&question?.who==='user'
      ?nearestMallRestroomSpace(mallLot,question.text,alerts):null;
     return <article className={`chat-row ${row.who==='user'?'mine':'assistant'}`} key={i}>
    {appAppearance&&row.who!=='user'&&<span className="app-chat-avatar" aria-hidden="true"><ChatbotIcon/></span>}
    <span className="chat-speaker">{row.who==='user'?t('나'):t('주차 챗봇')}</span>
-   {!(row.result?.card?.data?.payment_summary && !unsafe && !row.result.safety)&&<div className="chat-bubble">{formatLotName(row.text)}</div>}
-   {row.result?.card&&<ChatResponseCard card={row.result.card} language={row.result.language} lots={lots} alerts={alerts} allowMap={!unsafe&&!row.result.safety} onOpenCharging={setChargingLot}/>}
+   {!(row.result?.card?.data?.payment_summary && !unsafe && !rowSafety(row.result))&&<div className="chat-bubble">{formatLotName(row.text)}</div>}
+   {row.result?.card&&<ChatResponseCard card={row.result.card} language={row.result.language} lots={lots} alerts={alerts} allowMap={!unsafe&&!rowSafety(row.result)} onOpenCharging={setChargingLot}/>}
    {recommendedSpace&&<RestroomRecommendation lot={mallLot} space={recommendedSpace} alerts={alerts}/>}
    {!unsafe&&chatRecommendations(row.result).length>0&&<RecommendationMap recommended={chatRecommendations(row.result)}/>}
   </article>})}
@@ -122,7 +130,7 @@ export default function ChatPanel({lots,alerts,voiceInput=false,appAppearance=fa
    </div>}
    </div>
   {confirmation&&!unsafe&&<p className="chat-confirm-note">{t("내용을 확인한 뒤 아래 버튼으로 진행해 주세요.")}</p>}
-  {Array.isArray(view?.chips)&&view.chips.length>0&&<div className="chat-chips" aria-label={t("추천 선택지")}>{view.chips.map((chip,j)=><button type="button" key={`${actionEpoch}-${chip.id}-${j}`} disabled={busy||restartRequired||(unsafe&&(Boolean(chip.confirmation_token)||/^confirm_/.test(chip.id)))} onClick={()=>{stopVoice();chat.choose(chip,actionEpoch);}}>{formatLotName(chip.label)||chip.id}</button>)}</div>}
+  {chips.length>0&&<div className="chat-chips" aria-label={t("추천 선택지")}>{chips.map((chip,j)=><button type="button" key={`${actionEpoch}-${chip.id}-${j}`} disabled={busy||restartRequired||(unsafe&&(Boolean(chip.confirmation_token)||/^confirm_/.test(chip.id)))} onClick={()=>{stopVoice();chat.choose(chip,actionEpoch);}}>{formatLotName(chip.label)||chip.id}</button>)}</div>}
   {(error||voiceError)&&<p className="operation-error" role="status">{error||voiceError}</p>}
   {retry&&<button type="button" className="button white chat-retry" disabled={busy} onClick={()=>chat.retry()}>{t("같은 요청 다시 시도")}</button>}
   {restartRequired&&<button type="button" className="button white" onClick={()=>{stopVoice();chat.reset();}}>{t("대화 다시 시작")}</button>}

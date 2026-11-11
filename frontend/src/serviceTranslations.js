@@ -1,4 +1,7 @@
 export default {
+  "참고": ["Note", "提示", "お知らせ"],
+  "모의 화재 경보 중": ["mock fire alarm active", "模拟火灾警报中", "模擬火災警報中"],
+  "정상 운영": ["operating normally", "正常运营", "通常営業"],
   "일시적인 화면 오류입니다": ["The page encountered a temporary error.", "页面暂时出现错误。", "一時的な画面エラーが発生しました。"],
  "자주 묻는 질문": ["Frequently asked questions", "常见问题", "よくある質問"],
  "빈자리 확인": ["Available spaces", "空余车位", "空き状況"],
