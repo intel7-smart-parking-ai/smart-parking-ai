@@ -80,17 +80,62 @@ def duplicate_identities(results):
     return duplicates | {number for number, count in counts.items() if count > 1}
 
 
-def apply_bay_pins(result, pins, duplicates=()):
+def pin_reads(result, duplicates=()):
+    """{car: {(lot, bay)}} for numbers currently read on occupied bays (including pin-held reads)."""
+    reads = {}
+    lot = result.get('lot_id')
+    for row in result.get('spaces', ()):
+        car = row.get('car_id')
+        if car is None and str(row.get('number_reason', '')).startswith('칸 번호 고정'):
+            car = row.get('number_candidate')
+        if row.get('sendable') and row.get('observation') == 'occupied' and car in CATALOG and car not in duplicates:
+            reads.setdefault(car, set()).add((lot, row.get('space_id')))
+    return reads
+
+
+# A different number read this many consecutive frames in the same occupied bay replaces
+# the pin even when the old car is not visible anywhere (~5 s at 1.6 fps). 11/10: cars
+# 11/23 moved to Busan A-04/A-06 were unreadable there, so 88/21 in their old bays
+# stayed null for 10 minutes. Number reads did not flip on their own (0 of 28 bays).
+PIN_RELEASE_FRAMES = 8
+
+
+def apply_bay_pins(result, pins, duplicates=(), elsewhere=None, streaks=None):
     """Keep one car number per occupied bay until that bay is confirmed empty.
 
     pins maps (lot_id, space_id) to the first confirmed number. A different
     number read while the bay stays occupied is sent as null, so an active
     server session never sees its number flip (409). The pinned number is never
     sent without a current reading; an unreadable number stays null.
+
+    A pin is also released when its car is being read in another bay right now
+    (this frame or the other camera's current frame): that car has left. 11/10
+    classroom: cars swapped without a visible empty frame stayed null for good.
     """
     lot = result.get('lot_id')
     if lot not in ('A', 'B') or not result.get('registration_ok') or not result.get('roi_confirmed'):
         return result
+    reads = pin_reads(result, duplicates)
+    for car, bays in (elsewhere or {}).items():
+        reads.setdefault(car, set()).update(bays)
+    for row in result.get('spaces', ()):
+        key = (lot, row.get('space_id'))
+        pinned = pins.get(key)
+        car = row.get('car_id')
+        steady = (pinned is not None and car in CATALOG and car != pinned and car not in duplicates
+                  and row.get('sendable') and row.get('observation') == 'occupied')
+        if streaks is not None:
+            previous = streaks.get(key)
+            if steady:
+                count = previous[1] + 1 if previous and previous[0] == car else 1
+                streaks[key] = (car, count)
+            elif row.get('sendable'):
+                streaks.pop(key, None)
+        if steady and (reads.get(pinned, set()) - {key}
+                       or (streaks is not None and streaks[key][1] >= PIN_RELEASE_FRAMES)):
+            pins[key] = car
+            if streaks is not None:
+                streaks.pop(key, None)
     for row in result.get('spaces', ()):
         key = (lot, row.get('space_id'))
         if not row.get('sendable'):
@@ -105,6 +150,49 @@ def apply_bay_pins(result, pins, duplicates=()):
         if pinned != car:
             row.update(car_id=None, number_candidate=car,
                        number_reason=f'칸 번호 고정({pinned}) 중 다른 번호 판독 · 빈칸 확인 전까지 null')
+    return result
+
+
+def drop_non_led_fire(result, pins, led_cars, elsewhere=None):
+    """Bay identity for the LED-car list when this frame's number is unread.
+
+    The pipeline filters red lights on a read non-LED car. When the number is momentarily
+    null (OCR wait, glare, pin hold), fall back to the pin-held read, then to the bay's pinned
+    number. 11/10 19:00: car 21 (red) at Gaebalwon A-03 confirmed a light for 3 null frames.
+    A listed LED car moved into a pinned bay is read as the pin-held candidate, so it keeps its light.
+    A pinned car that is being read in another bay right now has left; its pin is not used
+    (an unreadable LED car that replaced it keeps its light).
+    """
+    if not led_cars:
+        return result
+    lot = result.get('lot_id')
+    reads = pin_reads(result)
+    for car, bays in (elsewhere or {}).items():
+        reads.setdefault(car, set()).update(bays)
+    rows = {row.get('space_id'): row for row in result.get('spaces', ())}
+    kept = []
+    for light in result.get('fire_lights') or []:
+        row = rows.get(light.get('space_id'))
+        identity = None
+        if row is not None and light.get('location', 'space') == 'space' and row.get('observation') == 'occupied':
+            identity = row.get('car_id')
+            if identity is None and str(row.get('number_reason', '')).startswith('칸 번호 고정'):
+                identity = row.get('number_candidate')
+            if identity is None:
+                pinned = pins.get((lot, row.get('space_id')))
+                if pinned and not (reads.get(pinned, set()) - {(lot, row.get('space_id'))}):
+                    identity = pinned
+        if identity and identity not in led_cars:
+            result.setdefault('filtered_lights', []).append(dict(
+                reason='not_led_car_pinned', space_id=light.get('space_id'), location=light.get('location'),
+                bbox_xyxy=light.get('bbox_xyxy'), confidence=round(float(light.get('confidence', 0)), 3),
+                bay_area_fraction=round(float(light.get('bay_area_fraction', 0)), 4)))
+            if (row.get('fire_led') or {}).get('bbox_xyxy') == light.get('bbox_xyxy'):
+                row['fire_led'] = {'state': 'unverified'}
+            continue
+        kept.append(light)
+    if 'fire_lights' in result:
+        result['fire_lights'] = kept
     return result
 
 

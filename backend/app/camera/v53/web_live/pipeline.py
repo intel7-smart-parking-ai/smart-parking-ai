@@ -191,7 +191,29 @@ def probable_red_body(light):
     return light.get('bay_area_fraction',0)>=.12 and light.get('confidence',1)<.88
 
 
-def split_filtered_lights(lights, rows_by_id):
+def mock_fire_car_list(value):
+    """`mock_fire_cars` in assets.local.json: numbers of the cars that carry an LED. Empty = no list."""
+    if value in (None,'',[]):return frozenset()
+    if not isinstance(value,(list,tuple)) or not all(isinstance(v,str) and len(v)==2 and v.isdigit() for v in value):
+        raise ValueError('mock_fire_cars는 두 자리 번호 문자열 목록이어야 합니다.')
+    return frozenset(value)
+
+
+def not_led_car(light, row, led_cars):
+    """A red light on a car whose number is read and is not an LED car is paint, wherever it is parked.
+
+    Field 11/10 (collection.db, 50,873 frames with a light): every one of 1,300 false runs
+    sat on a read, non-LED car (33, 21, 22, 88, 30, ...), many stable for 100-300 frames at
+    0.85-0.97 in fixed bays, so neither score nor repetition separates them. Real runs were
+    all on cars 11/23/42. Identity comes from the sticker number, never the body colour.
+    Unread numbers (null) keep the optical rules.
+    """
+    if not led_cars or not row or light.get('location','space')!='space':return False
+    car=row.get('car_id')
+    return bool(car) and row.get('observation')=='occupied' and car not in led_cars
+
+
+def split_filtered_lights(lights, rows_by_id, led_cars=frozenset()):
     """Keep LED candidates; return the ones excluded as paint, with the measured values.
 
     The exclusion thresholds were set under the 11/10 lab lighting. Recording each
@@ -200,8 +222,13 @@ def split_filtered_lights(lights, rows_by_id):
     """
     kept,filtered=[],[]
     for light in lights:
-        if probable_paint_glint(light,rows_by_id.get(light.get('space_id'))):reason='paint_glint'
-        elif probable_red_body(light):reason='red_body'
+        row=rows_by_id.get(light.get('space_id'))
+        # A listed LED car's own roof light can cover 12% of a bay (11/10 classroom:
+        # car 42 at Busan B-03, 11.94% at 0.878-0.912); the red-body guess is for other cars.
+        led_car=bool(led_cars and row and row.get('car_id') in led_cars)
+        if not_led_car(light,row,led_cars):reason='not_led_car'
+        elif probable_paint_glint(light,row):reason='paint_glint'
+        elif not led_car and probable_red_body(light):reason='red_body'
         else:
             kept.append(light)
             continue
@@ -220,19 +247,42 @@ def probable_paint_glint(light, row):
     return light['confidence']<.99
 
 
+def same_emitter(light,old):
+    """The same optical source: same bay/location and a nearby box centre."""
+    x,y,u,v=light['bbox_xyxy']
+    a,b,c,d=old['bbox_xyxy']
+    dx=(a+c-x-u)/2;dy=(b+d-y-v)/2
+    return (light['space_id']==old['space_id'] and light['location']==old['location']
+            and np.hypot(dx,dy)<=max(4,.55*min(u-x,v-y,c-a,d-b)))
+
+
+# Frames a confirmed LED may be missing and still continue as confirmed when it reappears.
+LED_MISSED_FRAMES = 3
+
+
+def carry_missed_lights(current,previous):
+    """Remember a confirmed emitter that is missing from this frame, for up to LED_MISSED_FRAMES frames.
+
+    11/10 classroom, Busan A-02 (car 23): the LED scored 0.93-0.95 whenever seen but vanished
+    for 1-3 frames at a time; each miss reset the repeat count, so the next sighting was only a
+    candidate and the mock fire stopped for 2-6 s (51 gaps over 2 s in 10 min). The remembered
+    box is never reported or sent (no fire while unseen); it only lets the same emitter seen
+    again continue as confirmed. A longer absence starts over.
+    """
+    return [dict(old,_missed=old.get('_missed',0)+1) for old in previous
+            if old.get('state')=='confirmed' and old.get('_missed',0)<LED_MISSED_FRAMES
+            and not any(same_emitter(light,old) for light in current)]
+
+
 def repeat_lights(current,previous):
     """Only count repeated optical evidence at the same position and location."""
     for light in current:
-        x,y,u,v=light['bbox_xyxy']
-        def same_emitter(old):
-            a,b,c,d=old['bbox_xyxy']
-            dx=(a+c-x-u)/2;dy=(b+d-y-v)/2
-            return (light['space_id']==old['space_id'] and light['location']==old['location']
-                    and np.hypot(dx,dy)<=max(4,.55*min(u-x,v-y,c-a,d-b)))
-        prior=max((old.get('consecutive_frames',1) for old in previous if same_emitter(old)),default=0)
+        prior=max((old.get('consecutive_frames',1) for old in previous if same_emitter(light,old)),default=0)
         light['consecutive_frames']=min(3,prior+1)
-        # Broad, short-lived highlights on car paint can recur in two frames.
-        required=3 if light.get('bay_area_fraction',0)>.12 else 2
+        # Broad, short-lived highlights on car paint can recur in two frames. Weak red
+        # emission (<0.88; real LEDs p5 0.879, paint median 0.863 on 11/10) needs a third.
+        weak=light.get('method')=='red_emission' and light.get('confidence',1)<.88
+        required=3 if light.get('bay_area_fraction',0)>.12 or weak else 2
         light['state']='confirmed' if light['consecutive_frames']>=required else 'candidate'
 
 
@@ -298,6 +348,7 @@ class ParkingPipeline:
             self.glow=GlowModel(glow_path) if glow_path and glow_path.is_file() else None
         except (OSError,ValueError,KeyError,EOFError,BadZipFile,TypeError):
             led_error='즉시 점등 모델을 읽을 수 없습니다.'
+        self.mock_fire_cars=mock_fire_car_list(cfg.get('mock_fire_cars'))
         self.numbers=NumberReader(cfg.get('ocr_python',''),cfg.get('ocr_models',''))
         self.print_history={}
         self.fixed_views={}
@@ -621,11 +672,14 @@ class ParkingPipeline:
             if history is not None and observed_at:
                 prior=history.pop(camera,None)
                 now=time.monotonic()
+                carried=[]
                 if approved:
                     continuous=(prior and prior[0]==epoch and prior[1]==lot and sequence>prior[2]
                                 and now-prior[3]<=4 and same_pose(prior[4],outline,frame.shape))
-                    repeat_lights(lights,prior[5] if continuous else ())
-                history[camera]=(epoch,lot,sequence,now,outline,lights)
+                    previous=list(prior[5])+list(prior[6] if len(prior)>6 else ()) if continuous else []
+                    repeat_lights(lights,previous)
+                    carried=carry_missed_lights(lights,previous)
+                history[camera]=(epoch,lot,sequence,now,outline,lights,carried)
             # Weak detector hits can locate an ink patch; keep their original
             # scores. Only independent, high-quality printed digits and measured
             # paper color are eligible to corroborate such a location.
@@ -890,6 +944,8 @@ class ParkingPipeline:
             if observed_at and current_floor:
                 history_floor[camera]=((epoch,lot),sequence,floor_time,outline,current_floor)
             # Resolve sticker/slot boundary holds before counting any fire evidence.
+            led_cars=getattr(self,'mock_fire_cars',frozenset())
+            watch_filtered=[]
             if self.fire_watch:
                 for row,space in zip(result['spaces'], self.registry.boards[lot]['spaces']):
                     sid=row['space_id']
@@ -912,9 +968,14 @@ class ParkingPipeline:
                             fire['bbox_xyxy']=box
                         else:
                             fire={'state':'unverified'}
+                    if fire.get('bbox_xyxy') and not_led_car(dict(location='space'),row,led_cars):
+                        watch_filtered.append(dict(reason='not_led_car',space_id=sid,location='space',
+                            bbox_xyxy=fire['bbox_xyxy'],confidence=round(float(fire.get('confidence',0)),3),bay_area_fraction=0.))
+                        fire={'state':'unverified'}
                     row['fire_led']=fire
             rows_by_id={s['space_id']:s for s in result['spaces']}
-            lights[:],result['filtered_lights']=split_filtered_lights(lights,rows_by_id)
+            lights[:],result['filtered_lights']=split_filtered_lights(lights,rows_by_id,led_cars)
+            result['filtered_lights']+=watch_filtered
             self._log_filtered_lights(camera,result['filtered_lights'])
             for light in lights:
                 if light['space_id']:
@@ -998,6 +1059,8 @@ def annotate(frame,result):
         draw.rectangle((x,y,u,v),outline='#ff2828',width=3)
         location=light.get('space_id') or {'aisle':'통로','boundary':'칸 경계','outside':'판 밖',
                                            'unregistered':'위치 미확인'}.get(light.get('location'),'')
-        draw.text((x,max(0,y-size-12)),f"모의 화재 · {location}",font=font,fill='white',stroke_width=2,stroke_fill='#ab1515')
+        # An unconfirmed candidate is never sent; do not label it as a fire on screen.
+        word='모의 화재' if light.get('state')=='confirmed' else 'LED 확인 중'
+        draw.text((x,max(0,y-size-12)),f"{word} · {location}",font=font,fill='white',stroke_width=2,stroke_fill='#ab1515')
     photo.thumbnail((1280,960));output=io.BytesIO();photo.save(output,format='JPEG',quality=85)
     return 'data:image/jpeg;base64,'+base64.b64encode(output.getvalue()).decode('ascii')

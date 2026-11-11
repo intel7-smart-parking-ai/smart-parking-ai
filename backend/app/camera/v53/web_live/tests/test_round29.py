@@ -71,7 +71,8 @@ class ChangedBayTests(unittest.TestCase):
             light = dict(state=state, method='red_emission', space_id='B-07', bbox_xyxy=[10,30,20,40])
             with patch.object(ImageDraw.ImageDraw, 'text', record):
                 annotate(frame, dict(spaces=[], detections=[], fire_lights=[light]))
-            self.assertEqual(captions, [] if state=='off' else ['모의 화재 · B-07'])
+            self.assertEqual(captions, {'off': [], 'candidate': ['LED 확인 중 · B-07'],
+                                        'confirmed': ['모의 화재 · B-07']}[state])
         row=dict(space_id='A-01', polygon=[[1,1],[99,1],[99,80],[1,80]], sendable=True, observation='occupied')
         for fire,expected in [({'state':'candidate'},['A-01']),
                 ({'state':'candidate','method':'lens_brightening','bbox_xyxy':[10,30,20,40]},['A-01','모의 화재 · A / A-01'])]:

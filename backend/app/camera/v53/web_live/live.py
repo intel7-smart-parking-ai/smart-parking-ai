@@ -14,7 +14,7 @@ from urllib.parse import urlsplit
 from .camera_hub import CameraHub,discover
 from .pipeline import public_result,same_pose,empty_similarity
 from .policy import (duplicate_identities,to_events,without_duplicate_identities,FIRE_EVENTS,on_vehicle_roof,
-                     is_vehicle_fire,apply_bay_pins)
+                     is_vehicle_fire,apply_bay_pins,pin_reads,drop_non_led_fire)
 from .transport import EventTransport,destination
 
 
@@ -156,7 +156,7 @@ class LiveSession:
             with self.lock:
                 if self.collection:self.collection.begin()
                 self.running=True;self.results={};self.packets={};self.review_frames={};self.errors={};self.revision+=1
-                self.review_cutoff.clear();self.bay_pins.clear()
+                self.review_cutoff.clear();self.bay_pins.clear();self.__dict__.setdefault('pin_streaks',{}).clear()
                 self.approval_lost.clear();self._approved.clear();self.publish_error=None
                 self.last_pause_seconds=None;self.watchdog_stopped=False
                 self.sending=False;self.last_client=time.monotonic()
@@ -292,7 +292,15 @@ class LiveSession:
                             with self.lock:
                                 if revision==self.revision and not self.stop_event.is_set():
                                     peers=self._fresh_results(now);peers[camera]=result
-                                    apply_bay_pins(result,self.bay_pins,duplicate_identities(peers))
+                                    duplicates=duplicate_identities(peers)
+                                    elsewhere={}
+                                    for other,peer in peers.items():
+                                        if other==camera:continue
+                                        for car,bays in pin_reads(peer,duplicates).items():
+                                            elsewhere.setdefault(car,set()).update(bays)
+                                    apply_bay_pins(result,self.bay_pins,duplicates,elsewhere,
+                                                   self.__dict__.setdefault('pin_streaks',{}))
+                                    drop_non_led_fire(result,self.bay_pins,getattr(self.pipeline,'mock_fire_cars',frozenset()),elsewhere)
                                     self._track_approval(camera,result)
                                     self.results[camera]=result;self.packets[camera]=packet;self.errors.pop(camera,None)
                                     self._remember_review(camera, result, packet)
