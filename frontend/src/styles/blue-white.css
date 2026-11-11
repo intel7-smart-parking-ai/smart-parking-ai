@@ -571,3 +571,7 @@ html[data-theme] .admin-call-list {
 html[data-theme] .admin-call-list-heading { justify-content: flex-start; }
 html[data-theme] .admin-call-list > ul { padding-inline: 16px; }
 html[data-theme='light'] .admin-card-heading + .alert-list-toolbar { background: #fff; }
+/* 오주차(11/11 PM A안) */
+.observation-panel .observation-violation{margin:0 0 12px;padding:10px 14px;border:1px solid #f3c27a;background:#fff7e8;border-radius:10px;color:#8a4b00;font-size:13px;line-height:1.6}
+.observation-panel .observation-violation strong{margin-right:6px;color:#b45309}
+.observation-panel .observation-item.violation{border-color:#f3c27a;background:#fff7e8}
