@@ -63,7 +63,7 @@ export default function WelcomePromo({className='',autoOpen=false,previewOnce=fa
    <div className="welcome-benefits-content">
     <h2 id="welcome-benefits-title">첫 결제 혜택 · 적립 안내</h2>
     <button type="submit" form="welcome-benefits-actions" className="welcome-benefits-dismiss" aria-label="혜택 안내 닫기">×</button>
-    <div className="welcome-benefits-gift" aria-hidden="true"><img ref={giftImage} src="/parkon-benefits-gift.png" alt=""/></div>
+    <div className="welcome-benefits-gift" aria-hidden="true"><img ref={giftImage} src="/parkon-benefits-gift.webp" alt=""/></div>
     <dl className="welcome-benefits-list">
      <div>
       <span className="welcome-benefits-ticket" aria-hidden="true"><b>P</b></span>
