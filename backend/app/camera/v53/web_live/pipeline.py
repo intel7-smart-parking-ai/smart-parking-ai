@@ -228,6 +228,17 @@ def not_led_car(light, row, led_cars):
     return bool(car) and row.get('observation')=='occupied' and car not in led_cars
 
 
+def boundary_not_led_car(light, rows_by_id, led_cars):
+    """A boundary light whose every touched bay holds a read, non-LED car is that car's paint.
+
+    11/11 demo site: a 0.91 light 82.7% inside Busan A-02 (red car 21) fell below the 0.85
+    bay overlap, became 'boundary' and was sent as a lot-level mock fire.
+    """
+    touching=light.get('touching') or ()
+    if not led_cars or light.get('location')!='boundary' or not touching:return False
+    return all(not_led_car(dict(location='space'),rows_by_id.get(sid),led_cars) for sid in touching)
+
+
 def split_filtered_lights(lights, rows_by_id, led_cars=frozenset()):
     """Keep LED candidates; return the ones excluded as paint, with the measured values.
 
@@ -242,6 +253,7 @@ def split_filtered_lights(lights, rows_by_id, led_cars=frozenset()):
         # car 42 at Busan B-03, 11.94% at 0.878-0.912); the red-body guess is for other cars.
         led_car=bool(led_cars and row and row.get('car_id') in led_cars)
         if not_led_car(light,row,led_cars):reason='not_led_car'
+        elif boundary_not_led_car(light,rows_by_id,led_cars):reason='not_led_car_boundary'
         elif probable_paint_glint(light,row):reason='paint_glint'
         elif not led_car and probable_red_body(light):reason='red_body'
         else:
