@@ -73,7 +73,10 @@ def _parking_status_line(row, zone):
     zone_label = config.catalog.zone_name(zone) if zone else ""
     empty = row.get("empty")
     vacancy = f"{zone_label} 빈자리 {empty}칸".strip() if empty is not None else "빈자리 미확인"
-    return ", ".join(filter(None, (vacancy, row.get("reason"))))
+    # 카메라 확인 중인 칸이 있으면 함께 알린다(빈자리 0이어도 만차로 단정할 수 없다. 봇 점검 11/11)
+    pending = row.get("uncertain")
+    camera = f"카메라 확인 중 {pending}칸" if type(pending) is int and pending > 0 else None
+    return ", ".join(filter(None, (vacancy, row.get("reason"), camera)))
 
 
 def render_observed_parking(observation):
