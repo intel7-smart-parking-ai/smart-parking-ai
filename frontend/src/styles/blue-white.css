@@ -509,3 +509,65 @@ html[data-theme="light"] .parking-workspace .quick-find > p,
 html[data-theme="light"] .parking-workspace .occupancy-panel .status-numbers span {
   color: #53657d;
 }
+
+select.table-page-select {
+  width: 120px;
+  min-height: 32px;
+  padding: 4px 8px 4px 12px;
+  border: 1px solid var(--line, #dce3ed);
+  border-radius: 7px;
+  background: var(--panel, #fff);
+  color: var(--ink, #26384c);
+  font: inherit;
+  font-size: 13px;
+}
+
+/* Shared section headers across the admin workspaces. */
+html[data-theme] .admin-card-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin: 0;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--parkon-border, #34434c);
+  border-radius: inherit;
+  border-end-start-radius: 0;
+  border-end-end-radius: 0;
+  background: var(--admin-card-heading-bg, #202c3d);
+}
+html[data-theme='light'] { --admin-card-heading-bg: #f7f8fa; }
+html[data-theme='light'] .session-current-heading { --admin-card-heading-bg: #fff; }
+html[data-theme='light'] :is(
+  .observation-panel ~ .parking-availability,
+  .revenue-main > .revenue-daily-heading,
+  .revenue-lot-table > .panel-header,
+  .revenue-workspace > .operation-stats:not(.revenue-usage-stats) > .panel
+) {
+  background: var(--admin-card-heading-bg);
+}
+html[data-theme] .admin-card-heading :is(h2, h3) {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.4;
+  font-weight: 750;
+  letter-spacing: -.025em;
+}
+html[data-theme] .observation-panel > .admin-card-heading {
+  margin: 0 calc(-1 * var(--observation-padding)) 12px;
+  padding: 14px 16px !important;
+  align-items: center;
+}
+html[data-theme] .observation-panel > .admin-card-heading h3 { font-size: 18px !important; }
+html[data-theme] .observation-panel { --observation-padding: 24px; padding-top: 0 !important; }
+@media (max-width: 600px) {
+  html[data-theme] .observation-panel { --observation-padding: 18px; }
+  html[data-theme] .observation-panel > .admin-card-heading { flex-direction: row; }
+}
+html[data-theme] .admin-call-list {
+  padding: 0 0 4px;
+}
+html[data-theme] .admin-call-list-heading { justify-content: flex-start; }
+html[data-theme] .admin-call-list > ul { padding-inline: 16px; }
+html[data-theme='light'] .admin-card-heading + .alert-list-toolbar { background: #fff; }

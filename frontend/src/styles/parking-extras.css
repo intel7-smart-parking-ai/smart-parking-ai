@@ -42,7 +42,8 @@
 .admin-call-brand { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; font-size: .75rem; }
 .admin-call-brand span { border-inline-start: 1px solid #e9d5aa; padding-inline-start: 8px; }
 .admin-call-message { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.admin-call-icon { display: grid; place-items: center; flex: 0 0 42px; height: 42px; background: #fff1c7; border-radius: 10px; }
+.admin-call-icon { position: relative; display: grid; place-items: center; flex: 0 0 42px; height: 42px; background: #fff1c7; border-radius: 10px; }
+.admin-call-icon > .notification-count { inset: -5px -5px auto auto; }
 .admin-call-icon svg { width: 25px; height: 25px; }
 .admin-call-message strong { font-size: .9375rem; }
 .admin-call-message p { margin: 3px 0; overflow-wrap: anywhere; max-height: 3.2em; overflow: auto; }
