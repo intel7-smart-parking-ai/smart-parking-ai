@@ -108,14 +108,37 @@ class EventPipeline(OccupancyExperiment):
         self._reidentify[key] = (car, active["session_id"], first, observed_at, count)
         if count < self.REIDENTIFY_FRAMES:
             return False
-        exit_at = max(first, datetime.fromisoformat(active["entry_at"]))
-        self.session_exit(conn, session_id=active["session_id"], exit_at=exit_at)
-        session = self.session_enter(
-            conn, session_id=uuid4().hex, lot_id=row["lot_id"], space_id=row["space_id"],
-            car_id=car, entry_at=exit_at,
-        )
-        row.update(session_id=session.session_id, session_car_id=session.car_id,
-                   entry_at=session.entry_at)
+        exit_at = max(first, datetime.fromisoformat(active["entry_at"])).isoformat()
+        session_id = uuid4().hex
+        # Close and open in ONE transaction: a failure must never leave the old car exited
+        # with nobody parked (PR #132 review). A new number that is active anywhere else is
+        # not a swap here; keep the existing 409 and let move/cross-lot rules decide.
+        conn.execute("BEGIN IMMEDIATE")
+        try:
+            if conn.execute("SELECT 1 FROM parking_sessions WHERE car_id=? AND status='active'",
+                            (car,)).fetchone():
+                conn.rollback()
+                self._reidentify.pop(key, None)
+                return False
+            closed = conn.execute(
+                "UPDATE parking_sessions SET exit_at=?, status='closed' "
+                "WHERE session_id=? AND status='active' AND car_id=?",
+                (exit_at, active["session_id"], active["car_id"]),
+            ).rowcount
+            if closed != 1:
+                conn.rollback()
+                self._reidentify.pop(key, None)
+                return False
+            conn.execute(
+                "INSERT INTO parking_sessions (session_id, lot_id, space_id, car_id, entry_at, status) "
+                "VALUES (?, ?, ?, ?, ?, 'active')",
+                (session_id, row["lot_id"], row["space_id"], car, exit_at),
+            )
+            conn.commit()
+        except BaseException:
+            conn.rollback()
+            raise
+        row.update(session_id=session_id, session_car_id=car, entry_at=exit_at)
         self._reidentify.pop(key, None)
         logging.info("Stable reidentify %s/%s: %s -> %s after %d frames",
                      row["lot_id"], row["space_id"], active["car_id"], car, count)

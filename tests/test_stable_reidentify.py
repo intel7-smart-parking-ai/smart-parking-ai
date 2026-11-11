@@ -86,3 +86,34 @@ def test_empty_gap_flow_is_unchanged(bay):
     frames(None, 10, event_type="space_empty_observed")
     frames("24", 10)
     assert [(car, state) for car, state, *_ in sessions()] == [("33", "closed"), ("24", "active")]
+
+
+def test_failed_new_entry_rolls_back_the_old_exit(bay, tmp_path):
+    """PR #132 review: exit and entry are one transaction (no orphan closed session)."""
+    frames, sessions, status = bay
+    frames("33", 10)
+    with sqlite3.connect(tmp_path / "reidentify.db") as conn:
+        conn.execute("CREATE TRIGGER fail_24 BEFORE INSERT ON parking_sessions "
+                     "WHEN NEW.car_id='24' BEGIN SELECT RAISE(ABORT, 'injected'); END")
+    codes = frames("24", 25)
+    assert 503 in codes
+    assert [(car, state) for car, state, *_ in sessions()] == [("33", "active")]
+
+
+def test_new_number_active_elsewhere_is_not_a_swap(bay, tmp_path):
+    frames, sessions, status = bay
+    frames("33", 10)
+    with sqlite3.connect(tmp_path / "reidentify.db") as conn:
+        conn.execute("INSERT INTO parking_sessions (session_id, lot_id, space_id, car_id, entry_at, status) "
+                     "VALUES ('elsewhere', 'C', 'A-01', '24', ?, 'active')", (START.isoformat(),))
+    frames("24", 25)
+    assert [(car, state) for car, state, *_ in sessions()] == [("33", "active")]
+
+
+def test_old_entry_kept_and_new_entry_equals_old_exit(bay, tmp_path):
+    frames, sessions, status = bay
+    frames("33", 10)
+    before = sessions()[0]
+    frames("24", 25)
+    old, new = sessions()
+    assert old[2] == before[2] and old[1] == "closed" and new[2] == old[3]
