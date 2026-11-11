@@ -75,6 +75,74 @@ class EventPipeline(OccupancyExperiment):
         self.session_exit = session_exit
         self.recovering = False
         self.gate = RLock()
+        # 11/11 PM: a confirmed session's bay that keeps reading a different number for
+        # REIDENTIFY_FRAMES distinct camera frames is a real swap (car replaced without the
+        # 3 s empty gap), not a misread. Kept outside the row because a 409 discards it.
+        self._reidentify = {}
+
+    REIDENTIFY_FRAMES = 8          # same as the camera's pinned-number swap (#106, ~5 s)
+    # Rejected frames leave the bay uncertain until it re-stabilizes (~3 s cycle), so the
+    # qualifying 409 frames arrive in bursts; allow that gap but nothing longer.
+    REIDENTIFY_MAX_GAP = 4.0       # seconds between qualifying frames
+
+    def _stable_reidentify(self, conn, row, active, observed_at):
+        """Close the old session and open the newly read car once the swap is stable."""
+        key = (row["lot_id"], row["space_id"])
+        car = row.get("car_id")
+        evidence = row.get("identity_evidence")
+        qualifies = (
+            row["lot_id"] in ("A", "B") and row.get("source") == "vision"
+            and car is not None and active["car_id"] is not None and car != active["car_id"]
+            # identity_evidence only advances on distinct camera frames with confidence >= 0.8
+            and evidence is not None and evidence[0] == car and evidence[2] == observed_at
+        )
+        if not qualifies:
+            self._reidentify.pop(key, None)
+            return False
+        previous = self._reidentify.get(key)
+        if (previous and previous[0] == car and previous[1] == active["session_id"]
+                and 0 < (observed_at - previous[3]).total_seconds() <= self.REIDENTIFY_MAX_GAP):
+            first, count = previous[2], previous[4] + 1
+        else:
+            first, count = observed_at, 1
+        self._reidentify[key] = (car, active["session_id"], first, observed_at, count)
+        if count < self.REIDENTIFY_FRAMES:
+            return False
+        exit_at = max(first, datetime.fromisoformat(active["entry_at"])).isoformat()
+        session_id = uuid4().hex
+        # Close and open in ONE transaction: a failure must never leave the old car exited
+        # with nobody parked (PR #132 review). A new number that is active anywhere else is
+        # not a swap here; keep the existing 409 and let move/cross-lot rules decide.
+        conn.execute("BEGIN IMMEDIATE")
+        try:
+            if conn.execute("SELECT 1 FROM parking_sessions WHERE car_id=? AND status='active'",
+                            (car,)).fetchone():
+                conn.rollback()
+                self._reidentify.pop(key, None)
+                return False
+            closed = conn.execute(
+                "UPDATE parking_sessions SET exit_at=?, status='closed' "
+                "WHERE session_id=? AND status='active' AND car_id=?",
+                (exit_at, active["session_id"], active["car_id"]),
+            ).rowcount
+            if closed != 1:
+                conn.rollback()
+                self._reidentify.pop(key, None)
+                return False
+            conn.execute(
+                "INSERT INTO parking_sessions (session_id, lot_id, space_id, car_id, entry_at, status) "
+                "VALUES (?, ?, ?, ?, ?, 'active')",
+                (session_id, row["lot_id"], row["space_id"], car, exit_at),
+            )
+            conn.commit()
+        except BaseException:
+            conn.rollback()
+            raise
+        row.update(session_id=session_id, session_car_id=car, entry_at=exit_at)
+        self._reidentify.pop(key, None)
+        logging.info("Stable reidentify %s/%s: %s -> %s after %d frames",
+                     row["lot_id"], row["space_id"], active["car_id"], car, count)
+        return True
 
     def connection(self):
         conn = sqlite3.connect(self.database, timeout=15, check_same_thread=False)
@@ -599,6 +667,8 @@ class EventPipeline(OccupancyExperiment):
                         if active["car_id"] is None and row.get("identity_observation"):
                             row["car_id"] = None
                         if active["car_id"] != row["car_id"]:
+                            if self._stable_reidentify(conn, row, active, observed_at):
+                                return
                             raise HTTPException(
                                 409, "활성 세션의 차량 식별 변경은 확인이 필요합니다."
                             )
