@@ -144,6 +144,9 @@ def _restore(text, masked, replacements):
     restored = re.sub(r"(?<![\d:])(\d{1,2}):(\d)(?![\d:])", r"\1:0\2", restored)
     restored = re.sub(r"(?<![\d,.])1 (minute|hour|space|day|vehicle|car|spot)s\b", r"1 \1", restored)
     restored = re.sub(r"\b([Tt])here are (1 (?:space|minute|hour|vehicle|car|spot)\b)", r"\1here is \2", restored)
+    # 한 칸일 때는 반대로 복수 동사가 남는다(11/11 리허설 실측: '1 space are being checked by camera') → 'is'
+    restored = re.sub(r"(?<![\d,.])(1 (?:space|minute|hour|vehicle|car|spot)) (are|were|have)\b",
+                      lambda m: f"{m[1]} {'is' if m[2] == 'are' else 'was' if m[2] == 'were' else 'has'}", restored)
     # 개수 자리표시('12 spaces') 뒤의 동사는 모델이 단수로 쓰기 쉽다: '12 spaces is being verified' → 'are'
     restored = re.sub(r"(\d[\d,]* (?:spaces|minutes|hours|vehicles|cars)) (is|was|has)\b",
                       lambda m: f"{m[1]} {'are' if m[2] == 'is' else 'were' if m[2] == 'was' else 'have'}", restored)
