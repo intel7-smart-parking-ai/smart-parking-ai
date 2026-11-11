@@ -473,12 +473,27 @@ class ParkingPipeline:
 
     def invalidate(self, camera=None, *, disconnected=False):
         with self.lock:
+            # 11/11 USB drill: a re-plugged camera released both approvals until a person
+            # re-approved. Keep the reviewed pose for APPROVAL_RECHECK_SECONDS so two
+            # consecutive frames of the new stream that verify the same pose restore it.
+            # A moved camera never verifies, and nothing else (identity, empty baseline)
+            # carries over.
+            reconnect=None
+            if disconnected and camera is not None:
+                approved=self.confirmed.get(camera)
+                held=getattr(self,'interrupted_views',{}).get(camera)
+                view=getattr(self,'fixed_views',{}).get(camera)
+                if held is not None:
+                    reconnect=((None,)+tuple(held[0][1:]),held[1],held[2],None)
+                elif isinstance(approved,tuple) and len(approved)==4 and view and view[1] is not None:
+                    reconnect=((None,)+tuple(approved[1:]),view[1],time.monotonic()+APPROVAL_RECHECK_SECONDS,None)
             if self.fire_watch:self.fire_watch.clear(camera)
             if camera is None:self.baselines.clear();self.confirmed.clear();self.search_order.clear()
             else:self.baselines.pop(camera,None);self.confirmed.pop(camera,None);self.search_order.pop(camera,None)
             self.numbers.invalidate(camera)
             interrupted=getattr(self,'interrupted_views',{})
             if camera is None:interrupted.clear()
+            elif reconnect is not None:interrupted[camera]=reconnect
             else:interrupted.pop(camera,None)
             history=getattr(self,'light_history',{})
             floor=getattr(self,'floor_history',{})
@@ -490,6 +505,9 @@ class ParkingPipeline:
             tracking=getattr(self,'board_tracking',{})
             if camera is None:tracking.clear()
             else:tracking.pop(camera,None)
+            reviewed=self.__dict__.setdefault('approved_views',{})
+            if camera is None:reviewed.clear()
+            elif not disconnected:reviewed.pop(camera,None)
             if camera is None:fixed.clear()
             elif disconnected and camera in fixed:
                 # Only an appearance reference survives a channel reconnect.
@@ -532,6 +550,9 @@ class ParkingPipeline:
                 # Register the reviewed image with its own geometry.
                 self.fixed_views[camera]=(result['stream_epoch'],self.registry.fixed_view(frame,pose))
                 ref=self.fixed_views[camera][1]
+                # The fixed view adapts its exposure while approved; keep the reviewed
+                # appearance too so a recheck still verifies after the light returns.
+                if ref:self.__dict__.setdefault('approved_views',{})[camera]=ref
                 if ref and camera in ('1','2') and hasattr(self,'start_views'):
                     self.start_views[camera]=ref
                     self.registry.save_start_view(camera,ref)
@@ -640,14 +661,31 @@ class ParkingPipeline:
         saved=views.get(camera)
         if saved is None:return None
         approval,ref,deadline,previous=saved
+        if approval[0] is None:
+            # First frame after a reconnect: the review may only resume on this new stream.
+            approval=(epoch,)+tuple(approval[1:]);previous=None
+            views[camera]=(approval,ref,deadline,previous)
         if (epoch!=approval[0] or lot_hint not in ('auto',approval[1]) or time.monotonic()>deadline
                 or tuple(frame.shape)!=tuple(approval[3])):
             views.pop(camera,None)
             return None
         pose=self.registry.verify_fixed_view(frame,ref) if inspect else None
+        reviewed=getattr(self,'approved_views',{}).get(camera)
+        if pose is None and inspect and reviewed is not None and reviewed is not ref:
+            # 11/11 ceiling-light drill: the exposure-adapted reference followed the dark
+            # room; the reviewed appearance matches again once the light is back.
+            pose=self.registry.verify_fixed_view(frame,reviewed)
+        why=None if pose is not None else ('reference_not_matched' if inspect else 'frame_quality')
         if (pose is not None and pose.get('outline') is not None
                 and not same_pose(approval[2],pose['outline'],frame.shape)):
-            pose=None
+            pose=None;why='moved'
+        if why:
+            # Diagnostics only (11/11 lighting drill): why an interrupted approval is not restored.
+            seen=self.__dict__.setdefault('_recheck_logged',{})
+            now=time.monotonic()
+            if now-seen.get(camera,0)>=1:
+                seen[camera]=now
+                logging.getLogger(__name__).info('Camera %s approval recheck failed: %s (%.0fs left)',camera,why,deadline-now)
         if pose is not None and previous is not None and sequence>previous:
             self.confirmed[camera]=approval
             self.fixed_views[camera]=(epoch,ref)
@@ -677,6 +715,9 @@ class ParkingPipeline:
                     tracking[camera]=(epoch,hint)
             if fixed and fixed[0] in (None,epoch) and fixed[1] and lot_hint in ('auto',fixed[1]['pose']['lot_id']):
                 registration=self.registry.verify_fixed_view(frame,fixed[1])
+                reviewed=getattr(self,'approved_views',{}).get(camera)
+                if registration is None and reviewed is not None and reviewed is not fixed[1]:
+                    registration=self.registry.verify_fixed_view(frame,reviewed)
             if registration is None and not fixed and tracking is not None and camera in tracking:
                 tracked_epoch,reference=tracking[camera]
                 if tracked_epoch==epoch and lot_hint in ('auto',reference['pose']['lot_id']):
@@ -743,7 +784,9 @@ class ParkingPipeline:
         else:
             lot=registration['lot_id'];outline=registration['outline'];matrix=registration['matrix']
             paused=interrupted.get(camera)
-            if paused and (lot!=paused[0][1] or not same_pose(paused[0][2],outline,frame.shape)):
+            # A full search can land a few pixels off the reviewed pose (11/10, 11/11). Only a
+            # different board cancels the recheck; a real move never verifies and expires.
+            if paused and lot!=paused[0][1]:
                 interrupted.pop(camera,None)
             result.update(lot_id=lot,_outline=outline,_pose=registration,registration={'inliers':registration['inliers'],
                 'residual_px':round(registration['residual_px'],3),'line_support':round(registration['line_support'],3),

@@ -65,6 +65,8 @@ $env:API_BASE_URL = "http://<시연 서버 IP>"; $env:VISION_TOKEN = "<팀에서
 
 **칸 경계의 붉은 빛(round41)**: 칸과 85% 미만으로 겹친 빛은 `boundary`가 되어 칸 단위 LED 명단 판단을 건너뛰고, 확정되면 칸 없는(주차장 단위) 모의 화재로 나갔다. 11/11 시연 사이트: 부산역 A-02(빨간 21번)에 82.7% 걸친 0.91 빛. 이제 경계 빛이 닿은 칸(`touching`)이 **모두 번호가 읽힌 LED 명단 밖 차**이면 `not_led_car_boundary`로 제외한다. 닿은 칸 중 하나라도 LED 차·번호 미판독·빈칸이면 기존 규칙, 통로 빛은 그대로다.
 
+**도면 승인 자동 복구(round42)**: 11/11 장애 시험에서 USB를 다시 꽂으면 두 화면 승인이 풀려 사람이 '칸 위치 맞음'을 눌러야 했다. 이제 재연결(새 스트림) 뒤에도 승인된 판 위치를 `APPROVAL_RECHECK_SECONDS`(90초) 동안 보관하고, **새 스트림의 연속 두 프레임이 승인 위치와 정확히 일치**하면 자동 복구한다(실측: 재연결 후 1.2초). 번호·빈 기준은 이어받지 않는다. 고정 기준 영상은 승인 중 노출에 맞춰 갱신되므로, 승인 당시 영상(`approved_views`)도 함께 보관해 조명이 돌아온 뒤에도 검증할 수 있게 했다. 전체 재탐색이 몇 픽셀 어긋난 결과는 재검증을 취소하지 않고 90초 뒤 만료된다. 카메라·판이 실제로 움직이면(11/11 시험 5~38px) 검증되지 않아 기존처럼 재승인이 필요하다. 복구 실패 사유는 1초에 한 번 `approval recheck failed: reference_not_matched|moved|frame_quality` 로그로 남는다.
+
 **LED 탈락 진단(round40, 동작 변화 없음)**: 붉은 빛 후보가 왜 빠졌는지(`low_score`·`small_box`·`weak_features`·`orange_body`·`paint_reflection`)를 프레임 결과 `rejected_lights`에 남기고, 칸별 횟수·최고점을 1분에 한 번 로그로 쓴다. `V53_LED_DEBUG_BAYS=A-04,A-05`로 칸을 좁힐 수 있다.
 
 **RGB 노출 고정(round40, 기본 꺼짐)**: `V53_EXPOSURE`·`V53_GAIN`·`V53_WHITE_BALANCE`·`V53_POWER_LINE`(50/60)을 지정한 경우에만 자동 노출·화이트밸런스를 끄고 값을 넣는다. 카메라별 `V53_CAMERA_1_EXPOSURE`가 우선한다. 지정하지 않으면 기존과 같고, 잘못된 값은 무시하고 경고만 남긴다. 11/11 시험에서는 쓰지 않았다(바꾸면 빈칸 기준 재등록·전체 재측정 필요).
@@ -130,6 +132,7 @@ $env:SMART_PARKING_DB_PATH = Join-Path $PWD "camtest.db"
 | round39 | LED 장착 차 명단으로 다른 차 위 붉은 빛 제외(위치 무관), 약한 붉은 빛 3프레임 확정, 후보 화면 표기 "LED 확인 중", 옮긴 차의 번호 고정 해제 |
 | round40 | 흰 LED 차(42·11)의 분홍 발광을 LED 명단 칸에서만 3프레임 확정, LED 탈락 이유 진단 로그, RGB 노출·화이트밸런스·60Hz 환경변수(기본 꺼짐) |
 | round41 | 칸 경계의 붉은 빛이 닿은 칸이 모두 LED 명단 밖 차면 제외(주차장 단위 오경보 차단) |
+| round42 | USB 재연결·조명 변화 뒤 승인 위치가 두 프레임 일치하면 자동 복구, 승인 당시 기준 영상 보관, 복구 실패 사유 로그 |
 
 ```powershell
 python -m pytest web_live/tests -q    # 또는 python -m unittest discover -s web_live/tests -t .
