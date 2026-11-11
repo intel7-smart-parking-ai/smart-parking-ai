@@ -1,4 +1,6 @@
 .venv/
+.venv*/
+ocr_models/
 __pycache__/
 .test_tmp/
 .pytest_cache/

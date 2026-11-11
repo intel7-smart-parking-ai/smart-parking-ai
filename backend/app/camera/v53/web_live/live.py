@@ -139,6 +139,8 @@ class LiveSession:
         self.idle_sleep_request=None
         self.last_pause_seconds=None
         self.watchdog_stopped=False
+        # camera -> when/why its approved board stopped being approved (cleared on re-approval).
+        self.approval_lost={};self._approved={};self.publish_error=None
         self.lots={'1':'auto','2':'auto'};self.threshold=.85;self.sending=False;self.last_client=time.monotonic()
 
     def start(self):
@@ -155,6 +157,7 @@ class LiveSession:
                 if self.collection:self.collection.begin()
                 self.running=True;self.results={};self.packets={};self.review_frames={};self.errors={};self.revision+=1
                 self.review_cutoff.clear();self.bay_pins.clear()
+                self.approval_lost.clear();self._approved.clear();self.publish_error=None
                 self.last_pause_seconds=None;self.watchdog_stopped=False
                 self.sending=False;self.last_client=time.monotonic()
             try:
@@ -290,6 +293,7 @@ class LiveSession:
                                 if revision==self.revision and not self.stop_event.is_set():
                                     peers=self._fresh_results(now);peers[camera]=result
                                     apply_bay_pins(result,self.bay_pins,duplicate_identities(peers))
+                                    self._track_approval(camera,result)
                                     self.results[camera]=result;self.packets[camera]=packet;self.errors.pop(camera,None)
                                     self._remember_review(camera, result, packet)
                                     self.publication_ready.set()
@@ -304,7 +308,26 @@ class LiveSession:
                 if not changed:self.stop_event.wait(.03)
         finally:
             self.transport.cancel();self.hub.stop()
-            with self.lock:self.running=False;self.sending=False;self.results={};self.packets={};self.review_frames={}
+            with self.lock:
+                if not self.stop_event.is_set() or self.watchdog_stopped:
+                    self._record_send_stop('camera_worker_stopped')
+                self.running=False;self.sending=False;self.results={};self.packets={};self.review_frames={}
+
+    def _track_approval(self,camera,result):
+        """Call under self.lock. An approved board that stops being approved sends nothing for
+        its lot while the screen still says delivery is on (11/10 classroom: 12 bays silent)."""
+        approved=bool(result.get('roi_confirmed'))
+        was=self._approved.get(camera)
+        self._approved[camera]=approved
+        if approved:
+            if self.approval_lost.pop(camera,None):
+                logging.getLogger(__name__).info('Camera %s board approval restored (lot=%s)',camera,result.get('lot_id'))
+        elif was:
+            self.approval_lost[camera]={'at':datetime.now(timezone.utc).isoformat(),'lot_id':result.get('lot_id'),
+                                        'registration_ok':bool(result.get('registration_ok'))}
+            logging.getLogger(__name__).warning(
+                'Camera %s board approval released (lot=%s, board found=%s); its bays are not sent until '
+                "'칸 위치 맞음' again",camera,result.get('lot_id'),bool(result.get('registration_ok')))
 
     def _remember_review(self, camera, result, packet):
         # Keep only frames from one uninterrupted view of the same board.
@@ -381,14 +404,25 @@ class LiveSession:
         sent={}
         while not self.stop_event.is_set():
             self.publication_ready.clear()
-            with self.lock:
-                deadline=self._offer_current(sent) if self.sending else None
+            try:
+                with self.lock:
+                    deadline=self._offer_current(sent) if self.sending else None
+            except Exception as error:
+                # One bad frame must not silently end delivery for the rest of the run.
+                logging.getLogger(__name__).exception('Publishing observations failed; retrying with fresh frames')
+                with self.lock:
+                    self.publish_error={'error':type(error).__name__,'at':datetime.now(timezone.utc).isoformat()}
+                sent.clear();deadline=None
             # Wake immediately for either camera. The timer also admits the
             # latest unsent steady frame when its one-second heartbeat is due.
             timeout=.5 if deadline is None else max(0,min(.5,deadline-time.monotonic()))
             self.publication_ready.wait(timeout)
 
     HELD_HEARTBEAT_MAX=2
+    # Same-state heartbeat per bay. At 1.55 fps a 1 s timer sent every other frame
+    # (gaps 1.29 s); one missed turn reached 1.94 s + transport, past the server's
+    # 2 s gap (11/10 review, Gaebalwon 6 bays p95 2.3 s). 0.6 s sends every frame.
+    HEARTBEAT_SECONDS=.6
 
     def _held_heartbeats(self,scope,result,packet,events):
         """Bridge a short reading hold on an occupied bay (team decision 11/10, server gap stays 2s).
@@ -450,7 +484,7 @@ class LiveSession:
                     old_seq,old_signature,last,last_capture=previous
                     if seq==old_seq:continue
                     if signature==old_signature:
-                        due=last+1
+                        due=last+self.HEARTBEAT_SECONDS
                         ready=result.get('_ready_mono')
                         tick=max(due,now-.4)
                         if ready is not None:
@@ -505,7 +539,8 @@ class LiveSession:
         with self._review_turn():
             with self.lock:
                 self.transport.cancel()
-                self.revision+=1;self.results={};self.packets={};self.review_frames={};self.lots=dict(lots);self.threshold=float(threshold);self.sending=False
+                self._record_send_stop('configuration_changed')
+                self.revision+=1;self.results={};self.packets={};self.review_frames={};self.lots=dict(lots);self.threshold=float(threshold)
             self.pipeline.invalidate()
 
     @contextmanager
@@ -620,7 +655,10 @@ class LiveSession:
                 'idle_sleep_request':self.idle_sleep_request,
                 'cameras':self.hub.snapshot() if self.hub else {},'threshold':self.threshold,'lots':dict(self.lots),
                 'transport':self.transport.snapshot(),'ocr_status':self.pipeline.numbers.status,
-                'frame_perf':self._frame_perf().summary}
+                'frame_perf':self._frame_perf().summary,
+                'approval_lost':dict(getattr(self,'approval_lost',{})),
+                'sender_alive':bool(self.sender and self.sender.is_alive()),
+                'publish_error':getattr(self,'publish_error',None)}
 
     def _frame_perf(self):
         return self.__dict__.setdefault('frame_perf',FramePerf())
@@ -629,10 +667,20 @@ class LiveSession:
         with self.lifecycle:
             return self._stop()
 
+    def _record_send_stop(self,reason):
+        """Call under self.lock. Delivery that was on and is now off always leaves a reason."""
+        if self.sending:
+            self.send_stopped={'reason':reason,'at':datetime.now(timezone.utc).isoformat()}
+            logging.getLogger(__name__).warning(
+                'External delivery stopped (%s). Approve both boards again and turn delivery on.',reason)
+        self.sending=False
+
     def _stop(self):
         self.stop_event.set();self.transport.cancel()
         self.publication_ready.set()
-        with self.lock:self.sending=False;self.revision+=1;self.results={};self.packets={};self.review_frames={}
+        with self.lock:
+            self._record_send_stop('camera_stopped')
+            self.revision+=1;self.results={};self.packets={};self.review_frames={}
         if self.hub:self.hub.stop()
         if self.worker and self.worker.is_alive():self.worker.join(5)
         if self.sender and self.sender.is_alive():self.sender.join(2)

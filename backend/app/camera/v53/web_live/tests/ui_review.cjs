@@ -206,7 +206,14 @@ const context=vm.createContext({document,console,Image:class {decode(){return Pr
     [{running:true,sending:true,results:{}},/새 카메라/],
     [{running:true,sending:true,last_pause_seconds:242,results:{1:{roi_confirmed:false}}},/재확인/],
     [{running:true,sending:true,results:{1:result,2:result}},/전송 가능한 칸 없음/],
-    [{running:true,sending:true,results:{1:result}},/전송 켜짐/]]){
+    [{running:true,sending:true,results:{1:result}},/전송 켜짐/],
+    // 11/10: one approved board kept "전송 켜짐" while the other lot sent nothing.
+    [{running:true,sending:true,results:{1:result,2:{roi_confirmed:false,spaces:[]}}},/일부 전송 · 카메라 2 도면 승인 해제/],
+    [{running:true,sending:true,results:{1:result},approval_lost:{2:{lot_id:'A'}}},/일부 전송 · 카메라 2/],
+    [{running:true,sending:false,send_stopped:{reason:'camera_stopped',at:'2026-11-10T07:55:57Z'},results:{1:result}},/정지·재시작으로 서버 전송 꺼짐/],
+    [{running:true,sending:false,send_stopped:{reason:'camera_stopped',at:'x'},results:{1:{roi_confirmed:false}}},/정지·재시작으로 서버 전송 꺼짐 · 칸 위치 맞음/],
+    [{running:true,sending:false,send_stopped:{reason:'operator_turned_off',at:'x'},results:{1:{roi_confirmed:false}}},/칸 위치 확인 후 전송 켜기/],
+    [{running:true,sending:true,sender_alive:false,results:{1:result}},/전송 작업 정지/]]){
     context.statusInput=s;assert.match(vm.runInContext('liveStatus(statusInput)',context),label);
   }
   console.log('PASS watchdog stop, camera wait, resume review, duplicate lot and enabled delivery status');
