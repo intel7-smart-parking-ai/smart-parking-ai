@@ -218,8 +218,10 @@ def contradicts_restricted_policy(answer):
     return False
 
 
-_TOTAL_CLAIM = re.compile(r"(?:총|합계|합쳐서?|합치면|합하면|모두\s*합(?:쳐|치면)?|다\s*합(?:쳐|치면))[^\d\n]{0,10}?"
-                          r"(\d[\d,]*)\s*(?:자리|칸|대|개|면)(?!\s*(?:의\s*)?주차장)")
+# 합계를 말하는 표현. '전체 12자리가 있어요', '모두 90곳'도 합계다(11/11 내부 검사: '전체 12자리'가 합계로 잡히지 않아
+# 바로 앞 주차장의 값과 비교돼 맞는 답이 버려졌다).
+_TOTAL_CLAIM = re.compile(r"(?:총|합계|합쳐서?|합치면|합하면|모두|전체|다\s*합(?:쳐|치면))[^\d\n]{0,10}?"
+                          r"(\d[\d,]*)\s*(자리|칸|대|개|면|곳|군데)(?!\s*(?:의\s*)?주차장)")
 _UNCERTAIN_INCLUDED = re.compile(r"확인\s*(?:중|필요)[^.\n]{0,14}포함(?!\s*(?:되지|하지|안\s|돼\s*있지|되어\s*있지))")
 
 REPAIR_HINTS = {
@@ -322,11 +324,14 @@ def check_answer(answer, request, observations):
     # 합계('총 91자리', '합쳐서 91대')는 코드가 계산한 summary.total_empty 와 같아야 한다. 조회 결과의 다른 숫자(칸 수 64 등)와
     # 우연히 같아서 통과하지 않게 한다. 같은 줄에서 주차장을 먼저 말한 '총 64칸 중 21칸'은 그 주차장의 전체 칸 수라 아래 검사에 맡긴다.
     totals = {str(row["total_empty"]) for row in entries if type(row.get("total_empty")) is int}
+    lot_counts = {str(row[k]) for row in entries for k in ("lot_count", "lots_with_space") if type(row.get(k)) is int}
     total_spans = set()
     for m in _TOTAL_CLAIM.finditer(answer):
         if m[1].replace(",", "") in totals:
             total_spans.add(m.start(1))
             continue
+        if m[2] in ("곳", "군데", "개") and m[1] in lot_counts:
+            continue       # '총 4곳', '모두 3곳에 자리가 있어요' → 주차장 수(compare_lots 요약 값)
         line_start = answer.rfind("\n", 0, m.start()) + 1
         if len(status_rows) >= 2 and not any(line_start <= start <= m.start() for start, _ in mentions):
             return "wrong_total"

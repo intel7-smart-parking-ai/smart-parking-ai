@@ -76,6 +76,20 @@ class TotalTests(unittest.TestCase):
         answer = f"김해공항 주차장은 총 {row['total']}칸 중 {row['empty']}칸이 비어 있어요."
         self.assertIsNone(check_answer(answer, "김해공항 자리 있어?", seen("compare_lots", result)))
 
+    def test_total_said_as_jeonche_after_a_per_lot_list(self):
+        # 11/11 내부 검사: "나 전기차야" → "· 부산역주차장: 2자리\n\n전체 12자리의 전기차 자리가 있어요"가
+        # 합계로 잡히지 않고 바로 앞 주차장(부산역)의 값과 비교돼 버려졌다(mismatched_lot_value)
+        result = self.tools.compare_lots(None, "ev")
+        total = result["data"]["summary"]["total_empty"]
+        listing = "\n".join(f"· {row['name']}: {row['empty']}자리" for row in result["data"]["rows"] if row["empty"])
+        observed = seen("compare_lots", result)
+        for tail in (f"전체 {total}자리의 전기차 자리가 있어요.", f"모두 {total}곳이 비어 있어요.", f"전체 {total}자리가 비어 있어요."):
+            self.assertIsNone(check_answer(f"전기차 충전 구역의 빈자리예요.\n\n{listing}\n\n{tail}", "나 전기차야", observed), tail)
+        self.assertIsNotNone(check_answer(f"전기차 충전 구역의 빈자리예요.\n\n{listing}\n\n전체 {total + 1}자리가 비어 있어요.",
+                                          "나 전기차야", observed))
+        lots = result["data"]["summary"]["lot_count"]
+        self.assertIsNone(check_answer(f"총 {lots}곳의 주차장을 확인했어요.\n\n{listing}", "나 전기차야", observed))   # 주차장 수는 합계가 아니다
+
     def test_total_after_the_per_lot_list_on_one_line(self):
         result = self.tools.compare_lots(None)
         total = result["data"]["summary"]["total_empty"]
