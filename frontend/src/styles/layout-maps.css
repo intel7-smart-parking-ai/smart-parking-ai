@@ -105,3 +105,15 @@ html .layout-mall .pdf-map-svg .pdf-bay.empty.recommended .pdf-bay-label {
   fill: #fff;
   font-weight: 900;
 }
+
+.pdf-map-panel .pdf-bay.warned .pdf-bay-shape {
+  fill: #ffded6 !important;
+  stroke: #e31b23 !important;
+  stroke-linejoin: round;
+}
+.pdf-map-panel .pdf-bay.warned .pdf-bay-label {
+  fill: #20242c !important;
+  font-weight: 900;
+}
+.pdf-map-panel .pdf-bay.warned { opacity: 1; }
+.pdf-map-panel .pdf-warning { pointer-events: none; }

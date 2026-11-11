@@ -8,14 +8,18 @@ const tones = {
 export function useAdminAlertAudio() {
  const context = useRef(null);
  const enabled = useRef(false);
+ const fireBuffer = useRef(null);
+ const firePlayback = useRef(null);
  const [state, setState] = useState('off');
  useEffect(() => () => {
   enabled.current = false;
   context.current?.close().catch(()=>{});
   context.current = null;
+  firePlayback.current = null;
+  fireBuffer.current = null;
  }, []);
 
- const play = useCallback(kind => {
+ const playTone = useCallback(kind => {
   const audio = context.current;
   if (!enabled.current || audio?.state !== 'running') return;
   const {wave,gain,notes} = tones[kind];
@@ -37,9 +41,42 @@ export function useAdminAlertAudio() {
   }
  }, []);
 
+ const play = useCallback(async kind => {
+  if (kind !== 'fire') return playTone(kind);
+  const audio = context.current;
+  if (!enabled.current || audio?.state !== 'running' || firePlayback.current) return;
+
+  const playback = {source: null};
+  firePlayback.current = playback;
+  try {
+   fireBuffer.current ??= fetch('/fire-alarm.mp3').then(response => {
+    if (!response.ok) throw new Error('Fire alarm audio unavailable');
+    return response.arrayBuffer();
+   }).then(bytes => audio.decodeAudioData(bytes));
+   const buffer = await fireBuffer.current;
+   if (firePlayback.current !== playback) return;
+   const source = audio.createBufferSource();
+   playback.source = source;
+   source.buffer = buffer;
+   source.connect(audio.destination);
+   source.onended = () => {
+    source.disconnect();
+    if (firePlayback.current === playback) firePlayback.current = null;
+   };
+   source.start();
+  } catch {
+   fireBuffer.current = null;
+   if (firePlayback.current !== playback) return;
+   firePlayback.current = null;
+   playTone('fire');
+  }
+ }, [playTone]);
+
  async function toggle() {
   if (enabled.current) {
    enabled.current = false;
+   firePlayback.current?.source?.stop();
+   firePlayback.current = null;
    setState('off');
    return;
   }

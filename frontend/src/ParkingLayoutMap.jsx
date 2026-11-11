@@ -48,6 +48,7 @@ function EmergencyExit({kind,t}) {
 }
 
 function MiniCar({x, y, number, rotation = 0}) {
+  const reservedIconY = geometry.centerY + (showOccupiedSymbol ? (compact ? -12 : -18) + occupiedOffset : 8);
   const label = String(number ?? '');
   const badgeWidth = Math.max(64, label.length * 20 + 16);
   return <g transform={`translate(${x} ${y})`} aria-hidden="true"><g transform={`rotate(${rotation}) scale(1.2)`}><g className="pdf-car-wheels"><rect x="-30" y="-19" width="15" height="9" rx="3"/><rect x="16" y="-19" width="15" height="9" rx="3"/><rect x="-30" y="10" width="15" height="9" rx="3"/><rect x="16" y="10" width="15" height="9" rx="3"/></g><rect className="pdf-car-body" x="-42" y="-15" width="84" height="30" rx="12"/><rect className="pdf-car-window" x="-23" y="-12" width="46" height="24" rx="5"/></g><rect className="pdf-car-plate" x={-badgeWidth / 2} y="-22" width={badgeWidth} height="44" rx="8"/><text className="pdf-car-number" style={{fontSize:label.length > 2 ? 28 : 34}} textAnchor="middle" dominantBaseline="central" y="0">{label}</text></g>;
@@ -64,21 +65,46 @@ function Bay({space, points, x, y, vertical, labelY, carY, carX, carRotation, st
   const vertices=points.trim().split(/\s+/).map(point=>point.split(',').map(Number));
   const width=Math.max(...vertices.map(point=>point[0]))-Math.min(...vertices.map(point=>point[0]));
   const compact=width<150;
+  const warningSize = compact ? 38 : 72;
   const cardWidth=compact?Math.min(66,width-9):Math.min(220,width-45);
   const cardTop=geometry.labelY+(compact?16:18);
   const plateSize=compact?10:22;
+  const occupiedOffset = compact ? 5 : 9;
+  const angled = lot.layout_type === 'angled';
+  const badgeHeight = compact ? 22 : 34;
+  const badgeWidth = angled ? 82 : compact ? 50 : 100;
+  const badgeY = geometry.centerY + (compact ? 1 : 4);
+  // The angled bays' left and right edges move together as y increases.
+  const centerAt = y => {
+    if (!angled) return geometry.centerX;
+    const [topLeft, topRight, bottomRight, bottomLeft] = vertices;
+    const fraction = (y - topLeft[1]) / (bottomLeft[1] - topLeft[1]);
+    const topCenter = (topLeft[0] + topRight[0]) / 2;
+    const bottomCenter = (bottomLeft[0] + bottomRight[0]) / 2;
+    return topCenter + (bottomCenter - topCenter) * fraction;
+  };
+  const skewAround = (y, degrees) =>
+    degrees ? `translate(0 ${y}) skewX(${degrees}) translate(0 ${-y})` : undefined;
+  const warningCenterY = geometry.centerY + (compact ? 3 : 6);
+  const badgeCenterY = badgeY + badgeHeight / 2;
+  const badgeX = centerAt(badgeCenterY + occupiedOffset);
+  const carYPosition = geometry.centerY - (compact ? 22 : 35);
+  const carCenterY = carYPosition + (compact ? 11 : 19.5);
+  const carXPosition = centerAt(carCenterY + occupiedOffset);
+
   const showOccupiedSymbol = !admin && space.status === 'occupied' && !warned;
 
+  const reservedIconY = geometry.centerY + (showOccupiedSymbol ? (compact ? -12 : -18) + occupiedOffset : 8);
   const label = `${space.space_id} ${t(typeLabels[space.space_type])} ${t(statusLabels[space.status])}${recommended ? ' · '+t('추천 빈자리') : ''}${admin&&(space.car_id||number) ? ' 차량 ' + (lot.type === 'real' ? space.car_id : space.plate_number || number) : ''}`;
   return <g className={`pdf-bay ${space.status} ${space.space_type} ${dim ? 'dim' : ''} ${selected ? 'found' : ''} ${warned ? 'warned' : ''} ${recommended ? 'recommended' : ''}`} role="button" tabIndex={0} aria-label={parkingStatus ? label+' · '+parkingStatus : label} onClick={() => onSpace(space)} onKeyDown={e => {if (e.key === 'Enter' || e.key === ' ') {e.preventDefault(); onSpace(space);}}}>
     <title>{label}{parkingStatus && ' · '+parkingStatus}</title><polygon className="pdf-bay-shape" points={points}/>
-    {parkingStatus && <g className="reserved-parking-marker" transform={`translate(${geometry.centerX} ${geometry.centerY+28})`}><circle r="12"/><text textAnchor="middle" y="6">{parkingStatus===t('확인 필요')?'?':'!'}</text></g>}
-    {['ev','accessible'].includes(space.space_type) && <g className={showOccupiedSymbol ? "bay-floor-symbol occupied-reserved-symbol" : "bay-floor-symbol"} opacity={admin && space.status==='occupied'?.12:.95} transform={`translate(${geometry.centerX} ${geometry.centerY+(showOccupiedSymbol ? (compact ? -12 : -18) : 8)}) skewX(${geometry.floorSymbolSkew}) scale(${showOccupiedSymbol ? (space.space_type === 'accessible' ? (compact ? .19 : .36) : (compact ? .32 : .62)) : lot.lot_id==='C' && space.space_type==='ev' ? .42 : geometry.floorSymbolScale})`} aria-hidden="true">
+    {!warned && parkingStatus && <g className="reserved-parking-marker" transform={`translate(${geometry.centerX} ${geometry.centerY+28})`}><circle r="12"/><text textAnchor="middle" y="6">{parkingStatus===t('확인 필요')?'?':'!'}</text></g>}
+    {!warned && ['ev','accessible'].includes(space.space_type) && <g className={showOccupiedSymbol ? "bay-floor-symbol occupied-reserved-symbol" : "bay-floor-symbol"} opacity={admin && space.status==='occupied'?.12:.95} transform={`translate(${showOccupiedSymbol ? centerAt(reservedIconY) : geometry.centerX} ${reservedIconY}) skewX(${geometry.floorSymbolSkew}) scale(${showOccupiedSymbol ? (space.space_type === 'accessible' ? (compact ? .19 : .36) : (compact ? .32 : .62)) : lot.lot_id==='C' && space.space_type==='ev' ? .42 : geometry.floorSymbolScale})`} aria-hidden="true">
       {space.space_type==='accessible'?<g fill="none" stroke="#fff" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round"><circle cx="-4" cy="-30" r="9" fill="#fff" stroke="none"/><path d="M-8-12V15H18L32 39M-7-1H17M-20 5A29 29 0 1 0 14 32"/></g>:showOccupiedSymbol?<g fill="#103b29"><path fillRule="evenodd" d="M-34-6l8-15h45l10 15 8 5v20h-7v-5h-58v5h-8V0zm8-2h47l-6-9h-36z"/><path fill="#94c8a8" d="M1-4h10l-7 7h8L-2 15 2 6h-8zM-28 0h9v4h-9zM21 0h9v4h-9z"/><path d="M32 10h7q10 0 10-10v-11m-5-9v8m10-8v8m-12 0h14q0 9-7 9t-7-9Z" fill="none" stroke="#103b29" strokeWidth="4" strokeLinecap="round"/></g>:<g fill="none" stroke="#fff" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"><path d="M-40 10V-5L-28-22H16L29-5H36V13H-40M-27-22-32-5H22L16-22"/><circle cx="-25" cy="13" r="9" fill="#589b72"/><circle cx="21" cy="13" r="9" fill="#589b72"/><path d="M36-4H43V-19H48M44-24V-16M51-24V-16"/><text x="0" y="44" textAnchor="middle" fill="#fff" stroke="none" fontSize="18" fontWeight="700">{t("전기차 전용")}</text></g>}
     </g>}
-    {stopPath && <path className="pdf-wheel-stop" d={vertical ? geometry.stopPath : stopPath} aria-hidden="true"/>}
+    {!warned && stopPath && <path className="pdf-wheel-stop" d={vertical ? geometry.stopPath : stopPath} aria-hidden="true"/>}
     <text className="pdf-bay-label" x={geometry.labelX} y={geometry.labelY} style={{fontSize:geometry.labelSize}} dominantBaseline="middle" textAnchor="middle">{space.space_id}</text>
-    {admin && space.status === 'occupied' && <g className="bay-vehicle-card" transform={`translate(${geometry.centerX} ${cardTop})`}>
+    {!warned && admin && space.status === 'occupied' && <g className="bay-vehicle-card" transform={`translate(${geometry.centerX} ${cardTop})`}>
       <rect x={-cardWidth/2} y="0" width={cardWidth} height={compact?27:33} rx={compact?5:7} fill="#fff" stroke="#b5c5df" strokeWidth="1.5"/>
       <text x="0" y={compact?17:23} textAnchor="middle" fontSize={plateSize} fontWeight="750" fill="#1e3352">{space.plate_number||space.vehicle_number||(space.car_id?t('스티커 ')+space.car_id:t('번호 미제공'))}</text>
       <rect className="bay-fee-border" x={-cardWidth/2} y={compact?32:40} width={cardWidth} height={compact?20:29} rx={compact?5:7} fill="#fff" stroke="#b5c5df" strokeWidth="1.5"/>
@@ -88,10 +114,12 @@ function Bay({space, points, x, y, vertical, labelY, carY, carX, carRotation, st
         <tspan fill="#c93636" fontWeight="750">{Number.isFinite(fees?.[space.session_id]?.amount_krw)?fees[space.session_id].amount_krw.toLocaleString('ko-KR')+t('원'):t('요금 미확인')}</tspan>
       </text>
     </g>}
-    {!admin && space.status === 'occupied' && <g className="user-bay-status" aria-hidden="true">{!warned && !['ev', 'accessible'].includes(space.space_type) && <svg x={geometry.centerX-(compact?14:25)} y={geometry.centerY-(compact?22:35)} width={compact?28:50} height={compact?22:39} viewBox="0 0 48 36">
+    {!warned && !admin && space.status === 'occupied' && <g className="user-bay-status" transform={`translate(0 ${occupiedOffset})`} aria-hidden="true">{!warned && !['ev', 'accessible'].includes(space.space_type) && <svg transform={skewAround(carCenterY, geometry.floorSymbolSkew)} x={carXPosition-(compact?14:25)} y={carYPosition} width={compact?28:50} height={compact?22:39} viewBox="0 0 48 36">
       <path fill="#1647c5" fillRule="evenodd" d="M8 13l4-9q1-3 5-3h14q4 0 5 3l4 9h4a2 2 0 0 1 0 4h-2l2 5v10a3 3 0 0 1-6 0v-2H10v2a3 3 0 0 1-6 0V22l2-5H4a2 2 0 0 1 0-4zm5 0h22l-3-7H16zm-3 8a2 2 0 0 0 0 4h4a2 2 0 0 0 0-4zm24 0a2 2 0 0 0 0 4h4a2 2 0 0 0 0-4z"/>
-    </svg>}<rect x={geometry.centerX-(compact?25:50)} y={geometry.centerY+(compact?1:4)} width={compact?50:100} height={compact?22:34} rx={compact?11:17} fill="#fff" fillOpacity=".97"/><text x={geometry.centerX} y={geometry.centerY+(compact?16:28)} textAnchor="middle" fontSize={compact?12:22} fontWeight="800" fill="#173861">{t("주차 중")}</text></g>}
-    {warned && <text className="pdf-warning" x={geometry.centerX} y={geometry.labelY} dx={50} fill="#bd2929" fontSize={22} textAnchor="middle">⚠</text>}
+    </svg>}<rect transform={skewAround(badgeCenterY, geometry.floorSymbolSkew)} x={badgeX-badgeWidth/2} y={badgeY} width={badgeWidth} height={badgeHeight} rx={compact?11:17} fill="#fff" fillOpacity=".97"/><text x={badgeX} y={geometry.centerY+(compact?16:28)} textAnchor="middle" fontSize={angled?20:compact?12:22} fontWeight="800" fill="#173861">{t("주차 중")}</text></g>}
+    {warned && <svg className="pdf-warning" transform={skewAround(warningCenterY, geometry.floorSymbolSkew)} x={centerAt(warningCenterY)-warningSize/2} y={warningCenterY-warningSize/2} width={warningSize} height={warningSize} viewBox="0 0 24 24" role="img" aria-label={t('화재 경보')}>
+      <path d="M12 3L22 20H2Z M12 9V14 M12 17V17.2" fill="none" stroke="#d9111c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>}
   </g>;
 }
 const rectangle = (x, y, w, h) => `${x},${y} ${x+w},${y} ${x+w},${y+h} ${x},${y+h}`;
@@ -137,7 +165,7 @@ export default function ParkingLayoutMap(props) {
     </div>}
     {preview&&<p role="status" className="fee-note">시연용 샘플 · 선택한 유형의 첫 번째 칸에 123가 4567 / 90분 · 4,500원을 표시합니다. 실제 주차 데이터는 변경되지 않습니다.</p>}
     <div className="map-toolbar"><div className="filter-tabs">{[['all',t('전체 보기')],['empty',t('빈자리')],['ev',t('전기차')],['accessible',t('장애인')]].map(([id,label]) => <button key={id} onClick={() => setFilter(id)} className={filter === id ? 'active' : ''} aria-pressed={filter === id}>{label}</button>)}</div></div>
-    <div className="pdf-map-heading">{!props.hideTitle && kind !== 'basic' && <strong>{kind === 'mall' ? t('주차 배치도') : t(names[kind])}</strong>}<button className="pdf-zoom-button" aria-pressed={zoomed} onClick={() => setZoomed(value => !value)}>{zoomed ? t('전체 도면 보기') : t('주차칸 확대')}</button></div>
+    <div className="pdf-map-heading">{!props.hideTitle && !['basic', 'angled', 'airport', 'mall'].includes(kind) && <strong>{t(names[kind])}</strong>}<button className="pdf-zoom-button" aria-pressed={zoomed} onClick={() => setZoomed(value => !value)}>{zoomed ? t('전체 도면 보기') : t('주차칸 확대')}</button></div>
     <div ref={mapViewport} data-legend-near-map={props.legendNearMap||undefined} className={`pdf-map-scroll ${zoomed ? 'is-zoomed' : 'fit-map'}`} tabIndex={0} aria-label={t("주차장 도면, 확대 상태에서는 좌우로 이동하세요")}>
       {props.legendNearMap&&<div className="map-legend">{Object.entries(statusLabels).map(([id,label]) => <span key={id}><i className={`legend-dot ${id}`}/>{t(label)}</span>)}</div>}
       <svg className="pdf-map-svg" viewBox={kind === 'mall' ? '0 0 1536 1024' : kind === 'angled' ? '0 0 1200 760' : kind === 'airport' ? '0 0 1536 1024' : kind === 'loop' ? '0 0 1000 880' : kind === 'l_shape' ? '0 0 900 1100' : '0 0 1000 1040'} role="group" aria-label={t("{0} {1}면 배치도",t(lot.name),lot.spaces.length)}>
