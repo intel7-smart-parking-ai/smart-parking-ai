@@ -94,6 +94,12 @@ def _mask(text, language):
     return _PROTECTED.sub(replace, text), replacements
 
 
+_CJK = "　-ヿ一-鿿＀-￯"       # 가나·한자·전각 문장부호
+_CJK_TOKEN_GAP = re.compile(rf"(?<=[{_CJK}]) ?(__(?:NAME|COUNT|AMOUNT)\d+__) ?(?=[{_CJK}])")
+_CJK_LEADING_GAP = re.compile(rf"^(__(?:NAME|COUNT|AMOUNT)\d+__) (?=[{_CJK}])")
+_CJK_SENTENCE_END = re.compile(r"[。！？][）」』\"']?\s*$")
+
+
 def _digits(text):
     """글에 나온 숫자들. 전각(２)·앞자리 0은 같은 수로 본다(일본어 번역의 '２桁'가 숫자 추가로 걸렸다)."""
     return {str(int(found)) for found in re.findall(r"\d+", text)}
@@ -117,6 +123,12 @@ def _restore(text, masked, replacements):
     if _HANGUL.search(_TOKEN.sub("", text)):
         # 한국어 낱말이 그대로 남은 번역(11/11 실측: '…拨打 119 进行 신고…', '基本料金 기준으로…') → 다시 받는다
         raise ValueError("Translation left Korean words")
+    # 중국어·일본어 문장 안의 이름·개수 앞뒤 빈칸을 지운다('目前 开发院停车场 已满' → '目前开发院停车场已满', 봇 점검 11/11).
+    # 문장 가운데(앞이 한자·가나)면 항상, 줄 맨 앞이면 문장으로 끝나는 줄(。！？)일 때만 지운다
+    # ('开发院停车场 已满 · 釜山站停车场 62个车位' 같은 목록 줄의 빈칸은 구분이라 남긴다).
+    text = _CJK_TOKEN_GAP.sub(r"\1", text)
+    if _CJK_SENTENCE_END.search(text):
+        text = _CJK_LEADING_GAP.sub(r"\1", text)
     restored = _TOKEN.sub(lambda match: replacements[match.group()], text)
     # 개수 자리표시는 단위까지 넣어 돌려주는데 번역이 단위를 또 붙이는 경우(봇 점검 11/10)
     # 'N spaces vacant spaces' → 'N vacant spaces', 'N spaces spaces' → 'N spaces'(봇 점검 11/10 15:55)
@@ -131,6 +143,10 @@ def _restore(text, masked, replacements):
     # 봇 점검 11/11(500문항): 시각의 분이 한 자리('12:2 PM'), 단수에 복수형('1 minutes'), 한자 사이 띄어쓰기('午前 11 時 58 分')
     restored = re.sub(r"(?<![\d:])(\d{1,2}):(\d)(?![\d:])", r"\1:0\2", restored)
     restored = re.sub(r"(?<![\d,.])1 (minute|hour|space|day|vehicle|car|spot)s\b", r"1 \1", restored)
+    restored = re.sub(r"\b([Tt])here are (1 (?:space|minute|hour|vehicle|car|spot)\b)", r"\1here is \2", restored)
+    # 개수 자리표시('12 spaces') 뒤의 동사는 모델이 단수로 쓰기 쉽다: '12 spaces is being verified' → 'are'
+    restored = re.sub(r"(\d[\d,]* (?:spaces|minutes|hours|vehicles|cars)) (is|was|has)\b",
+                      lambda m: f"{m[1]} {'are' if m[2] == 'is' else 'were' if m[2] == 'was' else 'have'}", restored)
     restored = re.sub(r"(?<=[぀-ヿ一-鿿]) (?=\d)|(?<=\d) (?=[぀-ヿ一-鿿])", "", restored)
     return restored
 
@@ -264,17 +280,69 @@ def _join_lines(strings, table):
     return tuple("\n".join(table[line] if line.strip() else line for line in text.split("\n")) for text in strings)
 
 
+# ---- 조각 번역: 코드가 만드는 목록 줄('A 만차 · B 62자리 (카메라 확인 중: A 5칸)', '이름 · 빈자리 5칸, 기본요금 …')은
+# 주차장 상태의 조합마다 틀이 달라 줄 통째로는 미리 번역해 둘 수 없다(조합이 수십 가지). 그래서 모델이 그때그때 옮겼고
+# 'checking 5 spaces cameras' 같은 어색한 말이 나왔다(봇 점검 11/11). 구분 기호로 나눈 조각이 모두 아는 틀일 때만 조각별로 옮긴다.
+_PIECE_SPLIT = re.compile(r"( · | / )")
+_CAMERA_TAIL = re.compile(r"^(.+) \(카메라 확인 중: ([^()]+)\)$")
+_CAMERA_TAIL_OUT = ("{head} (being checked by camera: {items})", "{head}（摄像头确认中：{items}）", "{head}（カメラで確認中：{items}）")
+_COMMA = (", ", "，", "、")
+_LETTER = re.compile(r"[^\W\d_]")
+
+
+def _known_piece(text, language):
+    shape, replacements = _mask(text, language)
+    known = _shape_get(language, shape)
+    if known is None and not _LETTER.search(_TOKEN.sub("", shape)):
+        known = shape                    # 자리표시뿐인 조각('__NAME0__ __COUNT1__')은 옮길 말이 없다
+    if known is None:
+        return None
+    try:
+        return _restore(known, shape, replacements)
+    except ValueError:
+        return None
+
+
+def _known_list(text, language, comma):
+    whole = _known_piece(text, language)
+    if whole is not None or ", " not in text:
+        return whole
+    parts = [_known_piece(part, language) for part in text.split(", ")]
+    return None if None in parts else comma.join(parts)
+
+
+def _known_line(line, language):
+    """모델 없이 옮길 수 있는 줄이면 번역을, 아니면 None. 줄 전체가 아는 틀이거나, 조각이 모두 아는 틀일 때."""
+    whole = _known_piece(line, language)
+    if whole is not None:
+        return whole
+    index = list(LANGUAGES).index(language)
+    tail = _CAMERA_TAIL.match(line)
+    head, items = (tail[1], tail[2]) if tail else (line, None)
+    parts = _PIECE_SPLIT.split(head)
+    if len(parts) < 3 and items is None and ", " not in head:
+        return None
+    out = []
+    for part in parts:
+        piece = part if _PIECE_SPLIT.fullmatch(part) else _known_list(part, language, _COMMA[index])
+        if piece is None:
+            return None
+        out.append(piece)
+    text = "".join(out)
+    if items is not None:
+        checked = [_known_piece(item, language) for item in items.split(", ")]
+        if None in checked:
+            return None
+        text = _CAMERA_TAIL_OUT[index].format(head=text, items=_COMMA[index].join(checked))
+    return text
+
+
 def _translate_known(strings, language):
     """모델 없이 번역할 수 있으면(모든 줄이 아는 틀) 번역을, 아니면 None을 돌려준다."""
     table = {}
     for line in _lines_of(strings):
-        shape, replacements = _mask(line, language)
-        known = _shape_get(language, shape)
-        if known is None:
-            return None
-        try:
-            table[line] = _restore(known, shape, replacements)
-        except ValueError:
+        table[line] = _known_line(line, language)
+        if table[line] is None:
             return None
     return _join_lines(strings, table)
 
@@ -290,15 +358,10 @@ def _translate_lines(strings, language):
     masked = [_mask(text, language) for text in strings]
     done = [None] * len(strings)
     pending = []
-    for i, (shape, replacements) in enumerate(masked):
-        known = _shape_get(language, shape)
-        if known is not None:
-            try:
-                done[i] = _restore(known, shape, replacements)
-                continue
-            except ValueError:
-                pass
-        pending.append(i)
+    for i, text in enumerate(strings):
+        done[i] = _known_line(text, language)
+        if done[i] is None:
+            pending.append(i)
     if not pending:
         return tuple(done)
     if config.LLM_PROVIDER != "openrouter" or not config.api_key("openrouter"):

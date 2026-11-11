@@ -225,7 +225,7 @@ REPAIR_HINTS = {
     "mismatched_lot_value": "어떤 주차장의 숫자를 다른 주차장 값으로 말했습니다. 주차장마다 조회 결과의 값을 그대로 짝지어 쓰세요. 차이는 compare_lots 요약 값을 쓰세요.",
     "mismatched_rate": "'N분에 M원' 표현이 요금 정책과 맞지 않습니다. policy_text 또는 정책 값을 그대로 쓰세요.",
     "contradictory_availability": "조회 결과에 빈자리가 있는데 만차·자리 없음이라고 했습니다. 조회 결과대로 다시 쓰세요.",
-    "full_without_camera_note": "이 주차장은 빈자리가 0이지만 카메라 확인 중인 칸이 있습니다(조회 결과의 uncertain·camera_check). 만차라고만 하면 틀립니다. '확인된 빈자리는 없고 N칸은 카메라 확인 중'이라고 함께 말하세요.",
+    "full_without_camera_note": "이 주차장은 빈자리가 0이지만 카메라 확인 중인 칸이 있습니다(조회 결과의 uncertain·camera_check). '만차'라는 말을 쓰지 마세요. '확인된 빈자리는 없고 N칸은 카메라 확인 중이라 비었는지 알 수 없다'고 말하세요.",
     "unsupported_action": "결제·관리자 호출·접수·변경을 실제로 하지 않았는데 한 것처럼 말했습니다. 실행은 사용자가 화면 버튼으로 확인해야 진행된다고 안내하세요.",
     "unsupported_payment": "결제가 완료되지 않았는데 완료된 것처럼 말했습니다. 결제는 사용자가 승인해야 진행된다고 안내하세요.",
     "unsupported_promise": "관리자·직원의 도착이나 연락을 약속할 수 없습니다. 약속 없이 필요한 안내만 하세요.",
@@ -308,7 +308,10 @@ def check_answer(answer, request, observations):
         if scoped and all(row.get("availability") == "available" for row in scoped):
             return "contradictory_availability"
         pending = [row for row in scoped if type(row.get("uncertain")) is int and row["uncertain"] > 0 and row.get("empty") == 0]
-        if pending and not _CAMERA_NOTE.search(answer[max(0, claim.start() - 60):claim.end() + 120]):
+        # 확인 중인 칸이 있는 주차장: '만차'라는 말은 카메라 언급이 있어도 막는다("만차, 카메라 확인 중 12칸"은 앞뒤가 안 맞는다).
+        # '자리가 없어요'는 카메라 확인 중이라는 말이 곁에 있을 때만 허용한다("확인된 빈자리는 없고 …확인 중").
+        if pending and ("만차" in claim[0]
+                        or not _CAMERA_NOTE.search(answer[max(0, claim.start() - 60):claim.end() + 120])):
             return "full_without_camera_note"
     # 비교 숫자는 코드가 계산한 차이 값과만 맞춘다("1,000원 더 싸요"가 우연히 다른 값과 겹쳐 통과하지 않게).
     diffs = {str(row[k]) for row in entries for k in _DIFF_KEYS if type(row.get(k)) is int}

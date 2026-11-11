@@ -61,8 +61,8 @@ def _excluded_note(excluded):
     return "\n(" + ", ".join(f"{_name(k)} {_short(w)}" for k, w in excluded) + " — 순위에서 제외)"
 
 
-def _spots(n):
-    return f"{n}자리" if n else "만차"
+def _spots(n, pending=0):
+    return f"{n}자리" if n else (N.NO_CONFIRMED if pending else "만차")
 
 
 def most(snapshot, alert, zone=None):
@@ -99,7 +99,8 @@ def compare(snapshot, alert, lots, zone=None):
             continue
         why = N.reason(snapshot, alert, lot, zone)
         rows.append((lot, N.count(snapshot["lots"][lot], zone), why))
-    parts = [f"{_name(k)} {_spots(n) if why in (None, '만차') and n is not None else _short(why or '')}" for k, n, why in rows]
+    waiting = {k: N.unchecked(snapshot["lots"].get(k) or {}, zone) for k, _, _ in rows}
+    parts = [f"{_name(k)} {_spots(n, waiting[k]) if why in (None, '만차') and n is not None else _short(why or '')}" for k, n, why in rows]
     text = f"{_scope(zone)}빈자리: " + " · ".join(parts) + "."
     usable = [(k, n) for k, n, why in rows if why in (None, "만차") and n is not None]
     focus = None
@@ -107,7 +108,8 @@ def compare(snapshot, alert, lots, zone=None):
         top = max(n for _, n in usable)
         best = [k for k, n in usable if n == top]
         if top == 0:
-            text += "\n두 곳 모두 만차예요." if len(usable) == 2 else "\n모두 만차예요."
+            both = "두 곳 모두" if len(usable) == 2 else "모두"
+            text += f"\n{both} 확인된 빈자리가 없어요." if any(waiting[k] for k, _ in usable) else f"\n{both} 만차예요."
         elif len(best) == 1:
             focus = best[0]
             text += f"\n{iga(_name(focus))} 더 여유 있어요."
@@ -203,7 +205,8 @@ def section_rank(snapshot, alert, lot):
     best = [k for k, n in counts if n == top]
     derived = {"sections": dict(counts)}
     if top == 0:
-        return f"{name}은 지금 모든 구역이 만차예요.", ["empty_all", "call_admin"], derived
+        checking = any(state == "uncertain" for vals in groups.values() for state in vals)
+        return (f"{name}은 지금 확인된 빈자리가 없어요." if checking else f"{name}은 지금 모든 구역이 만차예요."), ["empty_all", "call_admin"], derived
     head = (f"{name}에서는 {' · '.join(k + ' 구역' for k in best)}" + ("이" if len(best) == 1 else "이 각각")
             + f" {top}자리로 가장 여유 있어요.")
     rest = [f"{k} 구역 {_spots(n)}" for k, n in counts if k not in best]

@@ -36,10 +36,12 @@ FIXES = {   # (정규식, 바꿀 말)
     "en": [(r" AM/PM\b", " AM"), (r"(__NUMBER\d+__) (AM|PM) (__NUMBER\d+__),?", r"\1:\3 \2"),
            (r"license plate ending in (__NUMBER\d+__) (__NUMBER\d+__)", r"the last \1 digits \2 of the license plate")],
     "zh-CN": [(r"于 ?AM ?(__NUMBER\d+__)", r"于上午 \1"), (r"于 ?PM ?(__NUMBER\d+__)", r"于下午 \1"), (r"行人优先", "人员安全第一"),
-              (r"车顶贴纸的后两位数字", "车顶贴纸上的两位数字")],
+              (r"车顶贴纸的后两位数字", "车顶贴纸上的两位数字"),
+              (r"(__NAME\d+__) 已满(?!。)", r"\1已满")],            # 목록 줄: 조각 번역(HAND)과 같은 모양으로
     "ja": [(r"\bAM ?(__NUMBER\d+__)", r"午前 \1"), (r"\bPM ?(__NUMBER\d+__)", r"午後 \1"), (r"歩行者優先", "人命優先"),
            (r"車内にいる場合", "施設内にいる場合"), (r"実店舗の駐車場", "実際の駐車場"),
-           (r"下2桁 ?(__NUMBER\d+__) ?を", r"下\1桁を"), (r"ステッカーの下2桁", "ステッカーの2桁")],
+           (r"下2桁 ?(__NUMBER\d+__) ?を", r"下\1桁を"), (r"ステッカーの下2桁", "ステッカーの2桁"),
+           (r"(__NAME\d+__) 満車(?!で)", r"\1は満車")],
 }
 # 실제 서버에서만 붙는 줄(모의 데이터로는 나오지 않는다): 시연용 표시, 카메라 확인 중, 오후 입차
 EXTRA_LINES = [
@@ -57,9 +59,77 @@ EXTRA_LINES = [
 ]
 
 
+# 사람이 직접 쓴 번역(영어, 중국어, 일본어). 모델이 만든 것보다 우선하고, 새로 만들 때마다 다시 넣는다.
+# 아래쪽 '조각'은 코드가 만드는 목록 줄을 구분 기호(' · ', ' / ', ', ')로 나눈 것이다(response_locale._known_line).
+# 주차장 상태의 조합마다 줄 모양이 달라 줄 통째로는 미리 번역할 수 없어, 조각을 번역해 두고 이어 붙인다.
+HAND = {
+    # ---- 카메라 확인 중인 칸이 있는 주차장(#120 후속)
+    "__NAME0__은 확인된 빈자리가 없어요. (카메라 확인 중 __COUNT1__)": (
+        "__NAME0__ has no confirmed vacant spaces. (__COUNT1__ being checked by camera)",
+        "__NAME0__目前没有已确认的空车位。（摄像头确认中：__COUNT1__）", "__NAME0__には確認済みの空きがありません。（カメラで確認中：__COUNT1__）"),
+    "__NAME0__ 충전 구역은 확인된 빈자리가 없어요. (카메라 확인 중 __COUNT1__)": (
+        "The EV charging area of __NAME0__ has no confirmed vacant spaces. (__COUNT1__ being checked by camera)",
+        "__NAME0__充电区目前没有已确认的空车位。（摄像头确认中：__COUNT1__）", "__NAME0__の充電エリアには確認済みの空きがありません。（カメラで確認中：__COUNT1__）"),
+    "__NAME0__ 장애인 구역은 확인된 빈자리가 없어요. (카메라 확인 중 __COUNT1__)": (
+        "The accessible parking area of __NAME0__ has no confirmed vacant spaces. (__COUNT1__ being checked by camera)",
+        "__NAME0__无障碍车位区目前没有已确认的空车位。（摄像头确认中：__COUNT1__）", "__NAME0__の身障者用エリアには確認済みの空きがありません。（カメラで確認中：__COUNT1__）"),
+    "__NAME0__에 확인된 빈자리가 없어졌어요.": (
+        "__NAME0__ no longer has any confirmed vacant spaces.", "__NAME0__已没有已确认的空车位。", "__NAME0__に確認済みの空きがなくなりました。"),
+    "확인된 빈자리가 있는 주차장이 없어요.": (
+        "No parking lot has confirmed vacant spaces right now.", "目前没有停车场有已确认的空车位。", "現在、確認済みの空きがある駐車場はありません。"),
+    # ---- 모델 번역이 어색했던 줄('124 spaces total available parking spaces in the entire parking lot')
+    "전체 주차장 빈자리는 총 __COUNT0__예요.": (
+        "There are __COUNT0__ available in total across all parking lots.", "所有停车场共有__COUNT0__空闲。", "全駐車場の空きは合計__COUNT0__です。"),
+    "전체 주차장 충전 구역 빈자리는 총 __COUNT0__예요.": (
+        "There are __COUNT0__ available in total in the EV charging areas across all parking lots.",
+        "所有停车场的充电区共有__COUNT0__空闲。", "全駐車場の充電エリアの空きは合計__COUNT0__です。"),
+    "전체 주차장 장애인 구역 빈자리는 총 __COUNT0__예요.": (
+        "There are __COUNT0__ available in total in the accessible parking areas across all parking lots.",
+        "所有停车场的无障碍车位区共有__COUNT0__空闲。", "全駐車場の身障者用エリアの空きは合計__COUNT0__です。"),
+    "__NAME0__ 충전 구역에 __COUNT1__ 있어요.": (
+        "There are __COUNT1__ available in the __NAME0__ EV charging area.", "__NAME0__充电区有__COUNT1__空闲。", "__NAME0__の充電エリアに__COUNT1__の空きがあります。"),
+    "__NAME0__ 장애인 구역에 __COUNT1__ 있어요.": (
+        "There are __COUNT1__ available in the __NAME0__ accessible parking area.", "__NAME0__无障碍车位区有__COUNT1__空闲。", "__NAME0__の身障者用エリアに__COUNT1__の空きがあります。"),
+    "빈자리와 기본요금 중 더 중요한 기준으로 선택해 주세요.": (
+        "Please choose based on which matters more to you: available spaces or the base fee.",
+        "请根据空车位和基本费用中您更看重的一项来选择。", "空き状況と基本料金のうち、重視する方でお選びください。"),
+    "이용 가능 여부와 요금이 확인된 후보 중 기본요금이 가장 낮은 곳은 __NAME0__이에요.": (
+        "Among the options with confirmed availability and fees, __NAME0__ has the lowest base fee.",
+        "在已确认可用情况和费用的候选中，基本费用最低的是__NAME0__。", "利用可否と料金を確認できた候補のうち、基本料金が最も安いのは__NAME0__です。"),
+    "현재 이용 가능 여부와 요금을 함께 확인한 후보가 없어 추천하기 어려워요.": (
+        "There are currently no options with both availability and fees confirmed, so I can't make a recommendation.",
+        "目前没有同时确认了可用情况和费用的候选，难以推荐。", "現在、利用可否と料金の両方を確認できた候補がないため、おすすめできません。"),
+    # ---- 조각: 전체 요약 줄('A 확인된 빈자리 없음 · B 만차 · C 62자리'), 다른 주차장 줄('A 충전 구역 8자리 / B 충전 구역 6자리')
+    "__NAME0__ 만차": ("__NAME0__ Full", "__NAME0__已满", "__NAME0__は満車"),
+    "__NAME0__ 확인된 빈자리 없음": ("__NAME0__ No confirmed vacancy", "__NAME0__暂无已确认空位", "__NAME0__は確認済みの空きなし"),
+    "__NAME0__ 경보 중": ("__NAME0__ Alert active", "__NAME0__警报中", "__NAME0__は警報中"),
+    "__NAME0__ 이용 제한": ("__NAME0__ Restricted", "__NAME0__限制使用", "__NAME0__は利用制限中"),
+    "__NAME0__ 확인 불가": ("__NAME0__ Status unavailable", "__NAME0__无法确认", "__NAME0__は確認不可"),
+    "__NAME0__ 충전 구역 __COUNT1__": ("__NAME0__ EV charging area __COUNT1__", "__NAME0__充电区__COUNT1__", "__NAME0__の充電エリア__COUNT1__"),
+    "__NAME0__ 장애인 구역 __COUNT1__": ("__NAME0__ accessible parking area __COUNT1__", "__NAME0__无障碍车位区__COUNT1__", "__NAME0__の身障者用エリア__COUNT1__"),
+    # ---- 조각: 비교 줄('이름 · 빈자리 5칸, 카메라 확인 중 2칸, 기본요금 처음 30분 1,000원')
+    "빈자리 __COUNT0__": ("__COUNT0__ available", "__COUNT0__空闲", "空き__COUNT0__"),
+    "충전 구역 빈자리 __COUNT0__": ("EV charging area: __COUNT0__ available", "充电区__COUNT0__空闲", "充電エリアの空き__COUNT0__"),
+    "장애인 구역 빈자리 __COUNT0__": ("accessible parking area: __COUNT0__ available", "无障碍车位区__COUNT0__空闲", "身障者用エリアの空き__COUNT0__"),
+    "빈자리 미확인": ("vacancy unknown", "空位未确认", "空き未確認"),
+    "만차": ("full", "已满", "満車"),
+    "확인된 빈자리 없음": ("no confirmed vacancy", "无已确认空位", "確認済みの空きなし"),
+    "충전 구역 확인된 빈자리 없음": ("EV charging area: no confirmed vacancy", "充电区无已确认空位", "充電エリアに確認済みの空きなし"),
+    "장애인 구역 확인된 빈자리 없음": ("accessible parking area: no confirmed vacancy", "无障碍车位区无已确认空位", "身障者用エリアに確認済みの空きなし"),
+    "카메라 확인 중 __COUNT0__": ("__COUNT0__ being checked by camera", "摄像头确认中__COUNT0__", "カメラで確認中__COUNT0__"),
+    "기본요금 처음 __NUMBER0__분 __AMOUNT1__": (
+        "base fee __AMOUNT1__ for the first __NUMBER0__ minutes", "基本费用：前__NUMBER0__分钟__AMOUNT1__", "基本料金：最初の__NUMBER0__分__AMOUNT1__"),
+}
+
+
 def apply_fixes(seed):
     import re
     changed = 0
+    for masked, translations in HAND.items():
+        for language, translated in zip(("en", "zh-CN", "ja"), translations):
+            if seed.setdefault(language, {}).get(masked) != translated:
+                seed[language][masked] = translated
+                changed += 1
     for language, pairs in FIXES.items():
         for masked, translated in list(seed.get(language, {}).items()):
             fixed = translated

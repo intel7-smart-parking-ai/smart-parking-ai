@@ -76,7 +76,11 @@ def _parking_status_line(row, zone):
     # 카메라 확인 중인 칸이 있으면 함께 알린다(빈자리 0이어도 만차로 단정할 수 없다. 봇 점검 11/11)
     pending = row.get("uncertain")
     camera = f"카메라 확인 중 {pending}칸" if type(pending) is int and pending > 0 else None
-    return ", ".join(filter(None, (vacancy, row.get("reason"), camera)))
+    # 확인 중인 칸이 있으면 '만차'라고 쓰지 않는다('빈자리 0칸, 만차, 카메라 확인 중 12칸'은 앞뒤가 안 맞는다)
+    why = None if camera and row.get("reason") in ("만차", "확인된 빈자리 없음") else row.get("reason")
+    if camera and empty == 0:
+        vacancy = f"{zone_label} 확인된 빈자리 없음".strip()
+    return ", ".join(filter(None, (vacancy, why, camera)))
 
 
 def render_observed_parking(observation):
