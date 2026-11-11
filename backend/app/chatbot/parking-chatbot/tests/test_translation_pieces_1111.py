@@ -159,6 +159,19 @@ class SpacingTests(unittest.TestCase):
                                       "개발원주차장 장애인 구역에 11자리 있어요.", "en"),
                          "There are 11 spaces available in the Development Center Parking accessible parking area.")
 
+    def test_one_space_takes_a_singular_verb(self):
+        # 11/11 리허설 실측: 김해공항에 확인 중인 칸이 1칸일 때 '1 space are being checked by camera'
+        korean = "김해공항 주차장에 빈자리가 21자리 있어요. 다만 1칸은 카메라로 확인 중이에요."
+        self.assertEqual(self.restore("There are __COUNT1__ at __NAME0__. However, __COUNT2__ are being checked by camera.", korean, "en"),
+                         "There are 21 spaces at Gimhae Airport Parking. However, 1 space is being checked by camera.")
+        self.assertEqual(self.restore("There are __COUNT1__ at __NAME0__. However, __COUNT2__ were being checked.", korean, "en"),
+                         "There are 21 spaces at Gimhae Airport Parking. However, 1 space was being checked.")
+        self.assertEqual(self.restore("There are __COUNT1__ at __NAME0__. However, __COUNT2__ have not been confirmed.", korean, "en"),
+                         "There are 21 spaces at Gimhae Airport Parking. However, 1 space has not been confirmed.")
+        many = "김해공항 주차장에 빈자리가 21자리 있어요. 다만 11칸은 카메라로 확인 중이에요."       # 11·21칸은 그대로 복수
+        self.assertEqual(self.restore("There are __COUNT1__ at __NAME0__. However, __COUNT2__ are being checked by camera.", many, "en"),
+                         "There are 21 spaces at Gimhae Airport Parking. However, 11 spaces are being checked by camera.")
+
 
 class HandWrittenSeedTests(unittest.TestCase):
     def test_every_hand_written_line_is_in_the_shipped_seed_and_valid(self):
