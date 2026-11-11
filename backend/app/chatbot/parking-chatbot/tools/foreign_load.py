@@ -50,6 +50,19 @@ def traced(strings, language):
 
 
 locale._translate = traced
+question_failures = Counter()
+original_question = locale._question_to_korean
+
+
+def traced_question(text, language):
+    try:
+        return original_question(text, language)
+    except Exception as exc:
+        question_failures[f"{type(exc).__name__}: {str(exc)[:40]}"] += 1
+        raise
+
+
+locale._question_to_korean = traced_question
 jobs = [(lang, q) for lang, qs in QUESTIONS.items() for q in qs]
 rows = [None] * len(jobs)
 client = TestClient(app)
@@ -87,6 +100,7 @@ for lang in QUESTIONS:
     part = [r for r in rows if r["lang"] == lang]
     print(f"  {lang}: {dict(Counter(r['status'] for r in part))} · 평균 {sum(r['sec'] for r in part) / len(part):.1f}초 최대 {max(r['sec'] for r in part)}초")
 done = sum(r["status"] == "translated" for r in rows)
+print(f"질문 번역 실패 {sum(question_failures.values())}건 {dict(question_failures)} · 문장 틀 기억 {getattr(locale, 'shape_stats', dict)()}")
 print(f"번역된 답 {done}/{len(rows)} · 한국어로 나간 답 {len(rows) - done} · 번역 실패 사유 {dict(reasons)}")
 for r in rows:
     if r["status"] != "translated" or "understand" in r["a"].lower() or "이해하지" in r["a"]:

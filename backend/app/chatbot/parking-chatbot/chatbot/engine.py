@@ -1317,7 +1317,11 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
         multi_cars = raw_id == "ambiguous" and len(explicit_cars(text)) > 1
         invalid_id = raw_id and not multi_cars and (not normalize_car_id(raw_id) or
             (config.DATA_SOURCE == "mock" and config.ASSIGNED_CAR_IDS is not None and raw_id not in config.ASSIGNED_CAR_IDS))
-        skip = ("workflow" if controlled else "invalid_car_id" if invalid_id else "virtual_vehicle" if extract_virtual(text)
+        from .conversation_turn import virtual_compound
+        # 가상 차량: 위치·요금·출차만 묻는 문장은 규칙이 바로 답하고, 다른 것도 함께 물으면 대화 AI(조회 도구)로 보낸다
+        virtual_rule = bool(extract_virtual(text)) and not (_agent_usable() and virtual_compound(text))
+        skip = ("workflow" if controlled else "invalid_car_id" if invalid_id and not (extract_virtual(text) and not virtual_rule)
+                else "virtual_vehicle" if virtual_rule
                 else "alert_lv2" if current_alert().get("level", 0) >= 2 else None)
         if controlled:
             route.mark("workflow", rule.intent, why="상태를 바꾸거나 안전이 걸린 요청은 규칙이 처리")
@@ -1355,7 +1359,26 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
             resp = _respond(s, T.SUGGEST_ADMIN_CALL, chip_set=_admin_suggestion_chips(s),
                             meta={"admin_suggestion": True})
         else:
+            car_first = None
+            if (params.get("virtual_vehicle") and intent not in NEEDS_VEHICLE | {"unknown"}
+                    and current_alert().get("level", 0) < 2):
+                # '1724 어디 있고 장애인 칸은 남았어?' — 대화 AI가 답하지 못해 규칙으로 넘어온 경우에도
+                # 차량 조회를 빠뜨리지 않는다(차량 답 + 나머지 질문의 규칙 답)
+                car_first = _virtual_vehicle_reply(s, str(params["virtual_vehicle"]), "find_my_car")
             resp = _dispatch(s, session_id, intent, params, vehicle_only, confirmation_token)
+            if car_first is not None and resp.get("text") and not resp.get("confirmation_token"):
+                merged = car_first["text"] + "\n\n" + resp["text"]
+                kept = list(s.history)
+                for index in range(len(kept) - 1, -1, -1):
+                    if kept[index] == ("bot", car_first["text"]):
+                        del kept[index]
+                        break
+                if kept and kept[-1][0] == "bot":
+                    kept[-1] = ("bot", merged)
+                s.history.clear()
+                s.history.extend(kept)
+                resp["text"] = merged
+                resp["meta"]["virtual_vehicle"] = True
     except DataUnavailable:
         s.clear()
         resp = _respond(s, T.REQUEST_UNAVAILABLE, meta={"unavailable": True})

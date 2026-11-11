@@ -17,15 +17,16 @@ class ResponseLocaleTests(unittest.TestCase):
 
     def test_numeric_facts_plate_ids_and_lot_names_are_protected(self):
         masked, replacements = locale._mask('김해공항 주차장 A-11 88가2000 4,500원 30분', 'en')
-        restored = locale._restore(masked,masked,replacements)
-        self.assertEqual(restored,'Gimhae Airport Parking A-11 88가2000 KRW 4,500 30분')
-        for changed in (masked.replace('__SPACE1__',''), masked+' 999', masked+' __NAME0__'):
+        translated = masked.replace('분',' min')          # 번역문에는 한국어가 남지 않는다(11/11: 남으면 다시 받는다)
+        restored = locale._restore(translated,masked,replacements)
+        self.assertEqual(restored,'Gimhae Airport Parking A-11 88가2000 KRW 4,500 30 min')
+        for changed in (translated.replace('__SPACE1__',''), translated+' 999', translated+' __NAME0__', masked):
             with self.assertRaises(ValueError):locale._restore(changed,masked,replacements)
 
     def test_space_counts_are_not_translated_as_bay_numbers(self):
         masked, replacements = locale._mask('김해공항 주차장 16자리 · 카메라 확인 중 3칸', 'en')
-        result = locale._restore(masked, masked, replacements)
-        self.assertEqual(result, 'Gimhae Airport Parking 16 spaces · 카메라 확인 중 3 spaces')
+        result = locale._restore(masked.replace('카메라 확인 중', 'checking camera'), masked, replacements)
+        self.assertEqual(result, 'Gimhae Airport Parking 16 spaces · checking camera 3 spaces')
 
     def test_translation_preserves_state_and_action_tokens_without_mutating_engine_reply(self):
         original={'text':'안내', 'request_id':'request-1', 'state_version':8,'banner':{'level':0,'text':'안내'},
