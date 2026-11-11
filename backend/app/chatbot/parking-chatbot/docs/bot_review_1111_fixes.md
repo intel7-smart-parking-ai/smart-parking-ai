@@ -1,6 +1,6 @@
 # 봇 점검 11/11 후속 수정 — `CHATBOT_FIX_1111.md` · Jira 4건 대조
 
-> 브랜치 `fix/KAN-9-chatbot-bot-review-1111` (기준 `feature/KAN-9-chatbot-route-check` = PR #111) · 모델 gemma-4-26b · 모의 데이터
+> 브랜치 `fix/KAN-9-chatbot-bot-review-1111` (기준 main `cd35c2b`, PR #111 병합 뒤) · 모델 gemma-4-26b · 모의 데이터
 > 봇의 500문항 원본은 저장소에 없어, 봇이 예로 든 문장과 같은 유형의 문장으로 쟀다. 실모델 측정은 1~2회씩이라 ±1턴은 우연일 수 있다.
 > **병합 전에 봇이 같은 500문항으로 다시 돌려야 한다.**
 
