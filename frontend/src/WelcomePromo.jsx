@@ -1,6 +1,7 @@
 import {useEffect,useRef} from 'react';
 import BrandWordmark from './BrandWordmark.jsx';
 import {t} from './serviceLocale.js';
+import {Icon} from './components.jsx';
 import './styles/welcome-promo.css';
 
 const promoHiddenKey='parkon-welcome-promo-blue-hidden';
@@ -9,6 +10,19 @@ let hiddenDate;
 export default function WelcomePromo({className='',autoOpen=false,previewOnce=false}){
  const promoDialog=useRef(null);
  const benefitsDialog=useRef(null);
+ const giftImage=useRef(null);
+
+ async function openBenefits() {
+   const dialog=benefitsDialog.current;
+   if (!dialog || dialog.open) return;
+   try {
+     await giftImage.current?.decode();
+   } catch {
+     dialog.dataset.giftUnavailable='true';
+   }
+   if (dialog.isConnected && !dialog.open && dialog.previousElementSibling?.open) dialog.showModal();
+ }
+
  const hideToday=useRef(null);
  function openPromo(ignoreHidden=false){
   const dialog=promoDialog.current;
@@ -37,7 +51,7 @@ export default function WelcomePromo({className='',autoOpen=false,previewOnce=fa
     <BrandWordmark showCar={false}/>
     <h2 id="welcome-promo-title">첫 결제부터<br/><strong>적립 혜택까지!</strong></h2>
     <p>빈자리 확인, 내 차 찾기,<br/>주차요금 결제를 한곳에서.</p>
-    <button type="button" className="welcome-promo-badge" aria-haspopup="dialog" onClick={()=>benefitsDialog.current?.showModal()}>첫 결제 혜택 · 적립 안내</button>
+    <button type="button" className="welcome-promo-badge" aria-haspopup="dialog" onClick={openBenefits}>첫 결제 혜택 · 적립 안내</button>
     <div className="welcome-promo-mark" aria-hidden="true">P</div>
    </div>
    <form method="dialog">
@@ -49,12 +63,15 @@ export default function WelcomePromo({className='',autoOpen=false,previewOnce=fa
    <div className="welcome-benefits-content">
     <h2 id="welcome-benefits-title">첫 결제 혜택 · 적립 안내</h2>
     <button type="submit" form="welcome-benefits-actions" className="welcome-benefits-dismiss" aria-label="혜택 안내 닫기">×</button>
+    <div className="welcome-benefits-gift" aria-hidden="true"><img ref={giftImage} src="/parkon-benefits-gift.png" alt=""/></div>
     <dl className="welcome-benefits-list">
      <div>
+      <span className="welcome-benefits-ticket" aria-hidden="true"><b>P</b></span>
       <dt>첫 결제 혜택</dt>
       <dd><strong>2,000포인트</strong><span>첫 주차요금 결제 시 적립</span></dd>
      </div>
      <div>
+      <span className="welcome-benefits-ticket" aria-hidden="true"><Icon name="wallet"/></span>
       <dt>기본 적립</dt>
       <dd><strong>1%</strong><span>주차요금 결제 금액 기준</span></dd>
      </div>

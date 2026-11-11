@@ -64,3 +64,44 @@ html .layout-mall .pdf-map-svg .pdf-bay.empty.recommended .pdf-bay-label {
   stroke: #8c1827;
   stroke-width: 3;
 }
+
+.pdf-map-panel .pdf-bay.occupied:not(.ev):not(.accessible):not(.warned):not(.found) .pdf-bay-shape {
+  stroke: #2455d6 !important;
+  stroke-width: 4;
+  stroke-linejoin: round;
+}
+.pdf-map-panel .pdf-bay.occupied:not(.ev):not(.accessible):not(.warned) .pdf-bay-label { fill: #123eb6; font-weight: 900; }
+.pdf-map-panel .pdf-bay.occupied:not(.ev):not(.accessible):not(.warned) .user-bay-status text {
+  fill: #fff;
+  font-weight: 900;
+}
+.pdf-map-panel .pdf-bay.occupied:not(.ev):not(.accessible):not(.warned) .user-bay-status rect {
+  fill: #1647c5;
+}
+
+/* Keep reserved bay colors while highlighting occupied spaces. */
+.pdf-map-panel .pdf-bay.occupied:is(.accessible, .ev):not(.warned):not(.found) .pdf-bay-shape {
+  stroke: #102f9e !important;
+  stroke-width: 4;
+  stroke-linejoin: round;
+}
+.pdf-map-panel .pdf-bay.occupied:is(.accessible, .ev):not(.warned) .pdf-bay-label,
+.pdf-map-panel .pdf-bay.occupied:is(.accessible, .ev):not(.warned) .user-bay-status text {
+  font-weight: 900;
+}
+.pdf-map-panel .pdf-bay.occupied:is(.accessible, .ev):not(.warned) .user-bay-status rect {
+  fill: #1647c5;
+  fill-opacity: 1;
+}
+.pdf-map-panel .pdf-bay.occupied:is(.accessible, .ev):not(.warned) .user-bay-status text {
+  fill: #fff;
+}
+
+.pdf-map-panel .pdf-bay.occupied:not(.warned) .user-bay-status rect {
+  fill: #1647c5;
+  fill-opacity: 1;
+}
+.pdf-map-panel .pdf-bay.occupied:not(.warned) .user-bay-status text {
+  fill: #fff;
+  font-weight: 900;
+}

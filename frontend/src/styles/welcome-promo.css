@@ -140,7 +140,7 @@
   row-gap: .125rem;
   margin: .25rem 0 0;
   color: #334863;
-  font-size: .875rem;
+  font-size: 1rem;
 }
 .welcome-benefits-list strong {
   color: #174bb7;
@@ -166,3 +166,211 @@
 .welcome-benefits form button:hover { background: #2454b8; }
 /* PM 11/10: 실제 없는 적립 기능은 '이벤트 예시'로 표시 */
 .welcome-promo-example{margin-top:8px;font-size:12px;opacity:.85;word-break:keep-all}
+
+.welcome-benefits .welcome-benefits-list > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: start;
+  gap: .375rem;
+  padding: .875rem 1rem;
+}
+.welcome-benefits .welcome-benefits-list dd {
+  display: grid;
+  gap: .25rem;
+  margin: 0;
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+.welcome-benefits .welcome-benefits-list strong {
+  font-size: 1.5rem;
+}
+
+.welcome-promo.welcome-benefits {
+  max-height: calc(100dvh - 24px);
+  overflow: auto;
+  color: #161b54;
+  background: linear-gradient(155deg, #dedcff, #e1efff 58%, #f6f8ff);
+}
+.welcome-benefits-content h2 {
+  padding-inline: 1.5rem;
+  text-align: center;
+}
+.welcome-benefits-gift {
+  position: relative;
+  aspect-ratio: 734 / 430;
+  overflow: hidden;
+  border-radius: 14px;
+  margin-bottom: .75rem;
+}
+.welcome-benefits-gift img {
+  position: absolute;
+  width: 145.1%;
+  max-width: none;
+  height: auto;
+  inset-inline-start: -22.6%;
+  top: 0;
+  transform: translateY(-19.7%);
+}
+.welcome-benefits .welcome-benefits-list > div {
+  background: #ffffffde;
+  border-radius: 14px;
+  box-shadow: 0 3px 10px #2737750d;
+}
+.welcome-benefits .welcome-benefits-list strong { color: #263cbb; }
+.welcome-benefits form button { width: 100%; background: #343fa5; }
+.welcome-benefits form button:hover { background: #293489; }
+
+.welcome-promo.welcome-benefits {
+  background: linear-gradient(180deg, #c2d0fa 25%, #f3f5ff 100%);
+}
+.welcome-benefits-content { padding: 0; }
+.welcome-benefits-content h2 {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.welcome-benefits-gift {
+  aspect-ratio: 734 / 665;
+  border-radius: 0;
+  margin: 0 0 .4rem;
+}
+.welcome-benefits-gift img { transform: translateY(-4.13%); }
+.welcome-benefits .welcome-benefits-dismiss {
+  z-index: 1;
+  color: #fff;
+  background: #192f854d;
+  border-radius: 50%;
+}
+.welcome-benefits-list { margin-inline: .625rem; gap: .5rem; }
+.welcome-benefits .welcome-benefits-list > div {
+  grid-template-columns: clamp(48px, 22%, 82px) minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  column-gap: .75rem;
+  row-gap: .125rem;
+  padding: .625rem .75rem;
+  background: #f8faff;
+}
+.welcome-benefits-ticket {
+  grid-row: 1 / 3;
+  align-self: center;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 42px;
+  color: #fff;
+  border-radius: 6px;
+  background: radial-gradient(circle at 0 50%, #f8faff 0 4px, transparent 4.5px),
+              radial-gradient(circle at 100% 50%, #f8faff 0 4px, transparent 4.5px),
+              linear-gradient(145deg, #a3c7fa, #6e85e4);
+}
+.welcome-benefits-ticket b { border: 2px solid; border-radius: 4px; padding-inline: .2rem; line-height: 1.15; }
+.welcome-benefits .welcome-benefits-list dd { grid-column: 2; gap: .125rem; }
+.welcome-benefits .welcome-benefits-list strong { color: #2338ca; line-height: 1.1; }
+.welcome-benefits form { padding: .75rem .625rem .625rem; }
+
+.welcome-promo.welcome-benefits {
+  width: min(360px, calc(100% - 24px), max(250px, calc((100dvh - 16px) * .59)));
+  max-height: calc(100dvh - 24px);
+  overscroll-behavior: contain;
+}
+.welcome-benefits .welcome-benefits-list > div {
+  grid-template-columns: clamp(48px, 26%, 76px) minmax(0, 1fr);
+  align-items: center;
+  column-gap: .625rem;
+  padding: .5rem .625rem;
+}
+.welcome-benefits .welcome-benefits-list dt {
+  color: #172054;
+  font-size: .8125rem;
+  line-height: 1.25;
+}
+.welcome-benefits .welcome-benefits-list dd {
+  width: 100%;
+  color: #475477;
+  font-size: .75rem;
+  line-height: 1.3;
+}
+.welcome-benefits .welcome-benefits-list strong {
+  color: #1730d4;
+  font-size: clamp(1.25rem, 5vw, 1.625rem);
+  white-space: nowrap;
+}
+.welcome-benefits-ticket { min-height: 38px; }
+.welcome-benefits-ticket .icon { width: 24px; height: 24px; }
+.welcome-benefits-ticket b { font-size: .875rem; }
+
+.welcome-benefits[data-gift-unavailable] .welcome-benefits-gift { display: none; }
+.welcome-benefits[data-gift-unavailable] .welcome-benefits-content h2 {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: 1rem 3rem;
+  clip-path: none;
+}
+
+.welcome-benefits .welcome-benefits-list {
+  font-family: 'Pretendard', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+}
+.welcome-benefits .welcome-benefits-list dt,
+.welcome-benefits .welcome-benefits-list dd {
+  justify-self: stretch;
+  text-align: center;
+  letter-spacing: -.025em;
+}
+.welcome-benefits .welcome-benefits-list dt { font-weight: 800; }
+.welcome-benefits .welcome-benefits-list strong { font-weight: 900; }
+.welcome-benefits-ticket {
+  min-height: 42px; border-radius: 10px;
+  background: radial-gradient(circle at 0 50%, #f8faff 0 4px, transparent 4.5px),
+              radial-gradient(circle at 100% 50%, #f8faff 0 4px, transparent 4.5px),
+              linear-gradient(145deg, #a1ceff, #5675e6);
+}
+.welcome-benefits-ticket b {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  font-size: 1rem;
+}
+.welcome-benefits-ticket .icon { width: 27px; height: 27px; stroke-width: 2; }
+
+.welcome-benefits .welcome-benefits-list > div {
+  grid-template-columns: 68px minmax(0, 1fr);
+  border-radius: 18px;
+  box-shadow: 0 3px 9px rgba(48, 71, 140, .09);
+  justify-content: center;
+  column-gap: .875rem;
+}
+.welcome-benefits .welcome-benefits-list dt {
+  color: #10183f;
+  font-weight: 900;
+}
+.welcome-benefits .welcome-benefits-list dd { width: auto; }
+
+.welcome-promo.welcome-benefits {
+  max-height: calc(100dvh - 16px);
+  border: 0;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #7777ec 0%, #c2d0fa 48%, #f3f5ff 100%);
+}
+.welcome-benefits-gift {
+  margin-bottom: .3rem;
+  background: linear-gradient(100deg, #8075ee, #395ace 55%, #65c1f1);
+  border-radius: 20px 20px 0 0;
+}
+.welcome-benefits-gift img {
+  mask-image: linear-gradient(to bottom, transparent 4%, #000 14%);
+}
+.welcome-benefits-list { gap: .375rem; }
+.welcome-benefits .welcome-benefits-list > div {
+  grid-template-columns: clamp(48px, 19%, 68px) minmax(0, 1fr);
+  column-gap: .5rem;
+  padding: .375rem .625rem;
+}
+.welcome-benefits .welcome-benefits-list dt,
+.welcome-benefits .welcome-benefits-list dd { text-align: start; }
+.welcome-benefits form { padding-top: .5rem; }
