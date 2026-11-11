@@ -488,6 +488,13 @@ def _parse_rules_core(text: str) -> ParseResult:
         params["zone"] = zone
     if re.search(r"목적지.{0,6}(?:취소|해제|지워)|안내\s*(?:하지\s*(?:마|말)|취소)|(?:로|으로)\s*(?:가지\s*(?:마|말)|안\s*갈)",text):
         return ParseResult("cancel_destination",params,"rule")
+    if not lot and _DESTINATION.search(text) and not _NOT_DESTINATION.search(text):
+        # [실험] "신세계로 가자", "공항으로 갈게": 가겠다는 말 자체가 주차장 맥락이다(별칭은 맥락이 있어야 읽힌다).
+        # 가는 말로만 된 문장일 때만 받는다("부산역으로 가는 버스 있어?"는 그대로 대화 AI로).
+        from . import route_check
+        named = extract_lot(text + " 주차") if route_check.sure(text, "set_destination") else None
+        if named and named != "ambiguous":
+            lot = params["lot_id"] = named
     if lot and _DESTINATION.search(text) and not _NOT_DESTINATION.search(text):
         return ParseResult("set_destination",params,"rule")
     guarded = guarded_intent(text)

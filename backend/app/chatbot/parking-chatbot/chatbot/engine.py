@@ -23,6 +23,7 @@ from pathlib import Path
 from . import config, incidents, monitoring, navigation as N, templates as T
 from . import dialog_context as DC
 from . import boundaries
+from . import route_check
 from . import info_gaps
 from . import route
 from . import forecast_chat
@@ -906,7 +907,7 @@ def handle(session_id: str, text=None, chip_id=None, event=None, request_id=None
     with monitoring.turn(session_id, text=text, chip_id=chip_id, event=event, request_id=request_id) as monitor:
         route_token, plan_token = route.begin(), plan.use(None)
         try:
-            resp = _handle_message(s, session_id, text, chip_id, event, confirmation_token)
+            resp = _handle_checked(s, session_id, text, chip_id, event, confirmation_token)
         finally:
             steps = route.steps()
             route.end(route_token)
@@ -1003,7 +1004,7 @@ def _notice_turn(s, session_id, text, notice):
     except DataUnavailable:
         turn = None
     finally:
-        request_deadline.reset(deadline_token)
+        _restore_backend_deadline(deadline_token)
     if turn is not None and turn.reply.meta.get("source") == "llm" and _notice_kept(notice, turn.reply.text):
         route.mark("agent", "answer_with_notice", topic=notice["topic"])
         # 안내 질문에서는 AI의 작업 제안(관리자 호출·결제 버튼)을 쓰지 않는다. 버튼은 정해진 안내의 버튼
@@ -1045,6 +1046,13 @@ def _plausible_reading(s, r, text):
             and re.search(r"비었|비어|빈\s*(?:자리|칸|곳)|자리\s*(?:있|남)|칸\s*(?:있|남)", text)):
         # '장애인 주차 어디가 비었어?'는 내 차 찾기가 아니라 빈자리(봇 점검 11/10, AI 시간 초과 뒤 규칙 답)
         return ParseResult("get_empty_spots", {k: v for k, v in r.params.items() if k in ("zone", "lot_id")}, "rule")
+    if r.intent == "find_my_car" and not r.params.get("car_id"):
+        # [실험] '차 어디에 대는 게 좋아?'는 세워 둔 차를 찾는 말이 아니라 세울 곳을 묻는 말 → 차량 번호를 묻지 않고 빈자리
+        # (11/11: 대화 AI 답이 근거 검사에 걸린 뒤 '차량 번호를 알려주세요'로 떨어졌다)
+        from .conversation_turn import _PARK_WHERE
+        parked = re.search(r"있(?:어|나|지|는)|위치|찾아|세워\s*(?:뒀|놨|둔)|주차\s*(?:했|해\s*(?:뒀|놨))|댔", text)
+        if _PARK_WHERE.search(text) and not parked:
+            return ParseResult("get_empty_spots", {k: v for k, v in r.params.items() if k in ("zone", "lot_id")}, "rule")
     own_zone = {"ev": "ev", "accessible": "accessible"}.get(s.vehicle_type)
     focus_lot = DC.focus(s)
     from .turn_guard import LEAVING
@@ -1127,6 +1135,47 @@ def _plausible_reading(s, r, text):
     return r
 
 
+def _restore_backend_deadline(token):
+    """대화 AI를 시도한 뒤, 이어지는 규칙 답이 서버를 조회할 수 있게 조회 마감을 다시 잡는다.
+
+    서버 조회 마감은 턴 시작 + BACKEND_TIMEOUT_SEC(2초)다. 대화 AI가 2초 넘게 쓴 뒤 규칙 답으로 넘어가면
+    그 마감이 이미 지나 있어, 새 조회가 전부 시간 초과 → "현재 정보를 확인하지 못했어요"가 됐다(11/11 실제 서버 확인).
+    턴 전체 마감(REQUEST_BUDGET_SEC)은 그대로 지킨다.
+    """
+    request_deadline.reset(token)
+    turn = _turn_deadline.get()
+    if turn is not None and isinstance(data.inner, ApiAdapter):
+        request_deadline.set(min(turn, time.monotonic() + config.BACKEND_TIMEOUT_SEC))
+
+
+def _handle_checked(s, session_id, text, chip_id, event, confirmation_token):
+    """[실험] 가로채기 확인을 대화 AI와 함께 돌린 턴을 마무리한다(LLM_ROUTE_CHECK_PARALLEL=1일 때만 달라진다).
+
+    확인을 뒤로 미루면 일단 대화 AI 쪽으로 간다. 확인이 '규칙이 맞다'로 끝나면 그 사이 남긴 대화 기록을 되돌리고
+    같은 문장을 규칙 처리로 다시 한다(이번 턴의 확인 결과를 기억하므로 두 번째에는 묻지 않는다).
+    """
+    check_token = route_check.begin_turn()
+    try:
+        try:
+            resp = _handle_message(s, session_id, text, chip_id, event, confirmation_token)
+            unsettled = route_check.pending()   # 대화 AI까지 가지 않고 끝난 턴(정해진 답 등)
+            if unsettled is None or not route_check.settle(unsettled):
+                return resp
+        except route_check.RuleKeeps:
+            pass
+        said = ("user", (text or "").strip()[:200])
+        while s.history and s.history.pop() != said:
+            pass
+        route.mark("check", "redo", why="확인 결과 규칙이 맞음 → 규칙 처리로 다시")
+        turn = _turn_deadline.get()
+        if turn is not None and isinstance(data.inner, ApiAdapter):
+            # 확인을 기다리는 동안 서버 조회 마감(턴 시작 + 2초)이 지났을 수 있다 → 규칙 답이 조회할 시간을 다시 잡는다
+            request_deadline.set(min(turn, time.monotonic() + config.BACKEND_TIMEOUT_SEC))
+        return _handle_message(s, session_id, text, chip_id, event, confirmation_token)
+    finally:
+        route_check.end_turn(check_token)
+
+
 def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
     if event == "start" and not s.history:
         s.alert_seeded = False
@@ -1187,7 +1236,8 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
             s.car_id = turn_plan.own_car               # '23번이 내 차야' → 이후 '얼마 나왔어?'의 대상
         route.mark("plan", "+".join(turn_plan.wants) or "none", why=turn_plan.summary())
         # 충전 현황 질문은 화면의 충전 현황 카드(칸별 충전 상태·남은 시간)로 연결한다 (김채린 charging_intent 이식).
-        if notice is None and _wants_charging(text):
+        if notice is None and _wants_charging(text) and route_check.keep(
+                text, "charging_status", urgent=alert_now.get("level", 0) >= 2):
             route.mark("rule", "charging_status", why="충전 현황 질문 → 충전 현황 카드")
             from .parser import extract_lots
             _lots = extract_lots(text + " 주차")
@@ -1236,6 +1286,10 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
         controlled = rule.intent in {"confirm_yes", "confirm_no", "change_vehicle",
                                      "cancel_destination", "set_destination", "admin_help",
                                      "evacuation_guide", "exit_help", "payment_help"}
+        # [실험] 목적지 설정으로 읽었지만 AI 확인이 아니라고 하면 가로채지 않고 대화 AI로 넘긴다
+        if rule.intent == "set_destination" and not route_check.keep(text, "set_destination",
+                                                                     urgent=alert_now.get("level", 0) >= 2):
+            controlled = False
         # '44번 차 결제해줘'처럼 결제만 요청하면 모델을 거치지 않고 바로 확인 절차로 간다(요금 질문이 섞이면 대화 에이전트).
         if rule.intent == "pay_fee" and not re.search(r"얼마|요금|금액|알려", text):
             controlled = True
@@ -1276,7 +1330,7 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
                 return _respond(s, T.REQUEST_UNAVAILABLE, meta={"unavailable": True})
             finally:
                 if deadline_token is not None:
-                    request_deadline.reset(deadline_token)
+                    _restore_backend_deadline(deadline_token)
         text = DC.rewrite(s, text)
         r = parse(text, allow_llm=config.LLM_ENGINE == "direct" and current_alert().get("level", 0) < 2)
         r = DC.fill(s, r, text)

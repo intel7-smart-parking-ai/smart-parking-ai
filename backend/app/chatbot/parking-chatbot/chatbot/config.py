@@ -218,6 +218,25 @@ LLM_REPAIR_MIN_SEC = _number("LLM_REPAIR_MIN_SEC", "1.5", float)
 # 확실한 조회(말한 주차장의 빈자리, 말한 차량의 위치·요금 등)는 코드가 먼저 실행해 대화 AI에 넘긴다.
 # 모델 호출이 2번(도구 선택 → 답)에서 1번으로 줄어 답이 빨라진다. AI는 필요하면 조회를 더 할 수 있다. 0이면 끔.
 LLM_PREFETCH = getenv("LLM_PREFETCH", "1") == "1"
+# [실험] 가로채기 확인: 규칙이 직접 맡으려는 문장(목적지·내 차 찾기·혼잡 예측·충전 현황)을 AI가 한 번 확인(route_check.py).
+# 기본 꺼짐. 켜도 실패·시간 초과면 규칙대로 간다.
+LLM_ROUTE_CHECK = getenv("LLM_ROUTE_CHECK", "0") == "1"
+LLM_ROUTE_CHECK_TIMEOUT_SEC = _number("LLM_ROUTE_CHECK_TIMEOUT_SEC", "1.5", float)
+LLM_ROUTE_CHECK_MODEL = getenv("LLM_ROUTE_CHECK_MODEL", "").strip()
+# [실험] 빠른 길: 그 처리의 말로만 된 문장("B로 갈게", "전기차 충전 현황")은 확인을 생략한다. 0이면 매번 확인.
+LLM_ROUTE_CHECK_FAST = getenv("LLM_ROUTE_CHECK_FAST", "1") == "1"
+# [실험] 동시 실행: 확인을 기다리지 않고 대화 AI를 함께 시작한다. 확인이 맞다면 대화 AI를 취소하고 규칙으로 간다. 0이면 차례로.
+LLM_ROUTE_CHECK_PARALLEL = getenv("LLM_ROUTE_CHECK_PARALLEL", "0") == "1"
+# 동시 실행일 때 확인을 기다리는 최대 시간. 대화 AI(보통 2초 이상)가 도는 동안이라 차례 방식(1.5초)보다 길게 둔다.
+LLM_ROUTE_CHECK_PARALLEL_TIMEOUT_SEC = _number("LLM_ROUTE_CHECK_PARALLEL_TIMEOUT_SEC", "2.5", float)
+# 동시에 도는 확인 호출 수 상한. 넘으면 확인 없이 규칙대로 간다.
+LLM_ROUTE_CHECK_MAX_INFLIGHT = _number("LLM_ROUTE_CHECK_MAX_INFLIGHT", "8", int)
+if not math.isfinite(LLM_ROUTE_CHECK_PARALLEL_TIMEOUT_SEC) or LLM_ROUTE_CHECK_PARALLEL_TIMEOUT_SEC <= 0:
+    raise ValueError("LLM_ROUTE_CHECK_PARALLEL_TIMEOUT_SEC는 양수여야 합니다.")
+if LLM_ROUTE_CHECK_MAX_INFLIGHT < 1:
+    raise ValueError("LLM_ROUTE_CHECK_MAX_INFLIGHT는 1 이상이어야 합니다.")
+if not math.isfinite(LLM_ROUTE_CHECK_TIMEOUT_SEC) or LLM_ROUTE_CHECK_TIMEOUT_SEC <= 0:
+    raise ValueError("LLM_ROUTE_CHECK_TIMEOUT_SEC는 양수여야 합니다.")
 # 한 턴의 입력+출력 토큰 상한. 도구 설명·지시문이 매 호출에 다시 들어가므로 호출 수 × 약 5천을 잡는다.
 LLM_TURN_TOKEN_LIMIT = _number("LLM_TURN_TOKEN_LIMIT", "40000", int)
 # 근거 검사에 걸린 답을 이유와 함께 한 번 고쳐 쓰게 한다(0이면 바로 대체 답).

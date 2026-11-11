@@ -5,7 +5,7 @@
     # 변경 전 코드와 비교: 다른 체크아웃(git worktree)의 챗봇 폴더를 --root로
     python tools/run_dialogs.py tests/dialogs/tricky_demo.json --root ../../../../../sp-base/backend/app/chatbot/parking-chatbot
 
-- 데이터는 mock, 모니터링은 로컬 임시 파일(경로 단계별 이유를 읽으려고)로 고정한다.
+- 데이터는 기본 mock(--data api면 실제 백엔드), 모니터링은 로컬 임시 파일(경로 단계별 이유를 읽으려고)로 고정한다.
 - 키는 환경 변수 또는 --env-file에서만 읽고 출력하지 않는다.
 - 결과 JSON: {"meta": 실행 메타(커밋·모델·설정·날짜), "summary": 자동 판정 집계, "rows": 턴 목록}
   각 턴: id, kind, q, a, route(요약), steps(단계별 이유), agent(호출 수·토큰·시간), sec, expect, grade(자동 판정)
@@ -34,6 +34,8 @@ def main(argv=None):
     ap.add_argument("--root", help="다른 체크아웃의 parking-chatbot 폴더로 실행(변경 전후 비교용)")
     ap.add_argument("--label", help="실행 이름(보관 파일명·장부에 씀)")
     ap.add_argument("--save", action="store_true", help="docs/eval/runs/<날짜>_<label>.json 으로 보관")
+    ap.add_argument("--data", default="mock", choices=("mock", "api"),
+                    help="api면 실제 백엔드(BACKEND_BASE_URL, 기본 http://127.0.0.1:8000)에 붙어 조회한다")
     args = ap.parse_args(argv)
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
@@ -44,7 +46,7 @@ def main(argv=None):
             os.environ.setdefault("OPENROUTER_API_KEY", key)
     # 턴 기록: MONITOR_LOCAL_PATH를 주면 그 파일에 남긴다(tools/trace_report.py로 분석). 없으면 임시 파일.
     log = Path(os.environ.get("MONITOR_LOCAL_PATH") or Path(tempfile.gettempdir()) / f"dialog_turns_{os.getpid()}.jsonl")
-    os.environ.update(DATA_SOURCE="mock", MONITOR_BACKEND="local", MONITOR_LOCAL_PATH=str(log),
+    os.environ.update(DATA_SOURCE=args.data, MONITOR_BACKEND="local", MONITOR_LOCAL_PATH=str(log),
                       LLM_ENGINE=os.environ.get("LLM_ENGINE", "langchain"), LLM_MAX_PER_SESSION_MIN="60")
     os.environ.setdefault("LLM_PROVIDER", "openrouter" if os.environ.get("OPENROUTER_API_KEY") else "none")
     root = Path(args.root).resolve() if args.root else ROOT
