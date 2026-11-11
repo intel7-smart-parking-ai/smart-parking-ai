@@ -144,8 +144,21 @@ class SmallShiftAdoption(unittest.TestCase):
         self.assertEqual(m.confirmed['1'][:2], (5, 'B'))
         self.assertTrue(np.allclose(m.confirmed['1'][2], shifted))
         self.assertEqual(m.fixed_views['1'], (5, {'ref': 'new'}))
-        m.registry.save_start_view.assert_called_once()
+        m.registry.save_start_view.assert_not_called()   # the saved view stays person-approved
         self.assertNotIn('1', m.interrupted_views)
+
+    def test_repeated_small_shifts_do_not_add_up(self):
+        # Review 11/11: each adoption must be measured from the pose a person approved.
+        m, image, outline = self.model()
+        m.human_poses = {'1': ('B', outline.copy())}
+        first = outline + np.float32([[3, 20]] * 4)       # 20.2 px from the approved pose
+        self.assertEqual(self.run_frames(m, image, [first] * 5)[-1], True)
+        # Later the board slips again by the same amount from the adopted pose.
+        m.interrupted_views['1'] = ((5, 'B', m.confirmed['1'][2], image.shape), {'ref': 'new'}, 10**12, None)
+        m.confirmed.pop('1')
+        second = outline + np.float32([[6, 40]] * 4)      # 20 px from the adoption, 40 px from the approval
+        self.assertEqual(self.run_frames(m, image, [second] * 6), [False] * 6)
+        self.assertNotIn('1', m.confirmed)
 
     def test_big_or_unsteady_shift_not_adopted(self):
         m, image, outline = self.model()
