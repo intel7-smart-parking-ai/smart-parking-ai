@@ -6,6 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from backend.app.billing.db import SCHEMA as BILLING_SCHEMA
+from backend.app.database.parking_sessions import enter, exit_session, identify, move_sessions
 from backend.app.runtime import create_runtime_app
 
 TOKEN='pipeline-test-token'
@@ -107,6 +108,182 @@ def test_journal_failure_retries_and_recovers(tmp_path,monkeypatch):
         assert store.receive(event) is Receipt.ACCEPTED
     with TestClient(create_runtime_app(token=TOKEN,database=path,mode='real',clock=lambda:at)) as client:
         assert client.post('/api/v1/internal/vision-events',headers=HEADERS,json=event.model_dump(mode='json')).status_code==200
+
+
+def test_new_event_recovers_pending_exit_after_temporary_db_failure(tmp_path, monkeypatch):
+    now = [datetime(2026, 11, 10, tzinfo=timezone.utc)]
+    database = tmp_path / "pending-exit.sqlite3"
+    app = create_runtime_app(token=TOKEN, database=database, mode="real", clock=lambda: now[0])
+
+    with TestClient(app) as client:
+        store = app.state.pipeline
+
+        def send(event):
+            return client.post("/api/v1/internal/vision-events", headers=HEADERS, json=event)
+
+        def journal(event):
+            with closing(store.connection()) as conn:
+                return conn.execute(
+                    "SELECT applied FROM pipeline_events WHERE event_id=?", (event["event_id"],)
+                ).fetchone()
+
+        start = now[0]
+        for index in range(3):
+            now[0] = start + timedelta(seconds=index)
+            assert send(observation(now[0], index)).status_code == 202
+        sid = client.get("/api/v1/vehicles/10/location").json()["session_id"]
+        fee = client.get(f"/api/v1/sessions/{sid}/fee")
+        assert fee.status_code == 200
+        payment = dict(session_id=sid, quote_id=fee.json()["quote_id"],
+                       idempotency_key="pending-exit-payment", payment_method="MOCK_CARD")
+        paid = client.post("/api/v1/mock-payments", json=payment)
+        assert paid.status_code == 200
+
+        for index in range(3, 6):
+            now[0] = start + timedelta(seconds=index)
+            assert send(observation(now[0], index, kind="space_empty_observed")).status_code == 202
+
+        def fail_exit(*args, **kwargs):
+            raise sqlite3.OperationalError("synthetic exit write failure")
+
+        now[0] = start + timedelta(seconds=6)
+        pending = observation(now[0], 6, kind="space_empty_observed")
+        with monkeypatch.context() as patch:
+            patch.setattr(store, "session_exit", fail_exit)
+            assert send(pending).status_code == 503
+            now[0] += timedelta(seconds=1)
+            next_event = observation(now[0], 7)
+            assert send(next_event).status_code == 503
+            assert journal(pending)["applied"] == 0
+            assert journal(next_event) is None
+
+        assert send(next_event).status_code == 202
+        assert journal(pending)["applied"] == journal(next_event)["applied"] == 1
+        assert send(pending).status_code == send(next_event).status_code == 200
+        assert send(next_event | {"car_id": "11"}).status_code == 409
+        for index in range(8, 10):
+            now[0] = start + timedelta(seconds=index)
+            assert send(observation(now[0], index)).status_code == 202
+
+        repeated = client.post("/api/v1/mock-payments", json=payment)
+        assert repeated.status_code == 200
+        assert repeated.json()["payment_id"] == paid.json()["payment_id"]
+        with closing(store.connection()) as conn:
+            sessions = conn.execute(
+                "SELECT session_id, status, exit_at FROM parking_sessions ORDER BY entry_at"
+            ).fetchall()
+            assert len(sessions) == 2
+            assert tuple(sessions[0]) == (sid, "closed", pending["observed_at"])
+            assert sessions[1]["session_id"] != sid
+            assert sessions[1]["status"] == "active"
+            assert conn.execute("SELECT count(*) FROM mock_payments").fetchone()[0] == 1
+            assert conn.execute(
+                "SELECT count(*) FROM pipeline_events WHERE applied=0"
+            ).fetchone()[0] == 0
+
+
+@pytest.mark.parametrize(("code", "status"), [
+    ("ACTIVE_SESSION_EXISTS", 409),
+    ("SESSION_MOVE_CONFLICT", 409),
+    ("같은 칸에 활성 세션이 중복되어 이동할 수 없습니다.", 409),
+    ("SESSION_NOT_ACTIVE", 409),
+    ("SESSION_NOT_FOUND", 404),
+], ids=["active-car", "move", "duplicate-bay", "inactive", "missing"])
+def test_permanent_replay_conflict_is_quarantined_without_blocking_new_events(
+    tmp_path, monkeypatch, code, status,
+):
+    now = [datetime(2026, 11, 10, tzinfo=timezone.utc)]
+    start = now[0]
+    database = tmp_path / "pending-conflict.sqlite3"
+
+    def app():
+        return create_runtime_app(token=TOKEN, database=database, mode="real", clock=lambda: now[0])
+
+    def send(client, event):
+        return client.post("/api/v1/internal/vision-events", headers=HEADERS, json=event)
+
+    with TestClient(app()) as client:
+        store = client.app.state.pipeline
+        for index in range(5):
+            now[0] = start + timedelta(seconds=index)
+            space = "A-01" if index < 3 else "A-02"
+            assert send(client, observation(now[0], index, space=space)).status_code == 202
+        sid = client.get("/api/v1/vehicles/10/location").json()["session_id"]
+
+        fee = client.get(f"/api/v1/sessions/{sid}/fee")
+        assert fee.status_code == 200
+        assert client.post("/api/v1/mock-payments", json={
+            "session_id": sid, "quote_id": fee.json()["quote_id"],
+            "idempotency_key": "quarantine-payment", "payment_method": "MOCK_CARD",
+        }).status_code == 200
+
+        def records():
+            with closing(store.connection()) as conn:
+                return [
+                    [tuple(row) for row in conn.execute(f"SELECT * FROM {table} ORDER BY 1")]
+                    for table in ("parking_sessions", "fee_quotes", "mock_payments", "session_moves")
+                ]
+
+        if code.startswith("같은 칸"):
+            with closing(store.connection()) as conn:
+                enter(conn, session_id="duplicate-bay-session", lot_id="A", space_id="A-01",
+                      car_id="12", entry_at=start - timedelta(seconds=1))
+        before = records()
+
+        def fail_entry(*args, **kwargs):
+            raise sqlite3.OperationalError("synthetic temporary entry failure")
+
+        def replay_entry(conn, **kwargs):
+            if code == "SESSION_MOVE_CONFLICT":
+                return move_sessions(
+                    conn, lot_id="A", moves=[(sid, "A-03", "A-02")], observed_at=now[0],
+                    save_snapshots=lambda: pytest.fail("Conflicting move reached snapshot write"),
+                )
+            if code == "SESSION_NOT_ACTIVE":
+                return identify(conn, session_id="missing-session", car_id="10")
+            if code == "SESSION_NOT_FOUND":
+                return exit_session(conn, session_id="missing-session", exit_at=now[0])
+            if code.startswith("같은 칸"):
+                store._apply_camera_move(conn, {
+                    "lot_id": "A", "space_id": "A-02", "source": "vision",
+                    "move_evidence": ("10", (now[0],)),
+                }, None)
+                pytest.fail("Expected duplicate bay conflict")
+            return enter(conn, **kwargs)
+
+        now[0] = start + timedelta(seconds=5)
+        pending = observation(now[0], 5, space="A-02")
+        with monkeypatch.context() as patch:
+            patch.setattr(store, "session_enter", fail_entry)
+            assert send(client, pending).status_code == 503
+
+        # Retrying the pending entry now conflicts with the existing session in A-01.
+        now[0] = start + timedelta(seconds=6)
+        new_event = observation(now[0], 6, space="A-02", kind="space_empty_observed")
+        with monkeypatch.context() as patch:
+            patch.setattr(store, "session_enter", replay_entry)
+            assert send(client, new_event).status_code == 202
+        assert records() == before
+        with closing(store.connection()) as conn:
+            assert conn.execute("SELECT count(*) FROM pipeline_events WHERE applied=0").fetchone()[0] == 0
+            assert conn.execute(
+                "SELECT applied FROM pipeline_events WHERE event_id=?", (pending["event_id"],)
+            ).fetchone()[0] == -1
+            rejection = conn.execute(
+                "SELECT status_code, detail FROM pipeline_event_rejections WHERE journal_key=?",
+                (pending["event_id"],),
+            ).fetchone()
+            assert rejection["status_code"] == status
+            assert code in rejection["detail"]
+
+    with TestClient(app()) as client:
+        assert client.get("/api/v1/vehicles/10/location").json()["session_id"] == sid
+        assert records() == before
+        assert send(client, pending).status_code == 200
+        assert send(client, pending | {"car_id": "11"}).status_code == 409
+        now[0] = start + timedelta(seconds=606)
+        assert send(client, pending).status_code == 202
+        assert records() == before
 
 
 def test_confirming_event_recovers_after_side_effect_before_applied_flag(tmp_path,monkeypatch):

@@ -21,7 +21,7 @@ from typing import Literal
 from uuid import uuid4
 from fastapi import APIRouter, Depends, HTTPException, Header
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 from backend.app.api.occupancy_query_demo import create_demo_app
 from backend.app.api.occupancy_prototype import OccupancyExperiment, SIMULATION_MAX_GAP_SECONDS
 from backend.app.api.vision_event_schema import VisionEvent
@@ -55,6 +55,10 @@ def utcnow():
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS pipeline_events(sequence INTEGER PRIMARY KEY AUTOINCREMENT,event_id TEXT UNIQUE NOT NULL,payload TEXT NOT NULL,canonical BLOB NOT NULL,applied INTEGER NOT NULL DEFAULT 0);
+CREATE TABLE IF NOT EXISTS pipeline_event_rejections(
+    journal_key TEXT PRIMARY KEY, status_code INTEGER NOT NULL,
+    detail TEXT NOT NULL, rejected_at TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS simulation_targets(lot_id TEXT NOT NULL,space_id TEXT NOT NULL,occupied INTEGER NOT NULL DEFAULT 0,vehicle_number TEXT,plate_number TEXT,PRIMARY KEY(lot_id,space_id));
 CREATE TABLE IF NOT EXISTS simulation_controls(lot_id TEXT PRIMARY KEY,running INTEGER NOT NULL DEFAULT 0,interval_seconds INTEGER NOT NULL DEFAULT 8,next_tick REAL NOT NULL DEFAULT 0,last_error TEXT);
 CREATE TABLE IF NOT EXISTS simulation_movements(event_id TEXT PRIMARY KEY,lot_id TEXT NOT NULL,space_id TEXT NOT NULL,action TEXT NOT NULL,vehicle_number TEXT,session_id TEXT,occurred_at TEXT NOT NULL);
@@ -191,6 +195,54 @@ class EventPipeline(OccupancyExperiment):
             self.sync_session(row, event.observed_at)
         self._spaces[key] = row
 
+    def _replay_pending_event(self, conn, record):
+        event = VisionEvent.model_validate_json(record["payload"])
+        journal_key = record["event_id"]
+        try:
+            self._apply_journal_event(conn, event, already_applied=False)
+        except HTTPException as exc:
+            if not self._is_terminal_event_rejection(exc):
+                raise
+            detail = json.dumps(exc.detail, ensure_ascii=False)
+            # -1 is terminal: neither the pending queue nor startup replay selects it.
+            with conn:
+                conn.execute(
+                    "INSERT INTO pipeline_event_rejections VALUES (?, ?, ?, ?)",
+                    (journal_key, exc.status_code, detail, self._identity_clock().isoformat()),
+                )
+                conn.execute("UPDATE pipeline_events SET applied=-1 WHERE event_id=?", (journal_key,))
+                conn.execute(
+                    "UPDATE vision_event_receipts SET journal_key=NULL, frame_key=NULL "
+                    "WHERE event_id=? AND journal_key=?",
+                    (event.event_id, journal_key),
+                )
+            logging.getLogger(__name__).warning(
+                "Quarantined pending event %r (journal %r, HTTP %s): %s",
+                event.event_id, journal_key, exc.status_code, detail,
+            )
+            return exc
+        self._finish_event(conn, event, journal_key)
+        return None
+
+    @staticmethod
+    def _is_terminal_event_rejection(exc):
+        # Only known validation failures and conflicts raised before session writes.
+        if not 400 <= exc.status_code < 500:
+            return False
+        if exc.status_code == 409 and exc.detail in (
+            "활성 세션의 차량 식별 변경은 확인이 필요합니다.",
+            "다른 주차장의 활성 차량은 이동할 수 없습니다.",
+            "같은 칸에 활성 세션이 중복되어 이동할 수 없습니다.",
+        ):
+            return True
+        cause = exc.__cause__
+        return isinstance(cause, SessionError) and cause.body["error"]["code"] in {
+            "ACTIVE_SESSION_EXISTS", "SESSION_ID_CONFLICT", "SESSION_IDENTITY_CONFLICT",
+            "SESSION_ALREADY_CLOSED", "INVALID_SESSION_TIME", "INVALID_SESSION_ID",
+            "INVALID_LOT_ID", "INVALID_CAR_ID",
+            "SESSION_MOVE_CONFLICT", "SESSION_NOT_ACTIVE", "SESSION_NOT_FOUND",
+        }
+
     def recover(self):
         with self.gate, self._state_lock, closing(self.connection()) as conn:
             self._collect_identity_evidence = False
@@ -218,9 +270,7 @@ class EventPipeline(OccupancyExperiment):
                     "SELECT event_id,payload FROM pipeline_events WHERE applied=0 ORDER BY sequence"
                 ).fetchall()
                 for record in pending:
-                    event = VisionEvent.model_validate_json(record["payload"])
-                    self._apply_journal_event(conn, event, already_applied=False)
-                    self._finish_event(conn, event, record["event_id"])
+                    self._replay_pending_event(conn, record)
             finally:
                 self.recovering = False
                 self._collect_identity_evidence = True
@@ -297,10 +347,26 @@ class EventPipeline(OccupancyExperiment):
                     return Receipt.DUPLICATE
             journal_key = receipt["journal_key"] if receipt else None
             pending = conn.execute(
-                "SELECT event_id,payload FROM pipeline_events WHERE applied=0 ORDER BY sequence LIMIT 1"
-            ).fetchone()
-            if pending and pending["event_id"] != journal_key:
-                raise HTTPException(503, "미완료 이벤트를 같은 event_id로 먼저 재시도하세요.")
+                "SELECT event_id,payload FROM pipeline_events WHERE applied=0 ORDER BY sequence"
+            ).fetchall()
+            if pending:
+                # Release the receipt cleanup write lock before session recovery uses its own connection.
+                conn.commit()
+            for record in pending:
+                same_event = record["event_id"] == journal_key
+                try:
+                    rejection = self._replay_pending_event(conn, record)
+                except (HTTPException, sqlite3.Error, ValidationError) as exc:
+                    logging.getLogger(__name__).warning(
+                        "Failed to recover pending event %r", record["event_id"], exc_info=True,
+                    )
+                    if same_event and isinstance(exc, HTTPException):
+                        raise
+                    raise HTTPException(503, "미완료 이벤트를 복구하지 못했습니다. 잠시 후 다시 시도하세요.") from exc
+                if same_event:
+                    if rejection is not None:
+                        raise rejection
+                    return Receipt.ACCEPTED
             if journal_key is None:
                 camera = self._is_camera_observation(event)
                 if camera:
@@ -341,7 +407,7 @@ class EventPipeline(OccupancyExperiment):
                 )
                 self._save_receipt(conn, event, canonical, now.timestamp(), journal_key)
             else:
-                event = VisionEvent.model_validate_json(pending["payload"])
+                raise HTTPException(503, "미완료 이벤트의 저널 기록을 찾을 수 없습니다.")
             conn.commit()
             try:
                 self._apply_journal_event(conn, event, already_applied=False)
