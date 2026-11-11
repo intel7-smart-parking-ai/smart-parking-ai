@@ -11,6 +11,7 @@ from collections import deque
 from contextlib import contextmanager
 from functools import partial
 from urllib.parse import urlsplit
+from . import clock
 from .camera_hub import CameraHub,discover
 from .pipeline import public_result,same_pose,empty_similarity
 from .policy import (duplicate_identities,to_events,without_duplicate_identities,FIRE_EVENTS,on_vehicle_roof,
@@ -152,6 +153,8 @@ class LiveSession:
             devices=self.discover_fn()[:2]
             if not devices:raise ValueError('Intel 카메라가 없습니다. USB 연결을 확인하세요.')
             self.pipeline.invalidate();self.transport.cancel()
+            if os.environ.get('V53_AUTO_APPROVE')=='1' and hasattr(self.pipeline,'arm_saved_approvals'):
+                self.pipeline.arm_saved_approvals()
             self.hub=self.hub_factory(devices);self.stop_event.clear()
             with self.lock:
                 if self.collection:self.collection.begin()
@@ -265,12 +268,12 @@ class LiveSession:
                     with self.pipeline.lock:
                         if revision != self.revision or self.stop_event.is_set():break
                         try:
-                            analysis_started=datetime.now(timezone.utc).isoformat()
+                            analysis_started=clock.utcnow().isoformat()
                             result=self.pipeline.analyze(packet['image'],camera=camera,epoch=packet['epoch'],
                                 sequence=packet['sequence'],observed_at=packet['observed_at'],lot_hint=lots[camera],threshold=threshold)
                             latest=self.hub.latest(camera);now=time.monotonic()
                             result['analysis_started_at']=analysis_started
-                            result['analysis_ready_at']=datetime.now(timezone.utc).isoformat()
+                            result['analysis_ready_at']=clock.utcnow().isoformat()
                             result['_ready_mono']=now
                             if (self.collection and latest and latest['epoch']==packet['epoch']
                                     and revision==self.revision and not self.stop_event.is_set()):
@@ -328,6 +331,11 @@ class LiveSession:
         was=self._approved.get(camera)
         self._approved[camera]=approved
         if approved:
+            # 11/11: an operator-run restart left delivery off. Opt-in (launcher) only, and
+            # never after the operator turned delivery off on purpose.
+            if (not was and not self.sending and os.environ.get('V53_AUTO_SEND')=='1'
+                    and (self.send_stopped or {}).get('reason')!='operator_turned_off'):
+                self._auto_send_due=True
             if self.approval_lost.pop(camera,None):
                 logging.getLogger(__name__).info('Camera %s board approval restored (lot=%s)',camera,result.get('lot_id'))
         elif was:
@@ -412,6 +420,12 @@ class LiveSession:
         sent={}
         while not self.stop_event.is_set():
             self.publication_ready.clear()
+            if self.__dict__.pop('_auto_send_due',False) and not self.sending:
+                try:
+                    self.enable_send(True)
+                    logging.getLogger(__name__).info('Delivery turned on automatically after board approval (V53_AUTO_SEND)')
+                except (ValueError,RuntimeError) as error:
+                    logging.getLogger(__name__).warning('Automatic delivery start skipped: %s',error)
             try:
                 with self.lock:
                     deadline=self._offer_current(sent) if self.sending else None
