@@ -176,7 +176,10 @@ def choose(s,snapshot,alert,params,vehicle=None):
     why=reason(snapshot,alert,lot,zone)
     if why:
         other,actions=alternatives(snapshot,alert,lot,zone)
-        return f"{status_sentence(label(lot,zone),why)}\n{other}",card(snapshot,alert,lot,zone),actions,snapshot["updated_at"]
+        item=snapshot["lots"].get(lot) or {}
+        pending=(item if zone is None else (item.get("zones") or {}).get(zone,{})).get("uncertain",0)
+        note=f" (카메라 확인 중 {pending}칸)" if why=="만차" and type(pending) is int and pending>0 else ""
+        return f"{status_sentence(label(lot,zone),why)}{note}\n{other}",card(snapshot,alert,lot,zone),actions,snapshot["updated_at"]
     if vehicle and vehicle.get("state")=="parked":
         clear(s)
         return "차량의 입차가 확인되어 목적지 감시를 종료했어요.",card(snapshot,alert,lot,zone),["find_car","fee"],snapshot["updated_at"]

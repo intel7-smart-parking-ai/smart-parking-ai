@@ -234,9 +234,16 @@ class ReadTools:
                 availability = "restricted"
             else:
                 availability = "unknown"
-            rows.append({"lot_id": lot_id, "name": lot.get("name") or config.catalog.name(lot_id),
-                         "zone": zone, **{key: part.get(key) for key in ("empty","total","uncertain","unavailable")},
-                         "availability": availability, "reason": reason})
+            row = {"lot_id": lot_id, "name": lot.get("name") or config.catalog.name(lot_id),
+                   "zone": zone, **{key: part.get(key) for key in ("empty","total","uncertain","unavailable")},
+                   "availability": availability, "reason": reason}
+            pending = part.get("uncertain")
+            if type(pending) is int and pending > 0:
+                # 카메라가 끊기면 칸이 '확인 필요'가 되고 빈자리 수는 0으로 온다. 그건 만차가 아니라 '모르는 상태'다
+                # (봇 점검 11/11: 12칸 모두 확인 필요인 주차장을 대화 AI가 "만차라서 자리가 없어요"라고 답함)
+                row["camera_check"] = (f"카메라 확인 중 {pending}칸. 이 칸들은 비었는지 알 수 없다. "
+                                       "빈자리가 없다고 말할 때는 '확인된 빈자리는 없고 카메라 확인 중인 칸이 있다'고 함께 말한다.")
+            rows.append(row)
         alert_summary = _project(alert, ("level", "lot_id", "stale", "unavailable"))
         if alert.get("unavailable") and not alert.get("level"):
             alert_summary.pop("level", None)
