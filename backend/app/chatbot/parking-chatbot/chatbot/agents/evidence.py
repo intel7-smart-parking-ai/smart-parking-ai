@@ -218,8 +218,14 @@ def contradicts_restricted_policy(answer):
     return False
 
 
+_TOTAL_CLAIM = re.compile(r"(?:총|합계|합쳐서?|합치면|합하면|모두\s*합(?:쳐|치면)?|다\s*합(?:쳐|치면))[^\d\n]{0,10}?"
+                          r"(\d[\d,]*)\s*(?:자리|칸|대|개|면)(?!\s*(?:의\s*)?주차장)")
+_UNCERTAIN_INCLUDED = re.compile(r"확인\s*(?:중|필요)[^.\n]{0,14}포함(?!\s*(?:되지|하지|안\s|돼\s*있지|되어\s*있지))")
+
 REPAIR_HINTS = {
-    "unsupported_number": "답에 이번 조회 결과에 없는 숫자가 있습니다. 차이·개수·경과 시간·예상 요금은 compare_lots, vehicle_info의 *_text, estimate_fee 결과 값만 옮겨 쓰세요. 필요하면 그 도구를 먼저 호출하세요.",
+    "wrong_total": "합계 숫자가 조회 결과의 summary.total_empty와 다릅니다. 주차장별 숫자를 직접 더하지 말고 total_empty 값을 그대로 쓰세요. 그 값이 없으면 합계는 빼고 주차장별로만 답하세요.",
+    "uncertain_included": "카메라 확인 중인 칸은 빈자리 수에 들어 있지 않습니다. '포함'이라고 하지 말고 '빈자리 N칸, 그 밖에 M칸은 카메라 확인 중'이라고 말하세요.",
+    "unsupported_number": "답에 이번 조회 결과에 없는 숫자가 있습니다. 차이·개수·경과 시간·예상 요금은 compare_lots, vehicle_info의 *_text, estimate_fee 결과 값만 옮겨 쓰세요. 여러 주차장의 합계는 summary.total_empty 값만 쓰고 직접 더하지 마세요. 필요하면 그 도구를 먼저 호출하세요.",
     "unsupported_location": "답에 조회되지 않은 칸 번호가 있습니다. 조회 결과의 칸 번호만 쓰세요.",
     "unsupported_lot": "답에 이번에 조회하지 않은 주차장이 있습니다. 조회한 주차장만 말하거나 그 주차장을 조회하세요.",
     "mismatched_lot_value": "어떤 주차장의 숫자를 다른 주차장 값으로 말했습니다. 주차장마다 조회 결과의 값을 그대로 짝지어 쓰세요. 차이는 compare_lots 요약 값을 쓰세요.",
@@ -313,6 +319,20 @@ def check_answer(answer, request, observations):
         if pending and ("만차" in claim[0]
                         or not _CAMERA_NOTE.search(answer[max(0, claim.start() - 60):claim.end() + 120])):
             return "full_without_camera_note"
+    # 합계('총 91자리', '합쳐서 91대')는 코드가 계산한 summary.total_empty 와 같아야 한다. 조회 결과의 다른 숫자(칸 수 64 등)와
+    # 우연히 같아서 통과하지 않게 한다. 같은 줄에서 주차장을 먼저 말한 '총 64칸 중 21칸'은 그 주차장의 전체 칸 수라 아래 검사에 맡긴다.
+    totals = {str(row["total_empty"]) for row in entries if type(row.get("total_empty")) is int}
+    total_spans = set()
+    for m in _TOTAL_CLAIM.finditer(answer):
+        if m[1].replace(",", "") in totals:
+            total_spans.add(m.start(1))
+            continue
+        line_start = answer.rfind("\n", 0, m.start()) + 1
+        if len(status_rows) >= 2 and not any(line_start <= start <= m.start() for start, _ in mentions):
+            return "wrong_total"
+    # 카메라 확인 중인 칸은 빈자리 수에 들어 있지 않다(11/11 실측: "21개 (카메라 확인 중인 칸 1개 포함)")
+    if _UNCERTAIN_INCLUDED.search(answer):
+        return "uncertain_included"
     # 비교 숫자는 코드가 계산한 차이 값과만 맞춘다("1,000원 더 싸요"가 우연히 다른 값과 겹쳐 통과하지 않게).
     diffs = {str(row[k]) for row in entries for k in _DIFF_KEYS if type(row.get(k)) is int}
     diffs |= {n for row in entries for note in (row.get("notes") or []) if isinstance(note, str) for n in _numbers(note)}
@@ -336,6 +356,8 @@ def check_answer(answer, request, observations):
     # available. This catches reassigning D's fee or count to C in a comparison.
     for m in _CLAIM_UNITS.finditer(answer):
         value = m[1].replace(",", "")
+        if m.start(1) in total_spans:
+            continue       # 코드가 계산한 합계와 같은 값(위에서 확인) → 바로 앞 주차장의 값으로 묶지 않는다
         if _COMPARE_AFTER.match(answer, m.end()) or _COMPARE_BEFORE.search(answer[max(0, m.start() - 8):m.start()]):
             if value not in diffs:
                 return "mismatched_lot_value"

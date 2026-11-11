@@ -119,6 +119,14 @@ HAND = {
     "카메라 확인 중 __COUNT0__": ("__COUNT0__ being checked by camera", "摄像头确认中__COUNT0__", "カメラで確認中__COUNT0__"),
     "기본요금 처음 __NUMBER0__분 __AMOUNT1__": (
         "base fee __AMOUNT1__ for the first __NUMBER0__ minutes", "基本费用：前__NUMBER0__分钟__AMOUNT1__", "基本料金：最初の__NUMBER0__分__AMOUNT1__"),
+    # ---- 요금표('주차요금 안내해줘' → 주차장마다 한 줄)
+    "주차장별 요금표예요.": ("Here are the parking fees for each lot.", "以下是各停车场的收费标准。", "駐車場ごとの料金表です。"),
+    "· __NAME0__: 처음 __NUMBER1__분은 __AMOUNT2__, 이후 __NUMBER3__분마다 __AMOUNT4__, 하루 최대 __AMOUNT5__": (
+        "· __NAME0__: __AMOUNT2__ for the first __NUMBER1__ minutes, then __AMOUNT4__ every __NUMBER3__ minutes, up to __AMOUNT5__ per day",
+        "· __NAME0__：前__NUMBER1__分钟__AMOUNT2__，之后每__NUMBER3__分钟__AMOUNT4__，每日最高__AMOUNT5__",
+        "· __NAME0__：最初の__NUMBER1__分は__AMOUNT2__、以降__NUMBER3__分ごとに__AMOUNT4__、1日最大__AMOUNT5__"),
+    "내 차 요금은 차량 번호와 함께 물어봐 주세요.": (
+        "For your own car's fee, ask with your vehicle number.", "查询您的车辆费用时，请同时告知车辆号码。", "ご自身の車の料金は、車両番号と一緒にお尋ねください。"),
 }
 
 

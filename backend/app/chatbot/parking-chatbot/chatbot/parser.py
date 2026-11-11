@@ -402,6 +402,16 @@ _VACANCY_AMOUNT = re.compile(r"얼마나\s*(?:\S+\s*){0,2}?(?:여유|남|비어|
 _SAFETY = re.compile(r"경보|화재|불\s*났|연기|대피|피난|비상|관리자|직원|호출|결제|정산")
 
 
+_FEE_TABLE = re.compile(r"(?:요금|주차비)\s*(?:을|를|좀|은|는|에\s*대해)?\s*(?:안내|설명|소개)|(?:요금|주차비)\s*(?:정보|표|체계|정책)|"
+                        r"주차\s*요금\s*(?:을|를|좀)?\s*(?:알려|보여|궁금)")
+_OWN_FEE = re.compile(r"(?:내|제|우리)\s*(?:차|요금|주차)|나온|나왔|지금까지|내야|낼\s|정산|결제|\d")
+
+
+def asks_fee_table(text: str) -> bool:
+    """주차장별 요금표를 묻는 말인가('주차요금 안내해줘', '요금표 보여줘'). 내 차 요금·차량 번호·기간이 섞이면 아니다."""
+    return bool(_FEE_TABLE.search(text)) and not _OWN_FEE.search(text)
+
+
 def _with_analytics(text: str, result: ParseResult) -> ParseResult:
     """데이터 집계형 질문을 표시한다. 새 intent는 없고 기존 get_empty_spots/fee_rule에 params만 더한다."""
     if result.intent not in ("unknown", "get_empty_spots", "get_fee", "fee_rule") or result.vehicle_only:
@@ -410,6 +420,10 @@ def _with_analytics(text: str, result: ParseResult) -> ParseResult:
         return result
     params = {k: v for k, v in result.params.items() if k in ("lot_id", "zone")}
     lots = extract_lots(text)
+    if asks_fee_table(text) and not lots and not params.get("lot_id"):
+        # 화면의 '주차요금' 버튼("주차요금 안내해줘")은 요금표를 묻는 말이다. 전에는 내 차 요금으로 보고 차량 번호를 물었다(11/11 시연).
+        # 내 차 요금은 '요금 얼마야', '23번 요금'처럼 따로 묻는다.
+        return ParseResult("fee_rule", {"fee_table": True}, "rule")
     if _FEE_RANK.search(text):
         return ParseResult("fee_rule", {"fee_rank": "high" if re.search(r"비싼|비싸", text) else "low"}, "rule")
     occupancy = bool(_OCCUPANCY.search(text)) and params.get("lot_id") != "ambiguous"

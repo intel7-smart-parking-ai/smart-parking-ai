@@ -98,13 +98,21 @@ def policy_text(p: dict) -> str:
             f"하루 최대 {won(p['daily_cap'])}")
 
 
-def fee_rule(policies: dict | None = None, lot_id: str | None = None) -> str:
-    """주차장별 요금 정책. 요금표는 서버(/rate-policies) 또는 목업 설정(lots.json)에서만 온다."""
+FEE_TABLE_TITLE = "주차장별 요금표예요."
+FEE_TABLE_TAIL = "내 차 요금은 차량 번호와 함께 물어봐 주세요."
+
+
+def fee_rule(policies: dict | None = None, lot_id: str | None = None, table: bool = False) -> str:
+    """주차장별 요금 정책. 요금표는 서버(/rate-policies) 또는 목업 설정(lots.json)에서만 온다.
+    table: 주차장마다 한 줄씩 기본·추가·하루 최대 요금을 모두 적은 요금표('주차요금 안내해줘')."""
     if not policies:
         return "요금 정책을 확인할 수 없어요."
     if lot_id:
         policy = policies.get(lot_id)
         return f"{config.catalog.name(lot_id)}: {policy_text(policy)}이에요." if policy else "해당 주차장의 요금 정책을 확인할 수 없어요."
+    if table:
+        rows = [f"· {config.catalog.name(k)}: {policy_text(p)}" for k, p in policies.items()]
+        return "\n".join([FEE_TABLE_TITLE, *rows, FEE_TABLE_TAIL])
     if len({p["base_minutes"] for p in policies.values()}) > 1:
         return "주차장마다 요금이 달라요. " + " / ".join(
             f"{config.catalog.name(k)} 기본 {p['base_minutes']}분 {won(p['base_fee'])}" for k,p in policies.items()) + "."
