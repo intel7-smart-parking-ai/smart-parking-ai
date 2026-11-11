@@ -131,6 +131,9 @@ def _restore(text, masked, replacements):
     # 봇 점검 11/11(500문항): 시각의 분이 한 자리('12:2 PM'), 단수에 복수형('1 minutes'), 한자 사이 띄어쓰기('午前 11 時 58 分')
     restored = re.sub(r"(?<![\d:])(\d{1,2}):(\d)(?![\d:])", r"\1:0\2", restored)
     restored = re.sub(r"(?<![\d,.])1 (minute|hour|space|day|vehicle|car|spot)s\b", r"1 \1", restored)
+    # 개수 자리표시('12 spaces') 뒤의 동사는 모델이 단수로 쓰기 쉽다: '12 spaces is being verified' → 'are'
+    restored = re.sub(r"(\d[\d,]* (?:spaces|minutes|hours|vehicles|cars)) (is|was|has)\b",
+                      lambda m: f"{m[1]} {'are' if m[2] == 'is' else 'were' if m[2] == 'was' else 'have'}", restored)
     restored = re.sub(r"(?<=[぀-ヿ一-鿿]) (?=\d)|(?<=\d) (?=[぀-ヿ一-鿿])", "", restored)
     return restored
 

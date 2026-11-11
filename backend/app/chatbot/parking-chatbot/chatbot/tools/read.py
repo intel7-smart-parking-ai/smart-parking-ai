@@ -241,8 +241,12 @@ class ReadTools:
             if type(pending) is int and pending > 0:
                 # 카메라가 끊기면 칸이 '확인 필요'가 되고 빈자리 수는 0으로 온다. 그건 만차가 아니라 '모르는 상태'다
                 # (봇 점검 11/11: 12칸 모두 확인 필요인 주차장을 대화 AI가 "만차라서 자리가 없어요"라고 답함)
+                if reason == "만차":
+                    # '만차'·'full'을 넘기면 모델이 그대로 말한다 → 사유와 상태를 바꿔 넘긴다(#120 후속)
+                    row["reason"], row["availability"] = navigation.NO_CONFIRMED, "unknown"
                 row["camera_check"] = (f"카메라 확인 중 {pending}칸. 이 칸들은 비었는지 알 수 없다. "
-                                       "빈자리가 없다고 말할 때는 '확인된 빈자리는 없고 카메라 확인 중인 칸이 있다'고 함께 말한다.")
+                                       "이 주차장은 '만차'라고 하지 않는다. "
+                                       "'확인된 빈자리는 없고 카메라 확인 중인 칸이 있다'고 말한다.")
             rows.append(row)
         alert_summary = _project(alert, ("level", "lot_id", "stale", "unavailable"))
         if alert.get("unavailable") and not alert.get("level"):

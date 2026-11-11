@@ -12,6 +12,16 @@ def count(item, zone=None):
     return value.get("empty") if value is not None else None
 
 
+def unchecked(item, zone=None):
+    """카메라 확인 중인 칸 수(없으면 0). 빈자리가 0이어도 이 값이 있으면 '만차'가 아니라 '모르는 상태'다."""
+    value = item if zone is None else ((item or {}).get("zones") or {}).get(zone)
+    n = value.get("uncertain") if isinstance(value, dict) else None
+    return n if type(n) is int and n > 0 else 0
+
+
+NO_CONFIRMED = "확인된 빈자리 없음"   # 빈자리 0 + 카메라 확인 중인 칸이 있을 때 '만차' 대신 쓰는 말(봇 점검 11/11, #120 후속)
+
+
 def reason(snapshot, alert, lot, zone=None):
     item = snapshot["lots"].get(lot)
     if item is None:return "주차장 정보 없음"
@@ -23,8 +33,11 @@ def reason(snapshot, alert, lot, zone=None):
     return "만차" if n==0 else None
 
 
-def status_sentence(lbl, why, changed=False):
-    """이용 불가 사유를 쉬운 문장으로. why는 reason()의 결과."""
+def status_sentence(lbl, why, changed=False, pending=0):
+    """이용 불가 사유를 쉬운 문장으로. why는 reason()의 결과. pending: 카메라 확인 중인 칸 수."""
+    if why == "만차" and pending:
+        # 카메라 확인 중인 칸이 있으면 만차라고 단정하지 않는다(시연 화면에서 '만차'만 눈에 들어온다)
+        return f"{lbl}에 확인된 빈자리가 없어졌어요." if changed else f"{lbl}은 확인된 빈자리가 없어요."
     if why == "만차":
         return f"{lbl}이 만차가 됐어요." if changed else f"{lbl}은 만차예요."
     if why == "경보":
@@ -75,7 +88,10 @@ def alternatives(snapshot,alert,lot=None,zone=None):
         text=" / ".join(f"{label(k,zone)} {count(snapshot['lots'][k],zone)}자리" for k in others)
         chips=[go_id(k,zone) for k in others]
     else:
-        text="모든 주차장이 만차예요." if all(reason(snapshot,alert,k,zone)=="만차" for k in snapshot["lots"]) else "지금은 이용 가능한 곳이 없어요."
+        all_full=all(reason(snapshot,alert,k,zone)=="만차" for k in snapshot["lots"])
+        checking=any(unchecked(v,zone) for v in snapshot["lots"].values())
+        text=("확인된 빈자리가 있는 주차장이 없어요." if all_full and checking else "모든 주차장이 만차예요." if all_full
+              else "지금은 이용 가능한 곳이 없어요.")
         chips=["empty_all", "call_admin"]
     chips += ["destination_cancel"]  # 목적지가 없으면 engine에서 숨김
     return text,chips[:4]
@@ -94,7 +110,8 @@ def overview(snapshot,alert,zone=None):
         n = count(snapshot["lots"][key],zone)
         if why is None or why == "만차":
             total += n or 0
-            parts.append(f"{config.catalog.name(key)} {n}자리" if n else f"{config.catalog.name(key)} 만차")
+            full = NO_CONFIRMED if unchecked(snapshot["lots"][key],zone) else "만차"
+            parts.append(f"{config.catalog.name(key)} {n}자리" if n else f"{config.catalog.name(key)} {full}")
         else:
             short = "경보 중" if why == "경보" else "이용 제한" if why.startswith("운영 제한") else "확인 불가"
             parts.append(f"{config.catalog.name(key)} {short}")
@@ -116,7 +133,7 @@ def query(snapshot,alert,params):
             actions=["lot_"+lot,"empty_all"]
         elif why:
             other,actions=alternatives(snapshot,alert,lot,zone)
-            text=f"{status_sentence(label(lot,zone),why)}\n{other}"
+            text=f"{status_sentence(label(lot,zone),why,pending=unchecked(item,zone))}\n{other}"
         else:
             text=f"{label(lot,zone)}에 {n}자리 있어요."
             actions=[go_id(lot,zone),"empty_all","destination_cancel"]
@@ -176,10 +193,9 @@ def choose(s,snapshot,alert,params,vehicle=None):
     why=reason(snapshot,alert,lot,zone)
     if why:
         other,actions=alternatives(snapshot,alert,lot,zone)
-        item=snapshot["lots"].get(lot) or {}
-        pending=(item if zone is None else (item.get("zones") or {}).get(zone,{})).get("uncertain",0)
-        note=f" (카메라 확인 중 {pending}칸)" if why=="만차" and type(pending) is int and pending>0 else ""
-        return f"{status_sentence(label(lot,zone),why)}{note}\n{other}",card(snapshot,alert,lot,zone),actions,snapshot["updated_at"]
+        waiting=unchecked(snapshot["lots"].get(lot) or {},zone) if why=="만차" else 0
+        note=f" (카메라 확인 중 {waiting}칸)" if waiting else ""
+        return f"{status_sentence(label(lot,zone),why,pending=waiting)}{note}\n{other}",card(snapshot,alert,lot,zone),actions,snapshot["updated_at"]
     if vehicle and vehicle.get("state")=="parked":
         clear(s)
         return "차량의 입차가 확인되어 목적지 감시를 종료했어요.",card(snapshot,alert,lot,zone),["find_car","fee"],snapshot["updated_at"]
@@ -201,7 +217,7 @@ def monitor(s,sid,snapshot,alert,vehicle,notifications):
     notifications.discard_prefix(sid, "destination:")
     if not problem:return
     text,actions=alternatives(snapshot,alert,lot,zone)
-    payload={"text":f"{status_sentence(label(lot,zone),why,changed=True)}\n{text}","card":card(snapshot,alert,lot,zone),
+    payload={"text":f"{status_sentence(label(lot,zone),why,changed=True,pending=unchecked(snapshot['lots'].get(lot) or {},zone))}\n{text}","card":card(snapshot,alert,lot,zone),
              "chips":[],"action_ids":actions,"updated_at":snapshot["updated_at"],
              "meta":{"notification":"destination","destination_id":s.destination["_id"]}}
     notifications.enqueue(sid,payload,"destination:"+uuid.uuid4().hex)
