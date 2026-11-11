@@ -21,7 +21,7 @@ export function ParkingExtras({lot, syncStatus}) {
 const completedCallKey = 'parkon-admin-completed-calls';
 const callKey = item => JSON.stringify([item.id,item.at]);
 
-export function AdminCalls({showList, onOpen, onSound}) {
+export function AdminCalls({showList, onOpen, onSound, onPendingCount}) {
   const [completed,setCompleted] = useState(()=>{
     try {const saved=JSON.parse(localStorage.getItem(completedCallKey));return Array.isArray(saved)?saved:[];}
     catch {return [];}
@@ -67,6 +67,9 @@ export function AdminCalls({showList, onOpen, onSound}) {
     list.current.scrollIntoView({block:'start'});
     setFocusList(false);
   }, [focusList, showList]);
+  const isDone = item => completed.includes(callKey(item)) || ['완료','해결','처리 완료'].includes(item.status);
+  const pendingCount = items.filter(item => item.status === '접수' && !isDone(item)).length;
+  useEffect(() => onPendingCount?.(pendingCount), [onPendingCount, pendingCount]);
   const notice = pending[0];
   const noticeId = notice?.id;
   useEffect(() => {
@@ -74,10 +77,10 @@ export function AdminCalls({showList, onOpen, onSound}) {
   }, [noticeId, onSound]);
   const dismiss = () => setPending(previous => previous.slice(1));
   return <>
-  {notice && <aside className="admin-call-notice" aria-label="새 고객 문의">
+  {notice && <aside className="admin-call-notice" aria-label={`새 고객 문의 · 미처리 ${pendingCount}건`}>
     <div className="admin-call-brand"><b>PARK:ON</b><span>주차장 관리자</span></div>
     <div className="admin-call-message" role="status">
-      <span className="admin-call-icon"><ChatbotIcon/></span>
+      <span className="admin-call-icon" aria-hidden="true"><ChatbotIcon/>{pendingCount>0&&<b className="notification-count" data-notification="calls">{pendingCount>99?'99+':pendingCount}</b>}</span>
       <div><strong>고객 호출 · 문의</strong><p>{notice.summary || '새 문의가 접수됐습니다.'}</p>
       <small>#{notice.id} · {time(notice.at)}</small></div>
     </div>
@@ -91,7 +94,7 @@ export function AdminCalls({showList, onOpen, onSound}) {
     {error && <p role="status">{error}</p>}
     {!error && !items.length && <p>접수된 문의가 없습니다.</p>}
     {items.length>0&&<ul>{items.map(item => {
-      const done=completed.includes(callKey(item))||['완료','해결','처리 완료'].includes(item.status);
+      const done = isDone(item);
       return <li key={item.id}>
       <span className="admin-call-list-icon"><ChatbotIcon/></span>
       <div className="admin-call-list-copy">

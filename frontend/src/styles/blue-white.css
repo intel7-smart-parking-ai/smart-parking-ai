@@ -538,10 +538,12 @@ html[data-theme] .admin-card-heading {
   background: var(--admin-card-heading-bg, #202c3d);
 }
 html[data-theme='light'] { --admin-card-heading-bg: #f7f8fa; }
+html[data-theme='light'] .session-current-heading { --admin-card-heading-bg: #fff; }
 html[data-theme='light'] :is(
   .observation-panel ~ .parking-availability,
   .revenue-main > .revenue-daily-heading,
-  .revenue-lot-table > .panel-header
+  .revenue-lot-table > .panel-header,
+  .revenue-workspace > .operation-stats:not(.revenue-usage-stats) > .panel
 ) {
   background: var(--admin-card-heading-bg);
 }

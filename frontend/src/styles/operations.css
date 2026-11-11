@@ -56,7 +56,7 @@ html[data-theme='dark'] :is(.session-history-tools select, .session-current-head
   gap: 8px;
   font-size: 1.125rem;
 }
-.admin-fire-popup > [role="alert"] > strong > .icon { color: #b71829; }
+.fire-popup-icon { position: relative; display: inline-flex; color: #b71829; margin-inline-end: 5px; }
 .admin-fire-popup dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 12px; margin: 12px 0 0; }
 .admin-fire-popup dt { color: #53657d; }
 .admin-fire-popup dd { margin: 0; font-weight: 650; overflow-wrap: anywhere; }
@@ -162,3 +162,26 @@ html[data-theme='light'] .payment-list-heading ~ .table-scroll thead th {
 
 .button.admin-list-action { min-inline-size: 64px; }
 nav .button.admin-list-action:disabled { opacity: 1; cursor: not-allowed; }
+
+.service-nav button > .service-nav-alert-icon {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  margin-inline-end: 5px;
+  background: transparent;
+  color: inherit;
+}
+.notification-count {
+  position: absolute;
+  inset: -7px -9px auto auto;
+  min-inline-size: 15px;
+  padding: 1px 3px;
+  border-radius: 999px;
+  background: #b72032;
+  color: #fff;
+  text-align: center;
+  font-size: 9px;
+  line-height: 1.25;
+}
+.notification-count[data-notification='calls'] { background: #985006; }

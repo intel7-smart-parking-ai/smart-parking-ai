@@ -149,6 +149,7 @@ function Dashboard({admin=false,mobileAdmin=false}){
  }),[lotId,setLotId]=useState(()=>{const id=new URLSearchParams(window.location.search).get('lot');return ['A','B','C','D'].includes(id)?id:'A'}),[filter,setFilter]=useState('all');
  useEffect(()=>{if(admin){const url=new URL(window.location.href);url.searchParams.set('lot',lotId);window.history.replaceState(null,'',url)}},[admin,lotId]);
  const [data,setData]=useState({lots:[],policies:[],payments:[],alerts:[],sessions:[],report:null});
+ const [pendingCallCount,setPendingCallCount]=useState(0);
  const [reportFilters,setReportFilters]=useState(seedFilters),[paymentFilters,setPaymentFilters]=useState({lot_id:'',status:'',date:''}),[alertFilters,setAlertFilters]=useState({lot_id:'',status:''});
  const [lookupKind,setLookupKind]=useState(()=>['C','D'].includes(lotId)?'plate':'sticker');
  const [car,setCar]=useState(''),[invoice,setInvoice]=useState(null),[space,setSpace]=useState(null),[busy,setBusy]=useState(false),[loading,setLoading]=useState(true),[error,setError]=useState(''),[refreshError,setRefreshError]=useState(''),[toast,setToast]=useState('');
@@ -227,7 +228,16 @@ function Dashboard({admin=false,mobileAdmin=false}){
   : <a className="mobile-app-entry" href={`/?app=1&lang=${getLanguage()}`}>{t("모바일 앱")}</a>}</div></header>
  <RailDrawer><nav aria-label={t("주요 메뉴")}>{menus.map(([id,label,icon])=><button key={id} className={`rail-button ${page===id?'active':''}`} aria-label={label} title={label} onClick={()=>navigate(id)}>{id==='chat'||id==='calls'?<ChatbotIcon/>:<Icon name={icon}/>}</button>)}</nav><div className="rail-bottom"><span className="vertical-label">REACT / FASTAPI / SQLITE</span><span className="rail-version">v0.3</span></div></RailDrawer>
 
- <div className="main-shell"><main><div className="page-heading"><div><h1 className="parking-page-title">{page==='parking'?<>{lot.name}</>:menus.find(m=>m[0]===page)?.[1]}</h1></div>{page==='parking'&&<div className="location-total"><span>{t("전체 주차 현황")}</span><strong>{data.lots.flatMap(l=>l.spaces).filter(s=>s.status==='occupied').length}<small> / {data.lots.flatMap(l=>l.spaces).length}{t("면 주차 중")}</small></strong></div>}<button className="refresh-button" aria-label={t("새로고침")} disabled={busy||loading} onClick={()=>run(async()=>{},t('API 데이터를 새로 불러왔습니다.'))}><Icon name="refresh"/></button></div><nav className="service-nav" aria-label={t("서비스 메뉴")}>{menus.map(([id,label,icon])=><button key={id} className={page===id?'selected':''} onClick={()=>navigate(id)}>{id==='chat'||id==='calls'?<ChatbotIcon/>:<Icon name={icon}/>} {label}{id==='alerts'&&activeAlerts.length>0&&<span>{activeAlerts.length}</span>}</button>)}{admin&&page==='alerts'&&<button className="button danger safety-nav-action" disabled={busy} onClick={fire}>LED 경보 시연</button>}</nav>
+ <div className="main-shell"><main><div className="page-heading"><div><h1 className="parking-page-title">{page==='parking'?<>{lot.name}</>:menus.find(m=>m[0]===page)?.[1]}</h1></div>{page==='parking'&&<div className="location-total"><span>{t("전체 주차 현황")}</span><strong>{data.lots.flatMap(l=>l.spaces).filter(s=>s.status==='occupied').length}<small> / {data.lots.flatMap(l=>l.spaces).length}{t("면 주차 중")}</small></strong></div>}<button className="refresh-button" aria-label={t("새로고침")} disabled={busy||loading} onClick={()=>run(async()=>{},t('API 데이터를 새로 불러왔습니다.'))}><Icon name="refresh"/></button></div><nav className="service-nav" aria-label={t("서비스 메뉴")}>{menus.map(([id,label,icon])=>{
+   const notificationMenu = id==='alerts' || id==='calls';
+   const count = id==='alerts' ? activeAlerts.length : pendingCallCount;
+   const menuIcon = id==='chat'||id==='calls' ? <ChatbotIcon/> : <Icon name={icon}/>;
+   const countLabel = id==='alerts' ? '미해제 경보' : '미처리 문의';
+   return <button key={id} className={page===id?'selected':''} onClick={()=>navigate(id)}
+     aria-label={notificationMenu&&count>0 ? label+' · '+countLabel+' '+count+'건' : undefined}>
+     {notificationMenu ? <span className="service-nav-alert-icon" aria-hidden="true">{menuIcon}{count>0&&<b className="notification-count" data-notification={id}>{count>99?'99+':count}</b>}</span> : menuIcon} {label}
+   </button>;
+ })}{admin&&page==='alerts'&&<button className="button danger safety-nav-action" disabled={busy} onClick={fire}>LED 경보 시연</button>}</nav>
  {data.featureErrors?.[page]&&<div className="operation-error" role="status">{data.featureErrors[page]} {t("· 해당 기능은 팀 API 연결 대기 중입니다.")}</div>}{(error||refreshError)&&<div className="operation-error" role="alert">{error||refreshError}<button onClick={()=>run(async()=>{})}>{t("다시 불러오기")}</button></div>}
  {admin&&<FireAlertPopup onSound={alertAudio.play} alerts={activeAlerts} lotName={lotName} onOpen={()=>navigate('alerts')}/>}
  {activeAlerts.some(a=>a.lot_id===lotId)&&<button className="safety-banner" onClick={()=>navigate('alerts')}><Icon name="bell"/>{lot.name} · {evacuationRequired(data.alerts,lotId)?t('레벨 2 대피 안내 · 결제 중단'):t('화재 경보 · 위치와 상태 확인')}<Icon name="arrow"/></button>}
@@ -237,11 +247,11 @@ function Dashboard({admin=false,mobileAdmin=false}){
 
  {page==='parking'&&<div className={admin ? "parking-workspace admin-parking-workspace" : "parking-workspace"}><ParkingLayoutMap admin={admin} hidePreviewControls key={lot.lot_id} lot={lot} filter={filter} setFilter={setFilter} alerts={data.alerts} found={invoice} onSpace={setSpace}/><aside className="right-column"><section className="occupancy-panel"><div className="section-kicker">PARKING STATUS<span>{t("현황")}</span></div><div className="occupancy-ring" style={{'--percent':`${occupied/lot.spaces.length*100}%`}}><div><strong>{Math.round(occupied/lot.spaces.length*100)}<small>%</small></strong><span>{t("현재 점유율")} · {occupied}/{lot.spaces.length}면</span></div></div><div className="status-numbers">{[['empty',t('빈자리')],['occupied',t('주차 중')],['uncertain',t('확인 필요')],['unavailable',t('확인 불가')]].map(([id,label])=><div key={id}><i className={`legend-dot ${id}`}/><span>{label}</span><b>{lot.spaces.filter(s=>s.status===id).length}</b></div>)}</div></section><article className="panel quick-find"><div className="card-heading"><h3>{t("내 차 찾기")}</h3><Icon name="search"/></div><p>{t("차량에 맞는 조회 방식을 선택해 주세요.")}</p>{search}{found}<button className="button white full quick-fee-link" onClick={()=>navigate('fee')}>{t("주차요금 확인")}</button></article>{mode==='admin'&&<article className="panel"><h3>LED 화재 경보</h3><p className="muted">실제 카메라 연결 전 시연입니다.</p><button className="button danger full" disabled={busy} onClick={fire}>LED 경보 시연</button></article>}</aside></div>}
 
- {page==='chat'&&<ChatPanel lots={data.lots} alerts={data.alerts} lotId={lotId} voiceInput appAppearance connected={!loading&&!error}/>}
+ {page==='chat'&&<ChatPanel lots={data.lots} alerts={data.alerts} voiceInput appAppearance connected={!loading&&!error}/>}
  {page==='find'&&<section className="search-page"><article className="panel search-large"><span className="large-symbol"><Icon name="car"/></span><h2>{t("주차장에 맞는 번호로 내 차 찾기")}</h2><p>{t("실물 1·2번은 스티커 번호, 가상 3·4번은 차량번호 뒤 4자리로 조회하세요.")}</p>{search}{found}{invoice&&<button className="button primary full quick-fee-link" onClick={()=>navigate('fee')}>{t("요금 확인하기")}</button>}</article></section>}
  {page==='fee'&&<FeePanel key={invoice?.session_id||'empty'} selectedLotId={lotId} {...{data,invoice,search,found,busy,error,pay,navigate}}/>}
  {page==='payments'&&<><PaymentsPanel {...{data,mode,busy,cancel,lotName,paymentFilters,setPaymentFilters}}/>{mode==='admin'&&<><SessionHistoryPanel lots={data.lots}/></>}</>}
- {admin&&<AdminCalls onSound={alertAudio.play} showList={page==='calls'} onOpen={()=>navigate('calls')}/>}
+ {admin&&<AdminCalls onPendingCount={setPendingCallCount} onSound={alertAudio.play} showList={page==='calls'} onOpen={()=>navigate('calls')}/>}
  {page==='revenue'&&mode==='admin'&&!data.featureErrors?.revenue&&<RevenuePanel report={data.report} lots={data.lots} filters={reportFilters} onFilter={setReportFilters} loading={loading} onOpenPayments={(date,lot_id)=>{setPaymentFilters({date,lot_id,status:""});navigate("payments")}}/>}
  {page==='alerts'&&<AlertsPanel {...{data:{...data,alerts:data.alertRows||[]},mode,busy,fire,alertAction,lotName,alertFilters,setAlertFilters}}/>}
  {page==='parking'&&!admin&&lot.lot_id==='C'&&<AirportPanel lot={lot}/>}
@@ -263,7 +273,8 @@ const fireAlertTypes = new Set(['mock_fire_led','mock_fire_led_observed','fire',
 
 function FireAlertPopup({alerts,lotName,onOpen,onSound}) {
  const [dismissed,setDismissed]=useState([]);
- const alert=alerts.find(item=>item.alert_id&&fireAlertTypes.has(item.type)&&!dismissed.includes(item.alert_id));
+ const fireAlerts=alerts.filter(item=>item.alert_id&&fireAlertTypes.has(item.type));
+ const alert=fireAlerts.find(item=>!dismissed.includes(item.alert_id));
  const alertId=alert?.alert_id;
  useEffect(()=>{
   if(alertId!=null)onSound('fire');
@@ -271,9 +282,9 @@ function FireAlertPopup({alerts,lotName,onOpen,onSound}) {
  if(!alert)return null;
  const zone=alert.zone||alert.space_id?.split('-')[0];
  const dismiss=()=>setDismissed(previous=>[...previous,alert.alert_id]);
- return <aside className="admin-fire-popup" aria-label="화재 경보">
+ return <aside className="admin-fire-popup" aria-label={`화재 경보 · 미해제 ${fireAlerts.length}건`}>
   <div role="alert">
-   <strong><Icon name="bell"/> 화재 경보</strong>
+   <strong><span className="fire-popup-icon" aria-hidden="true"><Icon name="bell"/><b className="notification-count">{fireAlerts.length>99?'99+':fireAlerts.length}</b></span> 화재 경보</strong>
    <dl>
     <dt>주차장</dt><dd>{lotName(alert.lot_id)||'주차장 미확인'}</dd>
     <dt>발생 위치</dt><dd>{alert.space_id?(zone?zone+'구역 · ':'')+alert.space_id:zone?zone+'구역 · 칸 미확인':'위치 미확인'}</dd>

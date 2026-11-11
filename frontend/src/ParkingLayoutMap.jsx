@@ -238,7 +238,6 @@ export default function ParkingLayoutMap(props) {
         {props.route?.lot_id===lot.lot_id&&<RouteOverlay t={t} route={props.route}/>}
       </svg>
     </div>
-    {!props.legendNearMap&&<div className="map-legend">{Object.entries(statusLabels).map(([id,label]) => <span key={id}><i className={`legend-dot ${id}`}/>{t(label)}</span>)}</div>}
     {kind === 'mall' && !props.admin && <p className="pdf-layout-note"><Icon name="info"/>{kind === 'mall' ? t('신세계 백화점 주차장 B1 가상 배치 · A–D는 신세계 백화점 주차장 내부 구역입니다. 차량번호는 주차칸 확대에서 확인하세요.') : t('첨부 도면 기준 · A/B는 이 주차장 내부 구역입니다.')}<br/>{t("주차칸 선택으로 상세 조회 · 초록색 전기차 / 파란색 장애인")}</p>}
   </section>;
 }
