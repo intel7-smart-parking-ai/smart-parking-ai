@@ -1,4 +1,5 @@
 export default {
+  "일시적인 화면 오류입니다": ["The page encountered a temporary error.", "页面暂时出现错误。", "一時的な画面エラーが発生しました。"],
  "자주 묻는 질문": ["Frequently asked questions", "常见问题", "よくある質問"],
  "빈자리 확인": ["Available spaces", "空余车位", "空き状況"],
  "전기차 구역": ["EV spaces", "电动车位", "EV区画"],

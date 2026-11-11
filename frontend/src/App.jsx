@@ -1,6 +1,7 @@
 import PresentationDemo from './PresentationDemo.jsx';
 import {useAdminAlertAudio} from './useAdminAlertAudio.js';
 import BrandWordmark from './BrandWordmark.jsx';
+import ErrorBoundary from './ErrorBoundary.jsx';
 import {t,getLanguage} from './serviceLocale.js';
 import EntryVehiclePhoto from './EntryVehiclePhoto.jsx';
 import {ParkingExtras, AdminCalls} from './ParkingExtras.jsx';
@@ -184,7 +185,7 @@ function Dashboard({admin=false,mobileAdmin=false}){
  useEffect(()=>{
   let active=true;
   const id=setInterval(async()=>{
-   if(busyRef.current||refreshing.current||document.hidden||document.querySelector('dialog[open]'))return;
+   if(busyRef.current||refreshing.current||document.hidden)return;
    refreshing.current=true;
    try{await refresh({light:true});if(active)setRefreshError('')}
    catch(e){if(active)setRefreshError(e.message)}
@@ -230,6 +231,7 @@ function Dashboard({admin=false,mobileAdmin=false}){
  {data.featureErrors?.[page]&&<div className="operation-error" role="status">{data.featureErrors[page]} {t("· 해당 기능은 팀 API 연결 대기 중입니다.")}</div>}{(error||refreshError)&&<div className="operation-error" role="alert">{error||refreshError}<button onClick={()=>run(async()=>{})}>{t("다시 불러오기")}</button></div>}
  {admin&&<FireAlertPopup onSound={alertAudio.play} alerts={activeAlerts} lotName={lotName} onOpen={()=>navigate('alerts')}/>}
  {activeAlerts.some(a=>a.lot_id===lotId)&&<button className="safety-banner" onClick={()=>navigate('alerts')}><Icon name="bell"/>{lot.name} · {evacuationRequired(data.alerts,lotId)?t('레벨 2 대피 안내 · 결제 중단'):t('화재 경보 · 위치와 상태 확인')}<Icon name="arrow"/></button>}
+ <ErrorBoundary key={page}>
  {mode==='admin'&&page==='parking'&&<ObservationPanel lot={lot} filter={filter} setFilter={setFilter}/>}
  {page==='parking'&&mode==='admin'&&(lot.simulation_enabled||lot.capabilities?.simulation)&&lot.type==='virtual'&&<SimulationPanel key={lot.lot_id} lot={lot} onRefresh={refresh}/>}
  {page==='parking'&&<ParkingExtras lot={lot} lots={data.lots} alerts={data.alerts} onSelect={setLotId} syncStatus={<span className="report-scope">{isDemo?t('시연 데이터'):t('팀 API')} · {pollInterval/1000}{t("초 갱신 · 관측 시각")} {time(lot.updated_at)}</span>}/>}
@@ -244,6 +246,7 @@ function Dashboard({admin=false,mobileAdmin=false}){
  {page==='revenue'&&mode==='admin'&&!data.featureErrors?.revenue&&<RevenuePanel report={data.report} lots={data.lots} filters={reportFilters} onFilter={setReportFilters} loading={loading} onOpenPayments={(date,lot_id)=>{setPaymentFilters({date,lot_id,status:""});navigate("payments")}}/>}
  {page==='alerts'&&<AlertsPanel {...{data:{...data,alerts:data.alertRows||[]},mode,busy,fire,alertAction,lotName,alertFilters,setAlertFilters}}/>}
  {page==='parking'&&!admin&&lot.lot_id==='C'&&<AirportPanel lot={lot}/>}
+ </ErrorBoundary>
  {page!=='revenue'&&<aside className="locations locations-below-map" aria-label={t("주차장 목록")}><div className="locations-list">{data.lots.map(l=>{const taken=l.spaces.filter(s=>s.status==='occupied').length,empty=l.spaces.filter(s=>s.status==='empty').length,unknown=l.spaces.length-taken-empty;return <button key={l.lot_id} className={`location ${lotId===l.lot_id?'selected':''}`} aria-pressed={lotId===l.lot_id} onClick={()=>{setLotId(l.lot_id);setLookupKind(l.type==='real'?'sticker':'plate');setCar('');setInvoice(null);navigate('parking');setFilter('all')}}><span className="location-info"><span className="location-title">{l.name}</span><span className="location-meta"><b>{empty}{t("자리 가능")}</b><span>{taken}/{l.spaces.length}면 · {Math.round(taken/l.spaces.length*100)}{t("% 점유")}{unknown>0&&<> · {t("확인 필요")} {unknown}면</>}</span></span></span></button>})}</div></aside>}
  </main></div>
  {space&&<Detail showDetails={admin || Boolean(invoice?.session_id && invoice.session_id===space.session_id && invoice.lot_id===lot.lot_id && invoice.space_id===space.space_id)} key={space.space_id} {...{space,lot}} onClose={()=>setSpace(null)} canQuote={true} onFee={(number,kind)=>{setLookupKind(kind);navigate('fee');find(number,kind)}}/>}
