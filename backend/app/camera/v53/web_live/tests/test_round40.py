@@ -8,9 +8,9 @@ import cv2
 import numpy as np
 
 from web_live.camera_hub import apply_color_options, color_options
-from web_live.glow import GlowModel
+from web_live.glow import GlowModel, localize
 from web_live.pipeline import (glow_detect, led_debug_bays, ParkingPipeline, pink_glow, led_identity,
-                               led_car_glow_lights)
+                               led_car_glow_lights, split_filtered_lights)
 
 ROOT = Path(__file__).resolve().parents[2]
 MODEL = ROOT / 'models' / 'red_glow.npz'
@@ -175,6 +175,42 @@ class LedCarGlow(unittest.TestCase):
         lights = [dict(space_id='A-05', state='confirmed')]
         found = led_car_glow_lights(bay_frame(400), [row()], POLY, lights, {}, {}, ('1', 1, 'B'), 0., {'11'})
         self.assertEqual(found, [])
+
+
+
+class BoundaryLight(unittest.TestCase):
+    """11/11 demo site: red car 21's glint 82.7% in A-02 went out as a lot-level mock fire."""
+    rows = {'A-02': dict(space_id='A-02', car_id='21', observation='occupied'),
+            'A-03': dict(space_id='A-03', car_id='24', observation='occupied'),
+            'A-04': dict(space_id='A-04', car_id='42', observation='occupied'),
+            'A-05': dict(space_id='A-05', car_id=None, observation='occupied'),
+            'A-06': dict(space_id='A-06', car_id=None, observation='empty')}
+
+    def light(self, *touching):
+        return dict(space_id=None, location='boundary', touching=list(touching), bbox_xyxy=[565, 231, 648, 314],
+                    confidence=.907, method='red_emission', bay_area_fraction=0.)
+
+    def test_non_led_cars_only_filtered(self):
+        led = frozenset({'11', '23', '42'})
+        for touching, dropped in ((('A-02',), True), (('A-02', 'A-03'), True), (('A-02', 'A-04'), False),
+                                  (('A-02', 'A-05'), False), (('A-02', 'A-06'), False), ((), False)):
+            kept, filtered = split_filtered_lights([self.light(*touching)], self.rows, led)
+            self.assertEqual(bool(filtered), dropped, touching)
+            if dropped:self.assertEqual(filtered[0]['reason'], 'not_led_car_boundary')
+
+    def test_without_list_unchanged(self):
+        kept, filtered = split_filtered_lights([self.light('A-02')], self.rows, frozenset())
+        self.assertEqual((len(kept), filtered), (1, []))
+        aisle = dict(self.light(), location='aisle')
+        self.assertEqual(len(split_filtered_lights([aisle], self.rows, frozenset({'11'}))[0]), 1)
+
+    def test_localize_records_touching_bays(self):
+        polys = {'A-02': np.float32([[0, 0], [100, 0], [100, 100], [0, 100]]),
+                 'A-03': np.float32([[100, 0], [200, 0], [200, 100], [100, 100]])}
+        outline = np.float32([[-50, -50], [300, -50], [300, 200], [-50, 200]])
+        light = dict(bbox_xyxy=[80, 40, 110, 70])
+        localize([light], outline, polys)
+        self.assertEqual((light['location'], light['touching']), ('boundary', ['A-02', 'A-03']))
 
 
 if __name__ == '__main__':

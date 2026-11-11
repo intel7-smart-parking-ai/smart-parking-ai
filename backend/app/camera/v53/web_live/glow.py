@@ -201,5 +201,8 @@ def localize(lights, outline, polygons):
             light['bay_area_fraction']=(u-x)*(v-y)/max(1.,cv2.contourArea(np.float32(polygons[slot])))
         elif any(overlap_slot(box,p)>.02 for p in polygons.values()):
             light['location']='boundary'
+            # Bays the light overlaps, largest first (used to rule out paint on read non-LED cars).
+            touching=sorted(((overlap_slot(box,p),sid) for sid,p in polygons.items() if overlap_slot(box,p)>.02),reverse=True)
+            light['touching']=[sid for _,sid in touching]
         else:light['location']='aisle'
     return lights
