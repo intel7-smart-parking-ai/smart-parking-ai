@@ -571,6 +571,8 @@ class ParkingPipeline:
                     and time.monotonic()-sample[3]<=2 and np.array_equal(sample[4],result['_outline'])):
                 lights.pop(camera,None)
             self.confirmed[camera]=(result['stream_epoch'],result['lot_id'],result['_outline'].copy(),frame.shape)
+            # The pose a person approved; automatic small-shift adoption is measured from it.
+            self.__dict__.setdefault('human_poses',{})[camera]=(result['lot_id'],result['_outline'].copy())
             if self.fire_watch:self.fire_watch.clear(camera)
             pose=result.get('_pose')
             if (hasattr(self,'fixed_views') and pose and pose['lot_id']==result['lot_id']
@@ -682,6 +684,7 @@ class ParkingPipeline:
                 ref=load(camera) if load else None
                 if not ref or camera in self.confirmed or camera in views:continue
                 h,w=ref['shape']
+                self.__dict__.setdefault('human_poses',{})[camera]=(ref['pose']['lot_id'],np.float32(ref['pose']['outline']))
                 views[camera]=((None,ref['pose']['lot_id'],np.float32(ref['pose']['outline']),(h,w,3)),
                                ref,time.monotonic()+seconds,None)
                 self.__dict__.setdefault('approved_views',{})[camera]=ref
@@ -711,7 +714,10 @@ class ParkingPipeline:
         """Adopt a steady, slightly shifted pose of the same board for a suspended approval."""
         streaks=self.__dict__.setdefault('_shift_streaks',{})
         limit=max(frame.shape[:2])*SHIFT_ADOPT_FACTOR
-        reviewed=np.float32(paused[0][2])
+        # Review 11/11: measure from the pose a person approved, never from an earlier
+        # adoption, so repeated small shifts cannot add up beyond the limit.
+        human=getattr(self,'human_poses',{}).get(camera)
+        reviewed=np.float32(human[1]) if human and human[0]==lot else np.float32(paused[0][2])
         shift=float(np.max(np.linalg.norm(reviewed-np.float32(outline),axis=1)))
         if (shift>limit or registration.get('clipped_spaces') or tuple(frame.shape)!=tuple(paused[0][3])):
             streaks.pop(camera,None);return False
@@ -721,14 +727,16 @@ class ParkingPipeline:
         if count<SHIFT_ADOPT_FRAMES:return False
         ref=self.registry.fixed_view(frame,registration) if hasattr(self.registry,'fixed_view') else None
         self.confirmed[camera]=(epoch,lot,np.float32(outline).copy(),frame.shape)
+        verified=None
         if ref:
+            # The saved start view stays the person-approved one (not overwritten here).
             self.__dict__.setdefault('fixed_views',{})[camera]=(epoch,ref)
             self.__dict__.setdefault('approved_views',{})[camera]=ref
-            if camera in ('1','2') and hasattr(self,'start_views') and hasattr(self.registry,'save_start_view'):
-                self.start_views[camera]=ref
-                self.registry.save_start_view(camera,ref)
+            verify=getattr(self.registry,'verify_fixed_view',None)
+            verified=bool(verify(frame,ref)) if verify else None
         getattr(self,'interrupted_views',{}).pop(camera,None);streaks.pop(camera,None)
-        logging.getLogger(__name__).info('Camera %s approval adopted after a small board shift (%.1f px, lot %s)',camera,shift,lot)
+        logging.getLogger(__name__).info('Camera %s approval adopted after a small board shift (%.1f px from the approved pose, lot %s, new reference verifies: %s)',
+                                         camera,shift,lot,verified)
         return True
 
     def _recheck_interrupted(self,frame,camera,epoch,sequence,lot_hint,inspect):
