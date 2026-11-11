@@ -118,3 +118,5 @@
   }
 }
 .admin-call-list-status[data-completed] { color: #22623d; background: #e8f5ec; border-color: #c7e6d0; font-weight: 700; }
+
+.admin-call-list > p { padding-inline: 16px; }
