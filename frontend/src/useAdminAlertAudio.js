@@ -1,7 +1,7 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
 
 const tones = {
- fire: {wave:'triangle', gain:.14, notes:[[0,880,.22],[.26,660,.22],[.52,880,.22],[.78,660,.22]]},
+ fire: {wave:'sawtooth', gain:.22, notes:[[0,650,.65,1250],[.7,1250,.65,650],[1.4,650,.65,1250],[2.1,1250,.65,650],[2.8,650,.65,1250],[3.5,1250,.65,650]]},
  inquiry: {wave:'sine', gain:.09, notes:[[0,660,.14],[.14,880,.24]]},
 };
 
@@ -20,12 +20,13 @@ export function useAdminAlertAudio() {
   if (!enabled.current || audio?.state !== 'running') return;
   const {wave,gain,notes} = tones[kind];
   const now = audio.currentTime;
-  for (const [offset,frequency,duration] of notes) {
+  for (const [offset,frequency,duration,endFrequency] of notes) {
    const start = now + offset;
    const oscillator = audio.createOscillator();
    const volume = audio.createGain();
    oscillator.type = wave;
-   oscillator.frequency.value = frequency;
+   oscillator.frequency.setValueAtTime(frequency,start);
+   if (endFrequency) oscillator.frequency.linearRampToValueAtTime(endFrequency,start+duration);
    volume.gain.setValueAtTime(.001,start);
    volume.gain.exponentialRampToValueAtTime(gain,start+.025);
    volume.gain.exponentialRampToValueAtTime(.001,start+duration);
