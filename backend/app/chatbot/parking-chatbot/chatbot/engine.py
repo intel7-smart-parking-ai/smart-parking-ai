@@ -1238,6 +1238,10 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
         if turn_plan.own_car:   # OWN_CAR 정규식이 10~99만 받는다
             s.car_id = turn_plan.own_car               # '23번이 내 차야' → 이후 '얼마 나왔어?'의 대상
         route.mark("plan", "+".join(turn_plan.wants) or "none", why=turn_plan.summary())
+        if notice is None and alert_now.get("level", 0) >= 2 and _asks_exit(text):
+            # 대피 경보 중 '출차해도 돼?' — 요금·결제 안내보다 안전 안내가 먼저다(봇 점검 11/11 P0-2)
+            route.mark("rule", "exit_during_alert", why="Lv2 경보 중 출차 질문 → 안전 안내")
+            return _respond(s, "경보 중에는 현장 안전 안내를 먼저 따라 주세요.", chip_set="alert")
         # 충전 현황 질문은 화면의 충전 현황 카드(칸별 충전 상태·남은 시간)로 연결한다 (김채린 charging_intent 이식).
         if notice is None and _wants_charging(text) and route_check.keep(
                 text, "charging_status", urgent=alert_now.get("level", 0) >= 2):
@@ -1362,6 +1366,13 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
     return resp
 
 
+def _asks_exit(text):
+    """나가도 되는지·출차를 묻는 말인가. 질문 번역이 실패해 외국어 원문이 들어온 경우도 본다."""
+    from .turn_guard import LEAVING
+    return bool(isinstance(text, str) and (LEAVING.search(text)
+                or re.search(r"(?i)\b(?:leave|exit|go\s+out)\b|出庫|出庫して|出车|出場|离开|出去", text)))
+
+
 def _virtual_vehicle_reply(s, raw, intent):
     from .tools.read import clock_text, duration_text
     plate = raw.replace(" ", "") if not raw.isdigit() else None
@@ -1403,10 +1414,16 @@ def _virtual_vehicle_reply(s, raw, intent):
     if intent == "pay_fee" and not (fee or {}).get("paid"):
         lines.append("가상 주차장 차량의 모의 결제는 화면의 차량번호 조회에서 진행해 주세요.")
     from .parser import normalize_colloquial
-    from .turn_guard import LEAVING
-    if fee and intent != "pay_fee" and LEAVING.search(normalize_colloquial(s.history[-1][1] if s.history else "")):
+    asked = normalize_colloquial(s.history[-1][1] if s.history else "")
+    from .contracts import PAYMENT_CANCELED
+    canceled = bool(fee) and fee.get("payment_status") == PAYMENT_CANCELED
+    if canceled:
+        lines.append("이전 결제는 취소된 상태예요.")     # '7653 결제했어?'에 취소를 말하지 않던 문제(봇 점검 11/11 P2)
+    elif fee and not fee.get("paid") and re.search(r"결제\s*(?:했|됐|되었|완료|한\s*거)|정산\s*(?:했|됐)|(?i:\bpaid\b)", asked):
+        lines.append("아직 결제 전이에요.")
+    if fee and intent != "pay_fee" and _asks_exit(asked):
         # '1780 출차해도 돼?' — 서버의 결제 여부만 근거로 답한다(봇 점검 11/11: '잘 이해하지 못했어요')
-        lines.append("결제가 끝난 차량이라 출차하시면 돼요." if fee.get("paid")
+        lines.append("결제가 끝난 차량이에요. 출구에서 현장 안내를 따라 출차해 주세요." if fee.get("paid")
                      else "출차 전에 요금을 먼저 결제해 주세요. 가상 주차장 차량의 모의 결제는 화면의 차량번호 조회에서 진행해요.")
     # car_location 카드는 실물 car_id 계약이라 쓰지 않는다(가상 차량은 문장으로 안내).
     resp = _respond(s, "\n".join(lines), chip_set=["empty_all", "fee_rule", "call_admin"],

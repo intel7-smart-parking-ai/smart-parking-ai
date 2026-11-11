@@ -109,7 +109,7 @@ class VirtualSearchApiTests(unittest.TestCase):
         with patch.object(api, "_request", side_effect=fake):
             loc = api.find_virtual("1724", "17가1724")
             self.assertEqual((loc["lot_id"], loc["space_id"], loc["plate_number"]), ("C", "A-07", "17가1724"))
-            self.assertEqual(api.virtual_fee(loc), {"fee": 5400, "minutes": 75, "paid": False})
+            self.assertEqual(api.virtual_fee(loc), {"fee": 5400, "minutes": 75, "paid": False, "payment_status": "unpaid"})   # 결제 취소 안내용(봇 점검 11/11 P2)
         self.assertEqual(calls[0], "/api/v1/vehicle-search?vehicle_number=1724")
         self.assertEqual(calls[1], "/api/v1/sessions/s-1/fee")
         with patch.object(api, "_request", return_value=(404, {}, {})):

@@ -220,6 +220,10 @@ LLM_REPAIR_MIN_SEC = _number("LLM_REPAIR_MIN_SEC", "1.5", float)
 LLM_PREFETCH = getenv("LLM_PREFETCH", "1") == "1"
 # [실험] 가로채기 확인: 규칙이 직접 맡으려는 문장(목적지·내 차 찾기·혼잡 예측·충전 현황)을 AI가 한 번 확인(route_check.py).
 # 기본 꺼짐. 켜도 실패·시간 초과면 규칙대로 간다.
+# 동시에 도는 외국어 답 번역 수. 값은 전과 같은 2(한도 변경은 PM 결정 사항). 자리가 없으면 최대 3초 기다린다.
+TRANSLATE_MAX_INFLIGHT = _number("TRANSLATE_MAX_INFLIGHT", "2", int)
+if TRANSLATE_MAX_INFLIGHT < 1:
+    raise ValueError("TRANSLATE_MAX_INFLIGHT는 1 이상이어야 합니다.")
 LLM_ROUTE_CHECK = getenv("LLM_ROUTE_CHECK", "0") == "1"
 LLM_ROUTE_CHECK_TIMEOUT_SEC = _number("LLM_ROUTE_CHECK_TIMEOUT_SEC", "1.5", float)
 LLM_ROUTE_CHECK_MODEL = getenv("LLM_ROUTE_CHECK_MODEL", "").strip()

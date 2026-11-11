@@ -765,6 +765,7 @@ class ApiAdapter:
         minutes = value.get("duration_minutes")
         return {"fee": amount, "minutes": minutes if type(minutes) is int else None,
                 "paid": value.get("payment_status") in ("paid", C.PAYMENT_COMPLETED),
+                "payment_status": value.get("payment_status") if isinstance(value.get("payment_status"), str) else None,
                 # 예상 요금 일치 확인용(서버가 줄 때만)
                 **{k: v for k, v in (("rate_policy", value.get("rate_policy")), ("entry_at", value.get("entry_at")),
                                      ("updated_at", value.get("target_at"))) if v is not None}}
