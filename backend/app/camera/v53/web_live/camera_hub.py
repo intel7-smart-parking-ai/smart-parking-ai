@@ -1,10 +1,59 @@
 """Single owner of RealSense pipelines; one latest frame per camera, no disk writes."""
 from datetime import datetime, timezone
+import logging
+import math
+import os
 import threading
 import time
 import numpy as np
 
 MAX_FRAME_AGE = 1.0
+LOG = logging.getLogger(__name__)
+# 11/11 A-04·05: fixed RGB exposure/white balance/flicker filter, only when set.
+# V53_CAMERA_{id}_EXPOSURE overrides V53_EXPOSURE for that camera.
+COLOR_ENV = ('EXPOSURE', 'GAIN', 'WHITE_BALANCE', 'POWER_LINE')
+
+
+def color_options(camera_id, env=None):
+    """Return [(option, value)] in the order to apply; empty when nothing is set."""
+    env = os.environ if env is None else env
+    values = {}
+    for name in COLOR_ENV:
+        raw = env.get(f'V53_CAMERA_{camera_id}_{name}', env.get(f'V53_{name}', '')).strip()
+        if not raw:continue
+        try:value = float(raw)
+        except ValueError:raise ValueError(f'V53_{name} 값은 숫자여야 합니다.') from None
+        if not math.isfinite(value) or value < 0:raise ValueError(f'V53_{name} 값이 올바르지 않습니다.')
+        values[name] = value
+    result = []
+    if 'POWER_LINE' in values:
+        hz = {50: 1, 60: 2}.get(int(values['POWER_LINE']))
+        if hz is None:raise ValueError('V53_POWER_LINE 은 50 또는 60 입니다.')
+        result.append(('power_line_frequency', hz))
+    if 'EXPOSURE' in values or 'GAIN' in values:
+        result.append(('enable_auto_exposure', 0))
+        if 'EXPOSURE' in values:result.append(('exposure', values['EXPOSURE']))
+        if 'GAIN' in values:result.append(('gain', values['GAIN']))
+    if 'WHITE_BALANCE' in values:
+        result += [('enable_auto_white_balance', 0), ('white_balance', values['WHITE_BALANCE'])]
+    return result
+
+
+def apply_color_options(sensor, options, rs, camera_id=''):
+    """Apply each option on its own; a refused value is logged and the SDK default kept."""
+    applied = []
+    for name, value in options:
+        try:
+            option = getattr(rs.option, name)
+            if sensor.supports(option):
+                sensor.set_option(option, float(value))
+                applied.append(f'{name}={value:g}')
+            else:
+                LOG.warning('카메라 %s RGB 설정 미지원: %s', camera_id, name)
+        except Exception as error:
+            LOG.warning('카메라 %s RGB 설정 실패: %s=%s (%s)', camera_id, name, value, type(error).__name__)
+    if applied:LOG.info('카메라 %s RGB 설정: %s', camera_id, ', '.join(applied))
+    return applied
 
 
 def discover():
@@ -39,7 +88,12 @@ class CameraHub:
             try:
                 pipeline=rs.pipeline();cfg=rs.config();cfg.enable_device(serial)
                 cfg.enable_stream(rs.stream.color,self.width,self.height,rs.format.bgr8,self.fps)
-                pipeline.start(cfg)
+                profile=pipeline.start(cfg)
+                try:options=color_options(camera_id)
+                except ValueError as error:
+                    LOG.warning('카메라 %s RGB 설정 무시: %s',camera_id,error);options=[]
+                if options:
+                    apply_color_options(profile.get_device().first_color_sensor(),options,rs,camera_id)
                 self._receive(camera_id,epoch,pipeline)
             except Exception:
                 # Avoid exposing device serials through raw SDK errors in UI/logs.

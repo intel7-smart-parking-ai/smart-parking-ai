@@ -130,7 +130,13 @@ class GlowModel:
                 raise ValueError('차량 지붕 LED 기준 형식 오류')
 
     def detect(self,frame):
-        hits=[]
+        return self.detect_with_rejections(frame)[0]
+
+    def detect_with_rejections(self,frame,*,floor=.2,limit=40):
+        """Return (lights, rejected). Rejected candidates are diagnostics only (11/11 A-04·05)."""
+        hits=[];rejected=[]
+        def reject(box,score,reason):
+            rejected.append(dict(bbox_xyxy=box,confidence=round(score,4),reason=reason))
         candidates=((box,v,False) for box,v in proposals(frame))
         recovered=((box,v,True) for box,v in chain(proposals(frame,clipped=True),tinted_roof_proposals(frame))) if self.refs.size else ()
         for box,v,tinted in chain(candidates,recovered):
@@ -146,25 +152,38 @@ class GlowModel:
             # Small specular points on glossy red paint also have a red rim.
             # Require the high-confidence limit through the observed 9px scale.
             tiny=min(box[2]-box[0],box[3]-box[1])<=11
-            if score>=(.97 if tiny else .85) and v[0]>=.045 and v[5]>=.08 and v[9]>=.01:
-                # An orange body can surround a white specular point on every side.
-                # Inspect the saturated halo; the bright core itself loses hue.
-                x,y,u,bottom=box
-                hsv=cv2.cvtColor(frame[y:bottom,x:u],cv2.COLOR_BGR2HSV)
-                hues=hsv[:,:,0][(hsv[:,:,1]>70)&(hsv[:,:,2]>120)]
-                if (len(hues)>=8 and np.mean((hues>6)&(hues<28))>=.72
-                        and np.mean((hues<=6)|(hues>=165))<.26):
-                    continue
-                if self.paint_refs.size:
-                    signature=reflection_features(frame,box,v)
-                    if np.any(np.linalg.norm(self.paint_refs-signature,axis=1)<self.paint_radii):continue
-                hits.append(dict(bbox_xyxy=box,confidence=score,state='confirmed',method='red_emission'))
+            if score<.85:
+                if score>=floor:reject(box,score,'low_score')
+                continue
+            if tiny and score<.97:
+                reject(box,score,'small_box');continue
+            if not (v[0]>=.045 and v[5]>=.08 and v[9]>=.01):
+                reject(box,score,'weak_features');continue
+            # An orange body can surround a white specular point on every side.
+            # Inspect the saturated halo; the bright core itself loses hue.
+            x,y,u,bottom=box
+            hsv=cv2.cvtColor(frame[y:bottom,x:u],cv2.COLOR_BGR2HSV)
+            hues=hsv[:,:,0][(hsv[:,:,1]>70)&(hsv[:,:,2]>120)]
+            if (len(hues)>=8 and np.mean((hues>6)&(hues<28))>=.72
+                    and np.mean((hues<=6)|(hues>=165))<.26):
+                reject(box,score,'orange_body');continue
+            if self.paint_refs.size:
+                signature=reflection_features(frame,box,v)
+                if np.any(np.linalg.norm(self.paint_refs-signature,axis=1)<self.paint_radii):
+                    reject(box,score,'paint_reflection');continue
+            hits.append(dict(bbox_xyxy=box,confidence=score,state='confirmed',method='red_emission'))
         selected=[]
         for hit in sorted(hits,key=lambda d:-d['confidence']):
             x,y,u,v=hit['bbox_xyxy']
             if not any(a<=(x+u)/2<=b and c<=(y+v)/2<=d for a,c,b,d in (h['bbox_xyxy'] for h in selected)):
                 selected.append(hit)
-        return selected
+        kept=[]
+        for item in sorted(rejected,key=lambda d:-d['confidence']):
+            x,y,u,v=item['bbox_xyxy']
+            if len(kept)>=limit:break
+            if not any(a<=(x+u)/2<=b and c<=(y+v)/2<=d for a,c,b,d in (h['bbox_xyxy'] for h in kept+selected)):
+                kept.append(item)
+        return selected,kept
 
 
 def localize(lights, outline, polygons):

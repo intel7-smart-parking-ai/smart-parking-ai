@@ -2,6 +2,7 @@
 import base64
 import io
 import logging
+import os
 import time
 import threading
 from concurrent.futures import ThreadPoolExecutor, wait
@@ -191,6 +192,20 @@ def probable_red_body(light):
     return light.get('bay_area_fraction',0)>=.12 and light.get('confidence',1)<.88
 
 
+def glow_detect(glow,frame):
+    """(lights, rejected) from the red-light model; older models give no rejections."""
+    full=getattr(glow,'detect_with_rejections',None)
+    if full is None:return glow.detect(frame),[]
+    lights,rejected=full(frame)
+    return lights,rejected
+
+
+def led_debug_bays(value=None):
+    """V53_LED_DEBUG_BAYS='A-04,A-05' limits rejection logs to those bays; unset logs bays only."""
+    value=os.environ.get('V53_LED_DEBUG_BAYS','') if value is None else value
+    return frozenset(x.strip().upper() for x in value.split(',') if x.strip())
+
+
 def mock_fire_car_list(value):
     """`mock_fire_cars` in assets.local.json: numbers of the cars that carry an LED. Empty = no list."""
     if value in (None,'',[]):return frozenset()
@@ -257,6 +272,73 @@ def same_emitter(light,old):
 
 
 # Frames a confirmed LED may be missing and still continue as confirmed when it reappears.
+# 11/11 Busan A-04·05: a listed LED car with a white body saturates like the LED, so
+# the core/red-ring test never fires. Its LED instead tints the white roof pink.
+# Measured at 960px (A4 shade): 42 on 466-499px / off 0-1px of 7322; 11 on 306-344 / off 0 of 7495;
+# red cars 24·30 about 2000+ (28%), hence the upper limit.
+LED_GLOW_MIN_FRACTION = .01
+LED_GLOW_MAX_FRACTION = .15
+LED_GLOW_FRAMES = 3
+
+
+def pink_glow(frame, polygon):
+    """(fraction of bay, bbox of the largest pink blob) for LED light tinting a white body."""
+    pts=np.int32(np.round(polygon))
+    x,y,w,h=cv2.boundingRect(pts)
+    H,W=frame.shape[:2]
+    x0,y0,x1,y1=max(0,x),max(0,y),min(W,x+w),min(H,y+h)
+    if x1<=x0 or y1<=y0:return 0.,None
+    crop=frame[y0:y1,x0:x1].astype(np.int16)
+    mask=np.zeros(crop.shape[:2],np.uint8);cv2.fillPoly(mask,[pts-[x0,y0]],1)
+    area=int(mask.sum())
+    if area<=0:return 0.,None
+    b,g,r=crop[:,:,0],crop[:,:,1],crop[:,:,2]
+    pink=((r-np.maximum(g,b)>25)&(r>150)&(mask>0)).astype(np.uint8)
+    count=int(pink.sum())
+    if not count:return 0.,None
+    n,labels,stats,_=cv2.connectedComponentsWithStats(pink,connectivity=8)
+    k=1+int(np.argmax(stats[1:,cv2.CC_STAT_AREA]))
+    bx,by,bw,bh=stats[k,:4]
+    return count/area,[int(x0+bx),int(y0+by),int(x0+bx+bw),int(y0+by+bh)]
+
+
+def led_identity(row, memory, key, now, led_cars):
+    """The bay's listed LED car: this frame's number, or the bay's own earlier read (like the #84 pin).
+
+    A lit LED glares over car 42's sticker (11/11: sticker lost 165/165 frames), so the read
+    is held until the bay is seen empty or another number is read there. The demo rule
+    empties a bay for 5 s between cars; a held red car still fails the 15% pink limit.
+    """
+    if not led_cars or row.get('observation')=='empty':
+        memory.pop(key,None);return None
+    car,other=row.get('car_id'),row.get('number_candidate')
+    if car:
+        if car in led_cars:memory[key]=(car,now)
+        else:memory.pop(key,None)
+    elif other and key in memory and other!=memory[key][0]:
+        memory.pop(key,None)
+    held=memory.get(key)
+    return held[0] if held and row.get('observation')=='occupied' else None
+
+
+def led_car_glow_lights(frame, rows, polygons, lights, memory, streaks, scope, now, led_cars):
+    """Confirm after 3 consecutive frames; a frame without the glow resets the count."""
+    lit={l.get('space_id') for l in lights if l.get('state')=='confirmed'}
+    found=[]
+    for row in rows:
+        sid=row['space_id'];key=(*scope,sid)
+        car=led_identity(row,memory,key,now,led_cars)
+        fraction,box=pink_glow(frame,polygons[sid]) if car and sid in polygons else (0.,None)
+        if not car or box is None or not LED_GLOW_MIN_FRACTION<=fraction<=LED_GLOW_MAX_FRACTION:
+            streaks.pop(key,None);continue
+        count=streaks[key]=streaks.get(key,0)+1
+        if sid in lit:continue
+        found.append(dict(bbox_xyxy=box,confidence=.9,method='red_emission',detail='led_car_glow',space_id=sid,location='space',
+            bay_area_fraction=round(fraction,4),led_car=car,consecutive_frames=min(LED_GLOW_FRAMES,count),
+            state='confirmed' if count>=LED_GLOW_FRAMES else 'candidate'))
+    return found
+
+
 LED_MISSED_FRAMES = 3
 
 
@@ -461,7 +543,7 @@ class ParkingPipeline:
         started=time.perf_counter()
         # The live loop has one inference owner; this also serializes sample requests.
         with self.lock:
-            job=self.glow_worker.submit(self.glow.detect,frame) if self.glow_worker else None
+            job=self.glow_worker.submit(glow_detect,self.glow,frame) if self.glow_worker else None
             try:
                 return self._analyze(frame,camera,epoch,sequence,observed_at,lot_hint,threshold,started,glow_job=job)
             finally:
@@ -486,6 +568,26 @@ class ParkingPipeline:
                 result['note']='OCR 대기 제한에 도달했습니다. 일부 번호는 처리 대기이며 최종 판독이 아닙니다.'
             return result
         finally:self.photo_lock.release()
+
+    def _log_rejected_lights(self,camera,rejected,*,now=None,every=60):
+        """Diagnostics only (11/11 A-04·05): per-bay counts of rejected LED candidates once a minute."""
+        bays=led_debug_bays()
+        counts=self.__dict__.setdefault('_rejected_counts',{})
+        for item in rejected:
+            bay=item.get('space_id')
+            if item.get('location')!='space' or not bay or (bays and bay.upper() not in bays):continue
+            key=(bay,item['reason'])
+            n,best=counts.get(key,(0,0.))
+            counts[key]=(n+1,max(best,item['confidence']))
+        now=time.monotonic() if now is None else now
+        last=self.__dict__.setdefault('_rejected_logged',{}).get(camera)
+        if last is None:self._rejected_logged[camera]=now;return []
+        if now-last<every or not counts:return []
+        self._rejected_logged[camera]=now
+        lines=[f'{bay} {reason} {n}회 최고 {best:.2f}' for (bay,reason),(n,best) in sorted(counts.items())]
+        counts.clear()
+        logging.getLogger(__name__).info('LED 탈락 후보 camera=%s %s',camera,' / '.join(lines))
+        return lines
 
     def _log_filtered_lights(self,camera,filtered,*,now=None,every=60):
         """Log each (camera, bay, reason) exclusion when first seen, then at most once a minute."""
@@ -584,7 +686,7 @@ class ParkingPipeline:
                     self.fixed_views.pop(camera,None)
             # Keep the full-frame input distribution used by the trained detector.
             detection = self.detector.infer_bgr(frame,.05,observed_at=observed_at,render=False)
-        lights=glow_job.result() if glow_job is not None else (self.glow.detect(frame) if self.glow is not None else [])
+        lights,rejected_lights=glow_job.result() if glow_job is not None else (glow_detect(self.glow,frame) if self.glow is not None else ([],[]))
         self.search_order[camera]=registration
         # Very weak candidates are diagnostic evidence only. Do not promote
         # them to occupancy, OCR, type, or server observations.
@@ -668,6 +770,9 @@ class ParkingPipeline:
                 sid=assign_sticker(d['bbox_xyxy'],polygons)
                 if sid:d.update(space_id=sid,lot_id=lot)
             localize(lights,outline,polygons)
+            localize(rejected_lights,outline,polygons)
+            result['rejected_lights']=rejected_lights
+            self._log_rejected_lights(camera,rejected_lights)
             history=getattr(self,'light_history',None)
             if history is not None and observed_at:
                 prior=history.pop(camera,None)
@@ -976,6 +1081,15 @@ class ParkingPipeline:
             rows_by_id={s['space_id']:s for s in result['spaces']}
             lights[:],result['filtered_lights']=split_filtered_lights(lights,rows_by_id,led_cars)
             result['filtered_lights']+=watch_filtered
+            if led_cars and observed_at and approved:
+                glow_scope=(camera,epoch,lot)
+                streaks=self.__dict__.setdefault('led_glow_streaks',{})
+                for key in [k for k in streaks if k[:3]!=glow_scope and k[0]==camera]:streaks.pop(key)
+                extra=led_car_glow_lights(frame,result['spaces'],polygons,lights,
+                    self.__dict__.setdefault('led_identity',{}),streaks,glow_scope,time.monotonic(),led_cars)
+                if extra:
+                    glowing={l['space_id'] for l in extra}
+                    lights[:]=[l for l in lights if l.get('space_id') not in glowing]+extra
             self._log_filtered_lights(camera,result['filtered_lights'])
             for light in lights:
                 if light['space_id']:
