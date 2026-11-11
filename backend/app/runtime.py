@@ -1187,14 +1187,21 @@ def create_runtime_app(
             # 예전 버전이 쌓아 둔 시뮬레이션 반복 관측 정리: 칸마다 마지막 관측 10초 구간만 남긴다
             # (복구 때 확정 상태를 다시 만들 수 있을 만큼). 카메라·수동 관측은 건드리지 않는다.
             conn.execute(
-                """DELETE FROM pipeline_events
-                   WHERE applied=1 AND json_extract(payload,'$.source')='simulation'
-                     AND julianday(json_extract(payload,'$.observed_at')) < (
-                       SELECT julianday(max(json_extract(p.payload,'$.observed_at'))) - 10.0/86400
-                       FROM pipeline_events p
-                       WHERE p.applied=1 AND json_extract(p.payload,'$.source')='simulation'
-                         AND json_extract(p.payload,'$.lot_id')=json_extract(pipeline_events.payload,'$.lot_id')
-                         AND json_extract(p.payload,'$.space_id')=json_extract(pipeline_events.payload,'$.space_id'))"""
+                """WITH latest AS MATERIALIZED (
+                       SELECT json_extract(payload,'$.lot_id') AS lot_id,
+                              json_extract(payload,'$.space_id') AS space_id,
+                              julianday(max(json_extract(payload,'$.observed_at'))) - 10.0/86400 AS cutoff
+                       FROM pipeline_events
+                       WHERE applied=1 AND json_extract(payload,'$.source')='simulation'
+                       GROUP BY 1, 2
+                   )
+                   DELETE FROM pipeline_events WHERE sequence IN (
+                       SELECT e.sequence FROM pipeline_events e JOIN latest
+                         ON latest.lot_id=json_extract(e.payload,'$.lot_id')
+                        AND latest.space_id=json_extract(e.payload,'$.space_id')
+                       WHERE e.applied=1 AND json_extract(e.payload,'$.source')='simulation'
+                         AND julianday(json_extract(e.payload,'$.observed_at')) < latest.cutoff
+                   )"""
             )
             conn.commit()
             store.init_vision_retention(conn)
