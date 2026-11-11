@@ -94,6 +94,11 @@ def _mask(text, language):
     return _PROTECTED.sub(replace, text), replacements
 
 
+def _digits(text):
+    """글에 나온 숫자들. 전각(２)·앞자리 0은 같은 수로 본다(일본어 번역의 '２桁'가 숫자 추가로 걸렸다)."""
+    return {str(int(found)) for found in re.findall(r"\d+", text)}
+
+
 def _canonical(text, replacements):
     """모델이 고쳐 쓴 자리표시('%NUMBER4__', '__PLATE0__')를 원래 이름으로 되돌린다. 기준은 번호다."""
     by_number = {re.search(r"\d+", token)[0]: token for token in replacements}
@@ -106,7 +111,7 @@ def _restore(text, masked, replacements):
     text = _canonical(text, replacements)
     if Counter(_TOKEN.findall(text)) != Counter(_TOKEN.findall(masked)):
         raise ValueError("Translation changed protected facts")
-    added = set(re.findall(r"\d+", _TOKEN.sub("", text)))
+    added = _digits(_TOKEN.sub("", text))
     if added - {digit for pattern, digit in _NUMBER_WORDS if pattern.search(masked)}:
         raise ValueError("Translation added a number")
     if _HANGUL.search(_TOKEN.sub("", text)):
@@ -123,6 +128,10 @@ def _restore(text, masked, replacements):
     restored = re.sub(r"(\d[\d,]*台)\s*(?:分)?台", r"\1", restored)
     restored = re.sub(r"(\d[\d,]*台)\s*(?:の)?\s*(空き)?\s*(?:台|スペース)(?=[^ぁ-んァ-ヶ一-鿿]|$|が|は|を|あ)",
                       lambda m: m[1] + ("分の空き" if m[2] else ""), restored)
+    # 봇 점검 11/11(500문항): 시각의 분이 한 자리('12:2 PM'), 단수에 복수형('1 minutes'), 한자 사이 띄어쓰기('午前 11 時 58 分')
+    restored = re.sub(r"(?<![\d:])(\d{1,2}):(\d)(?![\d:])", r"\1:0\2", restored)
+    restored = re.sub(r"(?<![\d,.])1 (minute|hour|space|day|vehicle|car|spot)s\b", r"1 \1", restored)
+    restored = re.sub(r"(?<=[぀-ヿ一-鿿]) (?=\d)|(?<=\d) (?=[぀-ヿ一-鿿])", "", restored)
     return restored
 
 
@@ -184,8 +193,7 @@ def _valid_shape(masked, translated):
         return False
     if ("오전" in masked and not _MORNING.search(plain)) or ("오후" in masked and not _AFTERNOON.search(plain)):
         return False
-    added = set(re.findall(r"\d+", plain))
-    return not (added - {digit for pattern, digit in _NUMBER_WORDS if pattern.search(masked)})
+    return not (_digits(plain) - {digit for pattern, digit in _NUMBER_WORDS if pattern.search(masked)})
 
 
 def load_seed(path=None):
@@ -246,9 +254,39 @@ def reset_shapes_for_tests():
             _shape_stats[key] = 0
 
 
+def _lines_of(strings):
+    """답을 줄 단위로 나눈다. 실제 서버의 답은 끝에 '※ 시연용 데이터예요', '(카메라 확인 중: …)' 같은 줄이 붙어
+    답 전체를 한 틀로 보면 미리 번역해 둔 틀과 맞지 않는다(봇 점검 11/11: 규칙 답인데도 번역 불가). 줄마다 따로 기억한다."""
+    return tuple(dict.fromkeys(line for text in strings for line in text.split("\n") if line.strip()))
+
+
+def _join_lines(strings, table):
+    return tuple("\n".join(table[line] if line.strip() else line for line in text.split("\n")) for text in strings)
+
+
+def _translate_known(strings, language):
+    """모델 없이 번역할 수 있으면(모든 줄이 아는 틀) 번역을, 아니면 None을 돌려준다."""
+    table = {}
+    for line in _lines_of(strings):
+        shape, replacements = _mask(line, language)
+        known = _shape_get(language, shape)
+        if known is None:
+            return None
+        try:
+            table[line] = _restore(known, shape, replacements)
+        except ValueError:
+            return None
+    return _join_lines(strings, table)
+
+
 def _translate(strings, language):
-    """문장 묶음을 번역한다. 아는 틀은 모델 없이 채우고, 모르는 문장만 모델에 묻는다.
-    검사에 걸린 문장만 한 번 더 받고, 멈춘 호출도 시간이 남으면 한 번 더 부른다."""
+    """문장 묶음을 줄 단위로 번역한다. 아는 틀은 모델 없이 채우고, 모르는 줄만 모델에 묻는다.
+    검사에 걸린 줄만 한 번 더 받고, 멈춘 호출도 시간이 남으면 한 번 더 부른다."""
+    lines = _lines_of(strings)
+    return _join_lines(strings, dict(zip(lines, _translate_lines(lines, language))))
+
+
+def _translate_lines(strings, language):
     masked = [_mask(text, language) for text in strings]
     done = [None] * len(strings)
     pending = []
@@ -309,16 +347,30 @@ _Q_NUMBER_WORDS = (
     (re.compile(r"(?i)\bnine\b|九"), "9"), (re.compile(r"(?i)\bten\b|十"), "10"), (re.compile(r"(?i)\bhalf\b|半"), "30"),
     (re.compile(r"(?i)\ba\s+day\b|\b24\b|一天|一日|終日|全天"), "24"),
 )
+# 한 번에 최대 2.5초, 전체는 호출자가 준 시간(http_router의 QUESTION_TRANSLATE_SEC=4초) 안에서 한 번 더 부른다.
+# (1.8초로 줄여 봤더니 동시 4명에서 30문항 중 5개가 시간 초과였다. 2.5초에서는 0개. 11/11 실측)
 _Q_ATTEMPT_SEC = 2.5
-_Q_RETRY_MIN_SEC = 0.8
+_Q_RETRY_MIN_SEC = 1.0
+# 네 자리 숫자 뒤에 단위가 오면 차량 번호가 아니다('2000 won', '1500원', '2026年')
+_Q_UNIT_AFTER = re.compile(r"\s*(?:won|krw|원|₩|円|元|块|塊|minutes?|mins?|hours?|hrs?|days?|years?|分|時間|时间|小时|小時|时|時|点|點|天|日|年|月|%|"
+                           r"spaces?|slots?|spots?|자리|칸|분|시간|시|일|개|대)", re.I)
 
 
 def _mask_question(text):
+    """숫자를 자리표시로 가린다. 번호판과 네 자리 차량 번호는 __PLATE<n>__, 그 밖의 숫자는 __NUMBER<n>__.
+
+    전부 __NUMBER__로 가렸더니 모델이 차량 번호를 시간으로 읽었다
+    (봇 점검 11/11: 'Can 1251 leave now?' → '1251분 뒤에 나가도 될까요?', 실모델 3번 중 2번).
+    """
     replacements = {}
 
     def replace(match):
-        token = f"__NUMBER{len(replacements)}__"
-        replacements[token] = match.group()
+        value = match.group()
+        plate = bool(re.search(r"[가-힣]", value)) or bool(
+            re.fullmatch(r"\d{4}", value) and not _Q_UNIT_AFTER.match(text, match.end())
+            and not re.search(r"[₩$¥]\s*$", text[:match.start()]))
+        token = f"__{'PLATE' if plate else 'NUMBER'}{len(replacements)}__"
+        replacements[token] = value
         return token
     return _Q_NUMBER.sub(replace, text), replacements
 
@@ -345,21 +397,28 @@ def _question_call(masked, language, timeout):
     return json.loads(content[start:end + 1])["korean"]
 
 
-def _restore_question(korean, masked, replacements, original):
+def _check_question(korean, masked, replacements, original):
+    """번역된 질문(자리표시가 든 채)을 검사해 자리표시를 원래 이름으로 맞춘 문장을 돌려준다."""
     if not isinstance(korean, str) or not korean.strip() or len(korean) > 240:
         raise ValueError("Invalid question translation")
     korean = _canonical(korean, replacements)
     if Counter(_TOKEN.findall(korean)) != Counter(_TOKEN.findall(masked)):
         raise ValueError("Question translation changed numbers")
-    added = set(_DIGITS.findall(_TOKEN.sub("", korean)))
+    added = _digits(_TOKEN.sub("", korean))
     if added - {digit for pattern, digit in _Q_NUMBER_WORDS if pattern.search(original)}:
         raise ValueError("Question translation added a number")
-    return _TOKEN.sub(lambda match: replacements[match.group()], korean).strip()
+    return korean.strip()
 
 
-@lru_cache(maxsize=256)
-def _question_to_korean(text, language):
-    masked, replacements = _mask_question(text)
+def _restore_question(korean, masked, replacements, original):
+    checked = _check_question(korean, masked, replacements, original)
+    return _TOKEN.sub(lambda match: replacements[match.group()], checked).strip()
+
+
+@lru_cache(maxsize=512)
+def _question_shape(masked, language):
+    """숫자를 가린 질문(틀) → 한국어 틀. 번호만 다른 같은 질문('Find car 1724'·'Find car 8928')은 모델을 한 번만 부른다."""
+    replacements = {token: token for token in _TOKEN.findall(masked)}
     # 제한 시간은 호출자가 정한다(http_router의 QUESTION_TRANSLATE_SEC). 그 안에서 한 번 더 부를 수 있다.
     deadline = time.monotonic() + max(1.0, min(4.0, translate_timeout.get()))
     failure = ValueError("Question translation failed")
@@ -368,23 +427,41 @@ def _question_to_korean(text, language):
         if left < (_Q_RETRY_MIN_SEC if attempt == 2 else 0.3):
             break
         try:
-            return _restore_question(_question_call(masked, language, min(_Q_ATTEMPT_SEC, left)),
-                                     masked, replacements, text)
+            return _check_question(_question_call(masked, language, min(_Q_ATTEMPT_SEC, left)), masked, replacements, masked)
         except (OSError, ValueError, KeyError, TypeError, IndexError, AttributeError) as exc:
             failure = exc
-    raise failure
+    raise failure       # 실패는 기억하지 않는다(다음에 다시 시도)
+
+
+def _question_to_korean(text, language):
+    masked, replacements = _mask_question(text)
+    shape = _question_shape(masked, language)
+    return _TOKEN.sub(lambda match: replacements[match.group()], shape).strip()
+
+
+_question_to_korean.cache_clear = _question_shape.cache_clear     # 테스트·운영 도구가 쓰던 이름 그대로
+
+
+def question_to_korean_noted(text, language):
+    """(한국어 문장, 사유). 번역하지 못하면 원문과 사유(timeout·numbers·format·provider_off)를 돌려준다.
+    사유는 응답 meta에 남겨 '왜 원문이 그대로 들어갔는지'를 추적한다(봇 점검 11/11: kept_original의 원인을 알 수 없었다)."""
+    if language == "ko" or language not in LANGUAGES or not isinstance(text, str) or not text.strip():
+        return text, None
+    if config.LLM_PROVIDER != "openrouter" or not config.api_key("openrouter"):
+        return text, "provider_off"
+    try:
+        return _question_to_korean(text.strip(), language), None
+    except (OSError, ValueError, KeyError, TypeError, IndexError, AttributeError) as exc:
+        if isinstance(exc, TimeoutError) or type(exc).__name__ in ("timeout", "URLError"):
+            return text, "timeout"
+        if "number" in str(exc):
+            return text, "numbers"
+        return text, "format" if isinstance(exc, (ValueError, KeyError, TypeError, IndexError, AttributeError)) else "network"
 
 
 def question_to_korean(text, language):
     """외국어 질문을 엔진이 이해하는 한국어 문장으로 바꾼다. 실패하면 원문 그대로(엔진의 안전한 기본 응답)."""
-    if language == "ko" or language not in LANGUAGES or not isinstance(text, str) or not text.strip():
-        return text
-    if config.LLM_PROVIDER != "openrouter" or not config.api_key("openrouter"):
-        return text
-    try:
-        return _question_to_korean(text.strip(), language)
-    except (OSError, ValueError, KeyError, TypeError, IndexError, AttributeError):
-        return text
+    return question_to_korean_noted(text, language)[0]
 
 
 def localize_response(response, language):
@@ -424,6 +501,17 @@ def localize_response(response, language):
     strings = tuple(dict.fromkeys(node[key] for node, key in fields))
     result["language"] = language
     if not strings:
+        return result
+    try:
+        ready = _translate_known(strings, language)
+    except (ValueError, KeyError, TypeError, IndexError, AttributeError):
+        ready = None
+    if ready is not None:
+        # 전부 아는 틀: 모델도, 번역 자리도 필요 없다(봇 점검 11/11: 자리가 찬 동안 아는 답까지 '번역 불가'가 됐다)
+        translated = dict(zip(strings, ready))
+        for node, key in fields:
+            node[key] = translated[node[key]]
+        result["translation_status"] = "translated"
         return result
     budget = translate_timeout.get()
     started = time.monotonic()

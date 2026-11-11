@@ -312,11 +312,11 @@ class QuestionTranslationTests(unittest.TestCase):
         with patch.object(locale, "load_json", side_effect=fake):
             self.assertEqual(locale.question_to_korean("我的车0475在哪里？", "zh-CN"), "내 차 0475 어디 있어?")   # 앞자리 0 보존
         self.assertNotIn("0475", sent[0])
-        self.assertIn("__NUMBER0__", sent[0])
+        self.assertIn("__PLATE0__", sent[0])
 
     def test_plate_and_time_are_each_one_placeholder(self):
         masked, replacements = locale._mask_question("Where is 17가1724? I parked at 3:30 for 2 hours")
-        self.assertEqual(masked, "Where is __NUMBER0__? I parked at __NUMBER1__ for __NUMBER2__ hours")
+        self.assertEqual(masked, "Where is __PLATE0__? I parked at __NUMBER1__ for __NUMBER2__ hours")
         self.assertEqual(list(replacements.values()), ["17가1724", "3:30", "2"])
 
     def test_rewritten_placeholder_is_accepted_by_its_number(self):
@@ -463,6 +463,9 @@ class VirtualVehicleToolTests(unittest.TestCase):
         self.assertIn("찾지 못했습니다", result["error"])
 
     def test_tool_is_listed_only_when_a_virtual_number_is_present(self):
+        import importlib.util
+        if importlib.util.find_spec("langchain_core") is None:
+            self.skipTest("langchain 미설치")
         self.assertNotIn("virtual_vehicle_info", [t.name for t in self.tools().langchain_tools()])
         self.assertIn("virtual_vehicle_info", [t.name for t in self.tools("1724").langchain_tools()])
 
@@ -544,6 +547,135 @@ class VirtualVehicleToolTests(unittest.TestCase):
     def test_tool_tells_the_model_not_to_estimate_again(self):
         data = self.tools("1724").virtual_vehicle_info("1724")["data"]
         self.assertIn("estimate_fee를 쓰지 않는다", data["fee_guide"])
+
+
+class BotData1111Tests(unittest.TestCase):
+    """봇이 보낸 500문항 원본(pkg117)에서 확인한 문제."""
+
+    def setUp(self):
+        e.reset_all()
+        self.addCleanup(e.reset_all)
+        locale.reset_shapes_for_tests()
+        self.addCleanup(locale.reset_shapes_for_tests)
+        locale.clear_seed_for_tests()
+        self.addCleanup(locale.load_seed)
+        locale._question_to_korean.cache_clear()
+        self.addCleanup(locale._question_to_korean.cache_clear)
+        for p in (patch.object(config, "LLM_PROVIDER", "openrouter"), patch.object(config, "api_key", return_value="test-only"),
+                  patch.object(config, "LLM_MODEL", "test/model")):
+            p.start()
+            self.addCleanup(p.stop)
+
+    # ---- 'Can 1251 leave now?' → '1251분 뒤에 나가도 될까요?' (차량 번호를 시간으로 읽음)
+    def test_car_numbers_are_masked_as_plates_not_plain_numbers(self):
+        for text, masked in (("Can 1251 leave now?", "Can __PLATE0__ leave now?"),
+                             ("Has 3995 been paid?", "Has __PLATE0__ been paid?"),
+                             ("17가1724 어디?", "__PLATE0__ 어디?"),
+                             ("3995停车费多少？", "__PLATE0__停车费多少？"),
+                             ("Find car 40", "Find car __NUMBER0__"),                  # 스티커 두 자리는 그대로
+                             ("How much for 2 hours?", "How much for __NUMBER0__ hours?"),
+                             ("Is 2000 won enough?", "Is __NUMBER0__ won enough?"),    # 단위가 붙은 네 자리는 금액
+                             ("2026年に開業？", "__NUMBER0__年に開業？")):
+            self.assertEqual(locale._mask_question(text)[0], masked, text)
+
+    def test_leave_question_keeps_the_car_number_as_a_car(self):
+        reply = {"choices": [{"message": {"content": '{"korean": "__PLATE0__번 차 지금 나가도 되나요?"}'}}]}
+        with patch.object(locale, "load_json", return_value=reply):
+            korean = locale.question_to_korean("Can 1724 leave now?", "en")
+        self.assertEqual(korean, "1724번 차 지금 나가도 되나요?")
+        text = e.handle("leave", text=korean)["text"]
+        self.assertIn("17가1724 차량은", text)
+        self.assertIn("출차 전에 요금을 먼저 결제해 주세요", text)
+
+    # ---- kept_original: 왜 원문이 그대로 들어갔는지 남긴다
+    def test_reason_is_reported_when_the_question_stays_untranslated(self):
+        with patch.object(locale, "load_json", side_effect=TimeoutError("simulated")):
+            self.assertEqual(locale.question_to_korean_noted("Has 3995 been paid?", "en"), ("Has 3995 been paid?", "timeout"))
+        locale._question_to_korean.cache_clear()
+        dropped = {"choices": [{"message": {"content": '{"korean": "결제됐나요?"}'}}]}
+        with patch.object(locale, "load_json", return_value=dropped):
+            self.assertEqual(locale.question_to_korean_noted("Has 3995 been paid?", "en")[1], "numbers")
+        locale._question_to_korean.cache_clear()
+        with patch.object(locale, "load_json", return_value={"choices": [{"message": {"content": "not json"}}]}):
+            self.assertEqual(locale.question_to_korean_noted("Has 3995 been paid?", "en")[1], "format")
+        self.assertEqual(locale.question_to_korean_noted("결제했어?", "ko"), ("결제했어?", None))
+
+    def test_untranslated_payment_question_is_still_understood(self):
+        self.assertEqual(extract_virtual("Has 1724 been paid?"), "1724")
+        text = e.handle("paid", text="Has 1724 been paid?")["text"]
+        self.assertIn("17가1724 차량은", text)
+        self.assertIn("아직 결제 전이에요", text)
+
+    def test_same_question_with_another_number_skips_the_model(self):
+        calls = []
+
+        def fake(request, timeout):
+            calls.append(1)
+            return {"choices": [{"message": {"content": '{"korean": "__PLATE0__번 차 찾아줘"}'}}]}
+        with patch.object(locale, "load_json", side_effect=fake):
+            self.assertEqual(locale.question_to_korean("Find car 1724", "en"), "1724번 차 찾아줘")
+            self.assertEqual(locale.question_to_korean("Find car 8928", "en"), "8928번 차 찾아줘")
+            self.assertEqual(locale.question_to_korean("Find car 0475", "en"), "0475번 차 찾아줘")
+        self.assertEqual(len(calls), 1)
+
+    def test_question_attempt_leaves_time_for_a_second_try(self):
+        self.assertLessEqual(locale._Q_ATTEMPT_SEC + locale._Q_RETRY_MIN_SEC, 4.0)      # http_router.QUESTION_TRANSLATE_SEC
+
+    # ---- 번역문 다듬기
+    def test_translated_text_is_tidied(self):
+        masked, replacements = locale._mask("오후 12시 2분에 들어와서 1분째 주차 중이에요.", "en")
+        self.assertEqual(locale._restore("It entered at __NUMBER0__:__NUMBER1__ PM and has been parked for __NUMBER2__ minutes.",
+                                         masked, replacements), "It entered at 12:02 PM and has been parked for 1 minute.")
+        self.assertEqual(locale._restore("午後 __NUMBER0__ 時 __NUMBER1__ 分に入庫し、現在 __NUMBER2__ 分間駐車しています。",
+                                         masked, replacements), "午後12時2分に入庫し、現在1分間駐車しています。")
+        masked, replacements = locale._mask("오전 10시 42분에 들어와서 11분째 주차 중이에요.", "en")
+        self.assertEqual(locale._restore("Entered at __NUMBER0__:__NUMBER1__ AM, parked for __NUMBER2__ minutes.", masked, replacements),
+                         "Entered at 10:42 AM, parked for 11 minutes.")       # 두 자리 분·복수는 그대로
+
+    # ---- 줄 단위 기억: 끝에 줄이 더 붙어도 아는 줄은 다시 번역하지 않는다
+    def test_answers_are_remembered_line_by_line(self):
+        calls = []
+
+        def fake(strings, language, timeout):
+            calls.append(list(strings))
+            table = {"__NAME0__에 __COUNT1__ 있어요.": "__NAME0__ has __COUNT1__.", "※ 시연용 데이터예요": "* Demo data",
+                     "어느 주차장을 안내해 드릴까요?": "Which lot?"}
+            return [table[s] for s in strings]
+        with patch.object(locale, "_translate_call", side_effect=fake):
+            first = locale._translate(("김해공항 주차장에 62자리 있어요.",), "en")
+            second = locale._translate(("신세계백화점주차장에 10자리 있어요.\n※ 시연용 데이터예요",), "en")
+            third = locale._translate(("개발원주차장에 5자리 있어요.\n\n어느 주차장을 안내해 드릴까요?\n※ 시연용 데이터예요",), "en")
+        self.assertEqual(first, ("Gimhae Airport Parking has 62 spaces.",))
+        self.assertEqual(second, ("Shinsegae Department Store Parking has 10 spaces.\n* Demo data",))
+        self.assertEqual(third, ("Development Center Parking has 5 spaces.\n\nWhich lot?\n* Demo data",))
+        self.assertEqual(calls, [["__NAME0__에 __COUNT1__ 있어요."], ["※ 시연용 데이터예요"], ["어느 주차장을 안내해 드릴까요?"]])
+
+    def test_known_answer_does_not_wait_for_a_translation_slot(self):
+        with patch.object(locale, "_translate_call", return_value=["__NAME0__ has __COUNT1__."]):
+            locale._translate(("김해공항 주차장에 62자리 있어요.",), "en")
+        slots = locale._slots()
+        taken = [slots.acquire(blocking=False) for _ in range(config.TRANSLATE_MAX_INFLIGHT)]     # 번역 자리가 모두 찬 상태
+        started = time.monotonic()
+        try:
+            with patch.object(locale, "_translate_call", side_effect=AssertionError("모델을 부르면 안 된다")):
+                result = locale.localize_response({"text": "개발원주차장에 5자리 있어요.", "chips": []}, "en")
+        finally:
+            for _ in taken:
+                slots.release()
+        self.assertEqual(result["translation_status"], "translated")
+        self.assertEqual(result["text"], "Development Center Parking has 5 spaces.")
+        self.assertLess(time.monotonic() - started, 0.5)                  # 자리를 기다리지 않았다
+
+    def test_shipped_seed_covers_the_lines_the_real_server_adds(self):
+        locale.load_seed()
+        answer = ("차량번호 뒤 4자리 7777(으)로 주차 중인 차량을 찾지 못했어요.\n"
+                  "가상 주차장(김해공항 주차장·신세계백화점주차장)에 주차한 차량만 번호판으로 조회돼요. 번호를 다시 확인해 주세요.\n"
+                  "※ 시연용 데이터예요")
+        for language in ("en", "zh-CN", "ja"):
+            with patch.object(locale, "_translate_call", side_effect=AssertionError("모델을 부르면 안 된다")):
+                out = locale._translate((answer,), language)[0]
+            self.assertIn("7777", out, language)
+            self.assertNotRegex(out, "[가-힣]", language)
 
 
 if __name__ == "__main__":

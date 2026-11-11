@@ -87,7 +87,8 @@ def extract_virtual(text: str) -> str | None:
     # 질문 번역이 실패해 외국어 원문이 그대로 들어온 경우('Find car 8928')도 받는다(봇 점검 11/11).
     if match and (re.search(r"\d{4}\s*(?:번|차)", text) or re.fullmatch(r"\s*\d{4}\s*", text)
                   or re.search(r"어디|위치|요금|얼마|결제|정산|찾|출차|나가|나갈|빼|차량|내\s*차", text)
-                  or re.search(r"(?i)\b(?:car|vehicle|plate|find|where|fee|pay|exit|leave)\b|车|車|停|料金|どこ", text)):
+                  or re.search(r"(?i)\b(?:car|vehicle|plate|find|where|fee|pay|paid|payment|parked|exit|leave)\b"
+                               r"|车|車|停|料金|どこ|支付|付款|支払|精算", text)):
         return match[1]
     return None
 

@@ -32,23 +32,39 @@ QUESTIONS = [
 
 
 # 사람이 읽고 고친 것(모델 번역의 어색하거나 틀린 표현). 새로 만들 때마다 다시 적용한다.
-FIXES = {
-    "en": [(" AM/PM ", " AM ")],
-    "zh-CN": [("于 AM __NUMBER3__ 时", "于上午 __NUMBER3__ 时"), ("行人优先", "人员安全第一"),
-              ("实体停车场请提供车顶贴纸的后两位数字", "实体停车场请提供车顶贴纸上的两位数字")],
-    "ja": [("AM __NUMBER3__時", "午前 __NUMBER3__時"), ("歩行者優先", "人命優先"), ("車内にいる場合", "施設内にいる場合"),
-           ("ナンバープレートの下2桁 __NUMBER1__ を入力してください", "ナンバープレートの下__NUMBER1__桁を入力してください"),
-           ("実店舗の駐車場", "実際の駐車場"), ("車屋根のステッカーの下2桁", "車の屋根のステッカーの2桁")],
+FIXES = {   # (정규식, 바꿀 말)
+    "en": [(r" AM/PM\b", " AM"), (r"(__NUMBER\d+__) (AM|PM) (__NUMBER\d+__),?", r"\1:\3 \2"),
+           (r"license plate ending in (__NUMBER\d+__) (__NUMBER\d+__)", r"the last \1 digits \2 of the license plate")],
+    "zh-CN": [(r"于 ?AM ?(__NUMBER\d+__)", r"于上午 \1"), (r"于 ?PM ?(__NUMBER\d+__)", r"于下午 \1"), (r"行人优先", "人员安全第一"),
+              (r"车顶贴纸的后两位数字", "车顶贴纸上的两位数字")],
+    "ja": [(r"\bAM ?(__NUMBER\d+__)", r"午前 \1"), (r"\bPM ?(__NUMBER\d+__)", r"午後 \1"), (r"歩行者優先", "人命優先"),
+           (r"車内にいる場合", "施設内にいる場合"), (r"実店舗の駐車場", "実際の駐車場"),
+           (r"下2桁 ?(__NUMBER\d+__) ?を", r"下\1桁を"), (r"ステッカーの下2桁", "ステッカーの2桁")],
 }
+# 실제 서버에서만 붙는 줄(모의 데이터로는 나오지 않는다): 시연용 표시, 카메라 확인 중, 오후 입차
+EXTRA_LINES = [
+    "※ 시연용 데이터예요",
+    "개발원주차장 만차 · 부산역주차장 만차 · 김해공항 주차장 26자리 · 신세계백화점주차장 41자리 (카메라 확인 중: 개발원주차장 12칸, 부산역주차장 16칸)",
+    "개발원주차장 5자리 · 부산역주차장 3자리 · 김해공항 주차장 26자리 · 신세계백화점주차장 41자리",
+    "개발원주차장 만차 · 부산역주차장 만차 · 김해공항 주차장 26자리 · 신세계백화점주차장 41자리",
+    "개발원주차장 5자리 · 부산역주차장 만차 · 김해공항 주차장 만차 · 신세계백화점주차장 41자리",
+    "오후 12시 2분에 들어와서 1분째 주차 중이에요.",
+    "오후 3시 20분에 들어와서 1시간 5분째 주차 중이에요.",
+    "오전 9시 5분에 들어와서 2시간 21분째 주차 중이에요.",
+    "결제가 끝난 차량이에요. 출구에서 현장 안내를 따라 출차해 주세요.",
+    "이전 결제는 취소된 상태예요.",
+    "지금까지 요금은 3,000원이에요. 이미 결제됐어요.",
+]
 
 
 def apply_fixes(seed):
+    import re
     changed = 0
     for language, pairs in FIXES.items():
         for masked, translated in list(seed.get(language, {}).items()):
             fixed = translated
             for wrong, right in pairs:
-                fixed = fixed.replace(wrong, right)
+                fixed = re.sub(wrong, right, fixed)
             if fixed != translated:
                 seed[language][masked] = fixed
                 changed += 1
@@ -115,6 +131,7 @@ def main(argv=None):
     for i, question in enumerate(("빈자리 알려줘", "23번 출차해도 돼?", "대피 어디로 해?")):
         collect(e.handle(f"seed-alert{i}", text=question))
     e.reset_all()
+    strings.extend(line for line in EXTRA_LINES if line not in strings)
     print(f"모은 문장 {len(strings)}개")
 
     config.LLM_PROVIDER = "openrouter"             # 번역만 모델을 쓴다

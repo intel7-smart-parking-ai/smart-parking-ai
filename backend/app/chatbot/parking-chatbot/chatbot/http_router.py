@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field, StrictBool
 
 from . import config, engine, incidents, monitoring
 from .state import Conflict
-from .response_locale import localize_response, question_to_korean, resolve_language, translate_timeout
+from .response_locale import localize_response, question_to_korean_noted, resolve_language, translate_timeout
 from .adapters import DataUnavailable
 from .contracts import alerts_source
 from .http_api import change_report
@@ -58,7 +58,7 @@ router = APIRouter(prefix="/api/v1/chat", tags=["chatbot"], lifespan=_lifespan)
 Language = Literal["ko", "en", "zh-CN", "ja"]
 
 
-QUESTION_TRANSLATE_SEC = 3.0   # 외국어 질문 → 한국어
+QUESTION_TRANSLATE_SEC = 4.0   # 외국어 질문 → 한국어(한 번 최대 2.5초 + 실패 시 한 번 더). 화면 제한 20초 안
 FOREIGN_TURN_SEC = 6.0         # 번역된 질문의 대화 처리(대화 AI 포함)
 ANSWER_DEADLINE_SEC = 17.0     # 시작부터 답 번역까지 끝낼 시각(화면 제한 20초)
 
@@ -153,11 +153,12 @@ async def chat(body: ChatIn):
     def work():
         started = requested
         # 외국어 질문은 한국어로 바꿔 엔진에 넣고, 답은 아래 localize_response가 다시 그 언어로 옮긴다.
-        # 화면의 챗봇 응답 제한은 20초(API_CONTRACT 8장, frontend api.js). 질문 번역 ≤3초 + 대화 처리 ≤6초 + 답 번역 ≤8초.
+        # 화면의 챗봇 응답 제한은 20초(API_CONTRACT 8장, frontend api.js). 질문 번역 ≤4초 + 대화 처리 ≤6초 + 답 번역은 남은 시간(시작부터 17초 안).
         # (11/10 이전에는 질문 번역 시간까지 4초에 넣어 대화 AI가 거의 항상 시간 초과 → 규칙 답이었다)
         q_token = translate_timeout.set(QUESTION_TRANSLATE_SEC) if language != "ko" else None
+        why_original = None
         try:
-            text = question_to_korean(body.text, language) if body.text else body.text
+            text, why_original = question_to_korean_noted(body.text, language) if body.text else (body.text, None)
         finally:
             if q_token is not None:
                 translate_timeout.reset(q_token)
@@ -181,6 +182,8 @@ async def chat(body: ChatIn):
             asked = "ok" if text != body.text else "kept_original"
             localized["meta"]["route"] = (f"translate_in:{asked} > {localized['meta'].get('route') or '-'}"
                                           f" > translate_out:{language}")
+            if asked == "kept_original" and why_original:
+                localized["meta"]["translate_in_reason"] = why_original   # timeout·numbers·format·provider_off
         return localized
     if not config.EMBEDDED:
         return await anyio.to_thread.run_sync(work)
