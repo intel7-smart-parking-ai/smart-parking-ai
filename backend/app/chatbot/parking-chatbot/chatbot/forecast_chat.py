@@ -144,6 +144,9 @@ def answer(engine, s, text, lots):
         text, lots = joined[0], (lots or joined[1])
     if not wants(text):
         return None
+    if not joined and not engine.route_check.keep(text, "congestion_forecast",
+                                                  urgent=engine.current_alert().get("level", 0) >= 2):
+        return None   # [실험] AI 확인이 혼잡 예측 질문이 아니라고 함 → 대화 AI로
     meta = {"intent": "congestion_forecast", "source": "rule"}
     if engine.current_alert().get("level", 0) >= 2:
         return engine._respond(s, "경보 중에는 현장 안전 안내를 먼저 따라 주세요.", chip_set="alert")

@@ -498,8 +498,31 @@ async def _arun_conversation(text, history, state, tools, model=None, *, options
         return finish("api_error")
 
 
+async def _arun_guarded(agent, guard, wait=None) -> AgentResult:
+    """[실험] 가로채기 확인(guard)과 대화 AI를 함께 돌린다. 확인이 '아니다'일 때만 대화 AI 답을 쓴다.
+
+    확인이 '맞다'(또는 실패·시간 초과)면 대화 AI를 취소한다. 같은 루프 안에서 취소하므로 조회가 뒤에 남지 않는다.
+    """
+    task = asyncio.ensure_future(agent)
+    watch = asyncio.wrap_future(guard)
+    try:
+        started = time.monotonic()
+        left = lambda: None if wait is None else max(0.0, wait - (time.monotonic() - started))
+        await asyncio.wait({task, watch}, timeout=left(), return_when=asyncio.FIRST_COMPLETED)
+        if not watch.done() and task.done():
+            await asyncio.wait({watch}, timeout=left())   # 대화 AI가 먼저 끝남 → 확인 결과를 제한 시간까지만 기다린다
+        vetoed = watch.done() and watch.exception() is None and watch.result() is False
+        if vetoed:
+            return await task
+        return AgentResult(status="rule_keeps", metadata={"implementation": "langchain_create_agent"})
+    finally:
+        if not task.done():
+            task.cancel()
+            await asyncio.gather(task, return_exceptions=True)
+
+
 def run_conversation(text, history, state, tools, model=None, *, options=None,
-                     coverage=None, avoid=(), callbacks=None) -> AgentResult:
+                     coverage=None, avoid=(), callbacks=None, guard=None, guard_wait=None) -> AgentResult:
     """Synchronous entry point for the existing worker-thread HTTP contract.
 
     Async consumers must await ``arun_conversation``; no background loop/thread is
@@ -508,6 +531,7 @@ def run_conversation(text, history, state, tools, model=None, *, options=None,
     try:
         asyncio.get_running_loop()
     except RuntimeError:
-        return asyncio.run(arun_conversation(text, history, state, tools, model, options=options,
-                                             coverage=coverage, avoid=avoid, callbacks=callbacks))
+        turn = arun_conversation(text, history, state, tools, model, options=options,
+                                 coverage=coverage, avoid=avoid, callbacks=callbacks)
+        return asyncio.run(turn if guard is None else _arun_guarded(turn, guard, guard_wait))
     return AgentResult(status="async_required", metadata={"implementation": "langchain_create_agent"})

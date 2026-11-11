@@ -19,7 +19,7 @@ _trace: ContextVar[list | None] = ContextVar("route_trace", default=None)
 STAGES = {
     "start": "대화 시작", "chip": "버튼", "guard": "안전 확인", "boundary": "정해진 답", "workflow": "업무 흐름",
     "plan": "계획표", "agent": "대화 AI", "fallback": "대체 규칙 답(AI 실패 후)", "rule": "규칙 처리",
-    "replay": "같은 요청 재전송",
+    "replay": "같은 요청 재전송", "check": "가로채기 확인(실험)",
 }
 
 

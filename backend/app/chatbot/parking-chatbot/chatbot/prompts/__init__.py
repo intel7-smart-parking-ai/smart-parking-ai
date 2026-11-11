@@ -22,6 +22,7 @@ ROLES = {
     "translate_question": "translate_question.md",
     "translate_answer": "translate_answer.md",
     "intent_classifier": "intent_classifier.md",
+    "route_check": "route_check.md",   # [실험] 가로채기 확인
 }
 
 

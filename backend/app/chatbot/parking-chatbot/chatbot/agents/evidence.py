@@ -140,16 +140,27 @@ def action_claim(answer, observations=()):
 
 def no_tool_reply_ok(request, answer):
     """조회 없이 답해도 되는 짧은 대화(인사·감사·자기소개)인지. 운영 사실이나 실행 주장은 하나도 없어야 한다."""
-    if not isinstance(answer, str) or not answer.strip() or len(answer) > 220:
+    if not isinstance(answer, str) or not answer.strip():
+        return False
+    # 되묻기: '어디로 가시는지 알려주시면 찾아 드릴게요'처럼 사용자에게 묻기만 하는 답은 운영 사실을 말하지 않는다.
+    # 차량 번호를 묻는 답은 제외한다(번호 입력 흐름은 규칙이 연다). 숫자·칸·상태·실행 주장 검사는 아래에서 그대로 받는다.
+    asks_back = bool(_ASK_BACK.search(answer)) and not _ASKS_VEHICLE.search(answer) and not _COMPARES.search(answer)
+    if len(answer) > (320 if asks_back else 220):
         return False
     if _NUMBER.search(answer) or _SLOT.search(answer):
         return False
     # 주차장 이름은 '쇼핑이면 신세계백화점주차장'처럼 성격 안내일 때만 허용: 거절·자료 없음 안내가 함께 있어야 한다
     # 운영 질문('어디가 싸?')에서 주차장 이름을 말하면 조회가 필요하다('개발원 정보는 없어요'도 틀린 말).
-    if _mentions(answer) and (_DATA_QUESTION.search(request or "") or not _REFUSAL.search(answer)):
+    # 단, '김해공항에 가시나요? 부산역에 가시나요?'처럼 여러 곳을 고르라고 묻는 문장의 이름은 주장이 아니다.
+    named = _mentions(answer)
+    if asks_back and named:
+        outside = _mentions(_QUESTION_SENTENCE.sub(lambda m: " " * len(m[0]), answer))
+        if not outside and len({lot for _, lot in named}) >= 2:
+            named = []
+    if named and (_DATA_QUESTION.search(request or "") or not _REFUSAL.search(answer)):
         return False
     # 운영 질문이어도 '실외 여부는 안내 자료에 없어요'처럼 자료 없음만 말하는 답은 허용한다(주차장·숫자·상태 주장 없음).
-    if _DATA_QUESTION.search(request or "") and not _REFUSAL.search(answer):
+    if _DATA_QUESTION.search(request or "") and not _REFUSAL.search(answer) and not asks_back:
         return False
     # '날씨는 확인해 드릴 수 없어요'처럼 능력 밖이라는 안내는 주차 상태 주장이 아니다.
     if _STATE_CLAIM.search(_OFFER.sub(" ", _REFUSAL.sub(" ", answer))) or action_claim(answer) or _ACTION_DONE.search(answer):
@@ -157,7 +168,13 @@ def no_tool_reply_ok(request, answer):
     return True
 
 
-_REFUSAL = re.compile(r"(?:확인|안내|알려|답|도와|제공)\S*\s*(?:드릴|드리기|해\s*드릴|할)?\s*(?:수\s*)?"
+# 사용자에게 되묻는 답: 물음표로 끝나는 문장이 있거나 '알려 주시면/말씀해 주세요'로 정보를 청한다.
+_ASK_BACK = re.compile(r"\?|(?:알려|말씀해|골라|선택해)\s*주(?:시면|세요|실래요|시겠어요)")
+_QUESTION_SENTENCE = re.compile(r"[^.!?。\n]*\?")   # 물음표로 끝나는 문장 하나
+_ASKS_VEHICLE = re.compile(r"차량\s*번호|번호판|두\s*자리|스티커")
+# 되묻는 척하며 비교 결과를 말하는 답('개발원이 제일 싼데 거기로 갈까요?')은 되묻기로 보지 않는다.
+_COMPARES = re.compile(r"제일|가장|더\s|보다|싼|저렴|비싼|가까운|가깝|빠른|빠르|널널|한가")
+_REFUSAL = re.compile(r"(?:확인|안내|알려|답|도와|제공|예측)\S*\s*(?:드릴|드리기|해\s*드릴|할)?\s*(?:수\s*)?"
                       r"(?:없어요|없습니다|어려워요|어렵습니다|없지만|없어서)|(?:정보|기능)(?:는|이|가)?\s*없(?:어요|습니다|어서|지만)|"
                       # '안내 자료에 없어요'(정보 없음)는 운영 상태 주장이 아니다.
                       r"(?:자료|안내\s*자료|정보)(?:에|에는|는|가)?\s*(?:아직\s*)?없(?:어요|습니다|어서|지만)")

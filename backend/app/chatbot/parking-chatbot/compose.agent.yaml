@@ -17,6 +17,11 @@ services:
       LLM_MAX_INFLIGHT: ${LLM_MAX_INFLIGHT:-8}
       CHAT_MAX_CONCURRENT: ${CHAT_MAX_CONCURRENT:-12}
       LLM_PREFETCH: ${LLM_PREFETCH:-1}
+      # [실험] 가로채기 확인(기본 끔). 켤 때 추천 구성: LLM_ROUTE_CHECK=1, LLM_ROUTE_CHECK_PARALLEL=1 (docs/exp_route_check_1110.md)
+      LLM_ROUTE_CHECK: ${LLM_ROUTE_CHECK:-0}
+      LLM_ROUTE_CHECK_FAST: ${LLM_ROUTE_CHECK_FAST:-1}
+      LLM_ROUTE_CHECK_PARALLEL: ${LLM_ROUTE_CHECK_PARALLEL:-0}
+      LLM_ROUTE_CHECK_MODEL: ${LLM_ROUTE_CHECK_MODEL:-}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:?Set OPENROUTER_API_KEY privately before starting the chatbot agent}
       # 선택: Langfuse 모니터링. 기본 off. 켜려면 루트 .env에 MONITOR_BACKEND=langfuse와 키를 넣고 INSTALL_MONITORING=1로 빌드
       MONITOR_BACKEND: ${MONITOR_BACKEND:-off}

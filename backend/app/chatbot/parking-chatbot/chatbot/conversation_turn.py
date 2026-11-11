@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import re
 import time
 
-from . import agents, config, dialog_context, info_gaps, monitoring, plan, route, templates as T
+from . import agents, config, dialog_context, info_gaps, monitoring, plan, route, route_check, templates as T
 from .knowledge import search as knowledge_search
 from .turn_guard import LEAVING
 from .adapters import request_deadline
@@ -174,8 +174,15 @@ def _model_reply(text, session, toolbox, target, candidates, query=None, notice=
              "avoid": _recent_answers(session),
              "callbacks": turn_monitor.callbacks() if turn_monitor else None}
     extras_token = agent_extras.set(extra)
+    checking = route_check.pending()   # [실험] 뒤로 미뤄 둔 가로채기 확인 → 대화 AI와 함께 기다린다
     try:
-        return agents.run_conversation(text, session.history, state, tools)
+        if checking is None:
+            return agents.run_conversation(text, session.history, state, tools)
+        result = agents.run_conversation(text, session.history, state, tools, guard=checking.future,
+                                         guard_wait=max(0.0, checking.started + checking.timeout - time.monotonic()))
+        if route_check.settle(checking):
+            raise route_check.RuleKeeps(checking.intent)   # 규칙이 맞다 → 엔진이 규칙 처리로 다시 한다
+        return result
     finally:
         agent_extras.reset(extras_token)
         if token is not None:
@@ -271,6 +278,8 @@ def reply_to(text, session, adapter, alert, vehicle, refresh_alert, admin_status
         # '아버지가 장애인 차량이야. 어디 세우는 게 나아?'는 내 차 찾기가 아니라 주차할 곳 질문 → 대화 AI(실모델 확인 11/10)
         route.mark("plan", "park_where", why="'차량·어디'지만 주차할 곳을 묻는 문장 → 대화 AI")
         query = None
+    if query and query.needs_vehicle and single_vehicle and not route_check.keep(text, "find_my_car"):
+        query = None   # [실험] AI 확인이 내 차 찾기가 아니라고 함 → 대화 AI로
     if query and query.needs_vehicle:
         if single_vehicle:
             route.mark("agent", "skip", why="차량 번호가 필요한 단일 조회(규칙 처리)")
