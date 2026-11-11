@@ -83,8 +83,11 @@ def extract_virtual(text: str) -> str | None:
     if plate:
         return plate[1]
     match = RE_VIRTUAL4.search(text)
+    # 번호만 있고 무엇을 묻는지 알 수 없으면 가상 차량으로 보지 않는다. 출차 질문('1780 출차해도 돼?')도 차량 질문이다.
+    # 질문 번역이 실패해 외국어 원문이 그대로 들어온 경우('Find car 8928')도 받는다(봇 점검 11/11).
     if match and (re.search(r"\d{4}\s*(?:번|차)", text) or re.fullmatch(r"\s*\d{4}\s*", text)
-                  or re.search(r"어디|위치|요금|얼마|결제|찾", text)):
+                  or re.search(r"어디|위치|요금|얼마|결제|정산|찾|출차|나가|나갈|빼|차량|내\s*차", text)
+                  or re.search(r"(?i)\b(?:car|vehicle|plate|find|where|fee|pay|exit|leave)\b|车|車|停|料金|どこ", text)):
         return match[1]
     return None
 
@@ -351,11 +354,20 @@ class ParseResult:
     vehicle_only: bool = False    # "07"처럼 번호만 말한 경우
 
 
-_COLLOQUIAL = ((re.compile(r"잇(?=[어나니는을냐음습])"), "있"),)
+_COLLOQUIAL = (
+    (re.compile(r"잇(?=[어나니는을냐음습])"), "있"),
+    # 봇 점검 11/11: '내차 1780 어딧어', '빈짜리 몇개야'
+    (re.compile(r"어[딧딨딛](?=[어지나냐니음는습])"), "어디 있"),
+    (re.compile(r"빈\s*짜리"), "빈자리"),
+    (re.compile(r"요[굼큼]"), "요금"),
+    (re.compile(r"결재(?=[해할하를가는도 ]|$)"), "결제"),
+    (re.compile(r"출챠"), "출차"),
+    (re.compile(r"내차(?=\s|\d|$)"), "내 차"),
+)
 
 
 def normalize_colloquial(text: str) -> str:
-    """흔한 구어체 오타만 보정한다(잇어→있어). 차량 번호·주차장 이름은 바꾸지 않는다."""
+    """흔한 구어체 오타만 보정한다(잇어→있어, 어딧어→어디 있어, 빈짜리→빈자리). 차량 번호·주차장 이름은 바꾸지 않는다."""
     for pattern, repl in _COLLOQUIAL:
         text = pattern.sub(repl, text)
     return text

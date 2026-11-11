@@ -5,6 +5,7 @@ from functools import lru_cache
 import json
 import re
 import threading
+import time
 import urllib.request
 
 from . import config, prompts
@@ -23,7 +24,15 @@ LOT_NAMES = {
 _PROTECTED = re.compile("|".join(re.escape(name) for name in sorted(LOT_NAMES, key=len, reverse=True))
                         + r"|\d{2,3}[가-힣]\s?\d{4}|[A-D]-\d{2}|\d+(?:[.,]\d+)*\s*(?:자리|칸|면)|\d+(?:[.,]\d+)*\s*원|\d+(?:[.,:]\d+)*")
 _TOKEN = re.compile(r"__(?:NAME|NUMBER|AMOUNT|COUNT|PLATE|SPACE)\d+__")
-_slots = threading.BoundedSemaphore(2)
+# 동시에 도는 답 번역 수. 자리가 없으면 바로 포기하지 않고 잠깐 기다린다(봇 점검 11/11: 동시 4명에서 외국어 답의 26~36%가 한국어).
+_slots = threading.BoundedSemaphore(4)
+_SLOT_WAIT_SEC = 3.0
+# 번역이 한국어 수사를 숫자로 옮기는 것은 사실을 더한 것이 아니다('하루 최대' → '1日最大', '두 자리 숫자' → '2桁').
+_NUMBER_WORDS = (
+    (re.compile(r"하루|일일|한\s*(?:번|시간|대|곳|가지|칸|자리|달|분|개|명)|첫"), "1"),
+    (re.compile(r"이틀|두\s*(?:번|시간|대|곳|가지|칸|자리|달|분|개|명)"), "2"),
+    (re.compile(r"사흘|세\s*(?:번|시간|대|곳|가지|칸|자리|달|분|개|명)"), "3"),
+)
 
 
 def resolve_language(language, text=None):
@@ -68,7 +77,8 @@ def _mask(text, language):
 def _restore(text, masked, replacements):
     if not isinstance(text, str) or Counter(_TOKEN.findall(text)) != Counter(_TOKEN.findall(masked)):
         raise ValueError("Translation changed protected facts")
-    if re.search(r"\d", _TOKEN.sub("", text)):
+    added = set(re.findall(r"\d+", _TOKEN.sub("", text)))
+    if added - {digit for pattern, digit in _NUMBER_WORDS if pattern.search(masked)}:
         raise ValueError("Translation added a number")
     restored = _TOKEN.sub(lambda match: replacements[match.group()], text)
     # 개수 자리표시는 단위까지 넣어 돌려주는데 번역이 단위를 또 붙이는 경우(봇 점검 11/10)
@@ -140,7 +150,8 @@ def _question_to_korean(text, language):
         data=json.dumps(body).encode(),
         headers={"Content-Type": "application/json", "Authorization": "Bearer " + config.api_key("openrouter")},
     )
-    result = load_json(request, 2.0)
+    # 제한 시간은 호출자가 정한다(http_router의 QUESTION_TRANSLATE_SEC). 전에는 2초로 고정돼 있어 그 값이 쓰이지 않았다.
+    result = load_json(request, max(1.0, min(4.0, translate_timeout.get())))
     content = result["choices"][0]["message"]["content"]
     start, end = content.find("{"), content.rfind("}")
     korean = json.loads(content[start:end + 1])["korean"]
@@ -201,11 +212,24 @@ def localize_response(response, language):
     result["language"] = language
     if not strings:
         return result
-    acquired = _slots.acquire(blocking=False)
+    budget = translate_timeout.get()
+    started = time.monotonic()
+    # 번역 자체에 쓸 시간(3초)은 남기고 자리를 기다린다.
+    wait = max(0.0, min(_SLOT_WAIT_SEC, budget - 3.0))
+    acquired = _slots.acquire(timeout=wait) if wait > 0 else _slots.acquire(blocking=False)
+    token = translate_timeout.set(max(0.5, budget - (time.monotonic() - started)))
     try:
         if not acquired:
             raise ValueError("Translation busy")
-        translated = dict(zip(strings, _translate(strings, language)))
+        try:
+            translated = dict(zip(strings, _translate(strings, language)))
+        except (ValueError, KeyError, TypeError, IndexError):
+            # 형식·자리표시 검사에 걸린 번역은 시간이 남으면 한 번 더 받는다(시간 초과·연결 오류는 다시 하지 않는다).
+            left = budget - (time.monotonic() - started)
+            if left < 3.0:
+                raise
+            translate_timeout.set(left)
+            translated = dict(zip(strings, _translate(strings, language)))
         for node, key in fields:
             node[key] = translated[node[key]]
         result["translation_status"] = "translated"
@@ -220,6 +244,7 @@ def localize_response(response, language):
             result["text"] = notice + "\n" + result["text"]
         result["translation_status"] = "unavailable"
     finally:
+        translate_timeout.reset(token)
         if acquired:
             _slots.release()
     return result

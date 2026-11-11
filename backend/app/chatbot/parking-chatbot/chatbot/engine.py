@@ -1212,6 +1212,9 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
     else:
         text = (text or "").strip()[:200]
         s.history.append(("user", text))
+        # 흔한 오타는 여기서 한 번 고쳐, 안전 확인·계획표·규칙·대화 AI가 같은 문장을 본다(기록에는 원문을 남긴다)
+        from .parser import normalize_colloquial
+        text = normalize_colloquial(text)
         # 안전 신고·허용 여부·없는 칸·자기소개처럼 짧게 확정되는 질문(turn_guard). Lv2 경보 중에는 대피 안내가 우선이라 건너뛴다.
         alert_now = current_alert()
         _reply, _meta = _turn_guard(s, text, alert_now)
@@ -1399,6 +1402,12 @@ def _virtual_vehicle_reply(s, raw, intent):
                          "lot_id": location["lot_id"], "space_id": location.get("space_id")}
     if intent == "pay_fee" and not (fee or {}).get("paid"):
         lines.append("가상 주차장 차량의 모의 결제는 화면의 차량번호 조회에서 진행해 주세요.")
+    from .parser import normalize_colloquial
+    from .turn_guard import LEAVING
+    if fee and intent != "pay_fee" and LEAVING.search(normalize_colloquial(s.history[-1][1] if s.history else "")):
+        # '1780 출차해도 돼?' — 서버의 결제 여부만 근거로 답한다(봇 점검 11/11: '잘 이해하지 못했어요')
+        lines.append("결제가 끝난 차량이라 출차하시면 돼요." if fee.get("paid")
+                     else "출차 전에 요금을 먼저 결제해 주세요. 가상 주차장 차량의 모의 결제는 화면의 차량번호 조회에서 진행해요.")
     # car_location 카드는 실물 car_id 계약이라 쓰지 않는다(가상 차량은 문장으로 안내).
     resp = _respond(s, "\n".join(lines), chip_set=["empty_all", "fee_rule", "call_admin"],
                     updated_at=location.get("updated_at"))
