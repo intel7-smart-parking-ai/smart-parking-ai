@@ -213,5 +213,118 @@ class BoundaryLight(unittest.TestCase):
         self.assertEqual((light['location'], light['touching']), ('boundary', ['A-02', 'A-03']))
 
 
+
+class ReconnectApproval(unittest.TestCase):
+    """11/11 USB drill: re-plugging released both approvals until a person re-approved."""
+
+    def model(self):
+        from unittest.mock import Mock
+        image = np.zeros((1080, 1920, 3), np.uint8)
+        outline = np.float32([[100, 100], [900, 100], [900, 700], [100, 700]])
+        m = ParkingPipeline.__new__(ParkingPipeline)
+        import threading
+        m.lock = threading.RLock()
+        m.fire_watch = None
+        m.confirmed = {'1': (3, 'B', outline, image.shape)}
+        m.fixed_views = {'1': (3, {'ref': True})}
+        m.interrupted_views = {}
+        m.baselines = {'1': {}}
+        m.search_order = {}
+        m.numbers = Mock()
+        m.printed = None
+        m.registry = Mock()
+        return m, image, outline
+
+    def test_same_pose_on_new_stream_restores_after_two_frames(self):
+        m, image, outline = self.model()
+        m.invalidate('1', disconnected=True)
+        self.assertNotIn('1', m.confirmed)
+        self.assertEqual(m.fixed_views['1'], (None, {'ref': True}))
+        self.assertNotIn('1', m.baselines)
+        same = {'lot_id': 'B', 'outline': outline.copy()}
+        m.registry.verify_fixed_view.side_effect = [same, same]
+        m._recheck_interrupted(image, '1', 4, 50, 'auto', True)
+        self.assertNotIn('1', m.confirmed)
+        m._recheck_interrupted(image, '1', 4, 51, 'auto', True)
+        self.assertEqual(m.confirmed['1'][:2], (4, 'B'))
+        self.assertEqual(m.fixed_views['1'], (4, {'ref': True}))
+        self.assertNotIn('1', m.interrupted_views)
+
+    def test_moved_camera_or_timeout_or_other_stream_does_not_restore(self):
+        m, image, outline = self.model()
+        m.invalidate('1', disconnected=True)
+        m.registry.verify_fixed_view.side_effect = [{'lot_id': 'B', 'outline': outline + 40}] * 4
+        for seq in (50, 51, 52, 53):
+            m._recheck_interrupted(image, '1', 4, seq, 'auto', True)
+        self.assertNotIn('1', m.confirmed)
+        # Frames from yet another stream after the first reconnect frame cancel the review.
+        m, image, outline = self.model()
+        m.invalidate('1', disconnected=True)
+        same = {'lot_id': 'B', 'outline': outline.copy()}
+        m.registry.verify_fixed_view.side_effect = [same, same]
+        m._recheck_interrupted(image, '1', 4, 50, 'auto', True)
+        m._recheck_interrupted(image, '1', 5, 51, 'auto', True)
+        self.assertNotIn('1', m.confirmed)
+        self.assertNotIn('1', m.interrupted_views)
+        m, image, outline = self.model()
+        m.invalidate('1', disconnected=True)
+        approval, ref, deadline, previous = m.interrupted_views['1']
+        m.interrupted_views['1'] = (approval, ref, deadline - 1000, previous)
+        m._recheck_interrupted(image, '1', 4, 50, 'auto', True)
+        self.assertNotIn('1', m.interrupted_views)
+
+    def test_without_approval_or_plain_invalidate_nothing_kept(self):
+        m, image, outline = self.model()
+        m.confirmed.clear()
+        m.invalidate('1', disconnected=True)
+        self.assertEqual(m.interrupted_views, {})
+        m, image, outline = self.model()
+        m.invalidate('1')
+        self.assertEqual(m.interrupted_views, {})
+        self.assertNotIn('1', m.fixed_views)
+
+
+
+class LightReturnApproval(unittest.TestCase):
+    """11/11 ceiling-light drill: the exposure-adapted reference followed the dark room."""
+
+    def test_recheck_falls_back_to_reviewed_reference(self):
+        from unittest.mock import Mock
+        image = np.zeros((1080, 1920, 3), np.uint8)
+        outline = np.float32([[100, 100], [900, 100], [900, 700], [100, 700]])
+        m = ParkingPipeline.__new__(ParkingPipeline)
+        m.confirmed = {}
+        m.fixed_views = {}
+        dark, bright = {'ref': 'dark'}, {'ref': 'reviewed'}
+        m.approved_views = {'2': bright}
+        m.interrupted_views = {'2': ((7, 'A', outline, image.shape), dark, 10**12, None)}
+        same = {'lot_id': 'A', 'outline': outline.copy()}
+        m.registry = Mock()
+        m.registry.verify_fixed_view.side_effect = lambda frame, ref: same if ref is bright else None
+        m._recheck_interrupted(image, '2', 7, 11, 'A', True)
+        m._recheck_interrupted(image, '2', 7, 12, 'A', True)
+        self.assertEqual(m.confirmed['2'][:2], (7, 'A'))
+        # A moved camera still never verifies against either reference.
+        m.confirmed.clear()
+        m.interrupted_views = {'2': ((7, 'A', outline, image.shape), dark, 10**12, None)}
+        m.registry.verify_fixed_view.side_effect = lambda frame, ref: {'lot_id': 'A', 'outline': outline + 40}
+        for seq in (20, 21, 22):
+            m._recheck_interrupted(image, '2', 7, seq, 'A', True)
+        self.assertNotIn('2', m.confirmed)
+
+    def test_reviewed_reference_survives_reconnect_only(self):
+        import threading
+        from unittest.mock import Mock
+        m = ParkingPipeline.__new__(ParkingPipeline)
+        m.lock = threading.RLock(); m.fire_watch = None; m.printed = None
+        m.confirmed = {}; m.fixed_views = {'2': (7, {'ref': 1})}; m.interrupted_views = {}
+        m.baselines = {}; m.search_order = {}; m.numbers = Mock()
+        m.approved_views = {'2': {'ref': 0}}
+        m.invalidate('2', disconnected=True)
+        self.assertIn('2', m.approved_views)
+        m.invalidate('2')
+        self.assertNotIn('2', m.approved_views)
+
+
 if __name__ == '__main__':
     unittest.main()
