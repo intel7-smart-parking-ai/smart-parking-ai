@@ -204,13 +204,11 @@
   }
 }
 
-.kiosk-help-toolbar{display:flex;justify-content:flex-end;margin:0 0 10px}.kiosk-help-icon{display:grid;place-items:center;width:44px;height:44px;border:1px solid #dce4f0;border-radius:10px;background:#f5f7fb;color:#293c53;cursor:pointer}.kiosk-help-icon .icon{width:27px;height:27px}.kiosk-help-icon:hover{background:#e7efff;color:#315fce}.kiosk-help-icon:active{transform:translateY(1px)}
+.kiosk-help-toolbar{display:flex;justify-content:flex-end;margin:0 0 10px}.kiosk-help-icon{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:44px;padding:6px 13px;border:1px solid #dce6f5;border-radius:9px;background:#fff;color:#174ba0;font:inherit;font-size:14px;font-weight:700;cursor:pointer}.kiosk-help-icon .icon{width:19px;height:19px;flex:none}.kiosk-help-icon:hover{background:#e0ebff}.kiosk-help-icon:active{transform:translateY(1px)}
 
 .kiosk-secondary .welcome-service-icon{display:grid;place-items:center;flex:0 0 44px;width:44px;height:44px;border-radius:12px}.kiosk-secondary .welcome-service-icon>.icon{width:30px;height:30px}.kiosk-secondary .welcome-car-icon{color:#315fce;background:#315fce15}.kiosk-secondary .welcome-chat-icon{color:#7954d6;background:#7954d615}
 
-.kiosk-help-icon{color:#087f8c;background:#e9f5f5;border:0}.kiosk-help-icon:hover{color:#087f8c;background:#dcefee}
 
-.kiosk-help-icon,.kiosk-help-icon:hover,.kiosk-help-icon:active{background:transparent;border:0;box-shadow:none;color:#087f8c}
 .kiosk-welcome .kiosk-help {
   width: min(440px, calc(100% - 24px));
   padding: clamp(20px, 6vw, 30px);
