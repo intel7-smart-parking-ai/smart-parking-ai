@@ -248,3 +248,14 @@ def test_hold_does_not_apply_to_other_type_or_unconfirmed(experiment):
     for tick in (5, 6, 7):
         client.post(POST, json=event(tick, source='vision', space_id='A-02', car_id=None))
     assert space(client, 'A', 'A-02')['car_id'] is None
+
+
+@pytest.mark.parametrize('lot,source', [('A', 'simulation'), ('A', 'manual'), ('C', 'simulation')])
+def test_hold_is_only_for_real_ab_cameras(experiment, lot, source):
+    # 가상 C·D와 시뮬레이션/수동 관측은 번호 유지 대상이 아니다(기존 동작 그대로).
+    client, store, clock = experiment
+    camera = 'camera_a' if lot == 'A' else None
+    occupy(client, lot_id=lot, camera_id=camera, source=source)
+    client.post(POST, json=event(3, lot_id=lot, camera_id=camera, source=source, car_id=None, vehicle_type=None))
+    row = space(client, lot)
+    assert row['status'] == 'uncertain' and row['car_id'] is None

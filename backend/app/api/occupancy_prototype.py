@@ -141,11 +141,13 @@ class OccupancyExperiment(InMemoryEventStore):
         target = 'occupied' if event.event_type == 'vehicle_observed' else 'empty'
         car = event.car_id if target == 'occupied' else None
         observed_type = event.vehicle_type if target == 'occupied' else None
-        if (target == 'occupied' and car is None and row['status'] == 'occupied'
+        if (target == 'occupied' and car is None and event.source == 'vision'
+                and event.lot_id in ('A', 'B') and row['status'] == 'occupied'
                 and row['car_id'] is not None and candidate is not None
                 and candidate[0] == ('occupied', row['car_id'], event.source, row['vehicle_type'])
                 and observed_type in (None, row['vehicle_type'])):
-            # 확정된 칸에서 차는 보이고 번호만 못 읽으면 확정 번호를 유지한다.
+            # 실물 A·B 카메라: 확정된 칸에서 차는 보이고 번호만 못 읽으면 확정 번호를 유지한다.
+            # 가상 C·D는 car_id를 보내지 않으므로(번호판은 별도) 대상이 아니다.
             # 빈칸 확정이나 다른 번호의 안정 관측만 번호를 바꾼다.
             car, observed_type = row['car_id'], row['vehicle_type']
         signature = (target, car, event.source, observed_type)
