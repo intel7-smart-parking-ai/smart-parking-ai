@@ -3,9 +3,8 @@ import {useAdminAlertAudio} from './useAdminAlertAudio.js';
 import BrandWordmark from './BrandWordmark.jsx';
 import ErrorBoundary from './ErrorBoundary.jsx';
 import {t,getLanguage} from './serviceLocale.js';
-import EntryVehiclePhoto from './EntryVehiclePhoto.jsx';
+import VehicleResultCard from './VehicleResultCard.jsx';
 import {ParkingExtras, AdminCalls} from './ParkingExtras.jsx';
-import AirportPanel from './AirportPanel.jsx';
 import ObservationPanel from './ObservationPanel.jsx';
 import {evacuationRequired,currentKSTMonth,formatKST} from './uiState.js';
 import SessionHistoryPanel from './SessionHistoryPanel.jsx';
@@ -221,7 +220,7 @@ function Dashboard({admin=false,mobileAdmin=false}){
  const lotName=id=>data.lots.find(l=>l.lot_id===id)?.name||id;
  const navigate=id=>{setPage(id);setError('');if(admin){const url=new URL(window.location.href);url.searchParams.set('page',id);window.history.replaceState(null,'',url)}};
  const search=<Search car={car} setCar={setCar} onSubmit={find} busy={busy} disabled={false} kind={lookupKind} onKindChange={kind=>{setLookupKind(kind);setCar('');setInvoice(null);setError('')}}/>;
- const found=invoice&&<div className={"found-card"+(['C','D'].includes(invoice.lot_id)?' with-entry-photo':'')}><Icon name="pin"/><div><span className="full-plate-number">{invoice.lookup_type==='sticker'?t('스티커 ')+invoice.car_id:invoice.plate_number||invoice.vehicle_number}</span><span>{t("차량의 현재 주차 위치")}</span><strong>{lotName(invoice.lot_id)} · {invoice.space_id}</strong>{invoice.fee_notice&&<p className="fee-note">{invoice.fee_notice}</p>}{invoice.fee&&<div className="found-fee"><span>{invoice.fee.payment?'결제 완료':t('예상 주차요금')}</span><b>{money(invoice.fee.amount_krw)}</b><small>{t("서버 이용 시간 기준 요금")}</small></div>}</div>{['C','D'].includes(invoice.lot_id)&&<EntryVehiclePhoto plate={invoice.plate_number||invoice.vehicle_number}/>}<button aria-label={t("지도에서 보기")} onClick={()=>{setLotId(invoice.lot_id);setPage('parking');setFilter('all')}}><Icon name="arrow"/></button></div>;
+ const found=invoice&&<VehicleResultCard result={invoice} lotName={lotName(invoice.lot_id)} onMap={()=>{setLotId(invoice.lot_id);setPage('parking');setFilter('all')}}/>;
  if(!lot)return <ConnectionLoading error={error}/>;
  const occupied=lot.spaces.filter(s=>s.status==='occupied').length;
  return <><header className="app-header"><a className="brand" href={`/?app=0&lang=${getLanguage()}`} aria-label="PARK : ON 시작화면"><BrandWordmark/></a><div className="header-tools"><div className="theme-switch" aria-label={t("화면 밝기")}>{[['light',t('☀ 밝게')],['dark',t('☾ 어둡게')]].map(([id,label])=><button key={id} onClick={()=>setTheme(id)} className={theme===id?'selected':''} aria-pressed={theme===id}>{label}</button>)}</div><span className="demo-label"><i/>{isDemo?t('목업 시연'):t('팀 API')}</span>{admin?<><span className="badge real">관리자 전용</span><button type="button" className="mobile-app-entry" aria-pressed={alertAudio.state==='on'} onClick={alertAudio.toggle}>{alertAudio.state==='on'?'알림음 끄기':alertAudio.state==='unavailable'?'알림음 다시 시도':'알림음 켜기'}</button><form action="/auth/logout" method="post"><button className="text-button" type="submit">로그아웃</button></form><a className="mobile-app-entry" href="/">사용자 페이지</a></>:<span className="badge real">{t("사용자 서비스")}</span>}{admin
@@ -255,7 +254,7 @@ function Dashboard({admin=false,mobileAdmin=false}){
  {admin&&<AdminCalls onPendingCount={setPendingCallCount} onSound={alertAudio.play} showList={page==='calls'} onOpen={()=>navigate('calls')}/>}
  {page==='revenue'&&mode==='admin'&&!data.featureErrors?.revenue&&<RevenuePanel report={data.report} lots={data.lots} filters={reportFilters} onFilter={setReportFilters} loading={loading} onOpenPayments={(date,lot_id)=>{setPaymentFilters({date,lot_id,status:""});navigate("payments")}}/>}
  {page==='alerts'&&<AlertsPanel {...{data:{...data,alerts:data.alertRows||[]},mode,busy,fire,alertAction,lotName,alertFilters,setAlertFilters}}/>}
- {page==='parking'&&!admin&&lot.lot_id==='C'&&<AirportPanel lot={lot}/>}
+
  </ErrorBoundary>
  {page!=='revenue'&&<aside className="locations locations-below-map" aria-label={t("주차장 목록")}><div className="locations-list">{data.lots.map(l=>{const taken=l.spaces.filter(s=>s.status==='occupied').length,empty=l.spaces.filter(s=>s.status==='empty').length,unknown=l.spaces.length-taken-empty;return <button key={l.lot_id} className={`location ${lotId===l.lot_id?'selected':''}`} aria-pressed={lotId===l.lot_id} onClick={()=>{setLotId(l.lot_id);setLookupKind(l.type==='real'?'sticker':'plate');setCar('');setInvoice(null);navigate('parking');setFilter('all')}}><span className="location-info"><span className="location-title">{l.name}</span><span className="location-meta"><b>{empty}{t("자리 가능")}</b><span>{taken}/{l.spaces.length}면 · {Math.round(taken/l.spaces.length*100)}{t("% 점유")}{unknown>0&&<> · {t("확인 필요")} {unknown}면</>}</span></span></span></button>})}</div></aside>}
  {page==='parking'&&mode==='admin'&&(lot.simulation_enabled||lot.capabilities?.simulation)&&lot.type==='virtual'&&<SimulationPanel key={lot.lot_id} lot={lot} onRefresh={refresh}/>}

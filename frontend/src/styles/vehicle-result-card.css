@@ -1,0 +1,25 @@
+.vehicle-result-card { display:grid; grid-template-columns:minmax(0,1fr) minmax(110px,.75fr) 28px; gap:16px; align-items:center; padding:16px; margin-top:20px; border:1px solid #d6e2f6; border-radius:14px; background:#f4f7fe; color:#182941; }
+.vehicle-result-info { min-width:0; }
+.vehicle-result-number { display:inline-block; white-space:nowrap; padding:6px 9px; border:1px solid #b4bfce; border-radius:7px; background:#fff; color:#182941; font-size:clamp(16px,2vw,24px); font-weight:800; }
+.vehicle-result-location { display:flex; gap:6px; align-items:center; margin:12px 0; color:#2454b5; line-height:1.5; font-size:13px; }
+.vehicle-result-location .icon { flex:none; width:18px; height:18px; }
+.vehicle-result-fee { display:flex; align-items:baseline; flex-wrap:wrap; gap:5px 10px; border-top:1px solid #dce4f1; padding-top:10px; }
+.vehicle-result-fee span,.vehicle-result-info small { font-size:11px; color:#64748b; }
+.vehicle-result-fee b { font-size:24px; font-weight:750; color:inherit; }
+.vehicle-result-info small { display:block; margin-top:5px; }
+.vehicle-result-card .entry-result-photo { width:100%; margin:0; }
+.vehicle-result-map { display:grid; place-items:center; width:28px; min-height:44px; color:#2454b5; }
+.vehicle-result-map .icon { width:18px; height:18px; }
+.vehicle-result-card:not(:has(.entry-result-photo)) { grid-template-columns:minmax(0,1fr) 28px; }
+@media(max-width:480px) {
+ .vehicle-result-card { grid-template-columns:minmax(0,1fr) 110px; padding:12px; gap:10px; }
+ .vehicle-result-card .vehicle-result-map { grid-column:1/-1; width:100%; border-top:1px solid #dce4f1; min-height:32px; }
+ .vehicle-result-card .entry-result-photo { grid-column:2; grid-row:1; }
+ .vehicle-result-card .entry-result-photo figcaption { padding:5px; font-size:8px; }
+ .vehicle-result-number { font-size:16px; padding:6px; }
+ .vehicle-result-fee b { font-size:22px; }
+}
+html[data-theme="dark"] .vehicle-result-card { background:#1b293c; border-color:#3b4a60; color:#edf3ff; }
+html[data-theme="dark"] .vehicle-result-card .vehicle-result-number { background:#25364c; border-color:#53647c; color:#edf3ff; }
+html[data-theme="dark"] .vehicle-result-card :is(.vehicle-result-location,.vehicle-result-map) { color:#aac8ff; }
+html[data-theme="dark"] .vehicle-result-card :is(.vehicle-result-info small,.vehicle-result-fee span) { color:#b5c3d8; }
