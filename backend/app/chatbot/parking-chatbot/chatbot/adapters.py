@@ -873,7 +873,12 @@ class ApiAdapter:
         policies = {}
         for item in value["items"]:
             if isinstance(item, dict) and isinstance(item.get("lot_id"), str) and all(type(item.get(k)) is int and item[k] > 0 for k in RATE_KEYS):
-                policies[item["lot_id"]] = {k: item[k] for k in RATE_KEYS}
+                row = {k: item[k] for k in RATE_KEYS}
+                # 무료 회차 분(#140). 선택 값이라 RATE_KEYS에는 넣지 않고 따로 싣는다(0 = 무료 회차 끔).
+                # 전에는 버려서 "무료 시간 있어?"에 5분 무료를 말하지 못했다(11/12 리뷰 봇 99문항).
+                if type(item.get("free_minutes")) is int and item["free_minutes"] >= 0:
+                    row["free_minutes"] = item["free_minutes"]
+                policies[item["lot_id"]] = row
         return {"policies": policies, **self._meta(headers)}
 
     @staticmethod

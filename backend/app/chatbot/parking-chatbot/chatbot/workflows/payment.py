@@ -57,6 +57,9 @@ class PaymentWorkflow:
             only = p.get("only_lots")
             ranked = {k: v for k, v in policies.items() if not only or k in only} or policies
             return I.fee_rank(ranked, high=p["fee_rank"] == "high"), None, "after_fee_rule", None
+        if p.get("free_info"):
+            # '무료 시간 있어?' — 서버 요금 정책의 무료 회차 분만 옮겨 답한다(#140)
+            return T.free_rule(policies), None, "after_fee_rule", None
         return T.fee_rule(policies, p.get("lot_id"), table=bool(p.get("fee_table"))), None, "after_fee_rule", None
 
     def prepare(self, s, p):
