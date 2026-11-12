@@ -3,6 +3,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 WORKDIR /app
 COPY backend/requirements-runtime.lock /app/requirements-runtime.lock
 RUN pip install --no-cache-dir -r /app/requirements-runtime.lock
+# 챗봇 대화 AI(LangChain) — 11/12 B안. 런타임 고정 버전을 제약(-c)으로 걸어 의존성이 바뀌면 빌드가 실패하게 한다.
+COPY backend/app/chatbot/parking-chatbot/requirements-llm.txt /app/requirements-llm.txt
+RUN pip install --no-cache-dir -r /app/requirements-llm.txt -c /app/requirements-runtime.lock
 COPY backend /app/backend
 RUN useradd --create-home --uid 10001 parking && mkdir /data && chown parking /data
 ENV PARKING_MODE=demo SMART_PARKING_DB_PATH=/data/smart_parking.db API_HOST=0.0.0.0 API_PORT=8000
