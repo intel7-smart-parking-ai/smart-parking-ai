@@ -9,6 +9,12 @@ from backend.app.billing.db import SCHEMA as BILLING_SCHEMA
 from backend.app.database.parking_sessions import enter, exit_session, identify, move_sessions
 from backend.app.runtime import create_runtime_app
 
+
+@pytest.fixture(autouse=True)
+def _no_free_turnaround(monkeypatch):
+    # 입차 직후 결제하는 흐름을 시험한다. 무료 회차(5분) 안의 0원 견적은 결제를 받지 않으므로(11/12) 끈다.
+    monkeypatch.setenv("FREE_TURNAROUND_MINUTES", "0")
+
 TOKEN='pipeline-test-token'
 HEADERS={'Authorization':'Bearer '+TOKEN}
 

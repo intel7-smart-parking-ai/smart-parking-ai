@@ -12,6 +12,12 @@ from backend.app.chatbot_v3.knowledge import KnowledgeStore
 from backend.app.chatbot_v3.recommendation import recommend_spaces
 
 
+@pytest.fixture(autouse=True)
+def _no_free_turnaround(monkeypatch):
+    # 입차 직후 결제하는 흐름을 시험한다. 무료 회차(5분) 안의 0원 견적은 결제를 받지 않으므로(11/12) 끈다.
+    monkeypatch.setenv("FREE_TURNAROUND_MINUTES", "0")
+
+
 def test_runtime_location_fee_and_receipt(tmp_path):
     now=[datetime.now(timezone.utc)]
     app=create_runtime_app(token='v3-test-token-123456', database=tmp_path/'runtime.db', mode='real', clock=lambda:now[0])
