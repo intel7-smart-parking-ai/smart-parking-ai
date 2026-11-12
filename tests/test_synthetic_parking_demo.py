@@ -11,6 +11,12 @@ from backend.app.demo_main import create_app
 from backend.app.simulation.run_parking_demo import A_SPACES, DemoError, local_base_url, run_demo
 
 
+@pytest.fixture(autouse=True)
+def _no_free_turnaround(monkeypatch):
+    # 입차 직후 결제하는 흐름을 시험한다. 무료 회차(5분) 안의 0원 견적은 결제를 받지 않으므로(11/12) 끈다.
+    monkeypatch.setenv("FREE_TURNAROUND_MINUTES", "0")
+
+
 @pytest.mark.parametrize(("short", "empty_during_entry"), [(False, 0), (True, 9)])
 def test_a_spaces_enter_and_exit(short, empty_during_entry):
     time = [datetime(2026, 11, 6, tzinfo=timezone.utc)]

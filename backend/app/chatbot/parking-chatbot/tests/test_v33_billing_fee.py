@@ -137,6 +137,7 @@ class RuntimeAppTests(unittest.TestCase):
                 self.assertEqual(amount, expected["amount_krw"])
         self.assertEqual(self.quotes(), before)   # 예상 금액 계산은 서버에 견적을 남기지 않는다
 
+    @patch.dict("os.environ", {"FREE_TURNAROUND_MINUTES": "0"})  # 방금 입차한 차를 결제한다 — 무료 회차 0원 견적은 결제 거절(11/12)
     def test_paid_car_gets_no_estimate(self):
         raw = self.api().get_fee("x")
         r = self.client.post("/api/v1/mock-payments", json={"session_id": self.session_id, "quote_id": raw["quote_id"],

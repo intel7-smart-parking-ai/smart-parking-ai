@@ -135,6 +135,12 @@ def process_mock_payment(conn: sqlite3.Connection, payload: dict[str, Any], fee_
   if quote_error:
     return quote_error
 
+  # 0원 견적(무료 회차 #140)은 결제를 받지 않는다. 받으면 그 세션이 '결제 완료 0원'으로 고정돼
+  # 무료 시간이 지나도 계속 0원으로 보였다(11/12 개발원 A-05 20번: 입차 20초 뒤 0원 결제 → 56분 0원).
+  if int(quote["amount_krw"]) <= 0:
+    return 409, {"error_code": "NO_PAYMENT_REQUIRED",
+                 "message": "결제할 금액이 없어요. 무료 시간 안에 출차해 주세요."}
+
   status_code, fee_info = fee_calculator_fn(session_id, created_at)
   if status_code != 200:
     # 없는 세션 등: 결제를 만들지 않고 그대로 오류 반환

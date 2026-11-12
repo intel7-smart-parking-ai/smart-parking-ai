@@ -94,12 +94,18 @@ def test_free_turnaround_api(tmp_path):
         assert client.get("/api/v1/sessions/ses_short_c/fee").json()["amount_krw"] == 0  # 가상 C도 5분 무료
         assert client.get("/api/v1/sessions/ses_long_d/fee").json()["amount_krw"] > 0
 
-        # 0원 견적으로 결제해도 매출 금액·건수에 들어가지 않는다
+        # 0원 견적은 결제를 받지 않는다(409). 받으면 세션이 '0원 결제 완료'로 고정된다(11/12 버그)
         paid = client.post("/api/v1/mock-payments", json={
             "session_id": "ses_free_a", "quote_id": free["quote_id"], "idempotency_key": "free-1"})
-        assert paid.status_code == 200 and paid.json()["amount_krw"] == 0
+        assert paid.status_code == 409 and paid.json()["error"]["code"] == "NO_PAYMENT_REQUIRED"
+        assert client.get("/api/v1/sessions/ses_free_a/fee").json()["payment_status"] == "unpaid"
+        # 유료 견적은 그대로 결제된다
+        paid_quote = client.get("/api/v1/sessions/ses_paid_a/fee").json()
+        ok = client.post("/api/v1/mock-payments", json={
+            "session_id": "ses_paid_a", "quote_id": paid_quote["quote_id"], "idempotency_key": "paid-1"})
+        assert ok.status_code == 200 and ok.json()["amount_krw"] == 1000
         report = client.get("/api/v1/reports/revenue?lot_id=A").json()
         lot_a = next(l for l in report["lots"] if l["lot_id"] == "A")
-        assert report["summary"]["net_revenue_krw"] == 0
-        assert report["summary"].get("completed_count", 0) == 0
+        assert report["summary"]["net_revenue_krw"] == 1000
+        assert report["summary"]["completed_count"] == 1
         assert "5분 이내 무료" in lot_a["policy_summary"]
