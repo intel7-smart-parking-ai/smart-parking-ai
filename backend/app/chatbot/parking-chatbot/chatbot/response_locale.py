@@ -156,6 +156,9 @@ def _restore(text, masked, replacements):
     # 개수 자리표시('12 spaces') 뒤의 동사는 모델이 단수로 쓰기 쉽다: '12 spaces is being verified' → 'are'
     restored = re.sub(r"(\d[\d,]* (?:spaces|minutes|hours|vehicles|cars)) (is|was|has)\b",
                       lambda m: f"{m[1]} {'are' if m[2] == 'is' else 'were' if m[2] == 'was' else 'have'}", restored)
+    # 모델이 오전·오후를 고르지 않고 'AM/PM'이라고 쓰는 경우(11/12 전수검사: 'It entered at 10:37 AM/PM') → 원문에서 정한다
+    if "AM/PM" in restored and ("오전" in masked) != ("오후" in masked):
+        restored = restored.replace("AM/PM", "AM" if "오전" in masked else "PM")
     restored = re.sub(r"(?<=[぀-ヿ一-鿿]) (?=\d)|(?<=\d) (?=[぀-ヿ一-鿿])", "", restored)
     return restored
 
@@ -514,11 +517,34 @@ def _question_to_korean(text, language):
 _question_to_korean.cache_clear = _question_shape.cache_clear     # 테스트·운영 도구가 쓰던 이름 그대로
 
 
+# 화면의 빠른 질문 버튼 여섯 개가 영어·중국어·일본어 화면에서 보내는 문장(frontend/src/serviceTranslations.js와 같아야 한다).
+# 모델로 한국어로 옮기면 문장이 달라져 다른 뜻으로 분류됐다(11/12 전수검사: 영어·일본어 '주차요금' 버튼
+# "Show me the parking fees."가 "주차요금 알려줘"가 되어 차량 번호를 물었다). 버튼 문장은 그대로 한국어 버튼 문장으로 되돌린다.
+_QUICK_BUTTON_TEXTS = {
+    "주차장별 빈자리 몇 개 있어?": ("How many spaces are available in each car park?", "各停车场有多少空余车位？", "各駐車場の空き台数を教えてください。"),
+    "내 차 위치를 찾고 싶어요": ("I want to find my car.", "我想查找我的车辆。", "自分の車の場所を探したいです。"),
+    "주차요금 안내해줘": ("Show me the parking fees.", "请介绍停车费用。", "駐車料金を教えてください。"),
+    "충전 구역 빈자리 알려줘": ("Are any EV charging spaces available?", "充电区有空位吗？", "充電区画の空き状況を教えてください。"),
+    "장애인 구역 빈자리 알려줘": ("Are any accessible parking spaces available?", "无障碍车位有空位吗？", "障がい者用区画の空き状況を教えてください。"),
+    "주차장 이용 방법 알려줘": ("How do I use the car park?", "请介绍停车场的使用方法。", "駐車場の利用方法を教えてください。"),
+}
+
+
+def _button_key(text):
+    return re.sub(r"[\s.?!。？！]+", "", text or "").lower()
+
+
+QUICK_BUTTONS = {_button_key(foreign): korean for korean, texts in _QUICK_BUTTON_TEXTS.items() for foreign in texts}
+
+
 def question_to_korean_noted(text, language):
     """(한국어 문장, 사유). 번역하지 못하면 원문과 사유(timeout·numbers·format·provider_off)를 돌려준다.
     사유는 응답 meta에 남겨 '왜 원문이 그대로 들어갔는지'를 추적한다(봇 점검 11/11: kept_original의 원인을 알 수 없었다)."""
     if language == "ko" or language not in LANGUAGES or not isinstance(text, str) or not text.strip():
         return text, None
+    button = QUICK_BUTTONS.get(_button_key(text))
+    if button:
+        return button, None        # 화면의 빠른 질문 버튼 문장: 모델 없이 한국어 버튼 문장으로 되돌린다
     if config.LLM_PROVIDER != "openrouter" or not config.api_key("openrouter"):
         return text, "provider_off"
     try:

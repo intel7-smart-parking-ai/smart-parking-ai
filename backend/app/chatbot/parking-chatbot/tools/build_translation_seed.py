@@ -143,6 +143,27 @@ HAND = {
         "· 支付：确认费用后说“帮我支付”，我会再次确认金额并进行模拟支付。", "· お支払い：料金を確認したあと「支払って」と言うと、金額をもう一度確認して模擬決済を行います。"),
     "· 도움이 필요하면 ‘관리자 불러줘’라고 해 주세요.": (
         "· If you need help, say \"Call the manager\".", "· 需要帮助时，请说“叫管理员”。", "· お困りのときは「管理者を呼んで」と言ってください。"),
+    # ---- 실물 주차장 차량의 출차 질문('23번 출차해도 돼?')
+    "출차 전에 요금을 먼저 결제해 주세요. ‘결제해줘’라고 하면 모의 결제를 진행해요.": (
+        "Please pay the fee before leaving. Say \"Pay\" and I will start the mock payment.",
+        "出场前请先支付费用。说“帮我支付”即可进行模拟支付。", "出庫前に料金をお支払いください。「支払って」と言うと模擬決済を行います。"),
+    "결제가 끝났어요. 출구에서 현장 안내를 따라 출차해 주세요.": (
+        "Payment is complete. Please follow the on-site guidance at the exit to leave.",
+        "已完成支付。请在出口按现场指引出场。", "お支払いは完了しています。出口で現場の案内に従って出庫してください。"),
+    # ---- 차량 번호를 묻는 답의 둘째 줄. 일본어 번역만 빠져 있어 일본어 화면에서 '번역 불가'가 났다(11/12 전수검사)
+    "김해공항·신세계 주차장은 번호판 뒤 __NUMBER0__자리를 알려주세요.": (
+        "For Gimhae Airport and Shinsegae parking lots, please provide the last __NUMBER0__ digits of your license plate.",
+        "金海机场·新世界停车场，请输入车牌后__NUMBER0__位。", "金海空港・新世界の駐車場は、ナンバープレートの下__NUMBER0__桁をお知らせください。"),
+    # ---- 무료 회차(#140): 0원인 이유
+    "무료 시간(__NUMBER0__분 이내)이라 지금 나가면 __AMOUNT1__이에요.": (
+        "It is within the free period (__NUMBER0__ minutes), so leaving now costs __AMOUNT1__.",
+        "目前在免费时间内（__NUMBER0__分钟以内），现在出场费用为__AMOUNT1__。", "無料時間内（__NUMBER0__分以内）のため、今出庫すると__AMOUNT1__です。"),
+    "무료 시간이라 지금 나가면 __AMOUNT0__이에요.": (
+        "It is within the free period, so leaving now costs __AMOUNT0__.",
+        "目前在免费时间内，现在出场费用为__AMOUNT0__。", "無料時間内のため、今出庫すると__AMOUNT0__です。"),
+    "결제할 금액이 없어요. 출구에서 현장 안내를 따라 출차해 주세요.": (
+        "There is nothing to pay. Please follow the on-site guidance at the exit to leave.",
+        "没有需要支付的费用。请在出口按现场指引出场。", "お支払いいただく金額はありません。出口で現場の案内に従って出庫してください。"),
 }
 
 

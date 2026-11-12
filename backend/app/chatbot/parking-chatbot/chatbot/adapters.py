@@ -818,7 +818,14 @@ class ApiAdapter:
             require(type(value["payment_blocked"]) is bool, "결제 차단 여부 형식 오류")
         # A corrupt optional receipt must not mask the authoritative safety block.
         receipt = None if value.get("payment_blocked") is True else self._fee_receipt(value, car)
+        # 무료 회차(#140): 서버가 free_applied 와 무료 분을 준다. 넘기지 않으면 0원의 이유를 모른다
+        # (11/12 리뷰 봇: 대화 AI가 "아직 결제 전이라 요금은 0원이에요"라고 틀린 이유를 댔다).
+        breakdown = value.get("fee_breakdown") if isinstance(value.get("fee_breakdown"), dict) else {}
+        free_minutes = next((n for n in (breakdown.get("free_minutes"), (policy or {}).get("free_minutes"))
+                             if type(n) is int and n > 0), None)
         return {"car_id": car_id, "session_id": session_id, "lot_id": value.get("lot_id") or car.get("lot_id"),
+                "free_applied": value.get("free_applied") is True,
+                **({"free_minutes": free_minutes} if free_minutes else {}),
                 "fee": value["amount_krw"], "minutes": value["duration_minutes"], "entry_at": value["entry_at"],
                 "exit_at": value.get("exit_at"), "session_status": session_status,
                 "paid": value["payment_status"] == C.PAYMENT_COMPLETED,

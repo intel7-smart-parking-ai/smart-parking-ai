@@ -118,6 +118,13 @@ class CameraCheckTests(unittest.TestCase):
         total = sum(lot["display_empty"] for lot in r["card"]["data"]["lots"].values() if not lot["status_reason"])
         self.assertIn(f"총 {total}자리", r["text"])
 
+    def test_ranking_answer_does_not_say_full(self):
+        # 11/12 전수검사: "어디에 자리 제일 많아?" → "다음은 … 개발원주차장 만차 · 부산역주차장 만차예요."
+        text = e.handle("rank", text="어디에 자리 제일 많아?")["text"]
+        self.assertIn("개발원주차장 확인된 빈자리 없음", text)
+        self.assertNotIn("개발원주차장 만차", text)
+        self.assertIn("부산역주차장 만차", text)                          # 진짜 만차는 그대로
+
     def test_code_rendered_comparison_has_no_full_word(self):
         from chatbot.dialog.render import _parking_status_line, render_observed_parking
         result, _ = self.status(["A", "B", "C"])
