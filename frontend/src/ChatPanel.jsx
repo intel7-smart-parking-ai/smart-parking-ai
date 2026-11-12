@@ -111,6 +111,8 @@ export default function ChatPanel({lots,alerts,lotId,voiceInput=false,appAppeara
   try{input.start();recognition.current=input;setListening(true);afterSilence();}catch{stopVoice();setVoiceError(t('음성 입력을 시작하지 못했어요.'));}
  }
  function send(e){e.preventDefault();stopVoice();draftRevision.current++;setVoiceError('');chat.send();}
+ const context=view?.vehicle_context;
+ const contextState={parked:t('주차 중'),pending:t('입차 확인 중'),not_found:t('위치 확인 안 됨'),unavailable:t('정보 확인 불가'),stale:t('정보 갱신 필요')};
  return <section className={`panel chat-panel ${appAppearance ? 'chat-panel--app' : ''}`} aria-label={t("주차 챗봇")}>
   {toolbarTarget?createPortal(<button className="button white chat-map-preview" aria-expanded={showMap} onClick={()=>setShowMap(v=>!v)}>{showMap?t('전체 지도 닫기'):t('전체 주차장 지도 미리보기')}</button>,toolbarTarget):<header className="chat-panel-heading"><button className="button white" aria-expanded={showMap} onClick={()=>setShowMap(v=>!v)}>{showMap?t('전체 지도 닫기'):t('전체 주차장 지도 미리보기')}</button></header>}
   {appAppearance&&<header className="app-chat-identity"><div><strong>Chat bot</strong><span className={connected?'online':'offline'}><i/>{connected?'Online':'Offline'}</span></div><span className="app-chat-header-icon" aria-hidden="true"><ChatbotIcon/></span></header>}
