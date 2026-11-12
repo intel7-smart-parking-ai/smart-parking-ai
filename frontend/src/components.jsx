@@ -29,7 +29,7 @@ export function ParkingMap({lot,filter,setFilter,alerts,found,onSpace,admin=fals
  const zone=(z)=><div className={`space-column ${z==='B'?'right':''}`}>{lot.spaces.filter(s=>s.zone===z).map(s=>{const dim=filter!=='all'&&!(filter==='empty'?s.status==='empty':s.space_type===filter);const warned=alerts.some(a=>a.lot_id===lot.lot_id&&a.space_id===s.space_id&&a.status!=='resolved');const selected=found?.lot_id===lot.lot_id&&found.space_id===s.space_id;return <button key={s.space_id} className={`parking-space space-${s.space_type} ${s.status} ${dim?'dim':''} ${warned?'has-alert':''} ${selected?'found':''}`} aria-label={`${s.space_id} ${types[s.space_type]} ${statuses[s.status]}${admin&&s.car_id?' 차량 '+(s.plate_number||s.vehicle_number||s.car_id):''}`} onClick={()=>onSpace(s)}><span className="bay-id">{s.space_id}</span>{admin&&s.car_id?<Car number={s.vehicle_number||s.car_id}/>:s.status==='occupied'?<span className='unknown-bay'>{t("주차 중")}</span>:s.status==='empty'?<span className="empty-bay">{t("주차 가능")}</span>:<span className="unknown-bay">{s.status==='uncertain'?'?':'×'}<small>{statuses[s.status]}</small></span>}{['ev','accessible'].includes(s.space_type)&&<span className={`bay-type ${s.space_type}`}>{s.space_type==='ev'?<Icon name="bolt"/>:<span aria-hidden="true">♿</span>}<span>{s.space_type==='ev'?t('전기차 전용'):t('장애인 전용')}</span></span>}{warned&&<span className="alert-corner">!</span>}</button>})}</div>;
  return <section className="map-panel" data-map-filter={filter}><div className="map-toolbar"><div className="filter-tabs">{(dataSource==='demo'?[['all',t('전체 보기')],['empty',t('빈자리')],['ev',t('전기차')],['accessible',t('장애인')]]:[['all',t('전체 보기')],['empty',t('빈자리')]]).map(([id,label])=><button key={id} onClick={()=>setFilter(id)} className={filter===id?'active':''} aria-pressed={filter===id}>{label}</button>)}</div></div><div className="map-meta"><span><i/>{lot.type==='real'?t('실물 도면 시연'):t('가상 주차장 시연')}</span><span>{t("주차칸을 눌러 상세 확인")}</span></div><div className="parking-map"><div className="map-topline"><div><strong>{lot.lot_id}</strong><span>01–{String(Math.ceil(lot.spaces.length/2)).padStart(2,'0')}</span></div><div className="road-label">{lot.spaces.length} SPACES<span>ONE WAY</span></div><div><strong>{lot.lot_id}</strong><span>{String(Math.ceil(lot.spaces.length/2)+1).padStart(2,'0')}–{lot.spaces.length}</span></div></div><div className="map-body">{zone('A')}<div className="driveway"><div className="lane"><small>{t("진입")}</small><span>↑</span><i/><span>↑</span></div><div className="lane lane-out"><small>{t("진출")}</small><span>↓</span><i/><span>↓</span></div><span className="center-road">SLOW</span></div>{zone('B')}</div><div className="map-entrance"><span><b>↑</b> {t("입구")} <small>ENTRY</small></span><span><b>↓</b> {t("출구")} <small>EXIT</small></span></div></div><p className="layout-note">{lot.spaces.length}{t("면 · API 응답 기준")}<br/>{lot.spaces.some(s=>s.space_type==='unknown')?t('열 배치는 조회용 표현이며 실제 도면·전용 구역 정보는 미제공입니다.'):t('전용 구역 위치는 시연 배치입니다.')}</p></section>
 }
-export function Detail({space,lot,onClose,onFee,canQuote=true,showDetails=false,mobile=false}) {
+export function Detail({space,lot,onClose,onFee,canQuote=true,showDetails=false,mobile=true}) {
  const ref=useRef();
  const [fee,setFee]=useState(null);
  const [feeError,setFeeError]=useState(false);
@@ -45,6 +45,19 @@ export function Detail({space,lot,onClose,onFee,canQuote=true,showDetails=false,
   }
   return()=>{active=false};
  },[space.session_id,occupied,canQuote]);
+ useEffect(()=>{
+  if(!fee?.free_applied||!canQuote||!occupied)return;
+  const minutes=fee.rate_policy?.free_minutes??fee.fee_breakdown?.free_minutes;
+  const deadline=Date.parse(fee.entry_at)+minutes*60000;
+  if(!Number.isFinite(deadline))return;
+  let active=true;
+  const timer=setTimeout(()=>{
+   request('/sessions/'+encodeURIComponent(space.session_id)+'/fee')
+    .then(result=>{if(active)setFee(result)})
+    .catch(()=>{if(active)setFeeError(true)});
+  },Math.max(1000,deadline-Date.now()+1000));
+  return()=>{active=false;clearTimeout(timer)};
+ },[fee,space.session_id,occupied,canQuote]);
  useEffect(()=>{ref.current.showModal()},[]);
  const vehicle=lot.type==='real'?space.car_id:space.plate_number||space.vehicle_number;
  const feeUnavailable=feeError||!space.session_id||!canQuote;
@@ -53,6 +66,10 @@ export function Detail({space,lot,onClose,onFee,canQuote=true,showDetails=false,
   <h2>{space.space_id}</h2>
   <div className="parking-space-meta"><p className="parking-space-lot">{lot.name}</p><span className={'detail-status '+space.status}>{statuses[space.status]}</span></div>
   <p className="parking-space-type">{types[space.space_type]} {t("주차칸")}</p>
+  {occupied&&!feeError&&fee?.free_applied===true&&fee.amount_krw===0&&<div className="parking-space-free-notice" role="status">
+   <strong><Icon name="check"/>{t('무료 회차 가능')}</strong>
+   <span>{t('입차 후 {0}분 이내',fee.rate_policy?.free_minutes??fee.fee_breakdown?.free_minutes)}</span>
+  </div>}
   {mobile&&occupied&&<dl className="parking-space-fee-summary">
    <div><dt>{t("주차요금")}</dt><dd>{fee?money(fee.amount_krw):feeUnavailable?t('정보 확인 불가'):t('조회 중…')}</dd></div>
    <div><dt>{t("이용 시간")}</dt><dd>{fee?fee.duration_minutes+t('분'):feeUnavailable?'—':t('조회 중…')}</dd></div>

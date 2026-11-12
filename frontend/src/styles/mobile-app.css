@@ -548,3 +548,20 @@ html .parking-space-detail--mobile .parking-space-meta .detail-status { margin: 
 html[data-theme="dark"] .parking-space-detail--mobile { color: #edf3ff; }
 html[data-theme="dark"] .parking-space-detail--mobile .parking-space-type { background: #26364c; border-color: #3b4a60; }
 html[data-theme="dark"] .parking-space-detail--mobile .parking-space-fee-summary dt { color: #c7d9ff; }
+.parking-space-free-notice {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-top: 18px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #def4e9;
+  color: #14633e;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.parking-space-free-notice strong { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; }
+.parking-space-free-notice .icon { width: 18px; height: 18px; }
+.parking-space-free-notice + .parking-space-fee-summary { margin-top: 12px; }
+html[data-theme="dark"] .parking-space-free-notice { background: #193d31; color: #b6f0d2; }

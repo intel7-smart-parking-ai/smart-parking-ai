@@ -66,3 +66,12 @@ html[data-theme='light'] .admin-parking-workspace .right-column .button.danger:h
 .mobile-admin-console .parking-workspace .right-column { grid-template-columns: minmax(0, 1fr); }
 .mobile-admin-console .parking-workspace .right-column > * { grid-column: auto; }
 .mobile-admin-console .locations-list { grid-template-columns: minmax(0, 1fr); }
+
+.found-card div > span.full-plate-number {
+  white-space: nowrap;
+  max-width: 100%;
+  box-sizing: border-box;
+  font-size: clamp(15px, 2.4vw, 23px);
+  letter-spacing: 0;
+  padding: 7px 9px;
+}

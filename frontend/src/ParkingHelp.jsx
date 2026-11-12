@@ -14,8 +14,9 @@ const steps = [
     title: '내 차 찾기 및 요금 확인',
     description: '개발원·부산역은 스티커 번호 두 자리, 김해공항·신세계 백화점은 차량번호 뒤 네 자리로 검색하세요.',
     note: '검색 결과에서 주차 위치와 요금을 확인하고, 출차 전에 주차요금을 미리 정산할 수 있어요.',
+    feeNotice: '모든 주차장에서 입차 후 5분 이내에 출차하면 무료 회차가 적용돼요. 5분을 넘기면 입차 시각부터 주차장별 요금 정책에 따라 요금이 계산돼요. 출차 전에 최신 요금을 다시 확인해 주세요.',
     icon: 'wallet',
-    preview: ['스티커 번호', '13', '차량번호 뒤 4자리', '1724'],
+    preview: ['스티커 번호', '차량번호 뒤 4자리'],
   },
   {
     title: '주차 챗봇 사용하기',
@@ -37,7 +38,7 @@ export default function ParkingHelp({language}) {
   const localize = message => translate(language, message);
 
   return <div className="parking-help">
-    {steps.map(({title, description, note, icon, preview}, index) => (
+    {steps.map(({title, description, note, feeNotice, icon, preview}, index) => (
       <details key={title} name={group} open={index === 0 ? true : undefined}>
         <summary>
           <span className="parking-help-icon">{icon === 'chat' ? <ChatbotIcon/> : <Icon name={icon}/>}</span>
@@ -46,6 +47,7 @@ export default function ParkingHelp({language}) {
         <div className="parking-help-content">
           <p>{localize(description)}</p>
           {note && <p>{localize(note)}</p>}
+          {feeNotice && <p>{localize(feeNotice)}</p>}
           <div className="parking-help-preview" aria-hidden="true">
             {preview.map(label => <span key={label}>{localize(label)}</span>)}
           </div>
