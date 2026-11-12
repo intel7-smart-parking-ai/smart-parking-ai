@@ -31,21 +31,46 @@ const EVACUATION_CHIPS = new Set(['evacuate', 'alert_near', 'alert_where']);
 export default function ChatPanel({lots,alerts,lotId,voiceInput=false,appAppearance=false,connected=false,onClose}) {
  const spokenDraft = useRef(null);
  const utterance = useRef(null);
+ const speechGeneration = useRef(0);
+ const [speechError,setSpeechError]=useState('');
  function stopSpeech() {
-  if (!utterance.current) return;
+  speechGeneration.current++;
   utterance.current = null;
-  window.speechSynthesis.cancel();
+  window.speechSynthesis?.cancel();
  }
  const [chat] = useState(() => createChatSession({
   request, makeId: requestId, language: getLanguage(),
-  onVoiceReply(text, language) {
+  async onVoiceReply(text, language) {
    if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
    stopSpeech();
+   setSpeechError('');
+   const generation=speechGeneration.current;
+   const synth=window.speechSynthesis;
+   let voices=synth.getVoices();
+   if (!voices.length) {
+    await new Promise(resolve=>{
+     const ready=()=>{clearTimeout(timer);synth.removeEventListener('voiceschanged',ready);resolve()};
+     const timer=setTimeout(ready,1500);
+     synth.addEventListener('voiceschanged',ready);
+    });
+    voices=synth.getVoices();
+   }
+   if(generation!==speechGeneration.current)return;
    const speech = new window.SpeechSynthesisUtterance(formatLotName(text));
    speech.lang = {ko:'ko-KR', en:'en-US', 'zh-CN':'zh-CN', ja:'ja-JP'}[language] || language || 'ko-KR';
-   speech.onend = speech.onerror = () => { if (utterance.current === speech) utterance.current = null; };
+   const locale=speech.lang.toLowerCase();
+   const matching=voices.filter(voice=>voice.lang.toLowerCase().split('-')[0]===locale.split('-')[0]);
+   speech.voice=matching.find(voice=>voice.lang.toLowerCase()===locale&&voice.localService)
+    ||matching.find(voice=>voice.lang.toLowerCase()===locale)||matching[0]||null;
+   speech.onend = () => { if (utterance.current === speech) utterance.current = null; };
+   speech.onerror = event => {
+    if(utterance.current!==speech)return;
+    utterance.current=null;
+    if(!['canceled','interrupted'].includes(event.error))setSpeechError(t('음성 답변을 재생할 수 없습니다. 기기의 해당 언어 음성 설정을 확인해 주세요.'));
+   };
    utterance.current = speech;
-   window.speechSynthesis.speak(speech);
+   synth.resume();
+   synth.speak(speech);
   },
  }));
  const state = useSyncExternalStore(chat.subscribe,chat.getSnapshot);
@@ -207,6 +232,7 @@ export default function ChatPanel({lots,alerts,lotId,voiceInput=false,appAppeara
   {confirmation&&!unsafe&&<p className="chat-confirm-note">{t("내용을 확인한 뒤 아래 버튼으로 진행해 주세요.")}</p>}
   {chips.length>0&&<div className="chat-chips" aria-label={t("추천 선택지")}>{chips.map((chip,j)=><button type="button" key={`${actionEpoch}-${chip.id}-${j}`} disabled={busy||restartRequired||(unsafe&&(Boolean(chip.confirmation_token)||/^confirm_/.test(chip.id)))} onClick={()=>{stopVoice();chat.choose(chip,actionEpoch);}}>{formatLotName(chip.label)||chip.id}</button>)}</div>}
   {(error||voiceError)&&<p className="operation-error" role="status">{error||voiceError}</p>}
+  {speechError&&<p className="operation-error" role="status">{speechError}</p>}
   {retry&&<button type="button" className="button white chat-retry" disabled={busy} onClick={()=>chat.retry()}>{t("같은 요청 다시 시도")}</button>}
   {restartRequired&&<button type="button" className="button white" onClick={()=>{stopVoice();stopSpeech();spokenDraft.current=null;chat.reset();}}>{t("대화 다시 시작")}</button>}
   </div>

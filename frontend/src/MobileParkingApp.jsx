@@ -4,6 +4,7 @@ import {evacuationRequired,formatKST,sourceLabel} from './uiState.js';
 import {isQuoteExpired,submitMockPayment} from './payments.js';
 import PaymentChooser from './PaymentChooser.jsx';
 import ChatPanel from './ChatPanel.jsx';
+import ConnectionLoading from './ConnectionLoading.jsx';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {api, loadLots, lookupVehicle, dataSource, pollInterval} from './api.js';
 import {Detail, Icon, Search, money, ChatbotIcon} from './components.jsx';
@@ -16,16 +17,6 @@ export default function MobileParkingApp({initialLotId = 'A', initialTab = 'home
   const previousTab = useRef('home');
   const chatTrigger = useRef(null);
   const chatScreen = useRef(null);
-  useEffect(() => {
-    if (tab !== 'chat') return;
-    const screen = chatScreen.current;
-    const viewport = window.visualViewport;
-    if (!viewport) return;
-    const resize = () => screen.style.setProperty('--chat-viewport-height', `${viewport.height}px`);
-    resize();
-    viewport.addEventListener('resize', resize);
-    return () => viewport.removeEventListener('resize', resize);
-  }, [tab]);
   const [choosing,setChoosing]=useState(false);
   const paymentAttempts=useRef({});
   async function pay(fail,method){
@@ -44,6 +35,15 @@ export default function MobileParkingApp({initialLotId = 'A', initialTab = 'home
   const [result, setResult] = useState(null);
   const [space, setSpace] = useState(null);
   const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    const screen = chatScreen.current;
+    const viewport = window.visualViewport;
+    if (tab !== 'chat' || !screen || !viewport) return;
+    const resize = () => screen.style.setProperty('--chat-viewport-height', `${viewport.height}px`);
+    resize();
+    viewport.addEventListener('resize', resize);
+    return () => viewport.removeEventListener('resize', resize);
+  }, [tab, loading]);
   const [searching, setSearching] = useState(false);
   const [connected, setConnected] = useState(false);
   const [updatedAt, setUpdatedAt] = useState(null);
@@ -62,7 +62,11 @@ export default function MobileParkingApp({initialLotId = 'A', initialTab = 'home
     } finally {setLoading(false); refreshing.current = false;}
   }, []);
   useEffect(() => {
-    document.documentElement.dataset.theme = localStorage.getItem('parkon-react-theme') === 'dark' ? 'dark' : 'light';
+    try {
+      document.documentElement.dataset.theme = localStorage.getItem('parkon-react-theme') === 'dark' ? 'dark' : 'light';
+    } catch {
+      document.documentElement.dataset.theme = 'light';
+    }
     document.title = t('PARK : ON · 주차장 앱');
     refresh();
     const timer = setInterval(() => {if (!document.hidden) refresh();}, pollInterval);
@@ -95,6 +99,7 @@ export default function MobileParkingApp({initialLotId = 'A', initialTab = 'home
   }
   useEffect(()=>{if(!result)return;const expire=()=>{if(isQuoteExpired(result)){setResult(old=>old?.quotedAt===result.quotedAt?null:old);setError(t('요금 조회 후 2분이 지났습니다. 차량을 다시 조회해주세요.'))}};const timer=window.setInterval(expire,1000);document.addEventListener('visibilitychange',expire);return()=>{window.clearInterval(timer);document.removeEventListener('visibilitychange',expire)}},[result]);
   const nav = [['home',t('주차장'),'grid'],['map',t('주차 지도'),'pin'],['search',t('주차요금'),'car'],['chat',t('주차 챗봇')]];
+  if (loading && lots.length === 0) return <ConnectionLoading/>;
   if (tab === 'chat') return <div className="mobile-parking-app mobile-chat-screen" ref={chatScreen}>
     <main className="mobile-app-main">
       <ChatPanel lots={lots} alerts={alerts} lotId={lotId} voiceInput appAppearance connected={connected} onClose={() => {
@@ -127,6 +132,6 @@ export default function MobileParkingApp({initialLotId = 'A', initialTab = 'home
       if (id === 'chat') previousTab.current = tab;
       setTab(id); setError(''); window.scrollTo({top:0});
     }}>{id === 'chat' ? <ChatbotIcon/> : <Icon name={icon}/>}<span>{label}</span></button>)}</nav>
-    {space && lot && <Detail showDetails={Boolean(result?.session_id && result.session_id===space.session_id && result.lot_id===lot.lot_id && result.space_id===space.space_id)} key={space.space_id} space={space} lot={lot} canQuote={connected} onClose={() => setSpace(null)} onFee={(number, lookupKind) => {setKind(lookupKind); setTab('search'); find(number, lookupKind);}}/>}
+    {space && lot && <Detail mobile showDetails={Boolean(result?.session_id && result.session_id===space.session_id && result.lot_id===lot.lot_id && result.space_id===space.space_id)} key={space.space_id} space={space} lot={lot} canQuote={connected} onClose={() => setSpace(null)} onFee={(number, lookupKind) => {setKind(lookupKind); setTab('search'); find(number, lookupKind);}}/>}
   </div>;
 }

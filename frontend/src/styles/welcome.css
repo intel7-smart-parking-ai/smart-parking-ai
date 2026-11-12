@@ -359,3 +359,55 @@
 .kiosk-help li::marker { color: #164cba; font-weight: 750; }
 .kiosk-help form { display: flex; justify-content: flex-end; margin-top: 1rem; }
 .kiosk-help button { min-height: 44px; font-weight: 700; }
+
+.kiosk-help-toolbar { gap: 12px; }
+.kiosk-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid #d6e1f2;
+  border-radius: 10px;
+  background: #fff;
+  color: #334b71;
+  font-size: 12px;
+  font-weight: 600;
+}
+.kiosk-theme-toggle { overflow: hidden; flex-shrink: 0; }
+.kiosk-theme-toggle button { display: grid; place-items: center; width: 30px; height: 30px; padding: 7px; color: inherit; }
+.kiosk-theme-toggle button + button { border-left: 1px solid #d6e1f2; }
+.kiosk-theme-toggle svg { width: 16px; height: 16px; }
+.kiosk-theme-toggle button[aria-pressed="true"] { background: #e7efff; color: #164cba; }
+.kiosk-theme-toggle button:focus-visible { outline: 2px solid #416ed8; outline-offset: -3px; }
+html[data-theme="dark"] .kiosk-theme-toggle button + button { border-color: #3c4c62; }
+html[data-theme="dark"] .kiosk-theme-toggle button[aria-pressed="true"] { background: #385680; color: #fff; }
+html[data-theme="dark"] .kiosk-welcome { background: #161f2b; color: #edf3ff; }
+html[data-theme="dark"] .kiosk-welcome::before { background: #202d3e; }
+html[data-theme="dark"] .kiosk-welcome :is(.kiosk-service-title, .kiosk-secondary) { color: #edf3ff; }
+html[data-theme="dark"] .kiosk-welcome :is(.kiosk-secondary, .kiosk-theme-toggle) { background: #243244; border-color: #3c4c62; color: #edf3ff; }
+html[data-theme="dark"] .kiosk-welcome :is(.kiosk-languages button, .kiosk-mobile, .kiosk-help-icon) { color: #bcd1f5; }
+html[data-theme="dark"] .kiosk-welcome .kiosk-languages button[aria-pressed="true"] { background: #2a4061; border-color: #536d94; }
+
+.kiosk-welcome .kiosk-help-icon {
+  box-sizing: border-box;
+  height: 30px;
+  min-height: 30px;
+  gap: 5px;
+  padding: 4px 9px;
+  font-size: 11px;
+  line-height: 1.2;
+}
+.kiosk-welcome .kiosk-help-icon .icon { width: 16px; height: 16px; }
+.kiosk-theme-toggle { box-sizing: border-box; height: 30px; }
+.kiosk-theme-toggle button { height: 28px; }
+.kiosk-welcome:not([data-mobile-start]) .kiosk-help-icon {
+  height: 44px;
+  min-height: 44px;
+  gap: 7px;
+  padding: 6px 13px;
+  font-size: 14px;
+}
+.kiosk-welcome:not([data-mobile-start]) .kiosk-help-icon .icon { width: 19px; height: 19px; }
+.kiosk-welcome:not([data-mobile-start]) .kiosk-theme-toggle { height: 44px; }
+.kiosk-welcome:not([data-mobile-start]) .kiosk-theme-toggle button { width: 42px; height: 42px; padding: 10px; }
+.kiosk-welcome:not([data-mobile-start]) .kiosk-theme-toggle svg { width: 20px; height: 20px; }
