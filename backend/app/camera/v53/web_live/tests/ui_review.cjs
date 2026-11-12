@@ -213,7 +213,11 @@ const context=vm.createContext({document,console,Image:class {decode(){return Pr
     [{running:true,sending:false,send_stopped:{reason:'camera_stopped',at:'2026-11-10T07:55:57Z'},results:{1:result}},/정지·재시작으로 서버 전송 꺼짐/],
     [{running:true,sending:false,send_stopped:{reason:'camera_stopped',at:'x'},results:{1:{roi_confirmed:false}}},/정지·재시작으로 서버 전송 꺼짐 · 칸 위치 맞음/],
     [{running:true,sending:false,send_stopped:{reason:'operator_turned_off',at:'x'},results:{1:{roi_confirmed:false}}},/칸 위치 확인 후 전송 켜기/],
-    [{running:true,sending:true,sender_alive:false,results:{1:result}},/전송 작업 정지/]]){
+    [{running:true,sending:true,sender_alive:false,results:{1:result}},/전송 작업 정지/],
+    // 11/12 review: failures with no acceptance must not read as "전송 켜짐".
+    [{running:true,sending:true,transport:{recent_counts:{HTTP_401:40}},results:{1:result}},/서버 응답 실패/],
+    [{running:true,sending:true,transport:{recent_counts:{delivery_unconfirmed:12}},results:{1:result}},/서버 응답 실패/],
+    [{running:true,sending:true,transport:{recent_counts:{accepted:900,HTTP_409:3}},results:{1:result}},/전송 켜짐/]]){
     context.statusInput=s;assert.match(vm.runInContext('liveStatus(statusInput)',context),label);
   }
   console.log('PASS watchdog stop, camera wait, resume review, duplicate lot and enabled delivery status');
