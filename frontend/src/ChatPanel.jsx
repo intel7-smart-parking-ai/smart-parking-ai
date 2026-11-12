@@ -89,7 +89,7 @@ export default function ChatPanel({lots,alerts,lotId,voiceInput=false,appAppeara
    const matching=voices.filter(voice=>voiceLocale(voice).split('-')[0]===locale.split('-')[0]);
    let voice=matching.find(voice=>voiceLocale(voice)===locale&&voice.localService)
     ||matching.find(voice=>voiceLocale(voice)===locale)||matching[0];
-   if (isAppleMobile() && locale === 'ko-kr') {
+   if (isAppleMobile() && ['ko-kr', 'zh-cn', 'ja-jp'].includes(locale)) {
     const localVoices = matching.filter(candidate => candidate.localService);
     const voiceLabel = candidate => `${candidate.name} ${candidate.voiceURI}`;
     const yunaVoices = localVoices.filter(candidate => /yuna|유나/i.test(voiceLabel(candidate)));
@@ -98,7 +98,7 @@ export default function ChatPanel({lots,alerts,lotId,voiceInput=false,appAppeara
      || preferredVoices.find(candidate => /enhanced|향상|고품질/i.test(voiceLabel(candidate)))
      || yunaVoices[0]
      || voice;
-    speech.rate = 0.94;
+    if (locale === 'ko-kr') speech.rate = 0.94;
    }
    if (voice) speech.voice = voice;
    speech.onstart = () => {
