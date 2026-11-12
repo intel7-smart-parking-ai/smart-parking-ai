@@ -421,6 +421,12 @@ html[data-theme] .locations-list .location-meta {
   color: var(--ink);
   background: var(--panel);
   font-size: 22px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.rail-drawer-toggle:focus-visible {
+  opacity: 1;
   pointer-events: auto;
 }
 

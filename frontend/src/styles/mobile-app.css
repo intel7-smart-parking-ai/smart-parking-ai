@@ -6,7 +6,7 @@
 
 .mobile-app-header-actions{display:flex;align-items:center;gap:8px}.app-switch-web{display:inline-flex;align-items:center;gap:5px;min-height:36px;padding:8px 10px;border:1px solid #c9d7a7;border-radius:20px;background:#fff;color:#36512c;font-size:12px;font-weight:700;white-space:nowrap;text-decoration:none}.app-switch-web .icon{width:14px;height:14px}.app-switch-web:focus-visible{outline:2px solid #526f35;outline-offset:3px}@media(max-width:380px){.mobile-app-header{padding-left:14px;padding-right:14px}.mobile-app-header>a{gap:6px}.mobile-app-header img{width:28px;height:28px}.mobile-app-header b{font-size:20px}.mobile-app-header-actions{gap:5px}.app-switch-web,.mobile-app-header-actions .app-install-button{font-size:11px;padding:8px}}
 
-.mobile-bottom-nav{grid-template-columns:repeat(5,minmax(0,1fr))}
+.mobile-bottom-nav{grid-template-columns:repeat(4,minmax(0,1fr))}
 
 .mobile-parking-app:has(.app-home-hero) {
   display: flex;
@@ -40,7 +40,11 @@
 }
 
 .app-home-hero + .app-section-heading {
-  margin-block: 16px 8px;
+  margin-block: 40px 12px;
+}
+
+.app-home-hero + .app-section-heading h2 {
+  font-size: 19px;
 }
 
 .mobile-app-main > .app-lot-list {
@@ -348,7 +352,7 @@
   }
 
   .app-home-hero + .app-section-heading {
-    margin-block: 9px 5px;
+    margin-block: 25px 8px;
   }
 
   .mobile-app-main > .app-lot-list {
@@ -370,37 +374,67 @@
   }
 }
 
-/* Fill only the app chat view; retain matching 20px gaps around the panel. */
-.mobile-parking-app:has(.mobile-app-main>.chat-panel){height:100dvh;min-height:0;display:flex;flex-direction:column}
-.mobile-parking-app:has(.mobile-app-main>.chat-panel)>.mobile-app-header{flex-shrink:0}
-.mobile-app-main:has(>.chat-panel){flex:1;min-height:0;display:flex;flex-direction:column;padding:20px 20px calc(20px + env(safe-area-inset-bottom));overflow:hidden}
-.mobile-app-main:has(>.chat-panel)>.app-connection{flex-shrink:0;margin-bottom:20px}
-.mobile-app-main:has(>.chat-panel)>.chat-panel{flex:1;min-height:0;display:flex;flex-direction:column;margin:0;overflow:hidden}
-.mobile-app-main>.chat-panel>.chat-panel-heading{flex-shrink:0}
-.mobile-app-main>.chat-panel>.chat-transcript{flex:1;min-height:0;max-height:none;overflow:auto;overscroll-behavior:contain}
-.mobile-app-main>.chat-panel>.chat-form{flex-shrink:0;margin-top:auto}
-.mobile-parking-app:has(.mobile-app-main>.chat-panel)>.mobile-bottom-nav{position:relative;bottom:auto;flex-shrink:0;width:100%}
+.app-connection-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
 
-.app-connection-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}.app-connection-actions #mobile-chat-tools{display:flex;align-items:center}.app-connection-actions .chat-map-preview{border-radius:7px;padding:8px 10px;font-size:10px;line-height:1.4;white-space:nowrap}.mobile-app-main:has(>.chat-panel)>.app-connection{gap:8px;flex-wrap:wrap}
+.mobile-parking-app .mobile-bottom-nav {
+  padding: 3px 10px calc(3px + env(safe-area-inset-bottom));
+}
+.mobile-parking-app .mobile-bottom-nav button {
+  justify-content: center;
+  min-height: 44px;
+  gap: 2px;
+  padding: 0 4px;
+  color: #536174;
+  font-size: 11px;
+  line-height: 1.2;
+}
+.mobile-parking-app .mobile-bottom-nav button .icon {
+  width: 22px;
+  height: 22px;
+  margin-block: 0;
+}
 
-.mobile-app-main>.app-help-card h2{color:#2d3641}
-
-/* App conversation style: quiet grey replies and blue questions. */
-.mobile-app-main>.chat-panel{background:#fff!important;border:1px solid #c9d7f1!important;border-radius:24px;padding:18px 14px!important;box-shadow:none}
-.mobile-app-main>.chat-panel>.chat-transcript{padding:12px 4px 18px;gap:22px;margin:0 0 14px;scrollbar-width:thin}
-.mobile-app-main .chat-speaker{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
-.mobile-app-main .chat-row{max-width:88%;gap:8px;position:relative}
-.mobile-app-main .chat-row.assistant{align-self:flex-start;padding-left:26px}
-.mobile-app-main .chat-row.assistant:before{content:'';position:absolute;top:8px;left:0;width:21px;height:21px;background:#315fce;mask:url('/icons/mobile-chatbot.png') center/contain no-repeat;display:none}
-.mobile-app-main .chat-bubble{border:0;background:#eeeeef;color:#2d3641;border-radius:15px 15px 15px 4px;padding:13px 15px;font-size:13px;line-height:1.7}
-.mobile-app-main .chat-row.mine .chat-bubble{background:#315fce;color:white;border:0;border-radius:15px 15px 4px 15px}
-.mobile-app-main>.chat-panel>.chat-form{background:#f5f6fa;border-radius:15px;padding:7px;gap:6px;flex-wrap:nowrap;align-items:center}
-.mobile-app-main>.chat-panel .chat-form input{background:transparent;border:0;outline:0;min-width:0;padding:10px 6px;font-size:12px;box-shadow:none}
-html .mobile-app-main>.chat-panel .chat-form>.chat-send-button{width:40px;min-width:40px;height:40px;padding:10px;border-radius:50%;background:#315fce}
-html .mobile-app-main>.chat-panel .chat-form>.chat-voice-button{width:36px;min-width:36px;height:40px;padding:8px;background:transparent;border:0;color:#536478}
-.mobile-app-main>.chat-panel .chat-form>.chat-send-button svg{width:20px;height:20px}
-.mobile-app-main>.chat-panel .chat-chips{max-height:100px;overflow:auto;flex-shrink:0}
-
+.mobile-parking-app.mobile-chat-screen {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 50;
+  height: var(--chat-viewport-height, 100dvh);
+  min-height: 0;
+  margin-inline: auto;
+  background: #fff;
+}
+.mobile-chat-screen > .mobile-app-main { height: 100%; padding: 0; }
+html[data-theme="dark"] .mobile-parking-app.mobile-chat-screen { background: #161f2b; }
+html .mobile-chat-screen .chat-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+  border: 0;
+  border-radius: 0;
+}
+.mobile-chat-screen .chat-panel-heading {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 16px;
+  margin: 0;
+}
+.mobile-chat-screen .chat-panel-heading .button { margin: 0; }
+.mobile-chat-close { display: grid; place-items: center; width: 44px; height: 44px; color: #182233; }
+.mobile-chat-close .icon { width: 28px; height: 28px; }
+.mobile-chat-screen .chat-content {
+  display: block;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 12px 20px 20px;
+}
+.mobile-chat-screen .chat-transcript { min-height: 0; max-height: none; overflow: visible; margin: 0; padding: 0; gap: 16px; }
+.mobile-chat-screen .chat-row { max-width: 100%; }
+.mobile-chat-screen .chat-bubble { font-size: 15px; }
 .mobile-app-main>.pdf-map-panel>.map-legend{position:relative;top:8px}
 
 .mobile-app-main>.pdf-map-panel>.pdf-map-scroll[data-legend-near-map]{position:relative;padding-top:28px;box-sizing:border-box}
@@ -415,20 +449,7 @@ html .mobile-app-main>.chat-panel .chat-form>.chat-voice-button{width:36px;min-w
 
 .mobile-app-main>.app-help-card p{white-space:pre-line}
 
-.app-chat-identity{display:flex;align-items:center;justify-content:center;position:relative;min-height:52px;flex-shrink:0;margin:0 0 12px;text-align:center}
-.app-chat-identity>div{display:flex;flex-direction:column;gap:4px;align-items:center}
-.app-chat-identity strong{font-size:16px;color:#2d3641;font-weight:700}
-.app-chat-identity>div>span{display:flex;align-items:center;gap:4px;font-size:10px;color:#536478}
-.app-chat-identity i{width:5px;height:5px;border-radius:50%;background:#a3acb8}.app-chat-identity .online i{background:#16b782}
-.app-chat-header-icon{position:absolute;right:3px;top:9px;color:#315fce}.app-chat-header-icon .icon{width:29px;height:29px}
 .app-chat-avatar{position:absolute;left:0;top:8px;width:21px;height:21px;display:grid;place-items:center;background:#315fce;color:white;border-radius:50%}
 .app-chat-avatar>.icon{width:16px;height:16px}
 
-.mobile-app-main:has(>.parking-help)>h1{color:#102a4c}
-
 .mobile-app-main .app-section-heading>.app-map-title{color:#102a4c}
-
-.app-help-title > span { display: inline; }
-.app-help-title .parkon-brand-lockup { display: inline-flex; vertical-align: middle; margin-right: 7px; }
-.app-help-title .parkon-brand-car { display: none; }
-.app-help-title .parkon-wordmark { width: 112px; height: 26px; }

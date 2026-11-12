@@ -58,7 +58,8 @@ html[data-theme='light'] .admin-parking-workspace .right-column .button.danger:h
 .mobile-admin-console .header-tools { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 6px; }
 .mobile-admin-console .rail-drawer { display: none; }
 .mobile-admin-console .main-shell { width: 100%; margin: 0; padding: 12px; box-sizing: border-box; }
-.mobile-admin-console .main-shell > main { min-width: 0; }
+.mobile-admin-console > .rail-drawer ~ .main-shell { padding-top: 12px; }
+.mobile-admin-console .main-shell > main { min-width: 0; padding: 0; }
 .mobile-admin-console .service-nav { display: flex; flex-wrap: wrap; }
 .mobile-admin-console .service-nav > button { flex: 1 1 40%; min-height: 44px; }
 .mobile-admin-console .parking-workspace,
