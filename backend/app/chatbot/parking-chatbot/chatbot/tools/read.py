@@ -128,7 +128,8 @@ _READ_FAILURES = (DataUnavailable, TimeoutError, OSError, ValueError)
 _LOCATION_FIELDS = ("car_id", "lot_id", "space_id", "spot_no", "entry_at", "session_id",
                     "vehicle_type", "updated_at", "status", "stale", "is_mock", "data_source")
 _FEE_FIELDS = ("car_id", "lot_id", "session_id", "entry_at", "fee", "minutes", "paid",
-               "payment_status", "payment_blocked", "updated_at", "stale", "is_mock", "data_source")
+               "payment_status", "payment_blocked", "updated_at", "stale", "is_mock", "data_source",
+               "free_applied", "free_minutes")      # 무료 회차(#140): 0원인 이유를 대화 AI가 알게 한다
 
 
 _NOT_FOUND = "해당 차량의 입차 기록을 찾지 못했습니다."

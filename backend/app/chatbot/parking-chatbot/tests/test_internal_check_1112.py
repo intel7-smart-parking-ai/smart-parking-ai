@@ -301,3 +301,61 @@ class FullCheckFindingsTests(unittest.TestCase):
         with patch.object(locale, "_translate_call", side_effect=AssertionError("모델을 부르면 안 된다")):
             for language in locale.LANGUAGES:
                 self.assertIsNotNone(locale._translate_known((templates.ASK_VEHICLE,), language), language)
+
+
+class FreeTurnaroundTests(unittest.TestCase):
+    """무료 회차 5분(#140). 서버가 0원과 함께 free_applied·무료 분을 준다. 전에는 넘기지 않아
+    대화 AI가 "아직 결제 전이라 요금은 0원이에요"라고 틀린 이유를 댔다(11/12 리뷰 봇)."""
+
+    FREE = {"api_result": True, "car_id": "23", "fee": 0, "minutes": 3, "paid": False, "payment_status": "unpaid",
+            "is_daily_capped": False, "free_applied": True, "free_minutes": 5}
+
+    def test_rule_answer_says_why_it_is_zero(self):
+        from chatbot import templates
+        self.assertEqual(templates.fee(self.FREE), "무료 시간(5분 이내)이라 지금 나가면 0원이에요.")
+        self.assertEqual(templates.fee({**self.FREE, "free_minutes": None}), "무료 시간이라 지금 나가면 0원이에요.")
+        charged = {**self.FREE, "fee": 1000, "minutes": 6, "free_applied": False}
+        self.assertEqual(templates.fee(charged), "현재 요금은 1,000원이에요.")
+
+    def test_server_fee_fields_reach_the_answer(self):
+        from test_api_contract import ApiContractTests
+        fixture = ApiContractTests("test_04_null_session_no_fee_request")
+        fixture.setUp()
+        self.addCleanup(fixture.tearDown)
+        fixture.session_id = "session-1"
+        value = {"session_id": "session-1", "lot_id": "A", "space_id": "A-01", "car_id": "11", "amount_krw": 0, "duration_minutes": 3,
+                 "entry_at": "2026-11-12T10:00:00+09:00", "exit_at": None, "target_at": "2026-11-12T10:03:00+09:00",
+                 "fee_breakdown": {"free_minutes": 5}, "payment_status": "unpaid", "is_daily_capped": False, "free_applied": True,
+                 "rate_policy": {"base_minutes": 30, "base_fee": 1000, "unit_minutes": 10, "extra_fee": 500, "daily_cap": 10000, "free_minutes": 5},
+                 "quote_id": "quote-1", "quote_expires_at": "2026-11-12T10:08:00+09:00"}
+        real = fixture.api._request
+        with patch.object(fixture.api, "_request", side_effect=lambda method, path, body=None: (
+                (200, value, {}) if "/sessions/" in path and path.endswith("/fee") else real(method, path, body))):
+            fee = fixture.adapter.get_fee("11")
+        self.assertIs(fee.get("free_applied"), True)
+        self.assertEqual(fee.get("free_minutes"), 5)
+
+    def test_exit_question_during_the_free_period_does_not_ask_to_pay(self):
+        from chatbot import templates
+        result = (templates.fee(self.FREE), None, "after_get_fee", None)
+        e.reset_all()
+        self.addCleanup(e.reset_all)
+        s = e.get_session("free1")
+        s.history.append(("user", "23번 출차해도 돼?"))
+        with patch.object(e, "_billing") as billing:
+            billing.return_value.fee.return_value = result
+            text = e.h_get_fee(s, {"car_id": "23"})[0]
+        self.assertIn("무료 시간(5분 이내)이라 지금 나가면 0원이에요.", text)
+        self.assertIn("결제할 금액이 없어요.", text)
+        self.assertNotIn("먼저 결제해 주세요", text)
+
+    def test_free_fields_are_given_to_the_model_and_translated(self):
+        from chatbot import templates
+        from chatbot.tools.read import _FEE_FIELDS
+        self.assertIn("free_applied", _FEE_FIELDS)
+        self.assertIn("free_minutes", _FEE_FIELDS)
+        locale.load_seed()
+        with patch.object(locale, "_translate_call", side_effect=AssertionError("모델을 부르면 안 된다")):
+            for line in (templates.fee(self.FREE), templates.EXIT_FREE):
+                for language in locale.LANGUAGES:
+                    self.assertIsNotNone(locale._translate_known((line,), language), (language, line))

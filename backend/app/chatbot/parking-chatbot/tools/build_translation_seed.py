@@ -154,6 +154,16 @@ HAND = {
     "김해공항·신세계 주차장은 번호판 뒤 __NUMBER0__자리를 알려주세요.": (
         "For Gimhae Airport and Shinsegae parking lots, please provide the last __NUMBER0__ digits of your license plate.",
         "金海机场·新世界停车场，请输入车牌后__NUMBER0__位。", "金海空港・新世界の駐車場は、ナンバープレートの下__NUMBER0__桁をお知らせください。"),
+    # ---- 무료 회차(#140): 0원인 이유
+    "무료 시간(__NUMBER0__분 이내)이라 지금 나가면 __AMOUNT1__이에요.": (
+        "It is within the free period (__NUMBER0__ minutes), so leaving now costs __AMOUNT1__.",
+        "目前在免费时间内（__NUMBER0__分钟以内），现在出场费用为__AMOUNT1__。", "無料時間内（__NUMBER0__分以内）のため、今出庫すると__AMOUNT1__です。"),
+    "무료 시간이라 지금 나가면 __AMOUNT0__이에요.": (
+        "It is within the free period, so leaving now costs __AMOUNT0__.",
+        "目前在免费时间内，现在出场费用为__AMOUNT0__。", "無料時間内のため、今出庫すると__AMOUNT0__です。"),
+    "결제할 금액이 없어요. 출구에서 현장 안내를 따라 출차해 주세요.": (
+        "There is nothing to pay. Please follow the on-site guidance at the exit to leave.",
+        "没有需要支付的费用。请在出口按现场指引出场。", "お支払いいただく金額はありません。出口で現場の案内に従って出庫してください。"),
 }
 
 

@@ -87,6 +87,11 @@ def fee(d: dict) -> str:
             receipt = d.get("payment") if isinstance(d.get("payment"), dict) else {}
             amount = receipt.get("amount_krw") if type(receipt.get("amount_krw")) is int else d.get("fee")
             return closed + f"{d['car_id']}번 차는 이미 결제했어요" + (f"(결제 금액 {won(amount)})." if type(amount) is int else ".")
+        if d.get("free_applied") and d.get("fee") == 0 and not closed:
+            # 무료 회차(#140): 0원인 이유를 말한다. 무료 분은 서버 값만 쓴다.
+            minutes = d.get("free_minutes")
+            return (f"무료 시간({minutes}분 이내)이라 지금 나가면 0원이에요." if type(minutes) is int and minutes > 0
+                    else "무료 시간이라 지금 나가면 0원이에요.")
         text = closed + ("결제가 취소된 상태예요. " if d.get("payment_status") == C.PAYMENT_CANCELED else "") + f"현재 요금은 {won(d['fee'])}이에요."
         if d.get("is_daily_capped"):
             text += " 하루 최대 요금이 적용됐어요."
@@ -110,6 +115,7 @@ def policy_text(p: dict) -> str:
 # 실물 주차장 차량의 출차 질문('23번 출차해도 돼?')에 요금 답 뒤에 붙이는 안내
 EXIT_UNPAID = "출차 전에 요금을 먼저 결제해 주세요. ‘결제해줘’라고 하면 모의 결제를 진행해요."
 EXIT_PAID = "결제가 끝났어요. 출구에서 현장 안내를 따라 출차해 주세요."
+EXIT_FREE = "결제할 금액이 없어요. 출구에서 현장 안내를 따라 출차해 주세요."
 FEE_TABLE_TITLE = "주차장별 요금표예요."
 FEE_TABLE_TAIL = "내 차 요금은 차량 번호와 함께 물어봐 주세요."
 

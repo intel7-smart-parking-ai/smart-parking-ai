@@ -529,6 +529,9 @@ def h_get_fee(s, p):
     if _asks_exit(asked) and isinstance(result, tuple) and isinstance(result[0], str) and "출차 완료" not in result[0]:
         if "이미 결제했어요" in result[0]:
             result = (result[0] + "\n" + T.EXIT_PAID,) + tuple(result[1:])
+        elif "무료 시간" in result[0] or re.search(r"(?<![\d,])0원", result[0]):
+            # 무료 회차(#140)·0원: 낼 돈이 없는데 '먼저 결제해 주세요'라고 하면 틀린다
+            result = (result[0] + "\n" + T.EXIT_FREE,) + tuple(result[1:])
         elif "현재 요금은" in result[0] or "지금 나가면" in result[0]:
             result = (result[0] + "\n" + T.EXIT_UNPAID,) + tuple(result[1:])
     return result
