@@ -6,6 +6,7 @@ import {requestId} from './requestId.js';
 import {useEffect,useRef,useState,useSyncExternalStore} from 'react';
 import {request} from './api.js';
 import {createChatSession} from './chatSession.js';
+import {mergeSpeechResults} from './speechTranscript.js';
 import {chatRecommendations} from './recommendationMapData.js';
 import RecommendationMap from './RecommendationMap.jsx';
 import ChatResponseCard from './ChatResponseCard.jsx';
@@ -110,7 +111,7 @@ export default function ChatPanel({lots,alerts,lotId,voiceInput=false,appAppeara
   input.interimResults=true;
   input.onresult=e=>{
    if(!current())return;
-   spokenText=Array.from(e.results,result=>result[0].transcript).join(' ').trim();
+   spokenText=mergeSpeechResults(e.results);
    spokenDraft.current=spokenText;
    chat.edit(spokenText);
    afterSilence();
