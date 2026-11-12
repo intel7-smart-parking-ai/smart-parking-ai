@@ -1,4 +1,3 @@
-import ParkingHelp from './ParkingHelp.jsx';
 import BrandWordmark from './BrandWordmark.jsx';
 import {t,getLanguage} from './serviceLocale.js';
 import {evacuationRequired,formatKST,sourceLabel} from './uiState.js';
@@ -14,6 +13,19 @@ import './styles/mobile-app.css';
 
 export default function MobileParkingApp({initialLotId = 'A', initialTab = 'home'}) {
   const [tab, setTab] = useState(initialTab);
+  const previousTab = useRef('home');
+  const chatTrigger = useRef(null);
+  const chatScreen = useRef(null);
+  useEffect(() => {
+    if (tab !== 'chat') return;
+    const screen = chatScreen.current;
+    const viewport = window.visualViewport;
+    if (!viewport) return;
+    const resize = () => screen.style.setProperty('--chat-viewport-height', `${viewport.height}px`);
+    resize();
+    viewport.addEventListener('resize', resize);
+    return () => viewport.removeEventListener('resize', resize);
+  }, [tab]);
   const [choosing,setChoosing]=useState(false);
   const paymentAttempts=useRef({});
   async function pay(fail,method){
@@ -50,6 +62,7 @@ export default function MobileParkingApp({initialLotId = 'A', initialTab = 'home
     } finally {setLoading(false); refreshing.current = false;}
   }, []);
   useEffect(() => {
+    document.documentElement.dataset.theme = localStorage.getItem('parkon-react-theme') === 'dark' ? 'dark' : 'light';
     document.title = t('PARK : ON · 주차장 앱');
     refresh();
     const timer = setInterval(() => {if (!document.hidden) refresh();}, pollInterval);
@@ -81,14 +94,22 @@ export default function MobileParkingApp({initialLotId = 'A', initialTab = 'home
     finally {setSearching(false); searchLock.current = false;}
   }
   useEffect(()=>{if(!result)return;const expire=()=>{if(isQuoteExpired(result)){setResult(old=>old?.quotedAt===result.quotedAt?null:old);setError(t('요금 조회 후 2분이 지났습니다. 차량을 다시 조회해주세요.'))}};const timer=window.setInterval(expire,1000);document.addEventListener('visibilitychange',expire);return()=>{window.clearInterval(timer);document.removeEventListener('visibilitychange',expire)}},[result]);
-  const nav = [['home',t('주차장'),'grid'],['map',t('주차 지도'),'pin'],['search',t('주차요금'),'car'],['chat',t('주차 챗봇')],['help',t('이용 안내'),'info']];
+  const nav = [['home',t('주차장'),'grid'],['map',t('주차 지도'),'pin'],['search',t('주차요금'),'car'],['chat',t('주차 챗봇')]];
+  if (tab === 'chat') return <div className="mobile-parking-app mobile-chat-screen" ref={chatScreen}>
+    <main className="mobile-app-main">
+      <ChatPanel lots={lots} alerts={alerts} lotId={lotId} voiceInput appAppearance connected={connected} onClose={() => {
+        setTab(previousTab.current);
+        requestAnimationFrame(() => chatTrigger.current?.focus({preventScroll:true}));
+      }}/>
+    </main>
+  </div>;
   return <div className="mobile-parking-app">
     <header className="mobile-app-header">
       <a href={`/?app=1&lang=${getLanguage()}&promo=1`} aria-label="PARK:ON 시작 화면"><BrandWordmark/></a>
       <div className="mobile-app-header-actions"><a className="app-switch-web" href={`/?app=0&lang=${getLanguage()}`}>{t("웹으로 보기")} <Icon name="arrow"/></a></div>
     </header>
     <main className="mobile-app-main">
-      <div className={`app-connection ${connected ? 'online' : 'offline'}`} role="status"><span><i/>{loading ? t('주차 정보를 불러오는 중') : connected ? (dataSource==='demo'?t('서버 연결됨 · 데모 데이터'):t('주차 정보 업데이트 중')) : t('연결 끊김 · 빈자리 재확인 필요')}</span><div className="app-connection-actions"><span id="mobile-chat-tools"/><button onClick={refresh} aria-label={t("주차 정보 새로고침")}><Icon name="refresh"/></button></div></div>
+      <div className={`app-connection ${connected ? 'online' : 'offline'}`} role="status"><span><i/>{loading ? t('주차 정보를 불러오는 중') : connected ? (dataSource==='demo'?t('서버 연결됨 · 데모 데이터'):t('주차 정보 업데이트 중')) : t('연결 끊김 · 빈자리 재확인 필요')}</span><div className="app-connection-actions"><button onClick={refresh} aria-label={t("주차 정보 새로고침")}><Icon name="refresh"/></button></div></div>
       {!loading && !connected && <div className="app-offline-notice" role="alert">{lots.length ? t('현재 보이는 정보는 이전 조회값입니다. 연결이 복구되면 다시 확인해주세요.') : t('서버에 연결할 수 없습니다. 네트워크와 서버 상태를 확인해주세요.')}<button onClick={refresh}>{t("다시 연결")}</button></div>}
       {tab === 'home' && <>
         <section className="app-home-hero"><p>FIND YOUR PARKING</p><div><strong>{loading || !lots.length ? '—' : totalEmpty}<small>{t("자리")}</small></strong></div></section>
@@ -101,12 +122,11 @@ export default function MobileParkingApp({initialLotId = 'A', initialTab = 'home
       </>}
       {tab === 'map' && <><div className="app-section-heading"><h1 className="app-map-title">{t("주차지도")}</h1>{lot && <div className="app-map-summary"><span className="app-map-capacity">{t("빈자리")} <strong>{empty(lot)}</strong><span> {t("/ 전체")} {lot.spaces.length}{t("면")}</span></span></div>}</div><div className="app-lot-switch" aria-label={t("지도 주차장 선택")}>{lots.map(item => <button key={item.lot_id} className={lotId === item.lot_id ? 'selected' : ''} onClick={() => openLot(item)} aria-pressed={lotId === item.lot_id}><span>{item.name}</span><small>{empty(item)}{t("자리")}</small></button>)}</div>{lot && <>{lot.lot_id==='C'&&<AirportPanel lot={lot}/>}<ParkingLayoutMap legendNearMap hidePreviewControls hideTitle key={lot.lot_id} lot={lot} filter={filter} setFilter={setFilter} alerts={alerts} found={result} onSpace={setSpace}/><button className="app-primary" onClick={() => {setTab('search'); setKind(lot.type === 'real' ? 'sticker' : 'plate'); setResult(null);}}>{t("내 차 찾기")}</button></>}</>}
       {tab === 'search' && <><h1>{t("주차요금")}</h1><section className="app-search-card"><Search car={car} setCar={setCar} kind={kind} onKindChange={switchKind} onSubmit={find} busy={searching} disabled={!connected}/>{error && <p className="app-search-error" role="alert">{error}</p>}{result && <div className="app-car-result"><span className="app-result-plate">{result.lookup_type === 'sticker' ? t('스티커 ') + result.car_id : result.plate_number}</span><p>{lots.find(item => item.lot_id === result.lot_id)?.name}</p><h2>{result.space_id}</h2><div className="app-result-fee"><span>{result.fee?.payment ? t('결제 완료 금액') : t('예상 주차요금')}</span><strong>{result.fee?money(result.fee.amount_krw):t('요금 정보 없음')}</strong></div>{evacuationRequired(alerts,result.lot_id)&&<p className="operation-error" role="alert">{t("레벨 2 · 대피 안내 · 결제 중단")}</p>}<p className="app-exit-notice">{t("결제 후 30분 이내에 출차해 주세요.")}</p><p className="app-data-note">{t("서버 이용 시간 기준 요금 · 실제 청구 없음")}</p>{result.fee?.payment?.status==='completed'?<section className="receipt" role="status"><h3>결제 완료</h3><p>{t("영수증:")} {result.fee.payment.payment_id}</p><p>{t("결제 후 30분 이내에 출차해 주세요.")}</p></section>:result.fee&&(choosing?<PaymentChooser blocked={evacuationRequired(alerts,result.lot_id)||!connected} amount={result.fee.amount_krw} busy={searching} error={error} onPay={pay} onBack={()=>setChoosing(false)}/>:<button className="app-primary" disabled={searching||!connected||evacuationRequired(alerts,result.lot_id)} onClick={()=>setChoosing(true)}>{t("결제하기")}</button>)}<button className="app-primary" onClick={() => {setLotId(result.lot_id); setFilter('all'); setTab('map');}}>{t("지도에서 위치 보기")}</button></div>}</section></>}
-      {tab === 'chat' && <ChatPanel lots={lots} alerts={alerts} lotId={lotId} voiceInput appAppearance connected={connected}/>}
-      {tab === 'help' && <><h1 className="app-help-title">{t("PARK : ON 이용 안내").split("PARK : ON").map((part,index)=><span key={index}>{index>0&&<BrandWordmark/>}{part}</span>)}</h1>
-        <ParkingHelp language={getLanguage()}/>
-        </>}
     </main>
-    <nav className="mobile-bottom-nav" aria-label={t("앱 메뉴")}>{nav.map(([id,label,icon]) => <button key={id} className={tab === id ? 'selected' : ''} aria-current={tab === id ? 'page' : undefined} onClick={() => {setTab(id); setError(''); window.scrollTo({top:0});}}>{id === 'chat' ? <ChatbotIcon/> : <Icon name={icon}/>}<span>{label}</span></button>)}</nav>
+    <nav className="mobile-bottom-nav" aria-label={t("앱 메뉴")}>{nav.map(([id,label,icon]) => <button key={id} ref={id === 'chat' ? chatTrigger : undefined} className={tab === id ? 'selected' : ''} aria-current={tab === id ? 'page' : undefined} onClick={() => {
+      if (id === 'chat') previousTab.current = tab;
+      setTab(id); setError(''); window.scrollTo({top:0});
+    }}>{id === 'chat' ? <ChatbotIcon/> : <Icon name={icon}/>}<span>{label}</span></button>)}</nav>
     {space && lot && <Detail showDetails={Boolean(result?.session_id && result.session_id===space.session_id && result.lot_id===lot.lot_id && result.space_id===space.space_id)} key={space.space_id} space={space} lot={lot} canQuote={connected} onClose={() => setSpace(null)} onFee={(number, lookupKind) => {setKind(lookupKind); setTab('search'); find(number, lookupKind);}}/>}
   </div>;
 }

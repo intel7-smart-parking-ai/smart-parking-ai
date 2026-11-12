@@ -1,5 +1,4 @@
 import {Icon,ChatbotIcon} from './components.jsx';
-import {createPortal} from 'react-dom';
 import {t,getLanguage} from './serviceLocale.js';
 import {formatLotName,chatSafetyScope} from './uiState.js';
 import {requestId} from './requestId.js';
@@ -29,9 +28,7 @@ function RestroomRecommendation({lot,space,alerts}) {
 
 const EVACUATION_CHIPS = new Set(['evacuate', 'alert_near', 'alert_where']);
 
-export default function ChatPanel({lots,alerts,lotId,voiceInput=false,appAppearance=false,connected=false}) {
- const [toolbarTarget,setToolbarTarget]=useState(null);
- useEffect(()=>{setToolbarTarget(document.getElementById('mobile-chat-tools'))},[]);
+export default function ChatPanel({lots,alerts,lotId,voiceInput=false,appAppearance=false,connected=false,onClose}) {
  const spokenDraft = useRef(null);
  const utterance = useRef(null);
  function stopSpeech() {
@@ -151,8 +148,11 @@ export default function ChatPanel({lots,alerts,lotId,voiceInput=false,appAppeara
   stale: t('정보 갱신 필요'),
  };
  return <section className={`panel chat-panel ${appAppearance ? 'chat-panel--app' : ''}`} aria-label={t("주차 챗봇")}>
-  {toolbarTarget?createPortal(<button className="button white chat-map-preview" aria-expanded={showMap} onClick={()=>setShowMap(v=>!v)}>{showMap?t('전체 지도 닫기'):t('전체 주차장 지도 미리보기')}</button>,toolbarTarget):<header className="chat-panel-heading"><button className="button white" aria-expanded={showMap} onClick={()=>setShowMap(v=>!v)}>{showMap?t('전체 지도 닫기'):t('전체 주차장 지도 미리보기')}</button></header>}
-  {appAppearance&&<header className="app-chat-identity"><div><strong>Chat bot</strong><span className={connected?'online':'offline'}><i/>{connected?'Online':'Offline'}</span></div><span className="app-chat-header-icon" aria-hidden="true"><ChatbotIcon/></span></header>}
+  <header className="chat-panel-heading">
+   {onClose&&<button type="button" className="mobile-chat-close" aria-label={t('닫기')} onClick={onClose}><Icon name="close"/></button>}
+   <button type="button" className="button white" aria-expanded={showMap} onClick={()=>setShowMap(v=>!v)}>{showMap?t('전체 지도 닫기'):t('전체 주차장 지도 미리보기')}</button>
+  </header>
+  <div className="chat-content">
   {view?.banner?.text&&!safetyScope.otherLotNotice&&<div ref={safetyNotice} className="chat-banner" data-level={view.banner.level} role="alert"><strong>{t("안전 안내")}</strong><span>{formatLotName(view.banner.text)}</span></div>}
   {safetyScope.otherLotNotice&&<div className="chat-banner" data-level="1" role="status"><strong>{t("참고")}</strong><span>{safetyScope.otherLots.map(lotLabel).join(', ')} {t("모의 화재 경보 중")} · {lotLabel(lotId)} {t("정상 운영")}</span></div>}
   {view?.safety&&!safetyScope.otherLotNotice&&<div className="chat-safety" role="alert"><strong>{formatLotName(view.safety.title)||t('안전 안내')}</strong><p>{formatLotName(view.safety.guidance)}</p>{view.safety.vehicle_help&&<small>{formatLotName(view.safety.vehicle_help)}</small>}</div>}
@@ -168,11 +168,15 @@ export default function ChatPanel({lots,alerts,lotId,voiceInput=false,appAppeara
    <ChatResponseCard card={{type:'parking_map',data:{lot_ids:[testMapLot],route:{lot_id:testMapLot,alternatives:testVehicles.map(space=>space.space_id)}}}} lots={lots} alerts={alerts} allowMap/>
   </section>}
   <div ref={transcript} className="chat-transcript" role="log" aria-live="polite">
-   {!unsafe&&<article className="chat-row assistant">
+   {!unsafe&&!appAppearance&&<article className="chat-row assistant">
     {appAppearance&&<span className="app-chat-avatar" aria-hidden="true"><ChatbotIcon/></span>}
     <span className="chat-speaker">{t('주차 챗봇')}</span>
     <div className="chat-bubble">{t('안녕하세요. PARK : ON 주차 챗봇입니다.')}<br/>{t('빈자리, 내 차 위치, 주차요금이 궁금하신가요?')}<br/>{t('궁금한 내용을 입력해 주세요.')}</div>
    </article>}
+   {appAppearance&&!unsafe&&rows.length===0&&<div className="chat-intro">
+    <span><ChatbotIcon/>{t('주차 챗봇')}</span>
+    <h1>{t('무엇을 도와드릴까요?')}</h1>
+   </div>}
    {!unsafe&&rows.length===0&&<nav className="chat-quick-links" aria-label={t('자주 묻는 질문')}>
     {[
      ['grid','빈자리 확인','주차장별 빈자리 몇 개 있어?'],
@@ -205,6 +209,7 @@ export default function ChatPanel({lots,alerts,lotId,voiceInput=false,appAppeara
   {(error||voiceError)&&<p className="operation-error" role="status">{error||voiceError}</p>}
   {retry&&<button type="button" className="button white chat-retry" disabled={busy} onClick={()=>chat.retry()}>{t("같은 요청 다시 시도")}</button>}
   {restartRequired&&<button type="button" className="button white" onClick={()=>{stopVoice();stopSpeech();spokenDraft.current=null;chat.reset();}}>{t("대화 다시 시작")}</button>}
+  </div>
   <form onSubmit={send} className="search-form chat-form"><input aria-label={t("챗봇 질문")} value={draft} onChange={e=>edit(e.target.value)} placeholder={t("메세지를 입력하세요")}/>{voiceInput&&<button type="button" className="button white chat-voice-button" disabled={busy||confirmation||unsafe||restartRequired} aria-label={listening?t('듣기 종료'):t('음성 입력')} title={listening?t('듣기 종료'):t('음성 입력')} aria-pressed={listening} onClick={toggleVoice}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="8" y="2" width="8" height="13" rx="4"/><path d="M4 11v1a8 8 0 0 0 16 0v-1M12 20v3m-4 0h8M8 6h3M8 9h3"/></svg></button>}<button className="button primary chat-send-button" aria-label={busy?t('응답 대기 중…'):t('질문 보내기')} title={busy?t('응답 대기 중…'):t('질문 보내기')} disabled={busy||listening||restartRequired||!draft.trim()}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m21 3-6.5 18-4-7.5L3 9.5 21 3Z"/><path d="m10.5 13.5 5-5"/></svg></button></form>
   {chargingLot&&!unsafe&&<ChargingStatus language={getLanguage()} initialLot={chargingLot} onClose={()=>setChargingLot(null)}/>}
  </section>;

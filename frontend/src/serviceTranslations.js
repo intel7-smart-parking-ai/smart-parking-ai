@@ -26,6 +26,7 @@ export default {
   "빈자리, 내 차 위치, 주차요금이 궁금하신가요?": ["Ask about available spaces, your car’s location or parking fees.", "想了解空余车位、车辆位置或停车费用吗？", "空き状況、車の位置、駐車料金をご案内します。"],
   "궁금한 내용을 입력해 주세요.": ["Enter your question below.", "请在下方输入您的问题。", "ご質問を入力してください。"],
   "메세지를 입력하세요": ["Type a message", "请输入消息", "メッセージを入力してください"],
+  "무엇을 도와드릴까요?": ["How can I help?", "有什么可以帮您？", "どのようなご用件ですか？"],
   "주차요금": ["Parking fees", "停车费用", "駐車料金"],
   "김해공항 주차 예약": ["Gimhae Airport parking reservations", "金海机场停车预约", "金海空港の駐車予約"],
   "주차 예약": ["Parking reservations", "停车预约", "駐車予約"],
