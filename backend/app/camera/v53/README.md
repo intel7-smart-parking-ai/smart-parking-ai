@@ -148,6 +148,7 @@ $env:SMART_PARKING_DB_PATH = Join-Path $PWD "camtest.db"
 | round44 | 서버 시계 보정을 10초 측정·최근 3분 중앙값으로(톱니 시계 대응), 느린 응답 측정 제외, `V53_CLOCK_SYNC=0` 끄기 |
 | round45 | 판이 조금 밀리면(31px 이내, 5프레임 안정) 새 위치 자동 승인, 번호를 못 읽은 LED 차 칸의 분홍빛 판정 |
 | round46 | 자동 승인 기준을 사람이 승인한 위치로 고정(누적 방지), 채택 위치는 승인 파일에 저장 안 함, 채택 직후 검증 로그 |
+| round47 | 11/12 리뷰: 승인 해제 동안 보류 이벤트 삭제(재승인 뒤 옛 번호 재전송 방지), 카메라 1대로 시작했을 때 승인 위치 파일 저장 안 함, 최근 1분 접수 0·실패 있으면 상단 "서버 응답 실패" 표시 |
 
 ```powershell
 python -m pytest web_live/tests -q    # 또는 python -m unittest discover -s web_live/tests -t .

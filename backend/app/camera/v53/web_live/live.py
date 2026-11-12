@@ -459,7 +459,11 @@ class LiveSession:
         state=self.__dict__.setdefault('held_state',{})
         camera,lot,epoch=scope[0],scope[1],scope[2]
         for key in [k for k in state if k[0][0]==camera and k[0]!=scope]:del state[key]
-        if not events or not result.get('roi_confirmed'):return []
+        if not result.get('roi_confirmed'):
+            # Review 11/12: an approval release must not let the old number resume after re-approval.
+            for key in [k for k in state if k[0][0]==camera]:del state[key]
+            return []
+        if not events:return []
         seq=packet['sequence'];rows={r['space_id']:r for r in result.get('spaces',())}
         present=set()
         for e in events:
@@ -616,7 +620,10 @@ class LiveSession:
                         reference=registry.fixed_view(source['image'],pose)
                         if registry.verify_fixed_view(latest['image'],reference) is None:
                             raise ValueError('실시간 도면 고정점이 달라졌습니다. 다시 확인하세요.')
-                    self.pipeline.approve_roi(camera,checked,source['image'])
+                    # Review 11/12: with one camera found, it takes channel 1; do not let that
+                    # approval overwrite a channel's saved pose (start-view) for the next start.
+                    self.pipeline.approve_roi(camera,checked,source['image'],
+                                              save_start=len(getattr(self.hub,'devices',()) or ())>=2)
                 # Earlier observations from this camera still need to fail the
                 # dispatch/retry validator; the other camera keeps its queue.
                 self.review_cutoff[camera]=(packet['epoch'],latest['sequence'])

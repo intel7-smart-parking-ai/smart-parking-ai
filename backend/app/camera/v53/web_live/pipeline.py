@@ -546,7 +546,7 @@ class ParkingPipeline:
                 if camera is None:self.print_history.clear()
                 else:self.print_history.pop(camera,None)
 
-    def approve_roi(self,camera,result,frame):
+    def approve_roi(self,camera,result,frame,save_start=True):
         with self.lock:
             if not result.get('registration_ok') or result.get('_outline') is None:
                 raise ValueError('현재 도면 정합이 먼저 확인되어야 합니다.')
@@ -583,7 +583,7 @@ class ParkingPipeline:
                 # The fixed view adapts its exposure while approved; keep the reviewed
                 # appearance too so a recheck still verifies after the light returns.
                 if ref:self.__dict__.setdefault('approved_views',{})[camera]=ref
-                if ref and camera in ('1','2') and hasattr(self,'start_views'):
+                if ref and save_start and camera in ('1','2') and hasattr(self,'start_views'):
                     self.start_views[camera]=ref
                     self.registry.save_start_view(camera,ref)
 

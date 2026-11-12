@@ -194,5 +194,36 @@ class AutoSend(unittest.TestCase):
             self.assertFalse(s.__dict__.get('_auto_send_due'))
 
 
+
+class ReviewFixes1112(unittest.TestCase):
+    """11/12 review: held events after re-approval, and one-camera starts overwriting saved poses."""
+
+    def test_unapproved_frame_clears_held_state(self):
+        from web_live.live import LiveSession
+        s = LiveSession.__new__(LiveSession)
+        scope = ('1', 'B', 3, 1, 1)
+        s.held_state = {(scope, 'A-01'): {'event': {'event_type': 'vehicle_observed'}, 'held': 0, 'seq': 5},
+                        (('2', 'A', 3, 1, 1), 'A-01'): {'event': {}, 'held': 0, 'seq': 5}}
+        out = s._held_heartbeats(scope, {'roi_confirmed': False, 'spaces': []}, {'sequence': 6}, [])
+        self.assertEqual(out, [])
+        self.assertEqual([k[0][0] for k in s.held_state], ['2'])   # only the other camera keeps its state
+
+    def test_one_camera_approval_does_not_save_start_view(self):
+        m = ParkingPipeline.__new__(ParkingPipeline)
+        import threading
+        m.lock = threading.RLock()
+        m.confirmed = {}; m.fixed_views = {}; m.start_views = {}; m.interrupted_views = {}
+        m.baselines = {}; m.fire_watch = None; m.registry = mock.Mock()
+        m.registry.fixed_view.return_value = {'ref': 1}
+        outline = np.float32([[0, 0], [10, 0], [10, 10], [0, 10]])
+        result = {'registration_ok': True, '_outline': outline, 'stream_epoch': 1, 'lot_id': 'B',
+                  'frame_sequence': 1, '_pose': {'lot_id': 'B', 'outline': outline}}
+        frame = np.zeros((20, 20, 3), np.uint8)
+        m.approve_roi('1', result, frame, save_start=False)
+        m.registry.save_start_view.assert_not_called()
+        m.approve_roi('1', result, frame)
+        m.registry.save_start_view.assert_called_once()
+
+
 if __name__ == '__main__':
     unittest.main()
