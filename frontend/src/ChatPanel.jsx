@@ -39,6 +39,7 @@ export default function ChatPanel({lots,alerts,lotId,voiceInput=false,appAppeara
  const testLots=lots.filter(lot=>testVehicleNumbers[lot.lot_id] && lot.spaces.some(space=>space.status==='occupied' && testVehicleNumbers[lot.lot_id].includes(space.vehicle_number)));
  const testLot=testLots.find(lot=>lot.lot_id===testMapLot);
  const testVehicles=testLot?.spaces.filter(space=>space.status==='occupied' && testVehicleNumbers[testMapLot].includes(space.vehicle_number)) ?? [];
+ const voiceTimer=useRef(null);
  const recognition=useRef(null),voiceGeneration=useRef(0),draftRevision=useRef(0),transcript=useRef(null),safetyNotice=useRef(null);
  const [voiceError,setVoiceError]=useState('');
  const confirmation = view?.flow==='confirm_action';
@@ -51,10 +52,10 @@ export default function ChatPanel({lots,alerts,lotId,voiceInput=false,appAppeara
  const [chargingLot,setChargingLot]=useState(null);
  const mallLot=lots.find(lot=>lot.layout_type==='mall');
  useEffect(()=>{if(unsafe)setChargingLot(null);},[unsafe]);
- function stopVoice(){voiceGeneration.current++;recognition.current?.abort();recognition.current=null;setListening(false)}
- useEffect(()=>{const timer=setInterval(()=>chat.poll(),2500);return()=>{clearInterval(timer);chat.cancelPending();voiceGeneration.current++;recognition.current?.abort();};},[chat]);
+ function stopVoice(){clearTimeout(voiceTimer.current);voiceTimer.current=null;voiceGeneration.current++;recognition.current?.abort();recognition.current=null;setListening(false)}
+ useEffect(()=>{const timer=setInterval(()=>chat.poll(),2500);return()=>{clearInterval(timer);chat.cancelPending();clearTimeout(voiceTimer.current);voiceGeneration.current++;recognition.current?.abort();};},[chat]);
  useEffect(()=>{chat.invalidateAlerts(alerts);},[chat,alerts]);
- useEffect(()=>{if(confirmation||unsafe)stopVoice();},[confirmation,unsafe]);
+ useEffect(()=>{if(confirmation||unsafe||busy||restartRequired)stopVoice();},[confirmation,unsafe,busy,restartRequired]);
  useEffect(()=>{if(unsafe)safetyNotice.current?.scrollIntoView({block:'start'});},[unsafe]);
  useEffect(() => {
   if (unsafe) return;
@@ -63,20 +64,53 @@ export default function ChatPanel({lots,alerts,lotId,voiceInput=false,appAppeara
   if (!latestQuestion) return;
   latestQuestion.scrollIntoView({block: 'start', behavior: 'instant'});
  }, [rows, unsafe]);
- function edit(value){draftRevision.current++;chat.edit(value)}
+ function edit(value){stopVoice();draftRevision.current++;chat.edit(value)}
  function toggleVoice(){
-  if(recognition.current){recognition.current.stop();return;}
+  if(listening||recognition.current){stopVoice();return;}
   const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!Recognition){setVoiceError(t('이 브라우저는 음성 입력을 지원하지 않아요. 질문을 직접 입력해 주세요.'));return;}
+  clearTimeout(voiceTimer.current);
   const input=new Recognition(),epoch=++voiceGeneration.current,revision=draftRevision.current;
+  let spokenText='';
+  const current=()=>epoch===voiceGeneration.current&&revision===draftRevision.current;
+  function afterSilence(){
+   clearTimeout(voiceTimer.current);
+   voiceTimer.current=setTimeout(()=>{
+    if(!current())return;
+    stopVoice();
+    if(!spokenText.trim())return;
+    draftRevision.current++;
+    setVoiceError('');
+    chat.send();
+   },3000);
+  }
   input.lang={ko:'ko-KR',en:'en-US','zh-CN':'zh-CN',ja:'ja-JP'}[getLanguage()];
-  input.onresult=e=>{if(epoch===voiceGeneration.current&&revision===draftRevision.current)edit(e.results[0][0].transcript);};
-  input.onerror=e=>{if(epoch===voiceGeneration.current&&e.error!=='aborted')setVoiceError(e.error==='not-allowed'?t('마이크 접근을 허용해 주세요.'):t('음성을 인식하지 못했어요. 다시 말해 주세요.'));};
-  input.onend=()=>{if(epoch===voiceGeneration.current){recognition.current=null;setListening(false);}};
+  input.continuous=true;
+  input.interimResults=true;
+  input.onresult=e=>{
+   if(!current())return;
+   spokenText=Array.from(e.results,result=>result[0].transcript).join(' ').trim();
+   chat.edit(spokenText);
+   afterSilence();
+  };
+  input.onspeechstart=()=>{if(current())clearTimeout(voiceTimer.current);};
+  input.onspeechend=()=>{if(current())afterSilence();};
+  input.onerror=e=>{
+   if(!current())return;
+   stopVoice();
+   if(e.error!=='aborted'&&e.error!=='no-speech')setVoiceError(e.error==='not-allowed'?t('마이크 접근을 허용해 주세요.'):t('음성을 인식하지 못했어요. 다시 말해 주세요.'));
+  };
+  input.onend=()=>{
+   if(!current())return;
+   recognition.current=null;
+   if(!spokenText.trim()){stopVoice();return;}
+   // Some browsers end recognition before our silence timer expires.
+   if(!voiceTimer.current)afterSilence();
+  };
   setVoiceError('');
-  try{input.start();recognition.current=input;setListening(true);}catch{setVoiceError(t('음성 입력을 시작하지 못했어요.'));}
+  try{input.start();recognition.current=input;setListening(true);afterSilence();}catch{stopVoice();setVoiceError(t('음성 입력을 시작하지 못했어요.'));}
  }
- function send(e){e.preventDefault();draftRevision.current++;setVoiceError('');chat.send();}
+ function send(e){e.preventDefault();stopVoice();draftRevision.current++;setVoiceError('');chat.send();}
  const context=view?.vehicle_context;
  const contextState={parked:t('주차 중'),pending:t('입차 확인 중'),not_found:t('위치 확인 안 됨'),unavailable:t('정보 확인 불가'),stale:t('정보 갱신 필요')};
  return <section className={`panel chat-panel ${appAppearance ? 'chat-panel--app' : ''}`} aria-label={t("주차 챗봇")}>
