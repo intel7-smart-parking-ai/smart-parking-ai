@@ -162,13 +162,27 @@ class FeeTableTests(unittest.TestCase):
         self.addCleanup(e.reset_all)
 
     def test_fee_guide_sentences_are_fee_table_questions(self):
-        for text in ("주차요금 안내해줘", "주차 요금 안내", "요금 안내해줘", "요금표 보여줘", "주차요금 알려줘", "요금 정책이 어떻게 돼?",
+        for text in ("주차요금 안내해줘", "주차 요금 안내", "요금 안내해줘", "요금표 보여줘", "요금 정책이 어떻게 돼?",
                      "주차비 안내 좀 해줘"):
             r = parser.parse_rules(text)
             self.assertEqual((r.intent, r.params.get("fee_table")), ("fee_rule", True), text)
 
+    def test_tell_me_the_fee_after_asking_about_my_car_is_that_cars_fee(self):
+        # #137 리뷰(막는 것): "23번 차 어디야?" → "주차요금 알려줘"가 요금표로 답했다. 그 차의 요금을 묻는 말이다.
+        self.assertIn("23번 차", e.handle("own", text="23번 차 어디야?")["text"])
+        r = e.handle("own", text="주차요금 알려줘")
+        self.assertNotIn("주차장별 요금표예요.", r["text"])
+        self.assertRegex(r["text"], r"\d[\d,]*원")                       # 23번 차의 요금
+        for text in ("주차요금 알려줘", "주차 요금 좀 알려줘", "주차요금 보여줘", "주차요금 궁금해"):
+            self.assertFalse(parser.parse_rules(text).params.get("fee_table"), text)
+        # 차를 말한 적이 없으면 전처럼 차량 번호를 묻는다
+        self.assertIn("차량 번호를 알려주세요", e.handle("fresh", text="주차요금 알려줘")["text"])
+        # 화면의 '주차요금' 버튼 문장은 차를 말한 뒤에도 요금표다
+        self.assertIn("주차장별 요금표예요.", e.handle("own", text="주차요금 안내해줘")["text"])
+
     def test_own_fee_and_lot_fee_questions_are_not(self):
         for text, intent in (("요금 얼마야?", "get_fee"), ("주차비 알려줘", "get_fee"), ("23번 요금 안내해줘", "get_fee"),
+                             ("주차요금 알려줘", "get_fee"),
                              ("내 차 요금 안내해줘", "get_fee"), ("3시간 요금 안내해줘", "get_fee")):
             r = parser.parse_rules(text)
             self.assertEqual(r.intent, intent, text)
