@@ -7,6 +7,7 @@ from __future__ import annotations
 import sqlite3
 from typing import Any
 
+from .calculator import free_minutes_for
 from .db import KST_PAYMENT_HOUR_SQL, demo_history_cutoff
 from backend.app.simulation.demo_history import metadata, monthly_usage
 
@@ -138,7 +139,8 @@ def generate_revenue_report(
         "name": lot["name"],
         "type": lot["type"],
         "total_spaces": lot.get("total_spaces", 10),
-        "policy_summary": f"기본 {pol['base_minutes']}분 {pol['base_fee']:,}원 / {pol['unit_minutes']}분당 +{pol['extra_fee']:,}원 / 상한 {pol['daily_cap']:,}원",
+        "policy_summary": f"기본 {pol['base_minutes']}분 {pol['base_fee']:,}원 / {pol['unit_minutes']}분당 +{pol['extra_fee']:,}원 / 상한 {pol['daily_cap']:,}원"
+                          + (f" / {free_minutes_for(lid)}분 이내 무료" if free_minutes_for(lid) else ""),
         "gross_amount_krw": 0,
         "canceled_amount_krw": 0,
         "net_revenue_krw": 0,
@@ -151,6 +153,7 @@ def generate_revenue_report(
                 sum(amount_krw) AS amount_krw, count(*) AS payment_count
          FROM mock_payments
          WHERE (? IS NULL OR lot_id = ?)
+           AND amount_krw > 0  -- 무료 회차 0원 결제는 매출 건수에 넣지 않는다
            AND (? IS NULL OR session_id NOT GLOB 'demo-*' OR julianday(created_at) <= julianday(?))
          GROUP BY lot_id, payment_hour, status""",
       (lot_filter, lot_filter, cutoff, cutoff),

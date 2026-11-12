@@ -145,6 +145,7 @@ class RuntimeAppTests(unittest.TestCase):
         paid = self.api().get_fee("x")
         self.assertTrue(paid["paid"])   # read.estimate_fee는 결제된 기록이면 계산하지 않는다
 
+    @patch.dict("os.environ", {"FREE_TURNAROUND_MINUTES": "0"})  # 무료 회차 중엔 0원끼리 같아 규칙 차이를 못 본다
     def test_server_rule_differs_gives_no_estimate(self):
         def discount(value):
             value["rate_policy"] = dict(value["rate_policy"], base_fee=value["rate_policy"]["base_fee"] + 1000)
