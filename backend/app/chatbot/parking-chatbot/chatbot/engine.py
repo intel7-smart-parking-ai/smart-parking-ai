@@ -1352,7 +1352,7 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
                 else "alert_lv2" if current_alert().get("level", 0) >= 2
                 # 요금표('주차요금 안내해줘')는 서버 요금 정책을 그대로 옮기는 답이라 규칙이 바로 낸다(11/11 시연:
                 # 대화 AI가 조회 없이 '어느 주차장?'이라 되묻다 버려지고 차량 번호를 묻는 답으로 떨어졌다)
-                else "fee_table" if rule.intent == "fee_rule" and rule.params.get("fee_table")
+                else "fee_table" if rule.intent == "fee_rule" and (rule.params.get("fee_table") or rule.params.get("free_info"))
                 # 이용 방법('주차장 이용 방법 알려줘')도 정해진 안내라 규칙이 바로 낸다
                 else "usage_guide" if rule.intent == "help" and rule.params.get("usage_guide") else None)
         if controlled:

@@ -100,8 +100,13 @@ def policy_text(policy):
     """요금 정책을 사람이 읽는 한 줄로. 숫자는 정책 값 그대로."""
     if not _valid_policy(policy):
         return None
-    return (f"처음 {policy['base_minutes']}분 {policy['base_fee']:,}원, 이후 {policy['unit_minutes']}분마다 "
+    text = (f"처음 {policy['base_minutes']}분 {policy['base_fee']:,}원, 이후 {policy['unit_minutes']}분마다 "
             f"{policy['extra_fee']:,}원, 하루 최대 {policy['daily_cap']:,}원")
+    free = policy.get("free_minutes")
+    if type(free) is int and free > 0:
+        # 무료 회차(#140): 서버 값 그대로. 대화 AI가 '5분 이내 무료(0원)'를 말할 근거가 된다
+        text += f" (입차 후 {free}분 이내 출차는 무료, 0원)"
+    return text
 
 
 def _project(row, fields):
@@ -405,6 +410,8 @@ class ReadTools:
             row = {"lot_id": lot, "name": config.catalog.name(lot),
                    "status": "ok" if "base_fee" in policy else "missing",
                    **_project(policy, _POLICY_KEYS)}
+            if type(policy.get("free_minutes")) is int:
+                row["free_minutes"] = policy["free_minutes"]      # 무료 회차 분(0 = 없음)
             if policy_text(policy):
                 row["policy_text"] = policy_text(policy)
             rows.append(row)

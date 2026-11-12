@@ -127,15 +127,47 @@ def fee_rule(policies: dict | None = None, lot_id: str | None = None, table: boo
         return "요금 정책을 확인할 수 없어요."
     if lot_id:
         policy = policies.get(lot_id)
-        return f"{config.catalog.name(lot_id)}: {policy_text(policy)}이에요." if policy else "해당 주차장의 요금 정책을 확인할 수 없어요."
+        if not policy:
+            return "해당 주차장의 요금 정책을 확인할 수 없어요."
+        return "\n".join(filter(None, (f"{config.catalog.name(lot_id)}: {policy_text(policy)}이에요.", *free_lines({lot_id: policy}))))
     if table:
         rows = [f"· {config.catalog.name(k)}: {policy_text(p)}" for k, p in policies.items()]
-        return "\n".join([FEE_TABLE_TITLE, *rows, FEE_TABLE_TAIL])
+        return "\n".join([FEE_TABLE_TITLE, *rows, *free_lines(policies), FEE_TABLE_TAIL])
     if len({p["base_minutes"] for p in policies.values()}) > 1:
-        return "주차장마다 요금이 달라요. " + " / ".join(
+        text = "주차장마다 요금이 달라요. " + " / ".join(
             f"{config.catalog.name(k)} 기본 {p['base_minutes']}분 {won(p['base_fee'])}" for k,p in policies.items()) + "."
-    lines = [f"{config.catalog.name(k)} 기본 {won(p['base_fee'])}" for k, p in policies.items()]
-    return "주차장마다 요금이 달라요. " + " / ".join(lines) + " (기본 " + str(next(iter(policies.values()))["base_minutes"]) + "분)."
+    else:
+        lines = [f"{config.catalog.name(k)} 기본 {won(p['base_fee'])}" for k, p in policies.items()]
+        text = "주차장마다 요금이 달라요. " + " / ".join(lines) + " (기본 " + str(next(iter(policies.values()))["base_minutes"]) + "분)."
+    return "\n".join([text, *free_lines(policies)])
+
+
+def _free_minutes(policies):
+    """{주차장: 무료 회차 분}. 서버(/rate-policies)가 준 free_minutes만 쓴다(#140). 0 = 무료 회차 없음."""
+    return {k: p["free_minutes"] for k, p in (policies or {}).items() if isinstance(p, dict) and type(p.get("free_minutes")) is int}
+
+
+def free_lines(policies):
+    """요금 답 뒤에 붙이는 무료 회차 안내 줄(없으면 빈 목록). 분 수는 서버 값 그대로 옮긴다."""
+    minutes = {k: n for k, n in _free_minutes(policies).items() if n > 0}
+    if not minutes:
+        return []
+    if len(minutes) == len(policies) and len(set(minutes.values())) == 1:
+        return [f"입차 후 {next(iter(minutes.values()))}분 이내에 출차하면 무료예요."]
+    return [f"· {config.catalog.name(k)}: 입차 후 {n}분 이내 무료" for k, n in minutes.items()]
+
+
+def free_rule(policies: dict | None = None) -> str:
+    """'무료 시간 있어?', '5분 안에 나가면 공짜야?' — 무료 회차 정책을 답한다. 요금을 계산하지 않고 정책만 말한다."""
+    if not policies:
+        return "요금 정책을 확인할 수 없어요."
+    minutes = {k: n for k, n in _free_minutes(policies).items() if n > 0}
+    if not minutes:
+        return "지금은 무료 회차 시간이 없어요. 입차하면 기본요금부터 계산돼요."
+    if len(minutes) == len(policies) and len(set(minutes.values())) == 1:
+        n = next(iter(minutes.values()))
+        return f"네, 입차 후 {n}분 이내에 출차하면 무료(0원)예요. {n}분이 지나면 기본요금부터 계산돼요."
+    return "\n".join(["주차장마다 무료 시간이 달라요.", *free_lines(policies)])
 
 
 def pay(r: dict, no: str) -> str:

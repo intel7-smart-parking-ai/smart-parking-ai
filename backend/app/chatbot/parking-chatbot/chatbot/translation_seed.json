@@ -132,7 +132,12 @@
   "결제가 끝났어요. 출구에서 현장 안내를 따라 출차해 주세요.": "Payment is complete. Please follow the on-site guidance at the exit to leave.",
   "무료 시간(__NUMBER0__분 이내)이라 지금 나가면 __AMOUNT1__이에요.": "It is within the free period (__NUMBER0__ minutes), so leaving now costs __AMOUNT1__.",
   "무료 시간이라 지금 나가면 __AMOUNT0__이에요.": "It is within the free period, so leaving now costs __AMOUNT0__.",
-  "결제할 금액이 없어요. 출구에서 현장 안내를 따라 출차해 주세요.": "There is nothing to pay. Please follow the on-site guidance at the exit to leave."
+  "결제할 금액이 없어요. 출구에서 현장 안내를 따라 출차해 주세요.": "There is nothing to pay. Please follow the on-site guidance at the exit to leave.",
+  "입차 후 __NUMBER0__분 이내에 출차하면 무료예요.": "Leaving within __NUMBER0__ minutes of entry is free.",
+  "네, 입차 후 __NUMBER0__분 이내에 출차하면 무료(__AMOUNT1__)예요. __NUMBER2__분이 지나면 기본요금부터 계산돼요.": "Yes, leaving within __NUMBER0__ minutes of entry is free (__AMOUNT1__). After __NUMBER2__ minutes, the base fee applies.",
+  "지금은 무료 회차 시간이 없어요. 입차하면 기본요금부터 계산돼요.": "There is currently no free period. The base fee applies from entry.",
+  "주차장마다 무료 시간이 달라요.": "The free period differs by parking lot.",
+  "· __NAME0__: 입차 후 __NUMBER1__분 이내 무료": "· __NAME0__: free within __NUMBER1__ minutes of entry"
  },
  "zh-CN": {
   "__AMOUNT0__ 결제됐어요. 출구 개방 여부는 현장에서 확인해 주세요. (모의 결제)": "已支付 __AMOUNT0__。请在现场确认出口是否开启。（模拟支付）",
@@ -267,7 +272,12 @@
   "결제가 끝났어요. 출구에서 현장 안내를 따라 출차해 주세요.": "已完成支付。请在出口按现场指引出场。",
   "무료 시간(__NUMBER0__분 이내)이라 지금 나가면 __AMOUNT1__이에요.": "目前在免费时间内（__NUMBER0__分钟以内），现在出场费用为__AMOUNT1__。",
   "무료 시간이라 지금 나가면 __AMOUNT0__이에요.": "目前在免费时间内，现在出场费用为__AMOUNT0__。",
-  "결제할 금액이 없어요. 출구에서 현장 안내를 따라 출차해 주세요.": "没有需要支付的费用。请在出口按现场指引出场。"
+  "결제할 금액이 없어요. 출구에서 현장 안내를 따라 출차해 주세요.": "没有需要支付的费用。请在出口按现场指引出场。",
+  "입차 후 __NUMBER0__분 이내에 출차하면 무료예요.": "入场后__NUMBER0__分钟内出场免费。",
+  "네, 입차 후 __NUMBER0__분 이내에 출차하면 무료(__AMOUNT1__)예요. __NUMBER2__분이 지나면 기본요금부터 계산돼요.": "是的，入场后__NUMBER0__分钟内出场免费（__AMOUNT1__）。超过__NUMBER2__分钟后从基本费用开始计算。",
+  "지금은 무료 회차 시간이 없어요. 입차하면 기본요금부터 계산돼요.": "目前没有免费时间。入场后即从基本费用开始计算。",
+  "주차장마다 무료 시간이 달라요.": "各停车场的免费时间不同。",
+  "· __NAME0__: 입차 후 __NUMBER1__분 이내 무료": "· __NAME0__：入场后__NUMBER1__分钟内免费"
  },
  "ja": {
   "__AMOUNT0__ 결제됐어요. 출구 개방 여부는 현장에서 확인해 주세요. (모의 결제)": "__AMOUNT0__ 決済されました。出口が開くかどうかは現地でご確認ください。（テスト決済）",
@@ -402,6 +412,11 @@
   "김해공항·신세계 주차장은 번호판 뒤 __NUMBER0__자리를 알려주세요.": "金海空港・新世界の駐車場は、ナンバープレートの下__NUMBER0__桁をお知らせください。",
   "무료 시간(__NUMBER0__분 이내)이라 지금 나가면 __AMOUNT1__이에요.": "無料時間内（__NUMBER0__分以内）のため、今出庫すると__AMOUNT1__です。",
   "무료 시간이라 지금 나가면 __AMOUNT0__이에요.": "無料時間内のため、今出庫すると__AMOUNT0__です。",
-  "결제할 금액이 없어요. 출구에서 현장 안내를 따라 출차해 주세요.": "お支払いいただく金額はありません。出口で現場の案内に従って出庫してください。"
+  "결제할 금액이 없어요. 출구에서 현장 안내를 따라 출차해 주세요.": "お支払いいただく金額はありません。出口で現場の案内に従って出庫してください。",
+  "입차 후 __NUMBER0__분 이내에 출차하면 무료예요.": "入庫後__NUMBER0__分以内に出庫すれば無料です。",
+  "네, 입차 후 __NUMBER0__분 이내에 출차하면 무료(__AMOUNT1__)예요. __NUMBER2__분이 지나면 기본요금부터 계산돼요.": "はい、入庫後__NUMBER0__分以内に出庫すれば無料（__AMOUNT1__）です。__NUMBER2__分を過ぎると基本料金から計算されます。",
+  "지금은 무료 회차 시간이 없어요. 입차하면 기본요금부터 계산돼요.": "現在、無料時間はありません。入庫すると基本料金から計算されます。",
+  "주차장마다 무료 시간이 달라요.": "無料時間は駐車場ごとに異なります。",
+  "· __NAME0__: 입차 후 __NUMBER1__분 이내 무료": "· __NAME0__：入庫後__NUMBER1__分以内は無料"
  }
 }

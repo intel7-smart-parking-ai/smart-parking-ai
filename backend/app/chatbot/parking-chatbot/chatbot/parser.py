@@ -412,6 +412,23 @@ _FEE_TABLE = re.compile(r"(?:요금|주차비)\s*(?:을|를|좀|은|는|에\s*�
 _OWN_FEE = re.compile(r"(?:내|제|우리)\s*(?:차|요금|주차)|나온|나왔|지금까지|내야|낼\s|정산|결제|\d")
 
 
+# 무료 회차(#140)를 묻는 말: '무료 시간 있어?', '5분 안에 나가면 공짜야?', '무료 회차 몇 분이야?'
+_FREE_WORD = re.compile(r"무료|공짜|無料|免费|免費")
+# 요금을 없애 달라는 요청('무료로 해줘', '깎아줘')은 무료 회차 질문이 아니다 → 지금처럼 거절(boundaries)
+_FREE_REQUEST = re.compile(r"(?:무료|공짜)로\s*(?:해|좀|안\s*돼|안\s*되|줘)|깎|깍아|할인|감면|면제|에누리|빼\s*줘")
+# 주차 요금이 아닌 것의 무료 여부('충전 무료야?', '와이파이 무료야?')는 안내 자료 질문이다
+_FREE_OTHER = re.compile(r"충전|와이파이|wi-?fi|세차|발렛|셔틀|화장실|(?:내|제|우리)\s*차", re.I)
+
+
+# 질문 번역이 실패해 영어 원문이 그대로 들어온 경우('Is there a free period?'): 관사 a 때문에 주차장이 잘못 잡혀도 무료 회차 질문으로 본다
+_FREE_ENGLISH = re.compile(r"(?i)\bfree\s*(?:period|time|parking|minutes?|for\s+\d)|\bfor\s+free\b|\bfree\s+of\s+charge|\bparking\s+free\b")
+
+
+def asks_free_rule(text: str) -> bool:
+    """무료 회차 정책을 묻는 말인가. 요금을 깎아 달라는 요청·다른 시설의 무료 여부·내 차 요금은 아니다."""
+    return bool(_FREE_WORD.search(text) or _FREE_ENGLISH.search(text)) and not _FREE_REQUEST.search(text) and not _FREE_OTHER.search(text)
+
+
 def asks_fee_table(text: str) -> bool:
     """주차장별 요금표를 묻는 말인가('주차요금 안내해줘', '요금표 보여줘'). 내 차 요금·차량 번호·기간이 섞이면 아니다."""
     return bool(_FEE_TABLE.search(text)) and not _OWN_FEE.search(text)
@@ -432,6 +449,10 @@ def _with_analytics(text: str, result: ParseResult) -> ParseResult:
         # 화면의 '주차요금' 버튼("주차요금 안내해줘")은 요금표를 묻는 말이다. 전에는 내 차 요금으로 보고 차량 번호를 물었다(11/11 시연).
         # 내 차 요금은 '요금 얼마야', '23번 요금'처럼 따로 묻는다.
         return ParseResult("fee_rule", {"fee_table": True}, "rule")
+    if asks_free_rule(text) and ((not lots and not params.get("lot_id")) or _FREE_ENGLISH.search(text)):
+        # 전에는 "무료 시간 있어?"에 기본요금만 답하고, "5분 안에 나가면 공짜야?"는 이해하지 못했다(11/12 리뷰 봇 99문항).
+        # 주차장을 말했으면 아래 요금 규칙 답이 그 주차장의 요금과 무료 시간을 함께 답한다.
+        return ParseResult("fee_rule", {"free_info": True}, "rule")
     if _FEE_RANK.search(text):
         return ParseResult("fee_rule", {"fee_rank": "high" if re.search(r"비싼|비싸", text) else "low"}, "rule")
     occupancy = bool(_OCCUPANCY.search(text)) and params.get("lot_id") != "ambiguous"

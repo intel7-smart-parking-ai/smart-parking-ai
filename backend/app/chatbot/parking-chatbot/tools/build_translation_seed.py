@@ -164,6 +164,19 @@ HAND = {
     "결제할 금액이 없어요. 출구에서 현장 안내를 따라 출차해 주세요.": (
         "There is nothing to pay. Please follow the on-site guidance at the exit to leave.",
         "没有需要支付的费用。请在出口按现场指引出场。", "お支払いいただく金額はありません。出口で現場の案内に従って出庫してください。"),
+    # ---- 무료 회차 정책 안내('무료 시간 있어?', 요금표·요금 답 뒤의 한 줄). 분 수는 서버 값
+    "입차 후 __NUMBER0__분 이내에 출차하면 무료예요.": (
+        "Leaving within __NUMBER0__ minutes of entry is free.", "入场后__NUMBER0__分钟内出场免费。", "入庫後__NUMBER0__分以内に出庫すれば無料です。"),
+    "네, 입차 후 __NUMBER0__분 이내에 출차하면 무료(__AMOUNT1__)예요. __NUMBER2__분이 지나면 기본요금부터 계산돼요.": (
+        "Yes, leaving within __NUMBER0__ minutes of entry is free (__AMOUNT1__). After __NUMBER2__ minutes, the base fee applies.",
+        "是的，入场后__NUMBER0__分钟内出场免费（__AMOUNT1__）。超过__NUMBER2__分钟后从基本费用开始计算。",
+        "はい、入庫後__NUMBER0__分以内に出庫すれば無料（__AMOUNT1__）です。__NUMBER2__分を過ぎると基本料金から計算されます。"),
+    "지금은 무료 회차 시간이 없어요. 입차하면 기본요금부터 계산돼요.": (
+        "There is currently no free period. The base fee applies from entry.", "目前没有免费时间。入场后即从基本费用开始计算。", "現在、無料時間はありません。入庫すると基本料金から計算されます。"),
+    "주차장마다 무료 시간이 달라요.": (
+        "The free period differs by parking lot.", "各停车场的免费时间不同。", "無料時間は駐車場ごとに異なります。"),
+    "· __NAME0__: 입차 후 __NUMBER1__분 이내 무료": (
+        "· __NAME0__: free within __NUMBER1__ minutes of entry", "· __NAME0__：入场后__NUMBER1__分钟内免费", "· __NAME0__：入庫後__NUMBER1__分以内は無料"),
 }
 
 
