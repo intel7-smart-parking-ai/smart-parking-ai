@@ -359,3 +359,16 @@ class FreeTurnaroundTests(unittest.TestCase):
             for line in (templates.fee(self.FREE), templates.EXIT_FREE):
                 for language in locale.LANGUAGES:
                     self.assertIsNotNone(locale._translate_known((line,), language), (language, line))
+
+    def test_virtual_car_in_the_free_period_is_not_asked_to_pay(self):
+        e.reset_all()
+        self.addCleanup(e.reset_all)
+        free = {"fee": 0, "minutes": 3, "paid": False, "payment_status": "unpaid"}
+        with patch.object(e.data, "virtual_fee", return_value=free):
+            text = e.handle("vfree", text="1724 출차해도 돼?")["text"]
+        self.assertIn("지금까지 요금은 0원이에요.", text)
+        self.assertIn("결제할 금액이 없어요.", text)
+        self.assertNotIn("먼저 결제해 주세요", text)
+        with patch.object(e.data, "virtual_fee", return_value={**free, "fee": 3000, "minutes": 9}):
+            text = e.handle("vpay", text="1724 출차해도 돼?")["text"]
+        self.assertIn("출차 전에 요금을 먼저 결제해 주세요.", text)

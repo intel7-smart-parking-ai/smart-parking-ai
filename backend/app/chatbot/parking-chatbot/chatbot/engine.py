@@ -1479,6 +1479,8 @@ def _virtual_vehicle_reply(s, raw, intent):
     if fee and intent != "pay_fee" and _asks_exit(asked):
         # '1780 출차해도 돼?' — 서버의 결제 여부만 근거로 답한다(봇 점검 11/11: '잘 이해하지 못했어요')
         lines.append("결제가 끝난 차량이에요. 출구에서 현장 안내를 따라 출차해 주세요." if fee.get("paid")
+                     # 무료 회차(#140) 중이면 낼 돈이 없다 → '먼저 결제해 주세요'라고 하지 않는다
+                     else T.EXIT_FREE if fee.get("fee") == 0
                      else "출차 전에 요금을 먼저 결제해 주세요. 가상 주차장 차량의 모의 결제는 화면의 차량번호 조회에서 진행해요.")
     # car_location 카드는 실물 car_id 계약이라 쓰지 않는다(가상 차량은 문장으로 안내).
     resp = _respond(s, "\n".join(lines), chip_set=["empty_all", "fee_rule", "call_admin"],
