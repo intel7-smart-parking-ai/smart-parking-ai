@@ -205,3 +205,57 @@ def test_invalid_experiment_policy(field, value):
                   stale_seconds=10, min_confidence=.8, initial_status='empty')
     with pytest.raises(ValueError):
         ExperimentPolicy(**(values | {field: value}))
+
+
+def test_confirmed_number_held_while_plate_unread(experiment):
+    # 확정된 칸에서 번호만 못 읽으면 확정 번호·종류를 유지한다(깜빡임 방지).
+    client, store, clock = experiment
+    occupy(client, source='vision')
+    for tick in (3, 4, 5):
+        client.post(POST, json=event(tick, source='vision', car_id=None, vehicle_type=None))
+        row = space(client)
+        assert (row['status'], row['car_id'], row['vehicle_type']) == ('occupied', '10', 'general')
+    client.post(POST, json=event(6, source='vision'))
+    assert (space(client)['status'], space(client)['car_id']) == ('occupied', '10')
+
+
+def test_held_number_released_only_by_empty_or_other_number(experiment):
+    client, store, clock = experiment
+    occupy(client, source='vision')
+    client.post(POST, json=event(3, source='vision', car_id=None, vehicle_type=None))
+    # 다른 번호는 안정 시간 동안 읽혀야 바뀐다.
+    for tick in (4, 5):
+        client.post(POST, json=event(tick, source='vision', car_id='42'))
+        assert space(client)['status'] == 'uncertain'
+    client.post(POST, json=event(6, source='vision', car_id='42'))
+    assert (space(client)['status'], space(client)['car_id']) == ('occupied', '42')
+    for tick in (7, 8, 9, 10):
+        client.post(POST, json=event(tick, source='vision', event_type='space_empty_observed',
+                                     car_id=None, vehicle_type=None, bbox_xyxy=None))
+    assert (space(client)['status'], space(client)['car_id']) == ('empty', None)
+
+
+def test_hold_does_not_apply_to_other_type_or_unconfirmed(experiment):
+    client, store, clock = experiment
+    occupy(client, source='vision')
+    # 다른 차량 종류가 보이면 같은 차로 보지 않는다.
+    client.post(POST, json=event(3, source='vision', car_id=None, vehicle_type='ev'))
+    assert space(client)['status'] == 'uncertain' and space(client)['car_id'] is None
+    # 낮은 신뢰도는 기존처럼 uncertain.
+    client.post(POST, json=event(4, source='vision', car_id=None, vehicle_type=None, confidence=.2))
+    assert space(client)['status'] == 'uncertain'
+    # 확정 전에는 번호 없는 관측으로 번호를 만들지 않는다.
+    for tick in (5, 6, 7):
+        client.post(POST, json=event(tick, source='vision', space_id='A-02', car_id=None))
+    assert space(client, 'A', 'A-02')['car_id'] is None
+
+
+@pytest.mark.parametrize('lot,source', [('A', 'simulation'), ('A', 'manual'), ('C', 'simulation')])
+def test_hold_is_only_for_real_ab_cameras(experiment, lot, source):
+    # 가상 C·D와 시뮬레이션/수동 관측은 번호 유지 대상이 아니다(기존 동작 그대로).
+    client, store, clock = experiment
+    camera = 'camera_a' if lot == 'A' else None
+    occupy(client, lot_id=lot, camera_id=camera, source=source)
+    client.post(POST, json=event(3, lot_id=lot, camera_id=camera, source=source, car_id=None, vehicle_type=None))
+    row = space(client, lot)
+    assert row['status'] == 'uncertain' and row['car_id'] is None

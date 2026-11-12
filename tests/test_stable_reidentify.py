@@ -117,3 +117,17 @@ def test_old_entry_kept_and_new_entry_equals_old_exit(bay, tmp_path):
     frames("24", 25)
     old, new = sessions()
     assert old[2] == before[2] and old[1] == "closed" and new[2] == old[3]
+
+
+def test_unread_number_keeps_confirmed_car_and_session(bay):
+    # 11/12 PM: 번호가 한두 프레임 안 읽혀도 화면 번호가 깜빡이거나 세션이 흔들리지 않는다.
+    frames, sessions, status = bay
+    frames("33", 10)
+    seen = []
+    for _ in range(20):
+        codes = frames(None, 1)
+        row = status()
+        seen.append((codes[0], row["status"], row["car_id"]))
+    assert all(code < 400 and state == "occupied" and car == "33" for code, state, car in seen)
+    frames("33", 5)
+    assert [(car, state) for car, state, *_ in sessions()] == [("33", "active")]
