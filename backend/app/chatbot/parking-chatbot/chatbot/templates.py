@@ -18,6 +18,15 @@ def won(n: int) -> str:
 WELCOME = "주차장 안내봇이에요. 빈자리, 내 차 위치, 요금·미리 결제를 도와드려요.\n아래 버튼을 누르거나 편하게 물어보세요."
 HELP = "이런 걸 할 수 있어요: 빈자리 확인, 내 차 위치, 요금 확인과 미리 결제, 관리자 호출.\n아래 버튼을 눌러 보세요."
 THANKS = "천만에요. 더 필요한 게 있으면 말씀해 주세요."
+# 화면의 '이용 방법' 버튼("주차장 이용 방법 알려줘")의 답. 챗봇이 실제로 하는 일만 적는다.
+USAGE_GUIDE = "\n".join((
+    "이용 방법을 알려 드릴게요.",
+    "· 빈자리: ‘빈자리 알려줘’라고 하거나 주차장 이름으로 물어보세요.",
+    "· 내 차 위치와 요금: 차량 번호를 알려 주세요. 차 지붕 스티커의 두 자리 숫자예요.",
+    "· 김해공항·신세계 주차장 차량은 번호판 뒤 네 자리로 찾아요.",
+    "· 결제: 요금을 확인한 뒤 ‘결제해줘’라고 하면 금액을 다시 확인하고 모의 결제해요.",
+    "· 도움이 필요하면 ‘관리자 불러줘’라고 해 주세요.",
+))
 
 # 실물 A·B는 스티커 두 자리, 가상 C·D는 번호판 뒤 4자리(봇 점검 11/11: 4자리 차에 '두 자리'를 되물음)
 ASK_VEHICLE = "차량 번호를 알려주세요. 차 지붕 스티커의 두 자리 숫자예요. (예: 27)\n김해공항·신세계 주차장은 번호판 뒤 4자리를 알려주세요."
@@ -98,13 +107,21 @@ def policy_text(p: dict) -> str:
             f"하루 최대 {won(p['daily_cap'])}")
 
 
-def fee_rule(policies: dict | None = None, lot_id: str | None = None) -> str:
-    """주차장별 요금 정책. 요금표는 서버(/rate-policies) 또는 목업 설정(lots.json)에서만 온다."""
+FEE_TABLE_TITLE = "주차장별 요금표예요."
+FEE_TABLE_TAIL = "내 차 요금은 차량 번호와 함께 물어봐 주세요."
+
+
+def fee_rule(policies: dict | None = None, lot_id: str | None = None, table: bool = False) -> str:
+    """주차장별 요금 정책. 요금표는 서버(/rate-policies) 또는 목업 설정(lots.json)에서만 온다.
+    table: 주차장마다 한 줄씩 기본·추가·하루 최대 요금을 모두 적은 요금표('주차요금 안내해줘')."""
     if not policies:
         return "요금 정책을 확인할 수 없어요."
     if lot_id:
         policy = policies.get(lot_id)
         return f"{config.catalog.name(lot_id)}: {policy_text(policy)}이에요." if policy else "해당 주차장의 요금 정책을 확인할 수 없어요."
+    if table:
+        rows = [f"· {config.catalog.name(k)}: {policy_text(p)}" for k, p in policies.items()]
+        return "\n".join([FEE_TABLE_TITLE, *rows, FEE_TABLE_TAIL])
     if len({p["base_minutes"] for p in policies.values()}) > 1:
         return "주차장마다 요금이 달라요. " + " / ".join(
             f"{config.catalog.name(k)} 기본 {p['base_minutes']}분 {won(p['base_fee'])}" for k,p in policies.items()) + "."

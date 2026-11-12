@@ -134,9 +134,25 @@ def _prefetch(text, session, toolbox, target, notice=None):
             result = getattr(toolbox, name)(**args)
         except Exception:
             continue
-        if isinstance(result, dict) and result.get("ok") is True:
+        # '그 차가 없다'가 확인된 조회(not_found)도 넘긴다. 전에는 버려서 대화 AI가 같은 조회를 다시 하고(호출 2번),
+        # '입차 기록을 찾지 못했어요'라는 맞는 답도 근거 없음으로 버려졌다(11/11 내부 검사: 125턴 중 14턴).
+        if isinstance(result, dict) and (result.get("ok") is True or _confirmed_absent(result)):
             done.append({"tool": name, "args": {k: v for k, v in args.items() if v is not None}, "result": result})
     return done
+
+
+_ABSENT_VEHICLE = object()   # _model_reply: 물은 차의 입차 기록이 없어 대화 AI를 부르지 않았다
+
+
+def _confirmed_absent(result):
+    return isinstance(result, dict) and isinstance(result.get("data"), dict) and result["data"].get("not_found") is True
+
+
+def _simple_vehicle_turn(text):
+    """차 한 대의 위치·요금·결제·출차만 묻는 문장인가(다른 것을 함께 묻지 않는다)."""
+    p = plan.for_text(text)
+    return (len(explicit_cars(text)) <= 1
+            and not (set(p.wants) - {"location", "fee", "payment", "future"} or p.zone or p.lots or p.purpose_lots))
 
 
 def _model_reply(text, session, toolbox, target, candidates, query=None, notice=None):
@@ -167,11 +183,18 @@ def _model_reply(text, session, toolbox, target, candidates, query=None, notice=
         token = request_deadline.set(deadline - min(0.7, remaining / 4))
     turn_monitor = monitoring.current()
     def coverage(observations):
-        missing = _missing(query, _observed_rows(observations), _accept_zones(session)) if query else ""
+        missing = _missing(query, _observed_rows(observations), _accept_zones(session), _absent_cars(observations)) if query else ""
         if notice and not any(row["tool"] == "service_notice" and row["result"].get("ok") for row in observations):
             missing = ", ".join(x for x in (missing, "확정 안내(service_notice)") if x)
         return missing
     prefetched = _prefetch(text, session, toolbox, target, notice)
+    if (notice is None and _simple_vehicle_turn(text)
+            and any(row["tool"] == "vehicle_info" and _confirmed_absent(row["result"]) for row in prefetched)):
+        # 스티커 차량 한 대만 물었는데 입차 기록이 없다 → 규칙 답이 같은 내용을 바로 낸다(번호 미인식 후보 안내 포함).
+        # 다른 것을 함께 물었으면 대화 AI가 '그 차는 못 찾았다'와 나머지 답을 함께 쓴다.
+        if token is not None:
+            request_deadline.reset(token)
+        return _ABSENT_VEHICLE
     extra = {"coverage": coverage if (query or notice) else None,
              "prefetched": prefetched,
              "avoid": _recent_answers(session),
@@ -201,7 +224,13 @@ def _observed_rows(tool_results):
             if row["result"].get("ok") and row["tool"] not in {"ask_clarification", "propose_action"}]
 
 
-def _missing(query, evidence, accept_zones=()):
+def _absent_cars(tool_results):
+    """이번 턴에 '입차 기록 없음'이 확인된 스티커 차량 번호."""
+    return {row["result"]["data"].get("car_id") for row in tool_results
+            if row["tool"] == "vehicle_info" and _confirmed_absent(row["result"])}
+
+
+def _missing(query, evidence, accept_zones=(), absent=()):
     """질문에서 요청했는데 이번 턴에 조회하지 못한 항목(사람이 읽는 이름). 모두 있으면 빈 문자열.
 
     accept_zones: 구역을 말하지 않은 빈자리 질문에서 '전체' 대신 인정할 구역(일반, 사용자가 말한 차 종류의 구역).
@@ -215,7 +244,9 @@ def _missing(query, evidence, accept_zones=()):
     missing = []
     estimated = any(d.get("car_id") == query.car_id and type(d.get("current_fee")) is int
                     for d in by_tool.get("estimate_fee", []))
-    if (query.wants_location or query.wants_fee) and not (estimated and query.wants_fee and not query.wants_location):
+    # 조회했더니 그 차가 없다 → 위치·요금은 '빠진 조회'가 아니다(없다는 것이 답이다)
+    if (query.wants_location or query.wants_fee) and query.car_id not in absent \
+            and not (estimated and query.wants_fee and not query.wants_location):
         if not any(
             d.get("car_id") == query.car_id
             and (not query.wants_location or d.get("location"))
@@ -328,7 +359,10 @@ def reply_to(text, session, adapter, alert, vehicle, refresh_alert, admin_status
                         extra_car_ids=cars[1:] if len(cars) > 1 else (),
                         virtual_numbers=(virtual,) if virtual else ())
     result = _model_reply(text, session, toolbox, target, candidates, query, notice)
-    if result is None:
+    if result is _ABSENT_VEHICLE:
+        result = None
+        route.mark("agent", "skip", why="입차 기록 없음(규칙 답)")
+    elif result is None:
         route.mark("agent", "off", why="모델 꺼짐·호출 한도·남은 시간 부족")
     else:
         meta = result.metadata

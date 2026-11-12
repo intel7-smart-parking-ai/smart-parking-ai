@@ -667,6 +667,8 @@ def h_evacuate(s, p):
 
 
 def h_help(s, p):
+    if p.get("usage_guide"):
+        return T.USAGE_GUIDE, None, "default", None      # 화면의 '이용 방법' 버튼
     if p.get("info_gap") == "facility":
         from . import info_gaps
         text, chips = info_gaps.facility_answer(p)
@@ -1322,7 +1324,12 @@ def _handle_message(s, session_id, text, chip_id, event, confirmation_token):
         virtual_rule = bool(extract_virtual(text)) and not (_agent_usable() and virtual_compound(text))
         skip = ("workflow" if controlled else "invalid_car_id" if invalid_id and not (extract_virtual(text) and not virtual_rule)
                 else "virtual_vehicle" if virtual_rule
-                else "alert_lv2" if current_alert().get("level", 0) >= 2 else None)
+                else "alert_lv2" if current_alert().get("level", 0) >= 2
+                # 요금표('주차요금 안내해줘')는 서버 요금 정책을 그대로 옮기는 답이라 규칙이 바로 낸다(11/11 시연:
+                # 대화 AI가 조회 없이 '어느 주차장?'이라 되묻다 버려지고 차량 번호를 묻는 답으로 떨어졌다)
+                else "fee_table" if rule.intent == "fee_rule" and rule.params.get("fee_table")
+                # 이용 방법('주차장 이용 방법 알려줘')도 정해진 안내라 규칙이 바로 낸다
+                else "usage_guide" if rule.intent == "help" and rule.params.get("usage_guide") else None)
         if controlled:
             route.mark("workflow", rule.intent, why="상태를 바꾸거나 안전이 걸린 요청은 규칙이 처리")
         elif skip:

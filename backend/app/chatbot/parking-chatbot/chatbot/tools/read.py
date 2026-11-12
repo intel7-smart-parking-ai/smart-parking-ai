@@ -131,6 +131,24 @@ _FEE_FIELDS = ("car_id", "lot_id", "session_id", "entry_at", "fee", "minutes", "
                "payment_status", "payment_blocked", "updated_at", "stale", "is_mock", "data_source")
 
 
+_NOT_FOUND = "해당 차량의 입차 기록을 찾지 못했습니다."
+
+
+def _total_summary(rows):
+    """여러 주차장 빈자리의 합계를 코드가 계산해 넘긴다(규칙 답의 '총 N자리'와 같은 기준: 경보·이용 제한·확인 불가는 뺀다).
+
+    모델이 직접 더하면 틀릴 수 있고, 근거 검사는 조회 결과에 없는 숫자를 막기 때문에 맞게 더한 답도 버려졌다
+    (11/11 실측: "총 91자리입니다" → unsupported_number → 규칙 답으로 대체, 3~5초 지연).
+    """
+    counted = [row for row in rows if row.get("availability") in ("available", "full") or row.get("reason") == navigation.NO_CONFIRMED]
+    excluded = [row["name"] for row in rows if row not in counted]
+    summary = {"total_empty": sum(row["empty"] for row in counted if type(row.get("empty")) is int),
+               "total_empty_rule": "여러 주차장 빈자리의 합계. 합계를 말할 때는 이 값을 그대로 쓴다(직접 더하지 않는다)."}
+    if excluded:
+        summary["total_excludes"] = excluded       # 경보·이용 제한·확인 불가라 합계에서 뺀 주차장
+    return summary
+
+
 class ReadTools:
     TOOL_NAMES = ("parking_status", "vehicle_info", "fee_policies", "compare_lots", "estimate_fee",
                   "alert_summary", "violations", "call_status", "search_knowledge", "propose_action")
@@ -244,14 +262,23 @@ class ReadTools:
                 if reason == "만차":
                     # '만차'·'full'을 넘기면 모델이 그대로 말한다 → 사유와 상태를 바꿔 넘긴다(#120 후속)
                     row["reason"], row["availability"] = navigation.NO_CONFIRMED, "unknown"
-                row["camera_check"] = (f"카메라 확인 중 {pending}칸. 이 칸들은 비었는지 알 수 없다. "
-                                       "이 주차장은 '만차'라고 하지 않는다. "
-                                       "'확인된 빈자리는 없고 카메라 확인 중인 칸이 있다'고 말한다.")
+                if row["empty"] == 0:
+                    row["camera_check"] = (f"카메라 확인 중 {pending}칸. 이 칸들은 비었는지 알 수 없다. "
+                                           "이 주차장은 '만차'라고 하지 않는다. "
+                                           "'확인된 빈자리는 없고 카메라 확인 중인 칸이 있다'고 말한다.")
+                else:
+                    # 빈자리가 있는 주차장: 확인 중인 칸은 빈자리 수와 따로 센다
+                    # (11/11 실측: "21개 (카메라 확인 중인 칸 1개 포함)", "정확한 빈자리는 20개"라고 답함)
+                    row["camera_check"] = (f"카메라 확인 중 {pending}칸. 이 칸들은 빈자리 {row['empty']}칸에 들어 있지 않다(따로 센다). "
+                                           "비었는지 알 수 없다. 빈자리 수는 그대로 말하고, 확인 중인 칸을 빼거나 더하지 않는다.")
             rows.append(row)
         alert_summary = _project(alert, ("level", "lot_id", "stale", "unavailable"))
         if alert.get("unavailable") and not alert.get("level"):
             alert_summary.pop("level", None)
-        return self._finish("parking_status", {"rows": rows, "alert": alert_summary}, lots=lots, raw=snapshot)
+        data = {"rows": rows, "alert": alert_summary}
+        if len(rows) >= 2:
+            data["summary"] = _total_summary(rows)
+        return self._finish("parking_status", data, lots=lots, raw=snapshot)
 
     def vehicle_info(self, car_id: str, include_fee: bool = True) -> dict:
         """Read the selected two-digit vehicle's location and optionally its fee. Use only the vehicle ID provided by the user/current session."""
@@ -265,7 +292,7 @@ class ReadTools:
             except _READ_FAILURES:
                 raw = {"unavailable": True}
             if raw is None:
-                errors[key] = "해당 차량의 입차 기록을 찾지 못했습니다."
+                errors[key] = _NOT_FOUND
             elif not isinstance(raw, dict) or raw.get("unavailable") or raw.get("status") in {"error", "conflict", "unavailable"}:
                 errors[key] = "현재 조회할 수 없습니다."
             elif raw.get("car_id") != car_id:
@@ -294,6 +321,9 @@ class ReadTools:
             location["lot_name"] = config.catalog.name(location["lot_id"])
         payload = {"car_id": car_id, "location": location, "fee": fee, "errors": errors,
                    "partial": bool(errors and available)}
+        if not available and errors and set(errors.values()) == {_NOT_FOUND}:
+            # 조회는 됐고 입차 기록이 없다는 것이 확인됐다(조회 실패와 다르다) → '입차 기록을 찾지 못했어요'라고 답할 근거
+            payload["not_found"] = True
         raw = {"stale": any(x.get("stale") for x in available),
                "is_mock": any(x.get("is_mock") or x.get("data_source") == "mock" for x in available),
                "updated_at": available[0].get("updated_at") if len(available) == 1 else None}
@@ -320,7 +350,9 @@ class ReadTools:
         if isinstance(found, dict) and found.get("status") == "unavailable":
             return self._finish("virtual_vehicle_info", {}, error="가상 주차장 차량 정보를 지금 조회할 수 없습니다.")
         if not found or not found.get("lot_id"):
-            return self._finish("virtual_vehicle_info", {"vehicle_number": number, "found": False},
+            # not_found: 조회는 됐고 그 차가 없다는 것이 확인됐다 → '찾지 못했어요'라고 답할 근거(근거 검사가 허용)
+            return self._finish("virtual_vehicle_info", {"vehicle_number": number, "plate_number": plate, "found": False,
+                                                         "not_found": True},
                                 error="그 번호로 주차 중인 가상 주차장 차량을 찾지 못했습니다.")
         try:
             fee = self._read_once(("virtual_fee", number, plate), lambda: self.adapter.virtual_fee(found))
@@ -430,6 +462,8 @@ class ReadTools:
         fee_rows = [r for r in rows if type(r.get("base_fee")) is int]
         summary = {"lot_count": len(rows), "lots_with_space": sum(1 for r in open_rows if r["empty"] > 0),
                    "zone": zone, "fee_compared": bool(fee_rows)}
+        if len(rows) >= 2:
+            summary.update(_total_summary(rows))
         if open_rows:
             ranked = sorted(open_rows, key=lambda r: -r["empty"])
             summary["most_spaces"] = ranked[0]["name"]

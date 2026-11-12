@@ -165,15 +165,19 @@ def no_tool_reply_ok(request, answer):
     # 주차장 이름은 '쇼핑이면 신세계백화점주차장'처럼 성격 안내일 때만 허용: 거절·자료 없음 안내가 함께 있어야 한다
     # 운영 질문('어디가 싸?')에서 주차장 이름을 말하면 조회가 필요하다('개발원 정보는 없어요'도 틀린 말).
     # 단, '김해공항에 가시나요? 부산역에 가시나요?'처럼 여러 곳을 고르라고 묻는 문장의 이름은 주장이 아니다.
+    # 'D로 가면 얼마나 걸려?'의 '얼마'는 이동 시간이다. 운영 값을 묻는 질문이 아니라서 '소요 시간은 안내 자료에 없어요'라는
+    # 답을 조회 없이 내도 된다(11/12 재검사: 이 답이 버려지고 '잘 이해하지 못했어요'가 나갔다).
+    from ..parser import TRAVEL_TIME
+    data_question = bool(_DATA_QUESTION.search(request or "")) and not TRAVEL_TIME.search(request or "")
     named = _mentions(answer)
     if asks_back and named:
         outside = _mentions(_QUESTION_SENTENCE.sub(lambda m: " " * len(m[0]), answer))
         if not outside and len({lot for _, lot in named}) >= 2:
             named = []
-    if named and (_DATA_QUESTION.search(request or "") or not _REFUSAL.search(answer)):
+    if named and (data_question or not _REFUSAL.search(answer)):
         return False
     # 운영 질문이어도 '실외 여부는 안내 자료에 없어요'처럼 자료 없음만 말하는 답은 허용한다(주차장·숫자·상태 주장 없음).
-    if _DATA_QUESTION.search(request or "") and not _REFUSAL.search(answer) and not asks_back:
+    if data_question and not _REFUSAL.search(answer) and not asks_back:
         return False
     # '날씨는 확인해 드릴 수 없어요'처럼 능력 밖이라는 안내는 주차 상태 주장이 아니다.
     if _STATE_CLAIM.search(_OFFER.sub(" ", _REFUSAL.sub(" ", answer))) or action_claim(answer) or _ACTION_DONE.search(answer):
@@ -218,8 +222,17 @@ def contradicts_restricted_policy(answer):
     return False
 
 
+# 합계를 말하는 표현. '전체 12자리가 있어요', '모두 90곳'도 합계다(11/11 내부 검사: '전체 12자리'가 합계로 잡히지 않아
+# 바로 앞 주차장의 값과 비교돼 맞는 답이 버려졌다).
+_TOTAL_CLAIM = re.compile(r"(?:총|합계|합쳐서?|합치면|합하면|모두|전체|다\s*합(?:쳐|치면))[^\d\n]{0,10}?"
+                          r"(\d[\d,]*)\s*(자리|칸|대|개|면|곳|군데)(?!\s*(?:의\s*)?주차장)")
+_UNCERTAIN_INCLUDED = re.compile(r"확인\s*(?:중|필요)[^.\n]{0,14}포함(?!\s*(?:되지|하지|안\s|돼\s*있지|되어\s*있지))")
+
 REPAIR_HINTS = {
-    "unsupported_number": "답에 이번 조회 결과에 없는 숫자가 있습니다. 차이·개수·경과 시간·예상 요금은 compare_lots, vehicle_info의 *_text, estimate_fee 결과 값만 옮겨 쓰세요. 필요하면 그 도구를 먼저 호출하세요.",
+    "absent_vehicle_claim": "그 차량은 조회 결과 입차 기록이 없습니다(조회 결과의 not_found). 그 차의 위치·칸·요금을 말하지 말고 '찾지 못했다'고만 한 뒤, 나머지 질문에 답하세요.",
+    "wrong_total": "합계 숫자가 조회 결과의 summary.total_empty와 다릅니다. 주차장별 숫자를 직접 더하지 말고 total_empty 값을 그대로 쓰세요. 그 값이 없으면 합계는 빼고 주차장별로만 답하세요.",
+    "uncertain_included": "카메라 확인 중인 칸은 빈자리 수에 들어 있지 않습니다. '포함'이라고 하지 말고 '빈자리 N칸, 그 밖에 M칸은 카메라 확인 중'이라고 말하세요.",
+    "unsupported_number": "답에 이번 조회 결과에 없는 숫자가 있습니다. 차이·개수·경과 시간·예상 요금은 compare_lots, vehicle_info의 *_text, estimate_fee 결과 값만 옮겨 쓰세요. 여러 주차장의 합계는 summary.total_empty 값만 쓰고 직접 더하지 마세요. 필요하면 그 도구를 먼저 호출하세요.",
     "unsupported_location": "답에 조회되지 않은 칸 번호가 있습니다. 조회 결과의 칸 번호만 쓰세요.",
     "unsupported_lot": "답에 이번에 조회하지 않은 주차장이 있습니다. 조회한 주차장만 말하거나 그 주차장을 조회하세요.",
     "mismatched_lot_value": "어떤 주차장의 숫자를 다른 주차장 값으로 말했습니다. 주차장마다 조회 결과의 값을 그대로 짝지어 쓰세요. 차이는 compare_lots 요약 값을 쓰세요.",
@@ -239,14 +252,57 @@ REPAIR_HINTS = {
 }
 
 
+_NOT_FOUND_SAID = re.compile(r"찾지\s*못|찾을\s*수\s*없|기록(?:이|은|을)?\s*(?:없|확인되지|찾)|확인되지\s*않|조회되지\s*않|조회\s*(?:가\s*)?(?:안\s*돼|되지\s*않)")
+_NOT_A_VEHICLE = r"(?!\d|,\d)(?!\s*(?:자리|칸|대(?![가-힣])|원|분|시간|시(?![가-힣])|곳|개|층|%))"
+
+
+def _absent_vehicles(observations):
+    """이번 턴 조회에서 '없다'가 확인된 차량 번호(스티커 두 자리, 번호판과 그 뒤 4자리)."""
+    found = set()
+    for row in observations:
+        result = row.get("result")
+        data = result.get("data") if isinstance(result, Mapping) else None
+        if row.get("tool") in ("vehicle_info", "virtual_vehicle_info") and isinstance(data, Mapping) and data.get("not_found") is True:
+            for key in ("car_id", "vehicle_number", "plate_number"):
+                if isinstance(data.get(key), str):
+                    found.update(_NUMBER.findall(data[key]))      # '17가1724' → 17, 1724
+    return found
+
+
+def _absence_only(answer, absent):
+    """다른 근거 없이 나가도 되는 답인가: 그 차를 찾지 못했다는 말뿐이고, 숫자·칸·주차장·실행 주장이 없다."""
+    if not isinstance(answer, str) or not _NOT_FOUND_SAID.search(answer) or len(answer) > 320:
+        return False
+    if any(m[0].replace(",", "") not in absent for m in _NUMBER.finditer(answer)):
+        return False
+    if _SLOT.search(answer) or _CLAIM_UNITS.search(answer) or _FULL_CLAIM.search(answer) or _mentions(answer):
+        return False
+    return not (action_claim(answer) or _ACTION_DONE.search(answer) or _GUIDANCE_DONE.search(answer)
+                or _PAID.search(_NEGATED_DONE.sub("", answer)))
+
+
+def _absent_claim(answer, absent):
+    """없다고 확인된 차량을 말하는 문장은 '찾지 못했다'는 말이어야 하고, 그 차의 칸·금액을 말하면 안 된다."""
+    for number in absent:
+        token = re.compile(r"(?<![\d,])" + re.escape(number) + _NOT_A_VEHICLE)
+        for sentence in re.split(r"(?<=[.!?。])\s+|\n+", answer):
+            if token.search(sentence) and (not _NOT_FOUND_SAID.search(sentence) or _SLOT.search(sentence)
+                                           or re.search(r"\d[\d,]*\s*원", sentence)):
+                return True
+    return False
+
+
 def check_answer(answer, request, observations):
     """Return a reason for a deterministic repair/fallback, else None."""
     reads = [row["result"]["data"] for row in observations
              if readable(row) and row["tool"] not in {"ask_clarification", "propose_action"}]
     entries = [row for data in reads for row in _entries(data)]
     proposals = [row for row in observations if row["tool"] == "propose_action" and readable(row)]
+    absent = _absent_vehicles(observations)
     if not entries and not proposals:
-        return "no_evidence"
+        # 조회했더니 그 차가 없다는 것도 근거다: '23번 차량의 입차 기록을 찾지 못했어요'는 맞는 답이다
+        # (11/11 내부 검사: 이 답이 근거 없음으로 버려져 같은 뜻의 규칙 답으로 바뀌었다. 125턴 중 14턴)
+        return None if absent and _absence_only(answer, absent) else "no_evidence"
     # A proposal cannot prove that a new action executed. A previously paid fee
     # can explain status, but still cannot prove that this assistant issued it.
     claim = action_claim(answer, observations)
@@ -264,10 +320,13 @@ def check_answer(answer, request, observations):
     # Accept a horizon that the user actually asked about; it is never a forecast.
     request_horizons = {(m[1], m[2]) for m in _HORIZON.finditer(request)}
     checked_answer = _HORIZON.sub(lambda m: "" if (m[1], m[2]) in request_horizons else m[0], answer)
-    allowed_numbers = _numbers(list(facts))
+    # 없다고 확인된 차량의 번호는 '그 차는 못 찾았다'고 말할 때 쓸 수 있다(다른 조회와 함께 답하는 복합 질문).
+    allowed_numbers = _numbers(list(facts)) | absent
     for m in _NUMBER.finditer(checked_answer):
         if m[0].replace(",", "") not in allowed_numbers:
             return "unsupported_number"
+    if _absent_claim(answer, absent):
+        return "absent_vehicle_claim"
     if any(not any(m[1].upper() in fact.upper() for fact in facts) for m in _SLOT.finditer(answer)):
         return "unsupported_location"
 
@@ -313,6 +372,23 @@ def check_answer(answer, request, observations):
         if pending and ("만차" in claim[0]
                         or not _CAMERA_NOTE.search(answer[max(0, claim.start() - 60):claim.end() + 120])):
             return "full_without_camera_note"
+    # 합계('총 91자리', '합쳐서 91대')는 코드가 계산한 summary.total_empty 와 같아야 한다. 조회 결과의 다른 숫자(칸 수 64 등)와
+    # 우연히 같아서 통과하지 않게 한다. 같은 줄에서 주차장을 먼저 말한 '총 64칸 중 21칸'은 그 주차장의 전체 칸 수라 아래 검사에 맡긴다.
+    totals = {str(row["total_empty"]) for row in entries if type(row.get("total_empty")) is int}
+    lot_counts = {str(row[k]) for row in entries for k in ("lot_count", "lots_with_space") if type(row.get(k)) is int}
+    total_spans = set()
+    for m in _TOTAL_CLAIM.finditer(answer):
+        if m[1].replace(",", "") in totals:
+            total_spans.add(m.start(1))
+            continue
+        if m[2] in ("곳", "군데", "개") and m[1] in lot_counts:
+            continue       # '총 4곳', '모두 3곳에 자리가 있어요' → 주차장 수(compare_lots 요약 값)
+        line_start = answer.rfind("\n", 0, m.start()) + 1
+        if len(status_rows) >= 2 and not any(line_start <= start <= m.start() for start, _ in mentions):
+            return "wrong_total"
+    # 카메라 확인 중인 칸은 빈자리 수에 들어 있지 않다(11/11 실측: "21개 (카메라 확인 중인 칸 1개 포함)")
+    if _UNCERTAIN_INCLUDED.search(answer):
+        return "uncertain_included"
     # 비교 숫자는 코드가 계산한 차이 값과만 맞춘다("1,000원 더 싸요"가 우연히 다른 값과 겹쳐 통과하지 않게).
     diffs = {str(row[k]) for row in entries for k in _DIFF_KEYS if type(row.get(k)) is int}
     diffs |= {n for row in entries for note in (row.get("notes") or []) if isinstance(note, str) for n in _numbers(note)}
@@ -336,6 +412,8 @@ def check_answer(answer, request, observations):
     # available. This catches reassigning D's fee or count to C in a comparison.
     for m in _CLAIM_UNITS.finditer(answer):
         value = m[1].replace(",", "")
+        if m.start(1) in total_spans:
+            continue       # 코드가 계산한 합계와 같은 값(위에서 확인) → 바로 앞 주차장의 값으로 묶지 않는다
         if _COMPARE_AFTER.match(answer, m.end()) or _COMPARE_BEFORE.search(answer[max(0, m.start() - 8):m.start()]):
             if value not in diffs:
                 return "mismatched_lot_value"

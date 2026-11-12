@@ -118,7 +118,8 @@ def run_rehearsal():
                       and answer["card"]["data"]["amount"] == amount)
 
                 answer = ask("⑤ 요금표 알려줘", "요금표 알려줘")
-                check(5, "기본" in answer["text"] and "원" in answer["text"])
+                # 11/11: 요금표는 주차장마다 한 줄(처음 N분·이후·하루 최대)로 바뀌었다. 예전 한 줄 요약('기본 1,000원')도 허용한다.
+                check(5, ("기본" in answer["text"] or "하루 최대" in answer["text"]) and "원" in answer["text"])
 
                 answer = ask("⑥ 7번 차 어디야?", "7번 차 어디야?")
                 check(6, "두 자리" in answer["text"] and answer["card"] is None)

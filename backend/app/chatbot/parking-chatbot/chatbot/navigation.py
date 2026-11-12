@@ -77,6 +77,10 @@ def card(snapshot,alert,lot=None,zone=None):
         item["display_empty"]=count(item,zone)
         item["display_uncertain"]=(item if zone is None else item.get("zones",{}).get(zone,{})).get("uncertain",0)
         item["status_reason"]=reason(snapshot,alert,key,zone)
+        # 화면 카드는 status_reason을 그대로 보여 준다. 카메라 확인 중인 칸이 있는 주차장을 카드만 '만차'라고 하면
+        # 글('확인된 빈자리 없음')과 어긋난다(11/12 시연 사이트 캡처: 개발원 12칸 확인 필요인데 카드에 '만차').
+        if item["status_reason"]=="만차" and item["display_uncertain"]:
+            item["status_reason"]=NO_CONFIRMED
     return {"type":"empty_spots","data":{"lots":lots,"focus":lot,"zone":zone,
             "zone_labels":{z["key"]:z["name"] for z in config.catalog.zones()},
             "blocked_lots":[k for k,v in lots.items() if v["status_reason"] and v["status_reason"]!="만차"]}}

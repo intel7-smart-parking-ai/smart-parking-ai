@@ -441,6 +441,14 @@ def _alert_time(item):
     return None
 
 
+def _sticker_lot(lot):
+    """스티커 번호(car_id)로 차를 식별하는 실물 주차장인가.
+
+    가상 주차장(김해공항·신세계) 차량은 번호판으로 식별해 car_id가 항상 비어 온다. 그 차들을 '번호 미인식'으로 세면
+    "23번 차의 입차 기록이 없고, 번호 미인식 차량이 68대 있어요"가 된다(11/11 내부 검사)."""
+    return (config.catalog.lot(lot) or {}).get("kind") != "virtual"
+
+
 class ApiAdapter:
     """Team API boundary. Never falls back to locally generated parking data."""
 
@@ -674,7 +682,7 @@ class ApiAdapter:
                         if state in ("empty", "uncertain"):
                             row[state] += 1
                     car = space["car_id"]
-                    if state == "occupied" and car is None:
+                    if state == "occupied" and car is None and _sticker_lot(lot):
                         # The enclosing snapshot has not been validated/published yet.
                         spot = index if complete else config.catalog.space_index(lot, label)
                         unrecognized.append({"car_id": None, "lot_id": lot, "spot_no": spot, "space_id": label, "session_id": None})
@@ -973,6 +981,8 @@ class ApiAdapter:
         require(bool(lots) and (lot_id is None or lot_id in lots), "주차장 목록 확인 불가")
         cars = []
         for lot in ([lot_id] if lot_id else lots):
+            if candidates and not _sticker_lot(lot):
+                continue       # 번호 미인식 후보는 스티커로 식별하는 실물 주차장에서만 찾는다(가상 차량은 번호판으로 식별)
             rows, complete, mocked = self._space_snapshot(lot, lots[lot])
             require(complete, "주차 차량 목록 확인 불가")
             for label, row in rows.items():

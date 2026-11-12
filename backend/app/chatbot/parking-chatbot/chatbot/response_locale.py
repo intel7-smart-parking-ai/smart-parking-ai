@@ -55,6 +55,9 @@ _NUMBER_WORDS = (
 )
 
 
+_KOREAN_UI_ABBREVIATIONS = {"okay", "suv", "led", "cctv", "app", "vip", "atm", "wifi"}
+
+
 def resolve_language(language, text=None):
     if language != "ko" or not text or re.search(r"[가-힣]", text):
         return language
@@ -62,7 +65,10 @@ def resolve_language(language, text=None):
         return "ja"
     if re.search(r"[一-鿿]", text):
         return "zh-CN"
-    if re.search(r"[A-Za-z]{2,}", text):
+    # 영어 문장으로 보려면 세 글자 이상인 영어 낱말이 있어야 한다. 한국어 화면에서 'EV', 'ok'만 쳐도 영어로 답했고,
+    # 화면이 그 언어를 기억해 다음 버튼 답까지 영어로 나갔다(11/12 연결성 점검). 한국어 사용자가 흔히 쓰는 약어는 뺀다.
+    words = [word.lower() for word in re.findall(r"[A-Za-z]{3,}", text)]
+    if any(word not in _KOREAN_UI_ABBREVIATIONS for word in words):
         return "en"
     return "ko"
 
