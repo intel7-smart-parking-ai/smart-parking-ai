@@ -159,7 +159,7 @@ export default function ParkingLayoutMap(props) {
     const displayed=sample?{...space,status:'occupied',plate_number:'123가 4567',vehicle_number:'4567',session_id:'preview-only'}:space;
     return <Bay key={space.space_id} {...props} t={t} fees={sample?{...fees,'preview-only':{amount_krw:4500,duration_minutes:90}}:fees} space={displayed} {...geometry}/>;
   };
-  return <section className={`map-panel pdf-map-panel layout-${kind}`}>
+  return <section className={`map-panel pdf-map-panel layout-${kind}`} data-map-filter={filter}>
     {activeAlerts.length>0&&<div className="map-alert-banner" role="alert"><strong>⚠ {Math.max(...activeAlerts.map(alert=>Number(alert.level)||1))>=2?t("대피 경보"):t("안전 경보")} · {t(lot.name)}</strong><span>{unknownLocation?t("발생 위치 미확인 · 주차장 전체 주의"):activeAlerts.map(alert=>alert.space_id).join(", ")+t(" 경보 발생")} {t("· 현장 안전 안내를 따라 주세요.")}</span></div>}
     {props.admin && <div className="reserved-parking-status">
       <strong>전용구역 관제</strong>

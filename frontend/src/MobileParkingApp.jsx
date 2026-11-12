@@ -1,3 +1,4 @@
+import ParkingHelp from './ParkingHelp.jsx';
 import BrandWordmark from './BrandWordmark.jsx';
 import {t,getLanguage} from './serviceLocale.js';
 import {evacuationRequired,formatKST,sourceLabel} from './uiState.js';
@@ -102,19 +103,7 @@ export default function MobileParkingApp({initialLotId = 'A', initialTab = 'home
       {tab === 'search' && <><h1>{t("주차요금")}</h1><section className="app-search-card"><Search car={car} setCar={setCar} kind={kind} onKindChange={switchKind} onSubmit={find} busy={searching} disabled={!connected}/>{error && <p className="app-search-error" role="alert">{error}</p>}{result && <div className="app-car-result"><span className="app-result-plate">{result.lookup_type === 'sticker' ? t('스티커 ') + result.car_id : result.plate_number}</span><p>{lots.find(item => item.lot_id === result.lot_id)?.name}</p><h2>{result.space_id}</h2><div className="app-result-fee"><span>{result.fee?.payment ? t('결제 완료 금액') : t('예상 주차요금')}</span><strong>{result.fee?money(result.fee.amount_krw):t('요금 정보 없음')}</strong></div>{evacuationRequired(alerts,result.lot_id)&&<p className="operation-error" role="alert">{t("레벨 2 · 대피 안내 · 결제 중단")}</p>}<p className="app-exit-notice">{t("결제 후 30분 이내에 출차해 주세요.")}</p><p className="app-data-note">{t("서버 이용 시간 기준 요금 · 실제 청구 없음")}</p>{result.fee?.payment?.status==='completed'?<section className="receipt" role="status"><h3>결제 완료</h3><p>{t("영수증:")} {result.fee.payment.payment_id}</p><p>{t("결제 후 30분 이내에 출차해 주세요.")}</p></section>:result.fee&&(choosing?<PaymentChooser blocked={evacuationRequired(alerts,result.lot_id)||!connected} amount={result.fee.amount_krw} busy={searching} error={error} onPay={pay} onBack={()=>setChoosing(false)}/>:<button className="app-primary" disabled={searching||!connected||evacuationRequired(alerts,result.lot_id)} onClick={()=>setChoosing(true)}>{t("결제하기")}</button>)}<button className="app-primary" onClick={() => {setLotId(result.lot_id); setFilter('all'); setTab('map');}}>{t("지도에서 위치 보기")}</button></div>}</section></>}
       {tab === 'chat' && <ChatPanel lots={lots} alerts={alerts} lotId={lotId} voiceInput appAppearance connected={connected}/>}
       {tab === 'help' && <><h1 className="app-help-title">{t("PARK : ON 이용 안내").split("PARK : ON").map((part,index)=><span key={index}>{index>0&&<BrandWordmark/>}{part}</span>)}</h1>
-        <section className="app-help-card">
-          <h2>{t("1. 빈자리 확인하기")}</h2>
-          <p>{t("하단의 ‘주차 지도’에서 주차장을 선택하세요.\n‘빈자리’, ‘전기차’, ‘장애인’ 버튼으로 원하는 칸을 찾을 수 있어요.")}</p>
-        </section>
-        <section className="app-help-card">
-          <h2>{t("2. 내 차와 요금 찾기")}</h2>
-          <p>{t("하단의 ‘주차요금’에서 개발원과 부산역은 스티커 번호로 검색하세요.\n김해공항과 신세계 백화점은 차량번호 뒤 4자리로 검색하세요.")}</p>
-          <p>{t("검색 결과에서 주차 위치와 요금을 확인하고, 출차 전에 주차요금을 미리 정산할 수 있어요.")}</p>
-        </section>
-        <section className="app-help-card">
-          <h2>{t("3. 주차 정보 다시 확인하기")}</h2>
-          <p>{t("연결이 끊기면 이전에 조회한 정보가 표시돼요.\n연결이 돌아오면 화면 오른쪽 위의 새로고침 버튼을 눌러 주세요.")}</p>
-        </section>
+        <ParkingHelp language={getLanguage()}/>
         </>}
     </main>
     <nav className="mobile-bottom-nav" aria-label={t("앱 메뉴")}>{nav.map(([id,label,icon]) => <button key={id} className={tab === id ? 'selected' : ''} aria-current={tab === id ? 'page' : undefined} onClick={() => {setTab(id); setError(''); window.scrollTo({top:0});}}>{id === 'chat' ? <ChatbotIcon/> : <Icon name={icon}/>}<span>{label}</span></button>)}</nav>

@@ -122,3 +122,39 @@ html .layout-mall .pdf-map-svg .pdf-bay.empty.recommended .pdf-bay-label {
 .pdf-map-panel .pdf-bay.violation .pdf-bay-shape { stroke: #d97706 !important; stroke-width: 4; }
 .pdf-map-panel .bay-violation-tag rect { fill: #d97706; }
 .pdf-map-panel .bay-violation-tag text { fill: #fff; font-weight: 800; }
+
+.map-panel:is([data-map-filter="empty"], [data-map-filter="ev"], [data-map-filter="accessible"]) :is(.pdf-bay.dim:not(.warned), .parking-space.dim:not(.has-alert)) {
+  opacity: .14;
+}
+.map-panel:is([data-map-filter="empty"], [data-map-filter="ev"], [data-map-filter="accessible"]) :is(.pdf-bay.warned, .parking-space.has-alert) { opacity: 1; }
+.pdf-map-panel[data-map-filter="empty"] .pdf-bay.empty:not(.warned, .recommended) .pdf-bay-shape {
+  stroke: #00824b !important;
+  stroke-width: 3px !important;
+  vector-effect: non-scaling-stroke;
+}
+.pdf-map-panel[data-map-filter="empty"] .pdf-bay.empty:not(.warned, .recommended, .ev, .accessible) .pdf-bay-shape {
+  fill: #d3fae4 !important;
+}
+.pdf-map-panel[data-map-filter="empty"] .pdf-bay.empty:not(.warned, .recommended, .ev, .accessible) .pdf-bay-label {
+  fill: #075b38;
+  font-weight: 800;
+}
+.map-panel[data-map-filter="empty"] .parking-space.empty:not(.has-alert) {
+  outline: 2px solid #00824b;
+  outline-offset: -2px;
+  background: #d3fae4;
+  color: #075b38;
+}
+
+.map-panel[data-map-filter="ev"] { --bay-filter-outline: #c1ff9c; }
+.map-panel[data-map-filter="accessible"] { --bay-filter-outline: #b4f2ff; }
+.pdf-map-panel[data-map-filter="ev"] .pdf-bay.ev:not(.warned, .recommended, .violation) .pdf-bay-shape,
+.pdf-map-panel[data-map-filter="accessible"] .pdf-bay.accessible:not(.warned, .recommended, .violation) .pdf-bay-shape {
+  stroke: var(--bay-filter-outline) !important;
+  stroke-width: 3px !important;
+  vector-effect: non-scaling-stroke;
+}
+.map-panel[data-map-filter="ev"] .parking-space.space-ev:not(.has-alert),
+.map-panel[data-map-filter="accessible"] .parking-space.space-accessible:not(.has-alert) {
+  box-shadow: inset 0 0 0 3px var(--bay-filter-outline);
+}

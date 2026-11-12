@@ -1,5 +1,5 @@
 // One session and immutable request envelope for both typed and transcribed input.
-export function createChatSession({request, makeId, language}) {
+export function createChatSession({request, makeId, language, onVoiceReply}) {
   let state = {draft: '', rows: [], view: null, busy: false, error: '', retry: null, restartRequired: false, actionEpoch: 0};
   let conversationLanguage = language;
   let sessionId = makeId(), runtimeId = null, version = -1, sequence = 0, generation = 0;
@@ -37,6 +37,10 @@ export function createChatSession({request, makeId, language}) {
       }
       if (!replyText(result) && !result.card && !result.safety) throw new Error('응답을 확인하지 못했어요. 같은 요청을 다시 확인해 주세요.');
       addReply(result);
+      if (task.voice && replyText(result).trim()) {
+        try { onVoiceReply?.(replyText(result), result.language || conversationLanguage); }
+        catch { /* Speech playback must not affect a successful response. */ }
+      }
     } catch (error) {
       if (life !== generation || turn !== sequence || safetyAtStart !== alertEpoch) return;
       const retryable = !error.status || error.status === 409 || error.status === 429 || error.status >= 500;
@@ -45,9 +49,9 @@ export function createChatSession({request, makeId, language}) {
       if (life === generation && turn === sequence) emit({busy: false});
     }
   }
-  function submit(body, label) {
+  function submit(body, label, voice = false) {
     if (state.busy || state.restartRequired) return Promise.resolve();
-    const task = {body: Object.freeze({session_id: sessionId, ...(language ? {language: body.text ? language : conversationLanguage} : {}), ...body, request_id: makeId(), ...(runtimeId ? {runtime_id: runtimeId} : {})}), label};
+    const task = {body: Object.freeze({session_id: sessionId, ...(language ? {language: body.text ? language : conversationLanguage} : {}), ...body, request_id: makeId(), ...(runtimeId ? {runtime_id: runtimeId} : {})}), label, voice};
     emit({rows: [...state.rows, {who: 'user', text: label}], view: state.view ? {...state.view, chips: []} : null, actionEpoch: state.actionEpoch + 1});
     return transmit(task);
   }
@@ -55,12 +59,12 @@ export function createChatSession({request, makeId, language}) {
     getSnapshot: () => state,
     subscribe(fn) {listeners.add(fn); return () => listeners.delete(fn);},
     edit(value) {emit({draft: value});},
-    async send() {
+    async send({voice = false} = {}) {
       if (state.busy || state.restartRequired || !state.draft.trim()) return;
       if ([...state.draft].length > 200) {emit({error: '질문은 200자 이내로 줄여 주세요. 입력 내용은 그대로 남겨 두었어요.'}); return;}
       const text = state.draft; // Clear on submission, never when a response arrives.
       emit({draft: ''});
-      return submit({text}, text);
+      return submit({text}, text, voice);
     },
     choose(chip, epoch) {
       if (epoch !== state.actionEpoch || state.view?.safety || Number(state.view?.banner?.level) >= 2) {

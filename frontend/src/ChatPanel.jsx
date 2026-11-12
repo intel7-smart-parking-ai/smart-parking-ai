@@ -31,7 +31,25 @@ const EVACUATION_CHIPS = new Set(['evacuate', 'alert_near', 'alert_where']);
 export default function ChatPanel({lots,alerts,lotId,voiceInput=false,appAppearance=false,connected=false}) {
  const [toolbarTarget,setToolbarTarget]=useState(null);
  useEffect(()=>{setToolbarTarget(document.getElementById('mobile-chat-tools'))},[]);
- const [chat] = useState(() => createChatSession({request, makeId:requestId, language:getLanguage()}));
+ const spokenDraft = useRef(null);
+ const utterance = useRef(null);
+ function stopSpeech() {
+  if (!utterance.current) return;
+  utterance.current = null;
+  window.speechSynthesis.cancel();
+ }
+ const [chat] = useState(() => createChatSession({
+  request, makeId: requestId, language: getLanguage(),
+  onVoiceReply(text, language) {
+   if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
+   stopSpeech();
+   const speech = new window.SpeechSynthesisUtterance(formatLotName(text));
+   speech.lang = {ko:'ko-KR', en:'en-US', 'zh-CN':'zh-CN', ja:'ja-JP'}[language] || language || 'ko-KR';
+   speech.onend = speech.onerror = () => { if (utterance.current === speech) utterance.current = null; };
+   utterance.current = speech;
+   window.speechSynthesis.speak(speech);
+  },
+ }));
  const state = useSyncExternalStore(chat.subscribe,chat.getSnapshot);
  const {draft,rows,view,busy,error,retry,restartRequired,actionEpoch} = state;
  const [showMap,setShowMap]=useState(false),[listening,setListening]=useState(false);
@@ -53,7 +71,7 @@ export default function ChatPanel({lots,alerts,lotId,voiceInput=false,appAppeara
  const mallLot=lots.find(lot=>lot.layout_type==='mall');
  useEffect(()=>{if(unsafe)setChargingLot(null);},[unsafe]);
  function stopVoice(){clearTimeout(voiceTimer.current);voiceTimer.current=null;voiceGeneration.current++;recognition.current?.abort();recognition.current=null;setListening(false)}
- useEffect(()=>{const timer=setInterval(()=>chat.poll(),2500);return()=>{clearInterval(timer);chat.cancelPending();clearTimeout(voiceTimer.current);voiceGeneration.current++;recognition.current?.abort();};},[chat]);
+ useEffect(()=>{const timer=setInterval(()=>chat.poll(),2500);return()=>{clearInterval(timer);chat.cancelPending();stopSpeech();clearTimeout(voiceTimer.current);voiceGeneration.current++;recognition.current?.abort();};},[chat]);
  useEffect(()=>{chat.invalidateAlerts(alerts);},[chat,alerts]);
  useEffect(()=>{if(confirmation||unsafe||busy||restartRequired)stopVoice();},[confirmation,unsafe,busy,restartRequired]);
  useEffect(()=>{if(unsafe)safetyNotice.current?.scrollIntoView({block:'start'});},[unsafe]);
@@ -64,12 +82,14 @@ export default function ChatPanel({lots,alerts,lotId,voiceInput=false,appAppeara
   if (!latestQuestion) return;
   latestQuestion.scrollIntoView({block: 'start', behavior: 'instant'});
  }, [rows, unsafe]);
- function edit(value){stopVoice();draftRevision.current++;chat.edit(value)}
+ function edit(value){stopVoice();spokenDraft.current=null;draftRevision.current++;chat.edit(value)}
  function toggleVoice(){
   if(listening||recognition.current){stopVoice();return;}
   const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!Recognition){setVoiceError(t('이 브라우저는 음성 입력을 지원하지 않아요. 질문을 직접 입력해 주세요.'));return;}
   clearTimeout(voiceTimer.current);
+  stopSpeech();
+  spokenDraft.current=null;
   const input=new Recognition(),epoch=++voiceGeneration.current,revision=draftRevision.current;
   let spokenText='';
   const current=()=>epoch===voiceGeneration.current&&revision===draftRevision.current;
@@ -81,7 +101,8 @@ export default function ChatPanel({lots,alerts,lotId,voiceInput=false,appAppeara
     if(!spokenText.trim())return;
     draftRevision.current++;
     setVoiceError('');
-    chat.send();
+    spokenDraft.current=null;
+    chat.send({voice:true});
    },3000);
   }
   input.lang={ko:'ko-KR',en:'en-US','zh-CN':'zh-CN',ja:'ja-JP'}[getLanguage()];
@@ -90,6 +111,7 @@ export default function ChatPanel({lots,alerts,lotId,voiceInput=false,appAppeara
   input.onresult=e=>{
    if(!current())return;
    spokenText=Array.from(e.results,result=>result[0].transcript).join(' ').trim();
+   spokenDraft.current=spokenText;
    chat.edit(spokenText);
    afterSilence();
   };
@@ -110,9 +132,23 @@ export default function ChatPanel({lots,alerts,lotId,voiceInput=false,appAppeara
   setVoiceError('');
   try{input.start();recognition.current=input;setListening(true);afterSilence();}catch{stopVoice();setVoiceError(t('음성 입력을 시작하지 못했어요.'));}
  }
- function send(e){e.preventDefault();stopVoice();draftRevision.current++;setVoiceError('');chat.send();}
- const context=view?.vehicle_context;
- const contextState={parked:t('주차 중'),pending:t('입차 확인 중'),not_found:t('위치 확인 안 됨'),unavailable:t('정보 확인 불가'),stale:t('정보 갱신 필요')};
+ function send(e){
+  e.preventDefault();
+  stopVoice();
+  draftRevision.current++;
+  setVoiceError('');
+  const voice = spokenDraft.current !== null && spokenDraft.current === draft;
+  spokenDraft.current = null;
+  chat.send({voice});
+ }
+ const context = view?.vehicle_context;
+ const contextState = {
+  parked: t('주차 중'),
+  pending: t('입차 확인 중'),
+  not_found: t('위치 확인 안 됨'),
+  unavailable: t('정보 확인 불가'),
+  stale: t('정보 갱신 필요'),
+ };
  return <section className={`panel chat-panel ${appAppearance ? 'chat-panel--app' : ''}`} aria-label={t("주차 챗봇")}>
   {toolbarTarget?createPortal(<button className="button white chat-map-preview" aria-expanded={showMap} onClick={()=>setShowMap(v=>!v)}>{showMap?t('전체 지도 닫기'):t('전체 주차장 지도 미리보기')}</button>,toolbarTarget):<header className="chat-panel-heading"><button className="button white" aria-expanded={showMap} onClick={()=>setShowMap(v=>!v)}>{showMap?t('전체 지도 닫기'):t('전체 주차장 지도 미리보기')}</button></header>}
   {appAppearance&&<header className="app-chat-identity"><div><strong>Chat bot</strong><span className={connected?'online':'offline'}><i/>{connected?'Online':'Offline'}</span></div><span className="app-chat-header-icon" aria-hidden="true"><ChatbotIcon/></span></header>}
@@ -144,7 +180,7 @@ export default function ChatPanel({lots,alerts,lotId,voiceInput=false,appAppeara
      ['pin','전기차 구역','충전 구역 빈자리 알려줘'],
      ['wheelchair','장애인 구역','장애인 구역 빈자리 알려줘'],
      ['info','이용 방법','주차장 이용 방법 알려줘'],
-    ].map(([icon,label,question])=><button type="button" key={label} disabled={busy||restartRequired} onClick={()=>{stopVoice();draftRevision.current++;chat.edit(t(question));chat.send();}}><Icon name={icon}/><span>{t(label)}</span></button>)}
+    ].map(([icon,label,question])=><button type="button" key={label} disabled={busy||restartRequired} onClick={()=>{stopVoice();spokenDraft.current=null;draftRevision.current++;chat.edit(t(question));chat.send();}}><Icon name={icon}/><span>{t(label)}</span></button>)}
    </nav>}
    {rows.map((row,i)=>{
     const question=rows[i-1];
@@ -167,7 +203,7 @@ export default function ChatPanel({lots,alerts,lotId,voiceInput=false,appAppeara
   {chips.length>0&&<div className="chat-chips" aria-label={t("추천 선택지")}>{chips.map((chip,j)=><button type="button" key={`${actionEpoch}-${chip.id}-${j}`} disabled={busy||restartRequired||(unsafe&&(Boolean(chip.confirmation_token)||/^confirm_/.test(chip.id)))} onClick={()=>{stopVoice();chat.choose(chip,actionEpoch);}}>{formatLotName(chip.label)||chip.id}</button>)}</div>}
   {(error||voiceError)&&<p className="operation-error" role="status">{error||voiceError}</p>}
   {retry&&<button type="button" className="button white chat-retry" disabled={busy} onClick={()=>chat.retry()}>{t("같은 요청 다시 시도")}</button>}
-  {restartRequired&&<button type="button" className="button white" onClick={()=>{stopVoice();chat.reset();}}>{t("대화 다시 시작")}</button>}
+  {restartRequired&&<button type="button" className="button white" onClick={()=>{stopVoice();stopSpeech();spokenDraft.current=null;chat.reset();}}>{t("대화 다시 시작")}</button>}
   <form onSubmit={send} className="search-form chat-form"><input aria-label={t("챗봇 질문")} value={draft} onChange={e=>edit(e.target.value)} placeholder={t("메세지를 입력하세요")}/>{voiceInput&&<button type="button" className="button white chat-voice-button" disabled={busy||confirmation||unsafe||restartRequired} aria-label={listening?t('듣기 종료'):t('음성 입력')} title={listening?t('듣기 종료'):t('음성 입력')} aria-pressed={listening} onClick={toggleVoice}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="8" y="2" width="8" height="13" rx="4"/><path d="M4 11v1a8 8 0 0 0 16 0v-1M12 20v3m-4 0h8M8 6h3M8 9h3"/></svg></button>}<button className="button primary chat-send-button" aria-label={busy?t('응답 대기 중…'):t('질문 보내기')} title={busy?t('응답 대기 중…'):t('질문 보내기')} disabled={busy||listening||restartRequired||!draft.trim()}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m21 3-6.5 18-4-7.5L3 9.5 21 3Z"/><path d="m10.5 13.5 5-5"/></svg></button></form>
   {chargingLot&&!unsafe&&<ChargingStatus language={getLanguage()} initialLot={chargingLot} onClose={()=>setChargingLot(null)}/>}
  </section>;

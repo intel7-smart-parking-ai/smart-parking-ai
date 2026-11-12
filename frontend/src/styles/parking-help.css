@@ -1,0 +1,75 @@
+.parking-help {
+  display: grid;
+  gap: 10px;
+}
+
+.parking-help details {
+  border: 1px solid #dbe6f6;
+  border-radius: 14px;
+  background: #f5f8fe;
+  color: #20304b;
+}
+
+.parking-help summary {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) 10px;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 8px 12px;
+  font-weight: 700;
+  list-style: none;
+  cursor: pointer;
+}
+
+.parking-help summary::-webkit-details-marker { display: none; }
+.parking-help summary::after {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border: solid #315fce;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+.parking-help details[open] summary::after { transform: rotate(225deg); }
+
+.parking-help-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #e6eeff;
+  color: #174ba0;
+}
+.parking-help-icon svg { width: 18px; height: 18px; }
+
+.parking-help-content { padding: 0 12px 12px; }
+.parking-help-content p {
+  margin: 0 0 8px;
+  color: #435773;
+  font-size: .875rem;
+  line-height: 1.6;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.parking-help-preview { display: flex; flex-wrap: wrap; gap: 6px; }
+.parking-help-preview span {
+  padding: 4px 8px;
+  border: 1px solid #dbe6f6;
+  border-radius: 6px;
+  background: #fff;
+  color: #174ba0;
+  font-size: .8125rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .parking-help details[open] .parking-help-content {
+    animation: parking-help-open 220ms ease-out;
+  }
+  @keyframes parking-help-open {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
