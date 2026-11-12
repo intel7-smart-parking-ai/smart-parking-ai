@@ -253,7 +253,7 @@ def test_list_mock_payments_with_filters(client):
 def test_rate_policies(client):
     body = client.get("/api/v1/rate-policies").json()
     assert set(body) == {"items", "next_cursor", "as_of"}
-    assert body["items"] == [{"lot_id": "A", **POLICY}]
+    assert body["items"] == [{"lot_id": "A", **POLICY, "free_minutes": 5}]  # 무료 회차 5분(11/12)
 
 
 # ---------- 주차장 4곳 기본 요금표 (빈 DB 시드) ----------

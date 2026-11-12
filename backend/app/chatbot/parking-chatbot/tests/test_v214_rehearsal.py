@@ -17,7 +17,8 @@ class RehearsalTests(unittest.TestCase):
     def test_actual_demo_rehearsal(self):
         result = subprocess.run(
             [sys.executable, str(ROOT / "tools/rehearsal_1106.py")], cwd=REPO,
-            env={**os.environ, "PYTHONIOENCODING":"utf-8", "LLM_PROVIDER":"none"},
+            env={**os.environ, "PYTHONIOENCODING":"utf-8", "LLM_PROVIDER":"none",
+                 "FREE_TURNAROUND_MINUTES":"0"},  # 리허설 ④ 결제 장면은 방금 입차한 차라 무료 회차(5분)를 끈다
             capture_output=True, encoding="utf-8", errors="replace", timeout=45,
         )
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)

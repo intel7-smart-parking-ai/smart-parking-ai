@@ -8,7 +8,7 @@ from typing import Any, Literal, Optional
 from fastapi import APIRouter, Depends, Path, Query
 from fastapi.responses import JSONResponse
 
-from backend.app.billing.calculator import calculate_parking_fee_pure
+from backend.app.billing.calculator import calculate_parking_fee_pure, free_minutes_for
 from backend.app.billing.db import get_db_conn
 from backend.app.billing.payment_service import (
     cancel_mock_payment,
@@ -42,6 +42,7 @@ def _calculate_fee_helper(
     )
     policy_row = cur.fetchone()
     policy = dict(policy_row) if policy_row else dict(DEFAULT_POLICY)
+    policy["free_minutes"] = free_minutes_for(session["lot_id"])
 
     # 출차 세션은 출차 시각, 주차 중이면 요청 기준 시각(없으면 현재)으로 계산
     target_iso = session["exit_at"] or simulated_now or now_kst_iso()
@@ -66,6 +67,7 @@ def _calculate_fee_helper(
         "fee_breakdown": calc["fee_breakdown"],
         "amount_krw": calc["amount_krw"],
         "is_daily_capped": calc["is_daily_capped"],
+        "free_applied": calc["free_applied"],  # 무료 회차(5분 이내) 적용 여부
         "payment_status": payment_status,
         "rate_policy": policy,
     }
@@ -138,7 +140,7 @@ def get_rate_policies(conn: sqlite3.Connection = Depends(get_db_conn)) -> JSONRe
     cur.execute(
         "SELECT lot_id, base_minutes, base_fee, unit_minutes, extra_fee, daily_cap FROM rate_policies ORDER BY lot_id"
     )
-    return _list_response([dict(r) for r in cur.fetchall()])
+    return _list_response([dict(r, free_minutes=free_minutes_for(r["lot_id"])) for r in cur.fetchall()])
 
 
 # [API 3] POST /api/v1/mock-payments/{id}/cancel
