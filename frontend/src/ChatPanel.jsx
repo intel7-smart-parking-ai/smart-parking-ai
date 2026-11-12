@@ -89,14 +89,19 @@ export default function ChatPanel({lots,alerts,lotId,voiceInput=false,appAppeara
    const matching=voices.filter(voice=>voiceLocale(voice).split('-')[0]===locale.split('-')[0]);
    let voice=matching.find(voice=>voiceLocale(voice)===locale&&voice.localService)
     ||matching.find(voice=>voiceLocale(voice)===locale)||matching[0];
-   if (isAppleMobile() && ['ko-kr', 'zh-cn', 'ja-jp'].includes(locale)) {
+   const preferredAppleVoice = {
+    'ko-kr': /yuna|유나/i,
+    'zh-cn': /ting[-\s]?ting|婷婷/i,
+    'ja-jp': /kyoko|きょうこ|キョウコ|京子/i,
+   }[locale];
+   if (isAppleMobile() && preferredAppleVoice) {
     const localVoices = matching.filter(candidate => candidate.localService);
     const voiceLabel = candidate => `${candidate.name} ${candidate.voiceURI}`;
-    const yunaVoices = localVoices.filter(candidate => /yuna|유나/i.test(voiceLabel(candidate)));
-    const preferredVoices = yunaVoices.length ? yunaVoices : localVoices;
+    const namedVoices = localVoices.filter(candidate => preferredAppleVoice.test(voiceLabel(candidate)));
+    const preferredVoices = namedVoices.length ? namedVoices : localVoices;
     voice = preferredVoices.find(candidate => /premium|프리미엄/i.test(voiceLabel(candidate)))
      || preferredVoices.find(candidate => /enhanced|향상|고품질/i.test(voiceLabel(candidate)))
-     || yunaVoices[0]
+     || namedVoices[0]
      || voice;
     if (locale === 'ko-kr') speech.rate = 0.94;
    }
