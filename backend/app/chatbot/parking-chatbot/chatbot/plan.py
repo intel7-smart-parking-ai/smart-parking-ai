@@ -152,12 +152,13 @@ def _car_talk(text):
 
 def _wants(text, zone=None):
     from .dialog.query import _ALERT, _CHOICE, _FEE, _FUTURE, _LOCATION, _PARKING, _PAYMENT, _POLICY
-    from .parser import _VACANCY_AMOUNT
+    from .parser import TRAVEL_TIME, _VACANCY_AMOUNT
     money = bool(MONEY_WORDS.search(text))
     checks = (
         ("vacancy", (bool(_PARKING.search(text)) or bool(zone)) and not (money and not SPOT_WORDS.search(text))
          and not (_car_talk(text) and not SPOT_WORDS.search(text))),
-        ("fee", bool(_FEE.search(text)) and (money or not _VACANCY_AMOUNT.search(text))),
+        # '얼마나 걸려?'(이동 시간)의 '얼마'는 요금이 아니다
+        ("fee", bool(_FEE.search(text)) and (money or not (_VACANCY_AMOUNT.search(text) or TRAVEL_TIME.search(text)))),
         ("location", bool(_LOCATION.search(text)) and _car_talk(text)),
         ("payment", bool(_PAYMENT.search(text))),
         ("rates", bool(re.search(r"요금\s*(?:기준|표|체계|정책)|기본\s*요금|시간당|최대\s*요금|싸|싼|저렴|비싸", text))),

@@ -402,6 +402,10 @@ _VACANCY_AMOUNT = re.compile(r"얼마나\s*(?:\S+\s*){0,2}?(?:여유|남|비어|
 _SAFETY = re.compile(r"경보|화재|불\s*났|연기|대피|피난|비상|관리자|직원|호출|결제|정산")
 
 
+# 서비스 이용 방법을 묻는 말('주차장 이용 방법 알려줘', '어떻게 이용해?'). 빈자리 질문이 아니다.
+USAGE_GUIDE = re.compile(r"(?:이용|사용)\s*(?:방법|법|안내|절차|순서)|어떻게\s*(?:이용|사용|쓰)|(?:이용|사용)\s*(?:은|는)?\s*어떻게|쓰는\s*(?:법|방법)")
+# 이동·소요 시간을 묻는 말('얼마나 걸려', '몇 분 걸려'). '얼마'가 있어도 요금 질문이 아니다. 안내 자료에 없는 정보다.
+TRAVEL_TIME = re.compile(r"얼마나\s*(?:오래\s*|더\s*)?걸|몇\s*(?:분|시간)\s*(?:이나\s*|정도\s*|쯤\s*)?걸|걸리(?:나|는|니|지|죠|ㄹ|려|냐)|걸려\s*(?:요)?\s*\??$|소요\s*시간")
 _FEE_TABLE = re.compile(r"(?:요금|주차비)\s*(?:을|를|좀|은|는|에\s*대해)?\s*(?:안내|설명|소개)|(?:요금|주차비)\s*(?:정보|표|체계|정책)|"
                         r"주차\s*요금\s*(?:을|를|좀)?\s*(?:알려|보여|궁금)")
 _OWN_FEE = re.compile(r"(?:내|제|우리)\s*(?:차|요금|주차)|나온|나왔|지금까지|내야|낼\s|정산|결제|\d")
@@ -420,6 +424,9 @@ def _with_analytics(text: str, result: ParseResult) -> ParseResult:
         return result
     params = {k: v for k, v in result.params.items() if k in ("lot_id", "zone")}
     lots = extract_lots(text)
+    if USAGE_GUIDE.search(text) and not params.get("zone"):
+        # 화면의 '이용 방법' 버튼("주차장 이용 방법 알려줘"). 전에는 '주차장 … 알려줘'라서 빈자리 답이 나갔다(11/12 연결성 점검).
+        return ParseResult("help", {"usage_guide": True}, "rule")
     if asks_fee_table(text) and not lots and not params.get("lot_id"):
         # 화면의 '주차요금' 버튼("주차요금 안내해줘")은 요금표를 묻는 말이다. 전에는 내 차 요금으로 보고 차량 번호를 물었다(11/11 시연).
         # 내 차 요금은 '요금 얼마야', '23번 요금'처럼 따로 묻는다.
@@ -432,6 +439,9 @@ def _with_analytics(text: str, result: ParseResult) -> ParseResult:
         money = re.search(r"요금|비용|주차비|돈|금액|\d\s*원", text)
         if result.intent == "get_fee" and occupancy and not money:
             return ParseResult("get_empty_spots", {**params, "occupancy": True}, "rule")
+        # 'D로 가면 얼마나 걸려?'의 '얼마'는 이동 시간이다(11/11 내부 검사: 요금으로 보고 요금 정책을 답했다).
+        if result.intent == "get_fee" and not money and TRAVEL_TIME.search(text):
+            return ParseResult("unknown", {}, "rule")
         # '자리가 얼마나 여유가 있어?', '얼마나 남았어?'의 '얼마'도 요금이 아니라 빈자리 질문이다.
         if result.intent == "get_fee" and not money and _VACANCY_AMOUNT.search(text):
             if not lots and not params.get("lot_id"):

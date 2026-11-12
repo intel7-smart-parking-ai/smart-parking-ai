@@ -127,6 +127,22 @@ HAND = {
         "· __NAME0__：最初の__NUMBER1__分は__AMOUNT2__、以降__NUMBER3__分ごとに__AMOUNT4__、1日最大__AMOUNT5__"),
     "내 차 요금은 차량 번호와 함께 물어봐 주세요.": (
         "For your own car's fee, ask with your vehicle number.", "查询您的车辆费用时，请同时告知车辆号码。", "ご自身の車の料金は、車両番号と一緒にお尋ねください。"),
+    # ---- 이용 방법(화면의 '이용 방법' 버튼)
+    "이용 방법을 알려 드릴게요.": ("Here is how to use this service.", "为您介绍使用方法。", "ご利用方法をご案内します。"),
+    "· 빈자리: ‘빈자리 알려줘’라고 하거나 주차장 이름으로 물어보세요.": (
+        "· Vacancy: ask \"Any free spaces?\" or ask by parking lot name.",
+        "· 空车位：请说“有空车位吗”，或用停车场名称询问。", "· 空き状況：「空きはありますか」と聞くか、駐車場名でお尋ねください。"),
+    "· 내 차 위치와 요금: 차량 번호를 알려 주세요. 차 지붕 스티커의 두 자리 숫자예요.": (
+        "· Your car's location and fee: tell me your vehicle number. It is the two-digit number on the sticker on the car roof.",
+        "· 车辆位置和费用：请告知车辆号码，即车顶贴纸上的两位数字。", "· 車の位置と料金：車両番号をお知らせください。車の屋根のステッカーにある二桁の数字です。"),
+    "· 김해공항·신세계 주차장 차량은 번호판 뒤 네 자리로 찾아요.": (
+        "· For cars in the Gimhae Airport and Shinsegae parking lots, use the last four digits of the license plate.",
+        "· 金海机场和新世界停车场的车辆请用车牌后四位查询。", "· 金海空港・新世界の駐車場の車は、ナンバープレートの下四桁で検索します。"),
+    "· 결제: 요금을 확인한 뒤 ‘결제해줘’라고 하면 금액을 다시 확인하고 모의 결제해요.": (
+        "· Payment: after checking the fee, say \"Pay\" and I will confirm the amount again and make a mock payment.",
+        "· 支付：确认费用后说“帮我支付”，我会再次确认金额并进行模拟支付。", "· お支払い：料金を確認したあと「支払って」と言うと、金額をもう一度確認して模擬決済を行います。"),
+    "· 도움이 필요하면 ‘관리자 불러줘’라고 해 주세요.": (
+        "· If you need help, say \"Call the manager\".", "· 需要帮助时，请说“叫管理员”。", "· お困りのときは「管理者を呼んで」と言ってください。"),
 }
 
 

@@ -131,6 +131,9 @@ _FEE_FIELDS = ("car_id", "lot_id", "session_id", "entry_at", "fee", "minutes", "
                "payment_status", "payment_blocked", "updated_at", "stale", "is_mock", "data_source")
 
 
+_NOT_FOUND = "해당 차량의 입차 기록을 찾지 못했습니다."
+
+
 def _total_summary(rows):
     """여러 주차장 빈자리의 합계를 코드가 계산해 넘긴다(규칙 답의 '총 N자리'와 같은 기준: 경보·이용 제한·확인 불가는 뺀다).
 
@@ -289,7 +292,7 @@ class ReadTools:
             except _READ_FAILURES:
                 raw = {"unavailable": True}
             if raw is None:
-                errors[key] = "해당 차량의 입차 기록을 찾지 못했습니다."
+                errors[key] = _NOT_FOUND
             elif not isinstance(raw, dict) or raw.get("unavailable") or raw.get("status") in {"error", "conflict", "unavailable"}:
                 errors[key] = "현재 조회할 수 없습니다."
             elif raw.get("car_id") != car_id:
@@ -318,6 +321,9 @@ class ReadTools:
             location["lot_name"] = config.catalog.name(location["lot_id"])
         payload = {"car_id": car_id, "location": location, "fee": fee, "errors": errors,
                    "partial": bool(errors and available)}
+        if not available and errors and set(errors.values()) == {_NOT_FOUND}:
+            # 조회는 됐고 입차 기록이 없다는 것이 확인됐다(조회 실패와 다르다) → '입차 기록을 찾지 못했어요'라고 답할 근거
+            payload["not_found"] = True
         raw = {"stale": any(x.get("stale") for x in available),
                "is_mock": any(x.get("is_mock") or x.get("data_source") == "mock" for x in available),
                "updated_at": available[0].get("updated_at") if len(available) == 1 else None}
@@ -344,7 +350,9 @@ class ReadTools:
         if isinstance(found, dict) and found.get("status") == "unavailable":
             return self._finish("virtual_vehicle_info", {}, error="가상 주차장 차량 정보를 지금 조회할 수 없습니다.")
         if not found or not found.get("lot_id"):
-            return self._finish("virtual_vehicle_info", {"vehicle_number": number, "found": False},
+            # not_found: 조회는 됐고 그 차가 없다는 것이 확인됐다 → '찾지 못했어요'라고 답할 근거(근거 검사가 허용)
+            return self._finish("virtual_vehicle_info", {"vehicle_number": number, "plate_number": plate, "found": False,
+                                                         "not_found": True},
                                 error="그 번호로 주차 중인 가상 주차장 차량을 찾지 못했습니다.")
         try:
             fee = self._read_once(("virtual_fee", number, plate), lambda: self.adapter.virtual_fee(found))
