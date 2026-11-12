@@ -103,6 +103,21 @@ class CameraCheckTests(unittest.TestCase):
             self.assertIn("부산역주차장은 만차예요.", text, question)
             self.assertNotIn("카메라", text, question)
 
+    def test_the_screen_card_does_not_say_full_either(self):
+        # 11/12 시연 사이트 캡처: 글은 '개발원 주차장 확인된 빈자리 없음'인데 그 아래 카드는 개발원을 '만차'라고 표시했다.
+        # 화면은 카드의 status_reason을 그대로 보여 준다(frontend/src/ChatResponseCard.jsx).
+        for i, question in enumerate(("주차장별 빈자리 몇 개 있어?", "개발원 주차장 자리 있어?", "전기차 자리 있어?")):
+            r = e.handle(f"k{i}", text=question)
+            lots = r["card"]["data"]["lots"]
+            self.assertEqual(lots["A"]["status_reason"], "확인된 빈자리 없음", question)
+            self.assertEqual(lots["B"]["status_reason"], "만차", question)            # 진짜 만차는 그대로
+            self.assertIsNone(lots["C"]["status_reason"], question)
+            self.assertNotIn("만차", r["text"].split("부산역")[0], question)
+        # 카드와 글이 같은 숫자를 말한다: 합계 = 빈자리가 있는 주차장의 display_empty 합
+        r = e.handle("k9", text="주차장별 빈자리 몇 개 있어?")
+        total = sum(lot["display_empty"] for lot in r["card"]["data"]["lots"].values() if not lot["status_reason"])
+        self.assertIn(f"총 {total}자리", r["text"])
+
     def test_code_rendered_comparison_has_no_full_word(self):
         from chatbot.dialog.render import _parking_status_line, render_observed_parking
         result, _ = self.status(["A", "B", "C"])
