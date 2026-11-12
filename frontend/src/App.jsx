@@ -12,6 +12,7 @@ import SessionHistoryPanel from './SessionHistoryPanel.jsx';
 import {TablePagination,useTablePage} from './TablePagination.jsx';
 import SimulationPanel from './SimulationPanel.jsx';
 import ChatPanel from './ChatPanel.jsx';
+import ConnectionLoading from './ConnectionLoading.jsx';
 import RevenuePanel from './RevenuePanel.jsx';
 import MobileParkingApp from './MobileParkingApp.jsx';
 import ParkingWelcome from './ParkingWelcome.jsx';
@@ -221,7 +222,7 @@ function Dashboard({admin=false,mobileAdmin=false}){
  const navigate=id=>{setPage(id);setError('');if(admin){const url=new URL(window.location.href);url.searchParams.set('page',id);window.history.replaceState(null,'',url)}};
  const search=<Search car={car} setCar={setCar} onSubmit={find} busy={busy} disabled={false} kind={lookupKind} onKindChange={kind=>{setLookupKind(kind);setCar('');setInvoice(null);setError('')}}/>;
  const found=invoice&&<div className={"found-card"+(['C','D'].includes(invoice.lot_id)?' with-entry-photo':'')}><Icon name="pin"/><div><span className="full-plate-number">{invoice.lookup_type==='sticker'?t('스티커 ')+invoice.car_id:invoice.plate_number||invoice.vehicle_number}</span><span>{t("차량의 현재 주차 위치")}</span><strong>{lotName(invoice.lot_id)} · {invoice.space_id}</strong>{invoice.fee_notice&&<p className="fee-note">{invoice.fee_notice}</p>}{invoice.fee&&<div className="found-fee"><span>{invoice.fee.payment?'결제 완료':t('예상 주차요금')}</span><b>{money(invoice.fee.amount_krw)}</b><small>{t("서버 이용 시간 기준 요금")}</small></div>}</div>{['C','D'].includes(invoice.lot_id)&&<EntryVehiclePhoto plate={invoice.plate_number||invoice.vehicle_number}/>}<button aria-label={t("지도에서 보기")} onClick={()=>{setLotId(invoice.lot_id);setPage('parking');setFilter('all')}}><Icon name="arrow"/></button></div>;
- if(!lot)return <div className="initial-loading">PARK : ON<span>{error||t('Docker API에 연결하는 중…')}</span>{error&&<button className="button primary" onClick={()=>location.reload()}>{t("다시 연결")}</button>}</div>;
+ if(!lot)return <ConnectionLoading error={error}/>;
  const occupied=lot.spaces.filter(s=>s.status==='occupied').length;
  return <><header className="app-header"><a className="brand" href={`/?app=0&lang=${getLanguage()}`} aria-label="PARK : ON 시작화면"><BrandWordmark/></a><div className="header-tools"><div className="theme-switch" aria-label={t("화면 밝기")}>{[['light',t('☀ 밝게')],['dark',t('☾ 어둡게')]].map(([id,label])=><button key={id} onClick={()=>setTheme(id)} className={theme===id?'selected':''} aria-pressed={theme===id}>{label}</button>)}</div><span className="demo-label"><i/>{isDemo?t('목업 시연'):t('팀 API')}</span>{admin?<><span className="badge real">관리자 전용</span><button type="button" className="mobile-app-entry" aria-pressed={alertAudio.state==='on'} onClick={alertAudio.toggle}>{alertAudio.state==='on'?'알림음 끄기':alertAudio.state==='unavailable'?'알림음 다시 시도':'알림음 켜기'}</button><form action="/auth/logout" method="post"><button className="text-button" type="submit">로그아웃</button></form><a className="mobile-app-entry" href="/">사용자 페이지</a></>:<span className="badge real">{t("사용자 서비스")}</span>}{admin
   ? <a className="mobile-app-entry" href={`/admin/?lot=${encodeURIComponent(lotId)}&page=parking${mobileAdmin?'':'&app=1'}`}>{mobileAdmin?'웹 관제':'모바일 관제'}</a>

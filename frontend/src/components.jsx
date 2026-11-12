@@ -1,4 +1,5 @@
 import {t} from './serviceLocale.js';
+import BrandWordmark from './BrandWordmark.jsx';
 import {formatKST,sourceLabel} from './uiState.js';
 import {dataSource, request} from './api.js';
 import {useEffect, useId, useRef, useState} from 'react';
@@ -28,18 +29,46 @@ export function ParkingMap({lot,filter,setFilter,alerts,found,onSpace,admin=fals
  const zone=(z)=><div className={`space-column ${z==='B'?'right':''}`}>{lot.spaces.filter(s=>s.zone===z).map(s=>{const dim=filter!=='all'&&!(filter==='empty'?s.status==='empty':s.space_type===filter);const warned=alerts.some(a=>a.lot_id===lot.lot_id&&a.space_id===s.space_id&&a.status!=='resolved');const selected=found?.lot_id===lot.lot_id&&found.space_id===s.space_id;return <button key={s.space_id} className={`parking-space space-${s.space_type} ${s.status} ${dim?'dim':''} ${warned?'has-alert':''} ${selected?'found':''}`} aria-label={`${s.space_id} ${types[s.space_type]} ${statuses[s.status]}${admin&&s.car_id?' 차량 '+(s.plate_number||s.vehicle_number||s.car_id):''}`} onClick={()=>onSpace(s)}><span className="bay-id">{s.space_id}</span>{admin&&s.car_id?<Car number={s.vehicle_number||s.car_id}/>:s.status==='occupied'?<span className='unknown-bay'>{t("주차 중")}</span>:s.status==='empty'?<span className="empty-bay">{t("주차 가능")}</span>:<span className="unknown-bay">{s.status==='uncertain'?'?':'×'}<small>{statuses[s.status]}</small></span>}{['ev','accessible'].includes(s.space_type)&&<span className={`bay-type ${s.space_type}`}>{s.space_type==='ev'?<Icon name="bolt"/>:<span aria-hidden="true">♿</span>}<span>{s.space_type==='ev'?t('전기차 전용'):t('장애인 전용')}</span></span>}{warned&&<span className="alert-corner">!</span>}</button>})}</div>;
  return <section className="map-panel" data-map-filter={filter}><div className="map-toolbar"><div className="filter-tabs">{(dataSource==='demo'?[['all',t('전체 보기')],['empty',t('빈자리')],['ev',t('전기차')],['accessible',t('장애인')]]:[['all',t('전체 보기')],['empty',t('빈자리')]]).map(([id,label])=><button key={id} onClick={()=>setFilter(id)} className={filter===id?'active':''} aria-pressed={filter===id}>{label}</button>)}</div></div><div className="map-meta"><span><i/>{lot.type==='real'?t('실물 도면 시연'):t('가상 주차장 시연')}</span><span>{t("주차칸을 눌러 상세 확인")}</span></div><div className="parking-map"><div className="map-topline"><div><strong>{lot.lot_id}</strong><span>01–{String(Math.ceil(lot.spaces.length/2)).padStart(2,'0')}</span></div><div className="road-label">{lot.spaces.length} SPACES<span>ONE WAY</span></div><div><strong>{lot.lot_id}</strong><span>{String(Math.ceil(lot.spaces.length/2)+1).padStart(2,'0')}–{lot.spaces.length}</span></div></div><div className="map-body">{zone('A')}<div className="driveway"><div className="lane"><small>{t("진입")}</small><span>↑</span><i/><span>↑</span></div><div className="lane lane-out"><small>{t("진출")}</small><span>↓</span><i/><span>↓</span></div><span className="center-road">SLOW</span></div>{zone('B')}</div><div className="map-entrance"><span><b>↑</b> {t("입구")} <small>ENTRY</small></span><span><b>↓</b> {t("출구")} <small>EXIT</small></span></div></div><p className="layout-note">{lot.spaces.length}{t("면 · API 응답 기준")}<br/>{lot.spaces.some(s=>s.space_type==='unknown')?t('열 배치는 조회용 표현이며 실제 도면·전용 구역 정보는 미제공입니다.'):t('전용 구역 위치는 시연 배치입니다.')}</p></section>
 }
-export function Detail({space,lot,onClose,onFee,canQuote=true,showDetails=false}){const ref=useRef();const [fee,setFee]=useState(null);
-const [feeError,setFeeError]=useState(false);
-useEffect(()=>{
- let active=true;
- setFee(null);
- setFeeError(false);
- if(showDetails && space.status==='occupied' && space.session_id){
-  request('/sessions/'+encodeURIComponent(space.session_id)+'/fee')
-   .then(result=>{if(active)setFee(result)})
-   .catch(()=>{if(active)setFeeError(true)});
- }
- return()=>{active=false};
-},[space.session_id,space.status,showDetails]);
-useEffect(()=>{ref.current.showModal()},[]);return <dialog className="parking-space-detail" aria-label={space.space_id} ref={ref} onClose={onClose} onClick={e=>{if(e.target===ref.current)ref.current.close()}}><div className="dialog-header"><span className="eyebrow">PARKING SPACE</span><button aria-label={t("닫기")} onClick={()=>ref.current.close()}><Icon name="close"/></button></div><h2>{space.space_id}</h2><p className="parking-space-lot">{lot.name}</p><span className={`detail-status ${space.status}`}>{statuses[space.status]}</span>{showDetails ? <dl><div><dt>{t("입차 시각")}</dt><dd>{time(space.entry_at)}</dd></div><div><dt>{t("마지막 관측")}</dt><dd>{time(space.observed_at)}</dd></div><div><dt>{t("데이터 출처")}</dt><dd>{sourceLabel(space)}</dd></div><div><dt>{t("구역 유형")}</dt><dd>{types[space.space_type]}</dd></div><div><dt>{lot.type==='real'?t('스티커 번호'):t('차량번호')}</dt><dd>{lot.type==='real'?space.car_id||'—':space.plate_number||space.vehicle_number||t('미등록')}</dd></div></dl> : <><p className="parking-space-type">{types[space.space_type]} {t("주차칸")}</p>{space.status==='occupied'&&<p className="parking-space-hint">{t("내 차 찾기에서 차량을 조회하면 해당 주차칸의 이용시간과 요금을 확인할 수 있어요.")}</p>}</>}{showDetails&&(space.car_id||space.vehicle_number)&&canQuote?<button className="button primary full" onClick={()=>{ref.current.close();onFee(lot.type==='real'?space.car_id:space.vehicle_number,lot.type==='real'?'sticker':'plate')}}>{lot.type==='real'?t('스티커 ')+space.car_id:space.plate_number||space.vehicle_number} {canQuote?t('요금 확인'):t('위치 조회')} <Icon name="arrow"/></button>:<button className="button primary full" onClick={()=>ref.current.close()}>{t("확인")}</button>}</dialog>}
+export function Detail({space,lot,onClose,onFee,canQuote=true,showDetails=false,mobile=false}) {
+ const ref=useRef();
+ const [fee,setFee]=useState(null);
+ const [feeError,setFeeError]=useState(false);
+ const occupied=space.status==='occupied';
+ useEffect(()=>{
+  let active=true;
+  setFee(null);
+  setFeeError(false);
+  if(occupied && space.session_id && canQuote) {
+   request('/sessions/'+encodeURIComponent(space.session_id)+'/fee')
+    .then(result=>{if(active)setFee(result)})
+    .catch(()=>{if(active)setFeeError(true)});
+  }
+  return()=>{active=false};
+ },[space.session_id,occupied,canQuote]);
+ useEffect(()=>{ref.current.showModal()},[]);
+ const vehicle=lot.type==='real'?space.car_id:space.plate_number||space.vehicle_number;
+ const feeUnavailable=feeError||!space.session_id||!canQuote;
+ return <dialog className={'parking-space-detail'+(mobile?' parking-space-detail--mobile':'')} aria-label={space.space_id} ref={ref} onClose={onClose} onClick={e=>{if(e.target===ref.current)ref.current.close()}}>
+  <div className="dialog-header">{mobile?<BrandWordmark showCar={false}/>:<span className="eyebrow">PARKING SPACE</span>}<button aria-label={t("닫기")} onClick={()=>ref.current.close()}><Icon name="close"/></button></div>
+  <h2>{space.space_id}</h2>
+  <div className="parking-space-meta"><p className="parking-space-lot">{lot.name}</p><span className={'detail-status '+space.status}>{statuses[space.status]}</span></div>
+  <p className="parking-space-type">{types[space.space_type]} {t("주차칸")}</p>
+  {mobile&&occupied&&<dl className="parking-space-fee-summary">
+   <div><dt>{t("주차요금")}</dt><dd>{fee?money(fee.amount_krw):feeUnavailable?t('정보 확인 불가'):t('조회 중…')}</dd></div>
+   <div><dt>{t("이용 시간")}</dt><dd>{fee?fee.duration_minutes+t('분'):feeUnavailable?'—':t('조회 중…')}</dd></div>
+  </dl>}
+  {(showDetails||occupied)&&<dl>
+   <div><dt>{lot.type==='real'?t('스티커 번호'):t('차량번호')}</dt><dd>{vehicle??'—'}</dd></div>
+   <div><dt>{t("입차 시각")}</dt><dd>{time(fee?.entry_at||space.entry_at)}</dd></div>
+   {occupied&&!mobile&&<>
+    <div><dt>{t("이용 시간")}</dt><dd>{fee?fee.duration_minutes+t('분'):feeUnavailable?t('정보 확인 불가'):t('조회 중…')}</dd></div>
+    <div><dt>{t("주차요금")}</dt><dd>{fee?money(fee.amount_krw):feeUnavailable?t('정보 확인 불가'):t('조회 중…')}</dd></div>
+   </>}
+   {showDetails&&<div><dt>{t("마지막 관측")}</dt><dd>{time(space.observed_at)}</dd></div>}
+  </dl>}
+  {showDetails&&vehicle&&canQuote
+   ? <button className="button primary full" onClick={()=>{ref.current.close();onFee(lot.type==='real'?space.car_id:space.vehicle_number,lot.type==='real'?'sticker':'plate')}}>{t('요금 확인')} <Icon name="arrow"/></button>
+   : <button className="button primary full" onClick={()=>ref.current.close()}>{t("확인")}</button>}
+ </dialog>;
+}
 export function Search({car,setCar,onSubmit,busy,disabled=false,kind='sticker',onKindChange}){return <div className="vehicle-search"><div className="lookup-tabs" aria-label={t("차량 검색 방식")}>{[['sticker',t('스티커로 찾기')],['plate',t('차량번호로 찾기')]].map(([id,label])=><button key={id} type="button" disabled={busy||disabled} className={kind===id?'selected':''} aria-pressed={kind===id} onClick={()=>onKindChange(id)}>{label}</button>)}</div><form className="search-form" onSubmit={e=>{e.preventDefault();onSubmit(car)}}><div className="search-input"><Icon name="car"/><input aria-label={kind==='sticker'?t('차량 스티커 번호'):t('차량번호 뒤 4자리')} inputMode="numeric" autoComplete="off" pattern={kind==='sticker'?'[0-9]{1,2}':'[0-9]{4}'} maxLength={kind==='sticker'?2:4} required placeholder={kind==='sticker'?t('예: 12'):t('예: 9012')} disabled={disabled} value={car} onChange={e=>setCar(e.target.value.replace(/[^0-9]/g,''))}/></div><button className="button primary" disabled={busy||disabled} aria-label={t("차량 위치와 요금 조회")}><Icon name="search"/></button></form><p className="lookup-hint">{kind==='sticker'?t('실물 주차장 · 스티커 번호 10~99'):t('가상 주차장 · 차량번호 뒤 4자리')}</p></div>}

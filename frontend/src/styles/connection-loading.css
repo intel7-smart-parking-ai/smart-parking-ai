@@ -1,0 +1,31 @@
+.connection-loading {
+ display: grid;
+ place-items: center;
+ min-height: 100dvh;
+ padding: 32px 24px;
+ box-sizing: border-box;
+ background: #fff;
+ color: #13233e;
+ text-align: center;
+}
+.connection-loading-content { display: flex; flex-direction: column; align-items: center; width: min(100%, 440px); }
+.connection-loading-mark { display: flex; flex-direction: column; align-items: center; width: 88px; padding: 8px 0; border: 3px solid #164cce; border-radius: 18px; color: #164cce; background: #f0f6ff; }
+.connection-loading-mark > span { font-size: 30px; line-height: 1; font-weight: 800; }
+.connection-loading-mark .icon { width: 48px; height: 40px; }
+.connection-loading .parkon-brand-lockup { margin-top: 20px; }
+.connection-loading .parkon-wordmark { width: 170px; height: 40px; }
+.connection-loading h1 { margin: 32px 0 0; font-size: clamp(19px, 4vw, 24px); font-weight: 750; line-height: 1.5; overflow-wrap: anywhere; }
+.connection-loading p { margin: 10px 0 0; font-size: 15px; color: #64748b; }
+.connection-loading .button { margin-top: 20px; }
+.connection-loading-dots { display: flex; gap: 10px; margin-top: 32px; }
+.connection-loading-dots i { width: 10px; height: 10px; border-radius: 50%; background: #164cce; animation: connection-dot 1.2s ease-in-out infinite; }
+.connection-loading-dots i:nth-child(2) { animation-delay: .16s; }
+.connection-loading-dots i:nth-child(3) { animation-delay: .32s; }
+@keyframes connection-dot { 0%, 70%, 100% { opacity: .3; } 35% { opacity: 1; } }
+html[data-theme="dark"] .connection-loading { background: #141b25; color: #edf3ff; }
+html[data-theme="dark"] .connection-loading p { color: #b5c3d8; }
+html[data-theme="dark"] .connection-loading-mark { background: #243244; color: #a6c4ff; border-color: #87acff; }
+html[data-theme="dark"] .connection-loading .parkon-wordmark text { fill: #edf3ff; stroke: #edf3ff; }
+html[data-theme="dark"] .connection-loading .parkon-wordmark tspan { fill: #87acff; stroke: #87acff; }
+html[data-theme="dark"] .connection-loading-dots i { background: #87acff; }
+@media(prefers-reduced-motion:reduce) { .connection-loading-dots i { animation: none; opacity: .7; } }

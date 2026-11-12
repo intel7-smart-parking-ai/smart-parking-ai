@@ -40,7 +40,7 @@
 }
 
 .app-home-hero + .app-section-heading {
-  margin-block: 40px 12px;
+  margin-block: 24px;
 }
 
 .app-home-hero + .app-section-heading h2 {
@@ -352,7 +352,7 @@
   }
 
   .app-home-hero + .app-section-heading {
-    margin-block: 25px 8px;
+    margin-block: 16px;
   }
 
   .mobile-app-main > .app-lot-list {
@@ -418,12 +418,18 @@ html .mobile-chat-screen .chat-panel {
   flex: none;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 16px;
+  padding: 2px 12px;
   margin: 0;
 }
-.mobile-chat-screen .chat-panel-heading .button { margin: 0; }
-.mobile-chat-close { display: grid; place-items: center; width: 44px; height: 44px; color: #182233; }
-.mobile-chat-close .icon { width: 28px; height: 28px; }
+.mobile-chat-screen .chat-panel-heading .button {
+  margin: 0;
+  min-height: 30px;
+  padding: 6px 10px;
+  font-size: 10px;
+  line-height: 1.3;
+}
+.mobile-chat-close { display: grid; place-items: center; width: 36px; height: 36px; color: #182233; }
+.mobile-chat-close .icon { width: 22px; height: 22px; }
 .mobile-chat-screen .chat-content {
   display: block;
   flex: 1;
@@ -453,3 +459,92 @@ html .mobile-chat-screen .chat-panel {
 .app-chat-avatar>.icon{width:16px;height:16px}
 
 .mobile-app-main .app-section-heading>.app-map-title{color:#102a4c}
+
+/* Mobile screens share the theme selected on the welcome screen. */
+html[data-theme="dark"] .mobile-parking-app {
+  --parkon-page: #141b25;
+  --parkon-text: #edf3ff;
+  --parkon-secondary: #b5c3d8;
+  --parkon-border: #3b4a60;
+  --parkon-primary: #416ed8;
+  color-scheme: dark;
+  background: var(--parkon-page);
+  color: var(--parkon-text);
+}
+html[data-theme="dark"] .mobile-parking-app :is(.mobile-app-header, .mobile-bottom-nav, .app-lot-card, .app-search-card, .map-panel, .app-lot-switch button, .app-result-plate) {
+  background: #1b2635;
+  border-color: var(--parkon-border);
+  color: var(--parkon-text);
+}
+html[data-theme="dark"] .mobile-parking-app :is(.app-switch-web, .app-connection button, .search-input, .lookup-tabs, .app-example, .app-help-card, .app-lot-number, .filter-tabs button) {
+  background: #26364c;
+  border-color: var(--parkon-border);
+  color: #c7d9ff;
+}
+html[data-theme="dark"] .mobile-parking-app :is(.app-section-heading h1, .app-section-heading h2, .app-map-title, .app-lot-name > b, .app-car-result > h2, .app-result-plate, .app-search-card input) {
+  color: var(--parkon-text);
+}
+html[data-theme="dark"] .mobile-parking-app :is(.app-lot-name > small, .app-data-note, .app-intro, .lookup-hint, .app-connection, .app-section-heading > span, .app-car-result > p, .app-result-fee span, .app-map-summary > span, .app-lot-switch small, .lookup-tabs button, .mobile-bottom-nav button) {
+  color: var(--parkon-secondary);
+}
+html[data-theme="dark"] .mobile-parking-app input::placeholder { color: #a3b4cf; opacity: 1; }
+html[data-theme="dark"] .mobile-parking-app .app-lot-progress { background: #34455f; }
+html[data-theme="dark"] .mobile-parking-app .app-lot-progress i { background: #86aaff; }
+html[data-theme="dark"] .mobile-parking-app :is(.app-free-count, .app-result-fee strong, .app-map-summary strong) { color: #8ae0bb; }
+html[data-theme="dark"] .mobile-parking-app :is(.app-car-result, .app-result-fee) { border-color: var(--parkon-border); }
+html[data-theme="dark"] .mobile-parking-app :is(.app-lot-switch button.selected, .filter-tabs button.active, .lookup-tabs button.active) { background: #365fba; color: #fff; }
+html[data-theme="dark"] .mobile-parking-app .mobile-bottom-nav button.selected { color: #aac8ff; }
+html[data-theme="dark"] .mobile-parking-app .mobile-bottom-nav button.selected .icon { background: #2a4061; box-shadow: 0 0 0 5px #2a4061; }
+html[data-theme="dark"] .mobile-parking-app :is(.app-offline-notice, .app-search-error) { background: #3c2d22; border-color: #8d6741; color: #ffe0b4; }
+html[data-theme="dark"] .mobile-parking-app .app-offline-notice button { color: #ffe0b4; }
+.parking-space-detail--mobile .parking-space-fee-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: 12px;
+  padding: 18px 14px;
+  margin: 20px 0 8px;
+  border-radius: 14px;
+  background: #eaf0ff;
+}
+.parking-space-detail--mobile .parking-space-fee-summary > div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.parking-space-detail--mobile .parking-space-fee-summary dt { color: #243650; font-size: 12px; }
+.parking-space-detail--mobile .parking-space-fee-summary dd { margin: 0; font-weight: 750; font-size: clamp(18px, 6vw, 28px); line-height: 1.25; overflow-wrap: anywhere; color: #164cce; }
+.parking-space-detail--mobile .parking-space-fee-summary > div + div { border-left: 1px solid #cbd8f0; padding-left: 12px; }
+.parking-space-detail--mobile .parking-space-fee-summary > div + div dd { color: #182941; font-size: clamp(18px, 5vw, 24px); }
+html[data-theme="dark"] .parking-space-detail--mobile { background: #1b2635; border-color: #3b4a60; color: #edf3ff; }
+html[data-theme="dark"] .parking-space-detail--mobile .parking-space-fee-summary { background: #263b5c; }
+html[data-theme="dark"] .parking-space-detail--mobile .parking-space-fee-summary :is(dt, dd) { color: #c7d9ff; }
+/* Mobile fee-focused detail matches the selected concept. */
+dialog.parking-space-detail--mobile {
+  width: min(380px, calc(100% - 32px));
+  padding: 20px;
+  border-radius: 24px;
+  color: #101827;
+}
+.parking-space-detail--mobile .dialog-header { margin-bottom: 26px; }
+.parking-space-detail--mobile .dialog-header .parkon-wordmark { width: 112px; height: 26px; }
+.parking-space-detail--mobile .dialog-header button .icon { width: 22px; height: 22px; }
+.parking-space-detail--mobile h2 { font-size: 40px; font-weight: 800; letter-spacing: -1px; margin: 0 0 12px; }
+.parking-space-detail--mobile .parking-space-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.parking-space-detail--mobile .parking-space-meta .parking-space-lot { font-size: 17px; font-weight: 700; color: inherit; }
+html .parking-space-detail--mobile .parking-space-meta .detail-status { margin: 0; border-radius: 6px; padding: 4px 8px; font-size: 13px; }
+.parking-space-detail--mobile .parking-space-type { display: table; padding: 4px 10px; margin-top: 12px; border: 1px solid #d6dce6; background: #f1f3f7; border-radius: 9px; font-weight: 500; font-size: 13px; }
+.parking-space-detail--mobile .parking-space-fee-summary { margin-top: 28px; padding: 20px 14px; border-radius: 12px; }
+.parking-space-detail--mobile .parking-space-fee-summary dt { font-size: 13px; font-weight: 650; color: #182234; }
+.parking-space-detail--mobile .parking-space-fee-summary dd { font-size: clamp(26px, 8vw, 34px); font-weight: 800; letter-spacing: -1px; }
+.parking-space-detail--mobile > dl:not(.parking-space-fee-summary) { margin: 16px 0 0; border-top: 1px solid #dce3ef; }
+.parking-space-detail--mobile > dl:not(.parking-space-fee-summary) > div { align-items: center; gap: 12px; padding: 16px 0; font-size: 13px; }
+.parking-space-detail--mobile > dl:not(.parking-space-fee-summary) dt { color: inherit; }
+.parking-space-detail--mobile > dl:not(.parking-space-fee-summary) dd { margin: 0; text-align: right; font-weight: 650; }
+.parking-space-detail--mobile > .button.full { margin-top: 30px; background: #084bdb; min-height: 48px; font-size: 15px; font-weight: 700; }
+html[data-theme="dark"] .parking-space-detail--mobile { color: #edf3ff; }
+html[data-theme="dark"] .parking-space-detail--mobile .parking-space-type { background: #26364c; border-color: #3b4a60; }
+html[data-theme="dark"] .parking-space-detail--mobile .parking-space-fee-summary dt { color: #c7d9ff; }
