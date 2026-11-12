@@ -1,4 +1,12 @@
 export default {
+  "주차 지도에서 주차장을 선택하고 빈자리, 전기차, 장애인 필터로 원하는 칸을 찾으세요.": ["Select a parking lot on the map, then filter by available, EV or accessible spaces.", "在停车地图上选择停车场，然后按空位、电动车或无障碍车位筛选。", "駐車マップで駐車場を選び、空き・EV・障害者用で絞り込めます。"],
+  "내 차 찾기 및 요금 확인": ["Find your car and check fees", "查找车辆与费用", "車と料金を確認"],
+  "개발원·부산역은 스티커 번호 두 자리, 김해공항·신세계 백화점은 차량번호 뒤 네 자리로 검색하세요.": ["Use the two-digit sticker number for Development Center and Busan Station, or the last four plate digits for Gimhae Airport and Shinsegae.", "开发院和釜山站使用两位贴纸编号，金海机场和新世界百货使用车牌后四位。", "開発院と釜山駅はステッカー番号2桁、金海空港と新世界百貨店はナンバー下4桁で検索します。"],
+  "주차 챗봇 사용하기": ["Use the parking chatbot", "使用停车聊天助手", "駐車チャットボットを使う"],
+  "주차 챗봇에서 바로가기 버튼을 누르거나 빈자리, 내 차 위치, 주차요금을 질문하세요.": ["Use a shortcut in the chatbot or ask about available spaces, your car's location or parking fees.", "点击聊天助手的快捷按钮，或询问空位、车辆位置和停车费。", "チャットボットのショートカットを使うか、空き・車の位置・駐車料金を質問できます。"],
+  "마이크를 눌러 질문할 수도 있어요. 말을 멈춘 뒤 3초가 지나면 인식된 질문이 자동으로 전송돼요.": ["You can also tap the microphone. Your recognized question is sent after three seconds of silence.", "也可以点击麦克风提问。停止说话三秒后，识别到的问题会自动发送。", "マイクからも質問できます。話し終えて3秒経つと、認識された質問が自動送信されます。"],
+  "빈자리 알려줘": ["Show me available spaces", "告诉我有哪些空位", "空きスペースを教えて"],
+  "주차 정보 다시 확인하기": ["Refresh parking information", "刷新停车信息", "駐車情報を更新"],
   "참고": ["Note", "提示", "お知らせ"],
   "모의 화재 경보 중": ["mock fire alarm active", "模拟火灾警报中", "模擬火災警報中"],
   "정상 운영": ["operating normally", "正常运营", "通常営業"],

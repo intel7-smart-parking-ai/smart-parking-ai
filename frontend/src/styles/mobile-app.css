@@ -262,7 +262,7 @@
   margin: 0;
 }
 
-.mobile-app-main:has(> .app-help-card) {
+.mobile-app-main:has(> .parking-help) {
   padding-top: 10px;
   padding-bottom: calc(84px + env(safe-area-inset-bottom));
 }
@@ -275,14 +275,14 @@
   mix-blend-mode: multiply;
 }
 
-.mobile-app-main:has(> .app-help-card) {
+.mobile-app-main:has(> .parking-help) {
   display: flex;
   flex-direction: column;
   justify-content: center;
   min-height: calc(100dvh - var(--app-header-height) - env(safe-area-inset-top));
 }
 
-.mobile-app-main:has(> .app-help-card) > h1 {
+.mobile-app-main:has(> .parking-help) > h1 {
   font-size: 26px;
 }
 
@@ -302,7 +302,7 @@
     padding-bottom: calc(77px + env(safe-area-inset-bottom));
   }
 
-  .mobile-app-main:has(> .app-help-card) > .app-connection {
+  .mobile-app-main:has(> .parking-help) > .app-connection {
     margin-bottom: 8px;
   }
 
@@ -316,7 +316,7 @@
     line-height: 1.5;
   }
 
-  .mobile-app-main:has(> .app-help-card) > .app-web-link {
+  .mobile-app-main:has(> .parking-help) > .app-web-link {
     padding-block: 8px;
   }
 
@@ -424,7 +424,7 @@ html .mobile-app-main>.chat-panel .chat-form>.chat-voice-button{width:36px;min-w
 .app-chat-avatar{position:absolute;left:0;top:8px;width:21px;height:21px;display:grid;place-items:center;background:#315fce;color:white;border-radius:50%}
 .app-chat-avatar>.icon{width:16px;height:16px}
 
-.mobile-app-main:has(>.app-help-card)>h1{color:#102a4c}
+.mobile-app-main:has(>.parking-help)>h1{color:#102a4c}
 
 .mobile-app-main .app-section-heading>.app-map-title{color:#102a4c}
 
