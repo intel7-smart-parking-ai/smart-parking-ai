@@ -85,7 +85,8 @@ def most(snapshot, alert, zone=None):
         head = f"지금 {_scope(zone)}빈자리는 {gwa(names)} {iga(_name(best[-1]))} 각각 {top}자리로 {verb}."
     rest = [(k, n) for k, n in ranked if k not in best]
     if rest:
-        head += "\n다음은 " + " · ".join(f"{_name(k)} {_spots(n)}" for k, n in rest) + "예요."
+        # 카메라 확인 중인 칸이 있는 주차장은 여기서도 '만차'라고 하지 않는다(11/12 전수검사: '개발원주차장 만차 · 부산역주차장 만차')
+        head += "\n다음은 " + " · ".join(f"{_name(k)} {_spots(n, N.unchecked(snapshot['lots'].get(k) or {}, zone))}" for k, n in rest) + "예요."
     head += _excluded_note(excluded)
     chips = [N.go_id(k, zone) for k in best[:3]] + ["empty_all"]
     return head, (best[0] if len(best) == 1 else None), (best if len(best) > 1 else []), chips[:4]
@@ -209,7 +210,7 @@ def section_rank(snapshot, alert, lot):
         return (f"{name}은 지금 확인된 빈자리가 없어요." if checking else f"{name}은 지금 모든 구역이 만차예요."), ["empty_all", "call_admin"], derived
     head = (f"{name}에서는 {' · '.join(k + ' 구역' for k in best)}" + ("이" if len(best) == 1 else "이 각각")
             + f" {top}자리로 가장 여유 있어요.")
-    rest = [f"{k} 구역 {_spots(n)}" for k, n in counts if k not in best]
+    rest = [f"{k} 구역 {_spots(n, sum(state == 'uncertain' for state in groups[k]))}" for k, n in counts if k not in best]
     if rest:
         head += "\n" + " · ".join(rest) + "예요."
     return head, [N.go_id(lot), "lot_" + lot, "empty_all"], derived

@@ -120,8 +120,10 @@ def guard(s, text, alert=None):
         if permission:
             return permission, {"intent": "parking_permission"}
     from .parser import extract_virtual
+    # '그 차 나가도 돼?' — 앞에서 찾은 가상 차량을 가리키는 말도 차를 말한 것이다(11/12 전수검사: 차량 번호를 다시 물었다)
+    refers_virtual = isinstance(getattr(s, "virtual_vehicle", None), dict) and re.search(r"그\s*차|그\s*차량|그거|걔|아까\s*(?:그|차)", text)
     has_car = (re.search(r"(?<!\d)\d{2,4}\s*(?:번|차)|\d{2,3}[가-힣]\d{4}", text) or extract_virtual(text)
-               or getattr(s, "car_id", None))
+               or getattr(s, "car_id", None) or refers_virtual)
     if LEAVING.search(text) and not has_car and not getattr(s, "pending", None):
         return LEAVING_REPLY, {"intent": "exit_payment", "chips": ["fee", "find_car"]}
     if FORGOT_NUMBER.search(text):

@@ -523,6 +523,14 @@ def h_get_fee(s, p):
         line = _ahead_line(fee, (fee or {}).get("lot_id"), ahead) if isinstance(fee, dict) else None
         if line:
             result = (result[0] + "\n" + line,) + tuple(result[1:])
+    # '23번 출차해도 돼?', '나가도 돼?' — 요금만 답하면 묻는 것에 답이 안 된다(11/12 전수검사: "현재 요금은 1,000원이에요."로 끝남).
+    # 가상 차량 답과 같은 말로 결제·출차 안내를 붙인다. 출차·차단기는 챗봇이 처리하지 않는다.
+    asked = s.history[-1][1] if s.history else ""
+    if _asks_exit(asked) and isinstance(result, tuple) and isinstance(result[0], str) and "출차 완료" not in result[0]:
+        if "이미 결제했어요" in result[0]:
+            result = (result[0] + "\n" + T.EXIT_PAID,) + tuple(result[1:])
+        elif "현재 요금은" in result[0] or "지금 나가면" in result[0]:
+            result = (result[0] + "\n" + T.EXIT_UNPAID,) + tuple(result[1:])
     return result
 
 
@@ -1044,6 +1052,20 @@ def _plausible_reading(s, r, text):
         return r
     from .parser import ParseResult
     p = plan.for_text(text)
+    # '그 차 요금 얼마야?', '그 차 나가도 돼?' — 앞에서 찾은 가상 차량(번호판)을 이어서 묻는 말.
+    # 대화 AI는 기억한 번호로 조회하는데, 규칙 답은 '차량 번호를 알려주세요'로 떨어졌다(11/12 전수검사).
+    if (not r.params.get("car_id") and not r.params.get("virtual_vehicle") and not s.car_id and not p.car
+            and r.intent in ("unknown", "help", "get_fee", "find_my_car")):
+        from .conversation_turn import virtual_number
+        from .parser import extract_virtual
+        remembered = virtual_number(text, s)
+        if remembered and not extract_virtual(text):
+            asks_where = bool(re.search(r"어디|위치|찾", text))
+            return ParseResult("find_my_car" if asks_where else "get_fee", {"virtual_vehicle": remembered}, "rule")
+    # '어디 있다고?', '위치 다시 알려줘' — 앞에서 말한 내 차의 위치를 다시 묻는 말(11/12 전수검사: '잘 이해하지 못했어요')
+    if (r.intent in ("unknown", "help") and s.car_id and not p.car and not p.lots and not p.zone
+            and re.search(r"어디\s*(?:에\s*)?(?:있|야|라고|였|지|더라)|위치", text)):
+        return ParseResult("find_my_car", {"car_id": s.car_id}, "rule")
     if (r.intent == "find_my_car" and not r.params.get("car_id")
             and re.search(r"비었|비어|빈\s*(?:자리|칸|곳)|자리\s*(?:있|남)|칸\s*(?:있|남)", text)):
         # '장애인 주차 어디가 비었어?'는 내 차 찾기가 아니라 빈자리(봇 점검 11/10, AI 시간 초과 뒤 규칙 답)

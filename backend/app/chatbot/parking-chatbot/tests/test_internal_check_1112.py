@@ -204,3 +204,100 @@ class ConnectionTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class FullCheckFindingsTests(unittest.TestCase):
+    """11/12 전수검사(로컬 서버에서 챗봇 답·카드를 서버 값과 대조)에서 나온 것. 숫자·합계·카드·요금표는 모두 일치했고,
+    아래는 답이 묻는 것에 못 미치던 곳이다."""
+
+    def setUp(self):
+        e.reset_all()
+        self.addCleanup(e.reset_all)
+
+    def test_exit_question_about_a_sticker_car_gets_payment_guidance(self):
+        # 전에는 "현재 요금은 1,000원이에요."로 끝났다(가상 차량은 결제·출차 안내가 붙는데 실물 차량은 없었다)
+        r = e.handle("x1", text="23번 출차해도 돼?")
+        self.assertRegex(r["text"], r"\d[\d,]*원")
+        self.assertIn("출차 전에 요금을 먼저 결제해 주세요.", r["text"])
+        r = e.handle("x2", text="23번 요금 얼마야?")                     # 요금만 물으면 붙지 않는다
+        self.assertNotIn("출차 전에", r["text"])
+
+    def test_exit_question_after_naming_my_car(self):
+        e.handle("x3", text="23번 차 어디야?")
+        self.assertIn("출차 전에 요금을 먼저 결제해 주세요.", e.handle("x3", text="나가도 돼?")["text"])
+
+    def test_follow_up_about_a_found_virtual_car(self):
+        first = e.handle("v1", text="1724 어디 있어?")["text"]
+        self.assertIn("17가1724", first)
+        for text in ("그 차 요금 얼마야?", "그 차 어디 있다고?"):
+            r = e.handle("v1", text=text)
+            self.assertIn("17가1724", r["text"], text)
+            self.assertNotIn("차량 번호를 알려주세요", r["text"], text)
+        r = e.handle("v1", text="그 차 나가도 돼?")
+        self.assertIn("17가1724", r["text"])
+        self.assertIn("출차 전에 요금을 먼저 결제해 주세요.", r["text"])
+
+    def test_that_car_without_any_earlier_car_still_asks(self):
+        r = e.handle("v2", text="그 차 요금 얼마야?")
+        self.assertIn("차량 번호를 알려주세요", r["text"])
+        r = e.handle("v3", text="그 차 나가도 돼?")
+        self.assertIn("차량 번호를 알려 주시면", r["text"])
+
+    def test_new_lines_are_translated_without_the_model(self):
+        from chatbot import templates
+        locale.load_seed()
+        with patch.object(locale, "_translate_call", side_effect=AssertionError("모델을 부르면 안 된다")):
+            for line in (templates.EXIT_UNPAID, templates.EXIT_PAID):
+                for language in locale.LANGUAGES:
+                    self.assertIsNotNone(locale._translate_known((line,), language), (language, line))
+
+    def test_where_again_about_my_car(self):
+        # 실모델에서도 "어디 있다고?"의 AI 답이 버려지고 "잘 이해하지 못했어요"가 나갔다
+        e.handle("w1", text="23번 차 어디야?")
+        r = e.handle("w1", text="어디 있다고?")
+        self.assertIn("23번 차", r["text"])
+        self.assertRegex(r["text"], r"[A-D]-\d{2}")
+        self.assertIn("잘 이해하지 못했어요", e.handle("w2", text="어디 있다고?")["text"])    # 말한 차가 없으면 그대로
+
+    def test_foreign_quick_buttons_go_back_to_the_korean_button_sentence(self):
+        # 영어·일본어 '주차요금' 버튼 문장이 모델 번역으로 "주차요금 알려줘"가 되어 차량 번호를 물었다
+        with patch.object(locale, "_question_to_korean", side_effect=AssertionError("모델을 부르면 안 된다")):
+            for korean, texts in locale._QUICK_BUTTON_TEXTS.items():
+                for language, foreign in zip(("en", "zh-CN", "ja"), texts):
+                    self.assertEqual(locale.question_to_korean_noted(foreign, language), (korean, None), foreign)
+            self.assertEqual(locale.question_to_korean_noted("show me the parking fees", "en")[0], "주차요금 안내해줘")
+        # 화면이 보내는 문장과 같은지(프론트 번역 파일이 바뀌면 여기서 걸린다)
+        from pathlib import Path
+        source = Path(__file__).resolve().parents[5] / "frontend" / "src" / "serviceTranslations.js"
+        if source.exists():
+            text = source.read_text(encoding="utf-8")
+            for texts in locale._QUICK_BUTTON_TEXTS.values():
+                for foreign in texts:
+                    self.assertIn(foreign, text)
+
+    def test_foreign_fee_button_shows_the_fee_table(self):
+        import importlib.util
+        if importlib.util.find_spec("fastapi") is None:
+            self.skipTest("FastAPI not installed")
+        from fastapi.testclient import TestClient
+        from server_fastapi import app
+        client = TestClient(app)
+        for language, sentence, expected in (("en", "Show me the parking fees.", "Here are the parking fees for each lot."),
+                                             ("ja", "駐車料金を教えてください。", "駐車場ごとの料金表です。"),
+                                             ("zh-CN", "请介绍停车费用。", "以下是各停车场的收费标准。")):
+            r = client.post("/api/v1/chat", json={"session_id": "fb-" + language, "text": sentence, "language": language}).json()
+            self.assertIn(expected, r["text"], language)
+
+    def test_am_pm_is_decided_from_the_korean_text(self):
+        masked, replacements = locale._mask("오전 10시 37분에 들어왔어요.", "en")
+        out = locale._restore("It entered at __NUMBER0__:__NUMBER1__ AM/PM.", masked, replacements)
+        self.assertEqual(out, "It entered at 10:37 AM.")
+        masked, replacements = locale._mask("오후 3시 20분에 들어왔어요.", "en")
+        self.assertEqual(locale._restore("It entered at __NUMBER0__:__NUMBER1__ AM/PM.", masked, replacements), "It entered at 3:20 PM.")
+
+    def test_ask_vehicle_answer_is_translated_into_japanese_too(self):
+        from chatbot import templates
+        locale.load_seed()
+        with patch.object(locale, "_translate_call", side_effect=AssertionError("모델을 부르면 안 된다")):
+            for language in locale.LANGUAGES:
+                self.assertIsNotNone(locale._translate_known((templates.ASK_VEHICLE,), language), language)
