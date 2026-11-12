@@ -31,23 +31,49 @@ const EVACUATION_CHIPS = new Set(['evacuate', 'alert_near', 'alert_where']);
 export default function ChatPanel({lots,alerts,lotId,voiceInput=false,appAppearance=false,connected=false,onClose}) {
  const spokenDraft = useRef(null);
  const utterance = useRef(null);
+ const speechStartTimer = useRef(null);
+ const speechPrimed = useRef(false);
  const speechGeneration = useRef(0);
  const [speechError,setSpeechError]=useState('');
+ const [voiceReply,setVoiceReply]=useState(null);
+ const voiceMuted = useRef(false);
+ const [muted,setMuted]=useState(false);
+ const playbackError = () => t('음성 답변을 재생할 수 없습니다. 기기의 해당 언어 음성 설정을 확인해 주세요.');
  function stopSpeech() {
   speechGeneration.current++;
+  clearTimeout(speechStartTimer.current);
   utterance.current = null;
   window.speechSynthesis?.cancel();
  }
- const [chat] = useState(() => createChatSession({
-  request, makeId: requestId, language: getLanguage(),
-  async onVoiceReply(text, language) {
-   if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
+ function isAppleMobile() {
+  return /iPhone|iPad|iPod/.test(navigator.userAgent)
+   || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+ }
+ function primeMobileSpeech() {
+  const synth = window.speechSynthesis;
+  if (!isAppleMobile() || speechPrimed.current || !synth || !window.SpeechSynthesisUtterance) return;
+  // Safari may require the first synthesis request to happen in a tap handler.
+  const activation = new window.SpeechSynthesisUtterance('음');
+  activation.lang = 'ko-KR';
+  activation.volume = 0;
+  try {
+   synth.speak(activation);
+   speechPrimed.current = true;
+  } catch {
+   // The reply can still be played with the explicit playback button.
+  }
+ }
+ async function playVoiceReply(text, language, manual = false) {
    stopSpeech();
    setSpeechError('');
    const generation=speechGeneration.current;
    const synth=window.speechSynthesis;
+   if (!synth || !window.SpeechSynthesisUtterance) {
+    setSpeechError(playbackError());
+    return;
+   }
    let voices=synth.getVoices();
-   if (!voices.length) {
+   if (!manual && !voices.length) {
     await new Promise(resolve=>{
      const ready=()=>{clearTimeout(timer);synth.removeEventListener('voiceschanged',ready);resolve()};
      const timer=setTimeout(ready,1500);
@@ -59,23 +85,73 @@ export default function ChatPanel({lots,alerts,lotId,voiceInput=false,appAppeara
    const speech = new window.SpeechSynthesisUtterance(formatLotName(text));
    speech.lang = {ko:'ko-KR', en:'en-US', 'zh-CN':'zh-CN', ja:'ja-JP'}[language] || language || 'ko-KR';
    const locale=speech.lang.toLowerCase();
-   const matching=voices.filter(voice=>voice.lang.toLowerCase().split('-')[0]===locale.split('-')[0]);
-   speech.voice=matching.find(voice=>voice.lang.toLowerCase()===locale&&voice.localService)
-    ||matching.find(voice=>voice.lang.toLowerCase()===locale)||matching[0]||null;
-   speech.onend = () => { if (utterance.current === speech) utterance.current = null; };
-   speech.onerror = event => {
+   const voiceLocale = voice => voice.lang.toLowerCase().replaceAll('_', '-');
+   const matching=voices.filter(voice=>voiceLocale(voice).split('-')[0]===locale.split('-')[0]);
+   let voice=matching.find(voice=>voiceLocale(voice)===locale&&voice.localService)
+    ||matching.find(voice=>voiceLocale(voice)===locale)||matching[0];
+   if (isAppleMobile() && locale === 'ko-kr') {
+    const localVoices = matching.filter(candidate => candidate.localService);
+    const voiceLabel = candidate => `${candidate.name} ${candidate.voiceURI}`;
+    const yunaVoices = localVoices.filter(candidate => /yuna|유나/i.test(voiceLabel(candidate)));
+    const preferredVoices = yunaVoices.length ? yunaVoices : localVoices;
+    voice = preferredVoices.find(candidate => /premium|프리미엄/i.test(voiceLabel(candidate)))
+     || preferredVoices.find(candidate => /enhanced|향상|고품질/i.test(voiceLabel(candidate)))
+     || yunaVoices[0]
+     || voice;
+    speech.rate = 0.94;
+   }
+   if (voice) speech.voice = voice;
+   speech.onstart = () => {
+    if (utterance.current === speech) clearTimeout(speechStartTimer.current);
+   };
+   speech.onend = () => {
+    if (utterance.current !== speech) return;
+    clearTimeout(speechStartTimer.current);
+    utterance.current = null;
+   };
+   speech.onerror = () => {
     if(utterance.current!==speech)return;
+    clearTimeout(speechStartTimer.current);
     utterance.current=null;
-    if(!['canceled','interrupted'].includes(event.error))setSpeechError(t('음성 답변을 재생할 수 없습니다. 기기의 해당 언어 음성 설정을 확인해 주세요.'));
+    setSpeechError(playbackError());
    };
    utterance.current = speech;
-   synth.resume();
-   synth.speak(speech);
+   speechStartTimer.current = setTimeout(() => {
+    if (utterance.current !== speech) return;
+    stopSpeech();
+    speechPrimed.current = false;
+    setSpeechError(playbackError());
+   }, 4000);
+   try {
+    if (synth.paused) synth.resume();
+    synth.speak(speech);
+   } catch {
+    stopSpeech();
+    setSpeechError(playbackError());
+   }
+ }
+ const [chat] = useState(() => createChatSession({
+  request, makeId: requestId, language: getLanguage(),
+  onVoiceReply(text, language) {
+   setVoiceReply({text, language});
+   if (!voiceMuted.current) void playVoiceReply(text, language);
   },
  }));
  const state = useSyncExternalStore(chat.subscribe,chat.getSnapshot);
+ function toggleVoicePlayback() {
+  const nextMuted = !voiceMuted.current;
+  voiceMuted.current = nextMuted;
+  setMuted(nextMuted);
+  if (nextMuted) {
+   stopSpeech();
+   setSpeechError('');
+  } else if (voiceReply) {
+   void playVoiceReply(voiceReply.text, voiceReply.language, true);
+  }
+ }
  const {draft,rows,view,busy,error,retry,restartRequired,actionEpoch} = state;
  const [showMap,setShowMap]=useState(false),[listening,setListening]=useState(false);
+ const [speaking,setSpeaking]=useState(false);
  const [testMapLot,setTestMapLot]=useState(null);
  const testLots=lots.filter(lot=>testVehicleNumbers[lot.lot_id] && lot.spaces.some(space=>space.status==='occupied' && testVehicleNumbers[lot.lot_id].includes(space.vehicle_number)));
  const testLot=testLots.find(lot=>lot.lot_id===testMapLot);
@@ -93,7 +169,7 @@ export default function ChatPanel({lots,alerts,lotId,voiceInput=false,appAppeara
  const [chargingLot,setChargingLot]=useState(null);
  const mallLot=lots.find(lot=>lot.layout_type==='mall');
  useEffect(()=>{if(unsafe)setChargingLot(null);},[unsafe]);
- function stopVoice(){clearTimeout(voiceTimer.current);voiceTimer.current=null;voiceGeneration.current++;recognition.current?.abort();recognition.current=null;setListening(false)}
+ function stopVoice(){clearTimeout(voiceTimer.current);voiceTimer.current=null;voiceGeneration.current++;recognition.current?.abort();recognition.current=null;setListening(false);setSpeaking(false)}
  useEffect(()=>{const timer=setInterval(()=>chat.poll(),2500);return()=>{clearInterval(timer);chat.cancelPending();stopSpeech();clearTimeout(voiceTimer.current);voiceGeneration.current++;recognition.current?.abort();};},[chat]);
  useEffect(()=>{chat.invalidateAlerts(alerts);},[chat,alerts]);
  useEffect(()=>{if(confirmation||unsafe||busy||restartRequired)stopVoice();},[confirmation,unsafe,busy,restartRequired]);
@@ -112,6 +188,9 @@ export default function ChatPanel({lots,alerts,lotId,voiceInput=false,appAppeara
   if(!Recognition){setVoiceError(t('이 브라우저는 음성 입력을 지원하지 않아요. 질문을 직접 입력해 주세요.'));return;}
   clearTimeout(voiceTimer.current);
   stopSpeech();
+  primeMobileSpeech();
+  setVoiceReply(null);
+  setSpeechError('');
   spokenDraft.current=null;
   const input=new Recognition(),epoch=++voiceGeneration.current,revision=draftRevision.current;
   let spokenText='';
@@ -126,7 +205,7 @@ export default function ChatPanel({lots,alerts,lotId,voiceInput=false,appAppeara
     setVoiceError('');
     spokenDraft.current=null;
     chat.send({voice:true});
-   },3000);
+   },2000);
   }
   input.lang={ko:'ko-KR',en:'en-US','zh-CN':'zh-CN',ja:'ja-JP'}[getLanguage()];
   input.continuous=true;
@@ -138,8 +217,17 @@ export default function ChatPanel({lots,alerts,lotId,voiceInput=false,appAppeara
    chat.edit(spokenText);
    afterSilence();
   };
-  input.onspeechstart=()=>{if(current())clearTimeout(voiceTimer.current);};
-  input.onspeechend=()=>{if(current())afterSilence();};
+  input.onspeechstart=()=>{
+   if(!current())return;
+   setSpeaking(true);
+   clearTimeout(voiceTimer.current);
+   voiceTimer.current=null;
+  };
+  input.onspeechend=()=>{
+   if(!current())return;
+   setSpeaking(false);
+   afterSilence();
+  };
   input.onerror=e=>{
    if(!current())return;
    stopVoice();
@@ -148,6 +236,8 @@ export default function ChatPanel({lots,alerts,lotId,voiceInput=false,appAppeara
   input.onend=()=>{
    if(!current())return;
    recognition.current=null;
+   setListening(false);
+   setSpeaking(false);
    if(!spokenText.trim()){stopVoice();return;}
    // Some browsers end recognition before our silence timer expires.
    if(!voiceTimer.current)afterSilence();
@@ -157,10 +247,12 @@ export default function ChatPanel({lots,alerts,lotId,voiceInput=false,appAppeara
  }
  function send(e){
   e.preventDefault();
+  if(busy||restartRequired||!draft.trim())return;
+  const voice = spokenDraft.current !== null && spokenDraft.current === draft;
+  if(listening&&(!voice||confirmation||unsafe))return;
   stopVoice();
   draftRevision.current++;
   setVoiceError('');
-  const voice = spokenDraft.current !== null && spokenDraft.current === draft;
   spokenDraft.current = null;
   chat.send({voice});
  }
@@ -232,11 +324,35 @@ export default function ChatPanel({lots,alerts,lotId,voiceInput=false,appAppeara
   {confirmation&&!unsafe&&<p className="chat-confirm-note">{t("내용을 확인한 뒤 아래 버튼으로 진행해 주세요.")}</p>}
   {chips.length>0&&<div className="chat-chips" aria-label={t("추천 선택지")}>{chips.map((chip,j)=><button type="button" key={`${actionEpoch}-${chip.id}-${j}`} disabled={busy||restartRequired||(unsafe&&(Boolean(chip.confirmation_token)||/^confirm_/.test(chip.id)))} onClick={()=>{stopVoice();chat.choose(chip,actionEpoch);}}>{formatLotName(chip.label)||chip.id}</button>)}</div>}
   {(error||voiceError)&&<p className="operation-error" role="status">{error||voiceError}</p>}
-  {speechError&&<p className="operation-error" role="status">{speechError}</p>}
+  {speechError&&!unsafe&&<p className="operation-error" role="status">{speechError}</p>}
+  {(voiceReply||muted)&&!listening&&!busy&&!unsafe&&!restartRequired&&<button type="button" className="button white" aria-label={t('음성 답변 음소거')} aria-pressed={muted} title={muted?t('음소거 해제'):t('음성 답변 음소거')} onClick={toggleVoicePlayback}>
+   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M11 5 6 9H3v6h3l5 4z"/>
+    {muted ? <path d="m16 9 6 6m0-6-6 6"/> : <path d="M15 9a4 4 0 0 1 0 6m3-9a8 8 0 0 1 0 12"/>}
+   </svg>
+  </button>}
   {retry&&<button type="button" className="button white chat-retry" disabled={busy} onClick={()=>chat.retry()}>{t("같은 요청 다시 시도")}</button>}
-  {restartRequired&&<button type="button" className="button white" onClick={()=>{stopVoice();stopSpeech();spokenDraft.current=null;chat.reset();}}>{t("대화 다시 시작")}</button>}
+  {restartRequired&&<button type="button" className="button white" onClick={()=>{stopVoice();stopSpeech();setVoiceReply(null);setSpeechError('');spokenDraft.current=null;chat.reset();}}>{t("대화 다시 시작")}</button>}
   </div>
-  <form onSubmit={send} className="search-form chat-form"><input aria-label={t("챗봇 질문")} value={draft} onChange={e=>edit(e.target.value)} placeholder={t("메세지를 입력하세요")}/>{voiceInput&&<button type="button" className="button white chat-voice-button" disabled={busy||confirmation||unsafe||restartRequired} aria-label={listening?t('듣기 종료'):t('음성 입력')} title={listening?t('듣기 종료'):t('음성 입력')} aria-pressed={listening} onClick={toggleVoice}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="8" y="2" width="8" height="13" rx="4"/><path d="M4 11v1a8 8 0 0 0 16 0v-1M12 20v3m-4 0h8M8 6h3M8 9h3"/></svg></button>}<button className="button primary chat-send-button" aria-label={busy?t('응답 대기 중…'):t('질문 보내기')} title={busy?t('응답 대기 중…'):t('질문 보내기')} disabled={busy||listening||restartRequired||!draft.trim()}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m21 3-6.5 18-4-7.5L3 9.5 21 3Z"/><path d="m10.5 13.5 5-5"/></svg></button></form>
+  <div className="chat-voice-status chat-voice-status--composer" role="status">
+   {listening&&<>
+    <span className={`chat-voice-wave${speaking?' is-speaking':''}`} aria-hidden="true"><i/><i/><i/><i/></span>
+    {speaking&&<span>{t('말하는 중…')}</span>}
+   </>}
+  </div>
+  <form onSubmit={send} className="search-form chat-form">
+   <input aria-label={t("챗봇 질문")} value={draft} onChange={e=>edit(e.target.value)} placeholder={t("메세지를 입력하세요")}/>{voiceInput&&<button type="button" className="button white chat-voice-button" disabled={busy||confirmation||unsafe||restartRequired} aria-label={listening?t('음성 입력 중지'):t('음성 입력')} title={listening?t('음성 입력 중지'):t('음성 입력')} aria-pressed={listening} onClick={toggleVoice}>
+   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{listening?<rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor"/>:<>
+   <rect x="8" y="2" width="8" height="13" rx="4"/>
+   <path d="M4 11v1a8 8 0 0 0 16 0v-1M12 20v3m-4 0h8M8 6h3M8 9h3"/>
+   </>}</svg>
+   </button>}<button className="button primary chat-send-button" aria-label={busy?t('응답 대기 중…'):t('질문 보내기')} title={busy?t('응답 대기 중…'):t('질문 보내기')} disabled={busy||restartRequired||!draft.trim()||(listening&&(spokenDraft.current!==draft||confirmation||unsafe))}>
+   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{listening?<path d="M12 19V5m-6 6 6-6 6 6"/>:<>
+   <path d="m21 3-6.5 18-4-7.5L3 9.5 21 3Z"/>
+   <path d="m10.5 13.5 5-5"/>
+   </>}</svg>
+   </button>
+   </form>
   {chargingLot&&!unsafe&&<ChargingStatus language={getLanguage()} initialLot={chargingLot} onClose={()=>setChargingLot(null)}/>}
  </section>;
 }

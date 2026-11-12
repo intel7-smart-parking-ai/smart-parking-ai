@@ -263,3 +263,48 @@ html[data-theme="dark"] .chat-panel--app :is(.chat-banner, .chat-safety, .chat-a
 }
 html[data-theme="dark"] .chat-panel--app .chat-payment-status { background: #42331e; color: #ffe2a5; }
 html[data-theme="dark"] .chat-panel--app .chat-payment-status[data-paid="true"] { background: #183b30; color: #b7f0d5; }
+
+.chat-voice-status:not(:empty) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: #eaf0ff;
+  color: #1949ac;
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+html[data-theme="dark"] .chat-voice-status:not(:empty) {
+  background: #223654;
+  color: #bdd5ff;
+}
+.chat-voice-wave {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 16px;
+}
+.chat-voice-wave i {
+  width: 3px;
+  height: 14px;
+  border-radius: 3px;
+  background: currentColor;
+  transform: scaleY(0.35);
+}
+.chat-voice-wave.is-speaking i {
+  animation: chat-voice-pulse 650ms ease-in-out infinite alternate;
+}
+.chat-voice-wave i:nth-child(2) { animation-delay: -320ms; }
+.chat-voice-wave i:nth-child(3) { animation-delay: -160ms; }
+.chat-voice-wave i:nth-child(4) { animation-delay: -480ms; }
+@keyframes chat-voice-pulse {
+  to { transform: scaleY(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .chat-voice-wave.is-speaking i {
+    animation: none;
+    transform: scaleY(0.75);
+  }
+}
